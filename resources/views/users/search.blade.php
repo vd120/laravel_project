@@ -113,7 +113,7 @@
     border: 2px solid var(--border-color);
     border-radius: 28px;
     font-size: 16px;
-    background: white;
+    background: var(--input-bg);
     color: var(--twitter-dark);
     outline: none;
     transition: all 0.3s ease;
@@ -158,7 +158,7 @@
     top: calc(100% + 12px);
     left: 0;
     right: 0;
-    background: white;
+    background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
@@ -320,7 +320,7 @@
 
 /* Search Tips */
 .search-tips {
-    background: linear-gradient(135deg, var(--twitter-light), white);
+    background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 20px;
