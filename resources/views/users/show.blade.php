@@ -116,7 +116,7 @@
             <a href="{{ route('profile.edit', $user) }}" class="btn">Edit Profile</a>
         @else
             @if(auth()->user()->isBlocking($user))
-                <!-- Show unblock button when user is blocked -->
+                
                 <button type="button" class="btn unblock-btn" data-user-id="{{ $user->id }}" data-username="{{ $user->name }}" onclick="toggleBlock(this)">Unblock</button>
                 <p style="color: #6c757d; font-size: 14px; margin: 5px 0;">You've blocked this user. They can't see your posts or interact with you.</p>
             @elseif($user->isBlocking(auth()->user()))

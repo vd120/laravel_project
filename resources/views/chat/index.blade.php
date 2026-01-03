@@ -14,7 +14,7 @@
                 </button>
             </div>
 
-            <!-- Followers Section -->
+            
             <div class="followers-section">
                 <h3>Start Chat with Followers</h3>
                 <div class="followers-list">
@@ -95,7 +95,7 @@
         </div>
     </div>
 
-    <!-- User Search Modal -->
+    
     <div id="userSearchModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">

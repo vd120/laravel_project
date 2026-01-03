@@ -14,9 +14,9 @@
         </div>
     </div>
 
-    <!-- System Information Cards -->
+    
     <div class="system-info-grid">
-        <!-- PHP Information -->
+        
         <div class="info-card">
             <div class="card-header">
                 <i class="fab fa-php"></i>
@@ -42,7 +42,7 @@
             </div>
         </div>
 
-        <!-- Laravel Information -->
+        
         <div class="info-card">
             <div class="card-header">
                 <i class="fab fa-laravel"></i>
@@ -72,7 +72,7 @@
             </div>
         </div>
 
-        <!-- Database Information -->
+        
         <div class="info-card">
             <div class="card-header">
                 <i class="fas fa-database"></i>
@@ -98,7 +98,7 @@
             </div>
         </div>
 
-        <!-- Cache Information -->
+        
         <div class="info-card">
             <div class="card-header">
                 <i class="fas fa-memory"></i>
@@ -124,7 +124,7 @@
             </div>
         </div>
 
-        <!-- File System -->
+        
         <div class="info-card">
             <div class="card-header">
                 <i class="fas fa-folder"></i>
@@ -152,7 +152,7 @@
             </div>
         </div>
 
-        <!-- Application Settings -->
+        
         <div class="info-card">
             <div class="card-header">
                 <i class="fas fa-cog"></i>
@@ -179,7 +179,7 @@
         </div>
     </div>
 
-    <!-- Server Information -->
+    
     <div class="server-info-section">
         <h2>Server Information</h2>
         <div class="server-details">
@@ -210,7 +210,7 @@
         </div>
     </div>
 
-    <!-- PHP Extensions -->
+    
     <div class="extensions-section">
         <h2>PHP Extensions</h2>
         <div class="extensions-grid">

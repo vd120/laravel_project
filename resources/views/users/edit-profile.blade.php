@@ -126,7 +126,7 @@
 
 
 
-    <!-- Delete Account Section -->
+    
     <div style="margin-top: 40px; padding: 20px; background: var(--error-bg); border: 2px solid var(--error-color); border-radius: 8px;">
         <h3 style="color: var(--error-color); margin-top: 0; margin-bottom: 15px;">⚠️ Danger Zone</h3>
 
@@ -151,7 +151,7 @@
         </button>
     </div>
 
-    <!-- Delete Account Modal -->
+    
     <div id="delete-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
         <div style="background: var(--card-bg); padding: 30px; border-radius: 8px; max-width: 500px; width: 90%; text-align: center; border: 1px solid var(--border-color);">
             <h3 style="color: var(--error-color); margin-top: 0;">Are you absolutely sure?</h3>

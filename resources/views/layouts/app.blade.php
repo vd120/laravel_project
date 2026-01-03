@@ -1761,7 +1761,7 @@
     <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
     <main class="app-layout">
         @auth
-        <!-- Left Sidebar Navigation -->
+        
         <aside class="left-sidebar">
             <nav class="nav-sidebar">
                 <a href="{{ route('home') }}" class="nav-item {{ request()->routeIs('home', 'posts.*') ? 'active' : '' }}">
@@ -1790,7 +1790,7 @@
                 </a>
 
 
-                <!-- User Profile Card -->
+                
                 <div class="user-profile-card">
                     <div class="user-info">
                         @if(auth()->user()->profile && auth()->user()->profile->avatar)
@@ -1810,13 +1810,13 @@
         </aside>
         @endauth
 
-        <!-- Main Content -->
+        
         <div class="main-content">
             @yield('content')
         </div>
 
         @auth
-        <!-- Right Sidebar -->
+        
         <aside class="right-sidebar">
             <div style="background: var(--twitter-light); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 16px;">
                 <h4 style="margin: 0 0 12px 0; font-size: 18px; color: var(--twitter-dark);">What's happening</h4>
@@ -2136,10 +2136,10 @@
         document.head.appendChild(style);
     </script>
 
-    <!-- Toast Notifications Container -->
+    
     <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; pointer-events: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"></div>
 
-    <!-- Vite Compiled Assets -->
+    
     @vite(['resources/js/bootstrap.js'])
     <script src="{{ asset('js/realtime.js') }}"></script>
 

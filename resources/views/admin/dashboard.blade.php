@@ -9,7 +9,7 @@
         <p class="page-subtitle">Complete system overview and management</p>
     </div>
 
-    <!-- Statistics Cards -->
+    
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon">
@@ -92,7 +92,7 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
+    
     <div class="quick-actions">
         <h2>Quick Actions</h2>
         <div class="actions-grid">
@@ -123,7 +123,7 @@
         </div>
     </div>
 
-    <!-- Recent Activity -->
+    
     <div class="recent-activity">
         <div class="activity-section">
             <h2>Recent Users</h2>
@@ -181,7 +181,7 @@
     </div>
 </div>
 
-<!-- Create Admin Modal -->
+
 <div id="create-admin-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">

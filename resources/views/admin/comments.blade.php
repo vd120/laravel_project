@@ -14,7 +14,7 @@
         </div>
     </div>
 
-    <!-- Search and Filters -->
+    
     <div class="filters-section">
         <form method="GET" class="filters-form">
             <div class="search-group">
@@ -28,7 +28,7 @@
         </form>
     </div>
 
-    <!-- Comments Table -->
+    
     <div class="data-table-container">
         <div class="table-header">
             <h2>Comments ({{ $comments->total() }})</h2>
@@ -81,7 +81,7 @@
             @endforeach
         </div>
 
-        <!-- Pagination -->
+        
         <div class="pagination-container">
             {{ $comments->appends(request()->query())->links() }}
         </div>

@@ -18,7 +18,7 @@
         </div>
     </div>
 
-    <!-- User Profile Summary -->
+    
     <div class="user-summary">
         <div class="user-avatar-section">
             @if($user->profile && $user->profile->avatar)
@@ -79,7 +79,7 @@
         </div>
     </div>
 
-    <!-- Statistics Cards -->
+    
     <div class="stats-overview">
         <div class="stat-card">
             <div class="stat-icon">
@@ -114,7 +114,7 @@
         </div>
     </div>
 
-    <!-- Recent Activity Tabs -->
+    
     <div class="activity-tabs">
         <div class="tab-buttons">
             <button class="tab-btn active" onclick="showTab('posts')">Recent Posts</button>

@@ -98,7 +98,7 @@
     @include('partials.comment', ['comment' => $comment])
 @endforeach
 
-@if($hasMoreComments) <!-- Show button for posts with 3+ comments -->
+@if($hasMoreComments) 
     <div class="comments-hidden" id="hidden-comments-{{ $post->id }}" style="display: none;">
         @foreach($post->comments->skip(2) as $comment)
             @include('partials.comment', ['comment' => $comment])

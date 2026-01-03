@@ -10,7 +10,7 @@
         </a>
     </div>
 
-    <!-- User Search Section -->
+    
     <div class="search-section">
         <div class="search-container">
             <div class="search-input-wrapper">

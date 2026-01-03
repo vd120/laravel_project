@@ -7,7 +7,7 @@
     <div class="story-overlay" onclick="closeViewer()"></div>
 
     <div class="story-container">
-        <!-- Story Header -->
+        
         <div class="story-header">
             <div class="story-user-info">
                 @if($user->profile && $user->profile->avatar)
@@ -35,7 +35,7 @@
             @endif
         </div>
 
-        <!-- Story Content -->
+        
         <div class="story-content" id="story-content">
             @foreach($stories as $index => $story)
             <div class="story-slide {{ $index === 0 ? 'active' : '' }}" data-story-id="{{ $story->id }}" data-index="{{ $index }}">
@@ -56,7 +56,7 @@
             @endforeach
         </div>
 
-        <!-- Story Progress -->
+        
         <div class="story-progress" id="story-progress">
             @for($i = 0; $i < $stories->count(); $i++)
             <div class="progress-bar {{ $i === 0 ? 'active' : '' }}" data-index="{{ $i }}">
@@ -65,14 +65,14 @@
             @endfor
         </div>
 
-        <!-- Video Progress (only for videos) -->
+        
         <div class="video-progress" id="video-progress" style="display: none;">
             <div class="video-progress-bar">
                 <div class="video-progress-fill" id="video-progress-fill"></div>
             </div>
         </div>
 
-        <!-- Navigation -->
+        
         <button class="nav-btn prev-btn" onclick="previousStory()">
             <i class="fas fa-chevron-left"></i>
         </button>
@@ -80,14 +80,14 @@
             <i class="fas fa-chevron-right"></i>
         </button>
 
-        <!-- Audio Controls (only for videos) -->
+        
         <div class="audio-controls" id="audio-controls" style="display: none;">
             <button class="audio-btn" id="mute-btn" onclick="toggleMute()">
                 <i class="fas fa-volume-mute"></i>
             </button>
         </div>
 
-        <!-- Reaction Controls -->
+        
         <div class="reaction-controls" id="reaction-controls">
             <button class="reaction-btn" id="reaction-btn" onclick="toggleReactions()">
                 <i class="far fa-heart"></i>

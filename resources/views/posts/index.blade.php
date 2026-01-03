@@ -3,7 +3,6 @@
 @section('content')
 <div style="padding: 20px 0;">
 
-<!-- Stories Section -->
 @if($followedUsersWithStories->count() > 0 || $myStories->count() > 0)
 <div class="stories-section">
     <div class="stories-header">
@@ -13,7 +12,6 @@
         </a>
     </div>
     <div class="stories-container">
-        <!-- Your Story -->
         @if($myStories->count() > 0)
             @foreach($myStories as $story)
             <div class="story-item" data-story-id="{{ $story->id }}" onclick="viewStory('{{ auth()->user()->name }}', {{ $story->id }})">
@@ -56,7 +54,6 @@
         </div>
         @endif
 
-        <!-- Friends' Stories -->
         @foreach($followedUsersWithStories as $user)
             @foreach($user->activeStories as $story)
             <div class="story-item" data-story-id="{{ $story->id }}" onclick="viewStory('{{ $user->name }}', {{ $story->id }})">
@@ -123,12 +120,10 @@
     @endforeach
 </div>
 
-<!-- Loading indicator for infinite scroll -->
 <div id="loading-indicator" style="display: none; text-align: center; padding: 20px;">
     <i class="fas fa-spinner fa-spin"></i> Loading more posts...
 </div>
 
-<!-- End of content indicator -->
 <div id="end-of-content" style="display: none; text-align: center; padding: 20px; color: #666;">
     <i class="fas fa-check-circle"></i> You've seen all posts!
 </div>

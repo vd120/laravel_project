@@ -23,7 +23,7 @@
             @endif
         </div>
 
-        <!-- Combined Viewers and Reactions Section -->
+        
         <div class="viewers-section">
             <h3>Views & Reactions ({{ $viewerData->count() }})</h3>
             <div class="viewers-list">

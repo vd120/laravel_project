@@ -14,7 +14,7 @@
         </div>
     </div>
 
-    <!-- Search and Filters -->
+    
     <div class="filters-section">
         <form method="GET" class="filters-form">
             <div class="search-group">
@@ -28,7 +28,7 @@
         </form>
     </div>
 
-    <!-- Stories Table -->
+    
     <div class="data-table-container">
         <div class="table-header">
             <h2>Stories ({{ $stories->total() }})</h2>
@@ -87,7 +87,7 @@
             @endforeach
         </div>
 
-        <!-- Pagination -->
+        
         <div class="pagination-container">
             {{ $stories->appends(request()->query())->links() }}
         </div>
