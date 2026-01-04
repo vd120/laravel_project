@@ -58,6 +58,17 @@ function checkPasswordStrength() {
         return;
     }
 
+    // Hide password strength indicators when password field is empty
+    if (password.length === 0) {
+        strengthIndicator.style.display = 'none';
+        strengthText.style.display = 'none';
+        return;
+    }
+
+    // Show indicators when password is not empty
+    strengthIndicator.style.display = 'block';
+    strengthText.style.display = 'block';
+
     let strength = 0;
     let feedback = [];
 
