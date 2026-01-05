@@ -120,14 +120,16 @@
     align-items: flex-start;
     gap: 12px;
     padding: 16px;
-    background: white;
+    background: var(--card-bg);
     border-radius: 12px;
     border: 1px solid var(--border-color);
-    transition: box-shadow 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .user-card:hover {
     box-shadow: var(--shadow);
+    transform: translateY(-1px);
+    border-color: var(--twitter-blue);
 }
 
 .user-avatar-section {

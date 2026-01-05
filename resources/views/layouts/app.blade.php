@@ -1997,12 +1997,13 @@
 
             const dialog = document.createElement('div');
             dialog.style.cssText = `
-                background: white;
+                background: var(--card-bg);
+                border: 1px solid var(--border-color);
                 border-radius: 16px;
                 padding: 24px;
                 max-width: 400px;
                 width: 90%;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                box-shadow: var(--shadow);
                 text-align: center;
                 animation: dialogFadeIn 0.2s ease-out;
             `;
@@ -2011,7 +2012,7 @@
             title.textContent = 'Confirm Logout';
             title.style.cssText = `
                 margin: 0 0 12px 0;
-                color: #14171A;
+                color: var(--twitter-dark);
                 font-size: 20px;
                 font-weight: 600;
             `;
@@ -2020,7 +2021,7 @@
             message.textContent = 'Are you sure you want to log out of your account?';
             message.style.cssText = `
                 margin: 0 0 20px 0;
-                color: #657786;
+                color: var(--twitter-gray);
                 font-size: 16px;
                 line-height: 1.4;
             `;
@@ -2036,9 +2037,9 @@
             cancelButton.textContent = 'Cancel';
             cancelButton.style.cssText = `
                 padding: 10px 20px;
-                border: 2px solid #E1E8ED;
-                background: white;
-                color: #657786;
+                border: 2px solid var(--border-color);
+                background: var(--card-bg);
+                color: var(--twitter-gray);
                 border-radius: 20px;
                 font-size: 14px;
                 font-weight: 500;
@@ -2052,7 +2053,7 @@
             logoutButton.style.cssText = `
                 padding: 10px 20px;
                 border: none;
-                background: #dc3545;
+                background: var(--error-color);
                 color: white;
                 border-radius: 20px;
                 font-size: 14px;
@@ -2064,12 +2065,12 @@
 
             // Add hover effects
             cancelButton.onmouseover = () => {
-                cancelButton.style.background = '#F7F9FA';
-                cancelButton.style.borderColor = '#AAB8C2';
+                cancelButton.style.background = 'var(--hover-bg)';
+                cancelButton.style.borderColor = 'var(--twitter-gray)';
             };
             cancelButton.onmouseout = () => {
-                cancelButton.style.background = 'white';
-                cancelButton.style.borderColor = '#E1E8ED';
+                cancelButton.style.background = 'var(--card-bg)';
+                cancelButton.style.borderColor = 'var(--border-color)';
             };
 
             logoutButton.onmouseover = () => {
