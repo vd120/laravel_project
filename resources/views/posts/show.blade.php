@@ -19,7 +19,7 @@
         </div>
 
         @if($post->content)
-            <div class="content">{{ $post->content }}</div>
+            <div class="content">{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($post->content) !!}</div>
         @endif
 
         @if($post->media && $post->media->count() > 0)

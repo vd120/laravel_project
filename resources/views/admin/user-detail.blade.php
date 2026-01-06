@@ -157,7 +157,7 @@
                     @foreach($user->comments->take(10) as $comment)
                     <div class="comment-item">
                         <div class="comment-content">
-                            <p>{{ $comment->content }}</p>
+                            <p>{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content) !!}</p>
                         </div>
                         <div class="comment-meta">
                             <span>On post by {{ $comment->post->user->name }}</span>

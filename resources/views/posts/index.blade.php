@@ -363,7 +363,8 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    white-space: nowrap;
 }
 
 .post .user a {
@@ -603,9 +604,11 @@
     }
 
     .post .user {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        justify-content: flex-start;
     }
 
     .post .content {
@@ -633,45 +636,34 @@
     }
 }
 
-/* Clean Comment Design */
+/* Modern Comment Design */
 .comment {
-    margin-bottom: 8px;
-    padding: 8px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-}
-
-.comment.main-comment {
-    border-left: 2px solid var(--twitter-blue);
-    padding-left: 10px;
-}
-
-/* Twitter-like Comments Design */
-.comment {
-    margin-bottom: 12px;
-    padding: 12px 16px;
+    margin-bottom: 16px;
+    padding: 16px;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 16px;
-    transition: all 0.2s ease;
     position: relative;
+    transition: all 0.2s ease;
 }
 
 .comment:hover {
-    background: var(--hover-bg);
-    border-color: rgba(29, 161, 242, 0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
 }
 
 .comment.main-comment {
-    border-left: 3px solid var(--twitter-blue);
+    border-left: 5px solid var(--twitter-blue);
     padding-left: 20px;
+    margin-bottom: 20px;
 }
 
 .comment.nested-comment {
-    margin-left: 24px;
-    background: rgba(29, 161, 242, 0.02);
-    border: 1px solid rgba(29, 161, 242, 0.1);
+    margin-left: 40px;
+    margin-bottom: 12px;
+    position: relative;
+    border-left: 3px solid rgba(29, 161, 242, 0.3);
+    padding-left: 16px;
 }
 
 .comment.nested-comment::before {
@@ -682,33 +674,63 @@
     width: 20px;
     height: 2px;
     background: var(--border-color);
+    opacity: 0.6;
 }
 
 .comment.level-1 {
-    margin-left: 28px;
+    margin-left: 32px;
+    background: rgba(29, 161, 242, 0.02);
+}
+
+.comment.level-1::before {
+    left: -20px;
+    width: 16px;
 }
 
 .comment.level-2 {
-    margin-left: 52px;
+    margin-left: 64px;
+    background: rgba(29, 161, 242, 0.04);
+    border-left-color: rgba(29, 161, 242, 0.4);
+}
+
+.comment.level-2::before {
+    left: -20px;
+    width: 16px;
 }
 
 .comment.level-3 {
-    margin-left: 76px;
+    margin-left: 96px;
+    max-width: calc(100% - 96px);
+    background: rgba(29, 161, 242, 0.06);
+    border-left-color: rgba(29, 161, 242, 0.5);
+}
+
+.comment.level-3::before {
+    left: -20px;
+    width: 16px;
+}
+
+/* Reduce margins for deeply nested comments on very small screens */
+@media (max-width: 320px) {
+    .comment.level-3 {
+        margin-left: 16px;
+        max-width: calc(100% - 16px);
+    }
 }
 
 /* Comment Avatar */
 .comment-avatar {
     position: absolute;
-    top: 16px;
-    left: 16px;
+    top: 8px;
+    left: 8px;
 }
 
 .comment-user-avatar,
 .comment-user-avatar-placeholder {
-    width: 36px;
-    height: 36px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    border: 2px solid var(--border-color);
+    border: 1px solid var(--border-color);
 }
 
 .comment-user-avatar {
@@ -721,16 +743,16 @@
     align-items: center;
     justify-content: center;
     color: var(--twitter-gray);
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .main-comment .comment-avatar {
-    left: 20px;
+    left: 10px;
 }
 
 /* Comment Content Wrapper */
 .comment-content-wrapper {
-    margin-left: 52px;
+    margin-left: 32px;
 }
 
 /* Comment Header */
@@ -738,30 +760,28 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .comment-user-info {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .comment-user-name {
-    font-weight: 600;
+    font-weight: 500;
     color: var(--twitter-blue);
     text-decoration: none;
-    font-size: 14px;
-    transition: color 0.2s ease;
+    font-size: 13px;
 }
 
 .comment-user-name:hover {
-    color: var(--twitter-dark);
     text-decoration: underline;
 }
 
 .comment-time {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--twitter-gray);
 }
 
@@ -779,38 +799,36 @@
     border: none;
     color: var(--error-color);
     cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    font-size: 12px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 11px;
 }
 
 .comment-delete-btn:hover {
     background: rgba(244, 33, 46, 0.1);
-    transform: scale(1.1);
 }
 
 /* Comment Body */
 .comment-body {
-    margin-bottom: 12px;
+    margin-bottom: 6px;
 }
 
 .comment-text {
-    line-height: 1.5;
+    line-height: 1.4;
     color: var(--twitter-dark);
-    font-size: 14px;
+    font-size: 13px;
     word-wrap: break-word;
 }
 
 /* Comment Footer */
 .comment-footer {
     border-top: 1px solid var(--border-color);
-    padding-top: 8px;
+    padding-top: 4px;
 }
 
 .comment-interactions {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     align-items: center;
 }
 
@@ -818,27 +836,22 @@
 .comment-like-btn {
     background: none;
     border: none;
-    color: var(--twitter-gray);
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 13px;
+    padding: 3px 6px;
+    border-radius: 12px;
+    font-size: 11px;
     font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 4px;
-    transition: color 0.2s ease;
-    position: relative;
+    gap: 3px;
 }
 
 .comment-like-btn i {
-    font-size: 14px;
-    transition: all 0.2s ease;
+    font-size: 12px;
 }
 
 .comment-like-count {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11px;
 }
 
 /* Reply Button */
@@ -847,13 +860,13 @@
     border: none;
     color: var(--twitter-gray);
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 16px;
-    font-size: 13px;
+    padding: 3px 6px;
+    border-radius: 12px;
+    font-size: 11px;
     font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     transition: all 0.2s ease;
 }
 
@@ -863,7 +876,7 @@
 }
 
 .comment-reply-btn i {
-    font-size: 11px;
+    font-size: 10px;
 }
 
 /* Reply Form */
@@ -975,184 +988,280 @@
 /* Comment Replies */
 .comment-replies {
     margin-top: 12px;
-    padding-left: 16px;
-    border-left: 2px solid var(--border-color);
 }
 
-/* Mobile Responsive Comments - Enhanced */
+/* Simple Mobile Responsive */
 @media (max-width: 768px) {
     .comment {
         padding: 12px;
-        margin-bottom: 14px;
-        border-radius: 10px;
+        margin-bottom: 12px;
+        border-radius: 8px;
     }
 
     .comment.main-comment {
         padding-left: 16px;
     }
 
-.comment.nested-comment {
-    margin-left: 24px;
-    margin-bottom: 6px;
-    padding: 8px 10px;
-    border-left: 2px solid var(--border-color);
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 4px;
-}
+    .comment.nested-comment {
+        margin-left: 20px;
+        padding: 12px;
+        border: none;
+    }
 
-.comment.level-1 {
-    border-left-color: rgba(29, 161, 242, 0.3);
-}
+    .comment.level-1 {
+        margin-left: 16px;
+    }
 
-.comment.level-2 {
-    margin-left: 36px;
-    border-left-color: rgba(29, 161, 242, 0.25);
-}
+    .comment.level-2 {
+        margin-left: 32px;
+    }
 
-.comment.level-3 {
-    margin-left: 48px;
-    border-left-color: rgba(29, 161, 242, 0.2);
-}
+    .comment.level-3 {
+        margin-left: 48px;
+        max-width: calc(100% - 48px);
+    }
+
+    .comment-user-avatar,
+    .comment-user-avatar-placeholder {
+        width: 32px;
+        height: 32px;
+    }
 
     .comment-content-wrapper {
-        margin-left: 48px;
-    }
-
-    .comment-header {
-        margin-bottom: 6px;
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-
-    .comment-user-info {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 2px;
+        margin-left: 44px;
     }
 
     .comment-user-name {
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-    .comment-time {
-        font-size: 11px;
-        opacity: 0.8;
-    }
-
-    .comment-actions {
-        margin-left: auto;
-        margin-top: -2px;
-    }
-
-    .comment-delete-btn {
-        padding: 4px;
-        font-size: 12px;
-    }
-
-    .comment-body {
-        margin-bottom: 10px;
+        font-size: 14px;
     }
 
     .comment-text {
-        font-size: 13px;
-        line-height: 1.5;
-        word-break: break-word;
-    }
-
-    .comment-footer {
-        padding-top: 10px;
-    }
-
-    .comment-interactions {
-        gap: 12px;
-        flex-wrap: wrap;
+        font-size: 14px;
     }
 
     .comment-like-btn,
     .comment-reply-btn {
-        padding: 6px 10px;
+        padding: 8px 12px;
         font-size: 12px;
-        font-weight: 500;
-        border-radius: 18px;
-        min-height: 32px;
-    }
-
-    .comment-like-btn i,
-    .comment-reply-btn i {
-        font-size: 11px;
-    }
-
-    .reply-form-container {
-        gap: 10px;
-        flex-direction: column;
-    }
-
-    .reply-avatar img,
-    .reply-avatar-placeholder {
-        width: 30px;
-        height: 30px;
-    }
-
-    .reply-input-container {
-        flex: 1;
-    }
-
-    .reply-textarea {
-        font-size: 14px;
-        min-height: 60px;
-        padding: 12px 14px;
-        border-radius: 18px;
-    }
-
-    .reply-actions {
-        gap: 8px;
-        flex-direction: row;
-        justify-content: flex-end;
-    }
-
-    .reply-submit-btn,
-    .reply-cancel-btn {
-        padding: 8px 14px;
-        font-size: 12px;
-        border-radius: 16px;
         min-height: 36px;
     }
 
-    .comment-replies {
-        padding-left: 16px;
-        margin-top: 12px;
+    .reply-form-container {
+        padding: 12px;
+        margin-top: 8px;
     }
 
-    .comment-replies::before {
-        left: 16px;
-    }
-
-    /* Show More/Hide Buttons - Mobile */
-    .show-more-comments-container,
-    .hide-comments-container {
-        margin: 10px 0;
+    .reply-textarea {
+        min-height: 50px;
+        padding: 10px 12px;
+        font-size: 14px;
     }
 
     .show-more-comments-btn,
     .hide-comments-btn {
-        padding: 10px 16px;
-        font-size: 13px;
-        border-radius: 20px;
-        width: 100%;
-        justify-content: center;
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+}
+
+/* Small Mobile Devices (320px - 480px) */
+@media (max-width: 480px) {
+    .user-profile {
+        padding: 4px;
     }
 
-    .show-more-replies-container,
-    .hide-replies-container {
-        margin: 8px 0 8px 20px;
+    .post {
+        margin-bottom: 12px;
+        padding: 8px;
     }
 
-    .show-more-replies-btn,
-    .hide-replies-btn {
-        padding: 6px 12px;
+    .comment {
+        margin-bottom: 8px;
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    .comment-content-wrapper {
+        margin-left: 28px;
+    }
+
+    .comment-user-avatar,
+    .comment-user-avatar-placeholder {
+        width: 20px;
+        height: 20px;
+    }
+
+    .comment-user-name {
+        font-size: 11px;
+    }
+
+    .comment-time {
+        font-size: 9px;
+    }
+
+    .comment-text {
+        font-size: 11px;
+    }
+
+    .comment-like-btn,
+    .comment-reply-btn {
+        padding: 3px 6px;
+        font-size: 9px;
+        min-height: 20px;
+    }
+
+    .reply-textarea {
+        font-size: 11px;
+        min-height: 40px;
+        padding: 6px 8px;
+    }
+
+    .reply-submit-btn,
+    .reply-cancel-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+        min-height: 24px;
+    }
+
+    /* Improved nested comments for mobile */
+    .comment.nested-comment {
+        margin-left: 2px; /* Minimal margin for mobile */
+        padding: 8px 12px; /* Better padding for readability */
+        margin-bottom: 6px; /* Reduce vertical spacing */
+    }
+
+    .comment.level-1 {
+        margin-left: 8px; /* Clear first level distinction */
+    }
+
+    .comment.level-2 {
+        margin-left: 20px; /* Good second level distinction */
+    }
+
+    .comment.level-3 {
+        margin-left: 32px; /* Clear third level distinction */
+        max-width: calc(100% - 32px); /* Ensure it doesn't overflow */
+    }
+
+    .comment-replies {
+        padding-left: 8px; /* Reduced border left space */
+    }
+
+    .comment-replies::before {
+        left: 8px; /* Adjust connector line */
+    }
+
+    .comment.nested-comment::before {
+        left: -16px;
+        width: 12px;
+        height: 2px;
+    }
+}
+
+/* Extra Small Mobile (320px and below) */
+@media (max-width: 320px) {
+    .comment-content-wrapper {
+        margin-left: 20px;
+    }
+
+    .comment-user-avatar,
+    .comment-user-avatar-placeholder {
+        width: 16px;
+        height: 16px;
+    }
+
+    .comment-avatar {
+        top: 12px;
+        left: 4px;
+    }
+
+    .comment-user-name {
         font-size: 12px;
-        border-radius: 16px;
+        font-weight: 600;
+        line-height: 1.2;
+        display: block;
+        margin-bottom: 2px;
+    }
+
+    .comment-time {
+        font-size: 8px;
+    }
+
+    .comment-text {
+        font-size: 10px;
+        line-height: 1.3;
+    }
+
+    .comment-like-btn,
+    .comment-reply-btn {
+        padding: 2px 4px;
+        font-size: 8px;
+        min-height: 18px;
+    }
+}
+
+/* Large Mobile/Tablet (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+    .comment {
+        padding: 12px;
+    }
+
+    .comment-content-wrapper {
+        margin-left: 36px;
+    }
+
+    .comment-user-avatar,
+    .comment-user-avatar-placeholder {
+        width: 28px;
+        height: 28px;
+    }
+
+    .comment-user-name {
+        font-size: 13px;
+    }
+
+    .comment-text {
+        font-size: 13px;
+    }
+
+    .comment-like-btn,
+    .comment-reply-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+        min-height: 26px;
+    }
+}
+
+/* Landscape Mobile Adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+    .comment {
+        padding: 6px 8px;
+        margin-bottom: 6px;
+    }
+
+    .comment-content-wrapper {
+        margin-left: 28px;
+    }
+
+    .comment-text {
+        font-size: 11px;
+        line-height: 1.3;
+        max-height: 40px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .comment-interactions {
+        gap: 3px;
+    }
+
+    .comment-like-btn,
+    .comment-reply-btn {
+        padding: 3px 6px;
+        font-size: 9px;
+        min-height: 22px;
     }
 }
 
@@ -1258,9 +1367,16 @@
 
     /* Full width buttons on very small screens */
     .show-more-comments-btn,
-    .hide-comments-btn {
+    .hide-comments-btn,
+    .show-more-replies-btn,
+    .hide-replies-btn,
+    .show-more-nested-replies-btn,
+    .hide-nested-replies-btn {
         padding: 12px 16px;
         font-size: 14px;
+        min-height: 44px; /* Ensure touch-friendly size */
+        width: 100%;
+        box-sizing: border-box;
     }
 }
 
@@ -1954,17 +2070,8 @@ function renderPostHTML(post) {
         </div>
     `;
 
-    if (post.comments && post.comments.length > 0) {
-        post.comments.forEach(comment => {
-            html += `
-                <div class="comment" style="border-left: 2px solid #E1E8ED; padding-left: 10px; margin: 10px 0;">
-                    <strong>${comment.user.name}</strong>
-                    <small>${new Date(comment.created_at).toLocaleString()}</small>
-                    <p>${comment.content}</p>
-                </div>
-            `;
-        });
-    }
+    // Comments will be loaded via real-time events or separate AJAX call
+    // Don't render them inline to avoid design inconsistency
 
     html += '</div>';
     return html;

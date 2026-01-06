@@ -102,6 +102,11 @@ class PostController extends Controller
 
         $post = auth()->user()->posts()->create($postData);
 
+        // Process mentions in the post content
+        if ($post->content) {
+            app(\App\Services\MentionService::class)->processMentions($post, $post->content, auth()->id());
+        }
+
         // Handle multiple media uploads
         if ($request->hasFile('media')) {
             $files = $request->file('media');
@@ -230,9 +235,31 @@ class PostController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Post $post)
     {
-        //
+        if ($post->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'content' => 'required|string|max:280',
+        ]);
+
+        $oldContent = $post->content;
+        $post->update($request->only('content'));
+
+        // Process mentions if content changed
+        if ($oldContent !== $post->content && $post->content) {
+            // Remove old mentions for this post
+            \App\Models\Mention::where('mentionable_type', \App\Models\Post::class)
+                ->where('mentionable_id', $post->id)
+                ->delete();
+
+            // Process new mentions
+            app(\App\Services\MentionService::class)->processMentions($post, $post->content, auth()->id());
+        }
+
+        return response()->json($post);
     }
 
     /**
@@ -245,13 +272,12 @@ class PostController extends Controller
         }
         $post->delete();
 
-        // Check if it's an AJAX request
-        if (request()->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Post deleted successfully'
-            ]);
-        }
+    // Check if it's an AJAX request
+    if (request()->expectsJson()) {
+        return response()->json([
+            'success' => true
+        ]);
+    }
 
         return back();
     }
@@ -275,6 +301,22 @@ class PostController extends Controller
             $newLike = $post->likes()->create(['user_id' => $user->id]);
             // Refresh the post model to get updated relationships
             $post->refresh();
+
+            // Create notification for post owner (if not liking own post)
+            if ($post->user_id !== $user->id) {
+                \App\Models\Notification::create([
+                    'user_id' => $post->user_id,
+                    'type' => 'like',
+                    'data' => [
+                        'liker_name' => $user->name,
+                        'liker_id' => $user->id,
+                        'post_content' => substr($post->content ?? 'Image post', 0, 50)
+                    ],
+                    'related_type' => \App\Models\Post::class,
+                    'related_id' => $post->id
+                ]);
+            }
+
             broadcast(new PostLiked($newLike))->toOthers();
         }
 

@@ -22,6 +22,16 @@
 
         <div class="profile-info">
             <h2>{{ $user->name }}
+                @if(auth()->id() !== $user->id && !auth()->user()->isBlocking($user) && !$user->isBlocking(auth()->user()))
+                    <button type="button"
+                            class="btn follow-btn {{ auth()->user()->isFollowing($user) ? 'following' : '' }}"
+                            data-user-id="{{ $user->id }}"
+                            data-username="{{ $user->name }}"
+                            onclick="toggleFollow(this, {{ $user->id }})"
+                            style="font-size: 12px; padding: 4px 10px; margin-left: 12px; background: {{ auth()->user()->isFollowing($user) ? '#28a745' : 'var(--twitter-blue)' }};">
+                        {{ auth()->user()->isFollowing($user) ? 'Following' : 'Follow' }}
+                    </button>
+                @endif
                 @if($user->is_suspended)
                     <span class="suspension-badge">
                         <i class="fas fa-exclamation-triangle"></i> Suspended
@@ -124,15 +134,6 @@
                     <i class="fas fa-info-circle"></i> This user has blocked you. You can't interact with them.
                 </p>
             @else
-                <button type="button"
-                        class="btn follow-btn {{ auth()->user()->isFollowing($user) ? 'following' : '' }}"
-                        data-user-id="{{ $user->id }}"
-                        data-username="{{ $user->name }}"
-                        onclick="toggleFollow(this, {{ $user->id }})"
-                        style="margin-right: 10px; background: {{ auth()->user()->isFollowing($user) ? '#28a745' : 'var(--twitter-blue)' }};">
-                    {{ auth()->user()->isFollowing($user) ? 'Following' : 'Follow' }}
-                </button>
-
                 <button type="button" class="btn" data-user-id="{{ $user->id }}" data-username="{{ $user->name }}" style="background: #dc3545;" onclick="toggleBlock(this)">Block</button>
             @endif
         @endif
@@ -170,106 +171,6 @@
         </div>
     </div>
     @endif
-
-@foreach($posts as $post)
-@php
-    $canViewPost = true;
-    // Check if current user can view this post
-    if ($post->is_private) {
-        $isFollowing = auth()->user()->isFollowing($post->user);
-        $isOwner = $post->user_id === auth()->id();
-        $canViewPost = $isFollowing || $isOwner;
-    }
-    // Also check account-level privacy
-    if ($post->user->profile && $post->user->profile->is_private) {
-        $isFollowing = auth()->user()->isFollowing($post->user);
-        $isOwner = $post->user_id === auth()->id();
-        $canViewPost = $canViewPost && ($isFollowing || $isOwner);
-    }
-@endphp
-
-@if($canViewPost)
-<a href="{{ route('posts.show', $post) }}" style="text-decoration: none; color: inherit;">
-<div class="post" style="cursor: pointer;">
-    <small>{{ $post->created_at->diffForHumans() }}</small>
-    @if($post->content)
-        <div class="content">{{ $post->content }}</div>
-    @endif
-
-    @if($post->media && $post->media->count() > 0)
-        <div class="post-media" style="margin: 10px 0;">
-            @if($post->media->count() === 1)
-                @php $media = $post->media->first(); @endphp
-                @if($media->media_type === 'image')
-                    <img src="{{ asset('storage/' . $media->media_path) }}" alt="Post image" style="width: 100%; height: auto; border-radius: 12px; display: block;">
-                @elseif($media->media_type === 'video')
-                    <div class="video-container">
-                        <video controls preload="metadata" style="width: 100%; height: auto; display: block;">
-                            <source src="{{ asset('storage/' . $media->media_path) }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                        <div class="video-overlay" onclick="playVideo(this)">
-                            <button class="play-button">
-                                <i class="fas fa-play"></i>
-                            </button>
-                        </div>
-                    </div>
-                @endif
-            @else
-                <div class="media-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px;">
-                    @foreach($post->media as $media)
-                        <div class="media-item">
-                            @if($media->media_type === 'image')
-                                <img src="{{ asset('storage/' . $media->media_path) }}" alt="Post image" style="width: 100%; height: 150px; object-fit: cover; border-radius: 6px;">
-                            @elseif($media->media_type === 'video')
-                                <video controls style="width: 100%; height: 150px; object-fit: cover; border-radius: 6px;">
-                                    <source src="{{ asset('storage/' . $media->media_path) }}" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-    @endif
-
-    <div>
-        <button type="button"
-                class="btn like-btn {{ $post->likedBy(auth()->user()) ? 'liked' : '' }}"
-                onclick="toggleLike({{ $post->id }}, this)"
-                style="background: {{ $post->likedBy(auth()->user()) ? 'red' : 'var(--twitter-blue)' }};">
-            <i class="fas fa-heart"></i> <span class="like-count">{{ $post->likes->count() }}</span>
-        </button>
-        @if($post->user_id === auth()->id())
-        <button type="button" class="btn" style="background: red; margin-left: 10px;" onclick="deletePost({{ $post->id }}, this)">Delete</button>
-        @endif
-    </div>
-    <hr>
-    <h4>Comments</h4>
-    <div class="comment-form-container">
-        <textarea id="comment-content-{{ $post->id }}" placeholder="Add a comment..." maxlength="280" required></textarea>
-        <button type="button" class="btn" style="font-size: 12px; padding: 5px 10px;" onclick="submitComment({{ $post->id }})">Comment</button>
-    </div>
-@foreach($post->comments as $comment)
-    @include('partials.comment', ['comment' => $comment])
-@endforeach
-</div>
-</a>
-@else
-<div class="post private-post" style="opacity: 0.7; position: relative;">
-    <small>{{ $post->created_at->diffForHumans() }}</small>
-    <div class="private-post-placeholder" style="text-align: center; padding: 40px 20px; background: #f8f9fa; border-radius: 10px; border: 2px dashed #dee2e6;">
-        <i class="fas fa-lock" style="font-size: 48px; color: #6c757d; margin-bottom: 15px;"></i>
-        <h4 style="color: #6c757d; margin: 0 0 10px 0;">Private Post</h4>
-        <p style="color: #6c757d; margin: 0; font-size: 14px;">Follow @{{ $user->name }} to view this post</p>
-        @if(!auth()->user()->isFollowing($user) && $user->id !== auth()->id())
-            <button type="button" class="btn" data-user-id="{{ $user->id }}" data-username="{{ $user->name }}" style="background: var(--twitter-blue); margin-top: 15px;" onclick="toggleFollow(this, {{ $user->id }})">Follow to View</button>
-        @endif
-    </div>
-</div>
-@endif
-@endforeach
 
 <style>
 .user-profile {
@@ -648,12 +549,13 @@
     }
 
     .profile-info {
-        text-align: center;
+        text-align: left;
     }
 
     .profile-info h2 {
         font-size: 24px;
-        justify-content: center;
+        justify-content: flex-start;
+        flex-wrap: wrap;
     }
 
     .bio {

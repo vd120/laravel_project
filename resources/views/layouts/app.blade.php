@@ -1708,6 +1708,1093 @@
             }
         }
 
+        /* Ultra-Responsive Comment System for All Mobile Devices */
+
+        /* Base mobile comment styles */
+        .comment {
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .comment-user-avatar,
+        .comment-user-avatar-placeholder {
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+            border-radius: 50%;
+        }
+
+        .comment-user-avatar-placeholder {
+            background-color: #E1E8ED;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #657786;
+        }
+
+        .comment-content-wrapper {
+            margin-left: 10px;
+            flex: 1;
+            min-width: 0; /* Allow flex shrinking */
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .comment-user-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .comment-user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--twitter-dark);
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: calc(100vw - 120px);
+            flex-shrink: 1;
+        }
+
+        .comment-time {
+            display: inline;
+            font-size: 11px;
+            color: var(--twitter-gray);
+            margin-left: 4px;
+            opacity: 0.8;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .comment-actions {
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .comment-text {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-top: 4px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+
+        .comment-interactions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .comment-like-btn,
+        .comment-reply-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 16px;
+            border: none;
+            background: none;
+            color: var(--twitter-gray);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 28px;
+        }
+
+        .comment-like-btn:hover,
+        .comment-reply-btn:hover {
+            background: var(--hover-bg);
+        }
+
+        .comment-like-btn.liked {
+            color: var(--error-color);
+            background: rgba(244, 33, 46, 0.1);
+        }
+
+        .comment-like-btn .comment-like-count {
+            font-weight: 600;
+            min-width: 8px;
+        }
+
+        /* Nested comments with progressive indentation */
+        .nested-comment {
+            margin-left: 16px;
+            border-left: 2px solid var(--border-color);
+            padding-left: 10px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        /* Level 3 nested comments - minimal indentation */
+        .level-3,
+        .nested-comment .nested-comment {
+            margin-left: 12px;
+            border-left-width: 1px;
+            padding-left: 8px;
+            opacity: 0.9;
+        }
+
+        /* Reply forms optimized for mobile */
+        .comment-reply-form {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--hover-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .reply-form-container {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .reply-avatar {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .reply-avatar img,
+        .reply-avatar-placeholder {
+            width: 28px;
+            height: 28px;
+            font-size: 12px;
+            border-radius: 50%;
+        }
+
+        .reply-input-container {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .reply-textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        .reply-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .reply-submit-btn,
+        .reply-cancel-btn {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            min-height: 32px;
+        }
+
+        .reply-submit-btn {
+            background: var(--twitter-blue);
+            color: white;
+        }
+
+        .reply-submit-btn:hover {
+            background: #1991DB;
+            transform: translateY(-1px);
+        }
+
+        .reply-cancel-btn {
+            background: var(--hover-bg);
+            color: var(--twitter-gray);
+            border: 1px solid var(--border-color);
+        }
+
+        .reply-cancel-btn:hover {
+            background: var(--border-color);
+            color: var(--twitter-dark);
+        }
+
+        /* Nested replies management */
+        .comment-replies {
+            margin-top: 8px;
+        }
+
+        .show-more-nested-replies-btn,
+        .hide-nested-replies-btn {
+            background: none;
+            border: none;
+            color: var(--twitter-blue);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .show-more-nested-replies-btn:hover,
+        .hide-nested-replies-btn:hover {
+            background: rgba(29, 161, 242, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Comment delete button */
+        .comment-delete-btn {
+            background: none;
+            border: none;
+            color: var(--twitter-gray);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            min-width: 24px;
+            min-height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .comment-delete-btn:hover {
+            background: rgba(244, 33, 46, 0.1);
+            color: var(--error-color);
+            transform: scale(1.1);
+        }
+
+        /* Mobile-optimized notification system */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success-color);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+            font-size: 14px;
+            max-width: 300px;
+            word-wrap: break-word;
+            animation: notificationSlideIn 0.3s ease-out;
+        }
+
+        @keyframes notificationSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .notification.show {
+            animation: notificationFadeIn 0.3s ease-out;
+        }
+
+        @keyframes notificationFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Ultra-responsive mobile notification system - TOP FULL WIDTH */
+        @media (max-width: 1200px) {
+            .notification {
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: auto;
+                width: 100vw;
+                max-width: 100vw;
+                margin: 0;
+                padding: 12px 16px;
+                font-size: 14px;
+                border-radius: 0;
+                text-align: center;
+                word-wrap: break-word;
+                word-break: break-word;
+                hyphens: auto;
+                line-height: 1.4;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                background: linear-gradient(135deg, var(--success-color) 0%, #00c46a 100%);
+                z-index: 10001;
+            }
+
+            .notification.show {
+                animation: mobileNotificationSlideDown 0.3s ease-out;
+            }
+
+            @keyframes mobileNotificationSlideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-100%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        }
+
+        /* Extra large tablets (769px - 1200px) */
+        @media (min-width: 769px) and (max-width: 1200px) {
+            .notification {
+                padding: 14px 18px;
+                font-size: 15px;
+            }
+        }
+
+        /* Standard tablets (601px - 768px) */
+        @media (min-width: 601px) and (max-width: 768px) {
+            .notification {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+        }
+
+        /* Large phones (481px - 600px) */
+        @media (min-width: 481px) and (max-width: 600px) {
+            .notification {
+                padding: 11px 15px;
+                font-size: 13px;
+            }
+        }
+
+        /* Medium phones (414px - 480px) */
+        @media (min-width: 414px) and (max-width: 480px) {
+            .notification {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+        }
+
+        /* Small phones (376px - 413px) */
+        @media (min-width: 376px) and (max-width: 413px) {
+            .notification {
+                padding: 9px 13px;
+                font-size: 12px;
+            }
+        }
+
+        /* Extra small phones (361px - 375px) */
+        @media (min-width: 361px) and (max-width: 375px) {
+            .notification {
+                padding: 9px 12px;
+                font-size: 12px;
+            }
+        }
+
+        /* iPhone SE and similar (321px - 360px) */
+        @media (min-width: 321px) and (max-width: 360px) {
+            .notification {
+                padding: 8px 11px;
+                font-size: 11px;
+                line-height: 1.3;
+            }
+        }
+
+        /* Very small phones (up to 320px) */
+        @media (max-width: 320px) {
+            .notification {
+                padding: 7px 10px;
+                font-size: 10px;
+                line-height: 1.3;
+            }
+        }
+
+        /* Ultra-wide aspect ratios - cinema screens */
+        @media (min-aspect-ratio: 21/9) {
+            .notification {
+                bottom: 35px;
+                max-width: calc(100vw - 80px);
+                padding: 16px 20px;
+                font-size: 15px;
+            }
+        }
+
+        /* Square screens - some tablets */
+        @media (aspect-ratio: 1/1) and (max-width: 768px) {
+            .notification {
+                bottom: 25px;
+                max-width: calc(100vw - 50px);
+                padding: 12px 16px;
+            }
+        }
+
+        /* Very tall screens - phones in portrait */
+        @media (max-aspect-ratio: 9/16) and (max-width: 480px) {
+            .notification {
+                bottom: 18px;
+            }
+        }
+
+        /* Landscape orientation - phones and small tablets */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .notification {
+                bottom: 8px;
+                max-width: calc(100vw - 60px);
+                padding: 6px 10px;
+                font-size: 11px;
+                border-radius: 8px;
+                line-height: 1.2;
+            }
+        }
+
+        /* Landscape orientation - tablets */
+        @media (orientation: landscape) and (min-height: 501px) and (max-width: 1024px) {
+            .notification {
+                bottom: 15px;
+                max-width: calc(100vw - 70px);
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+        }
+
+        /* Touch-friendly interaction areas - all mobile devices */
+        @media (hover: none) and (pointer: coarse) {
+            .notification {
+                min-height: 44px; /* iOS Human Interface Guidelines */
+                padding: 12px 16px;
+                font-size: max(12px, 3.5vw); /* Fluid font sizing */
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .notification {
+                border: 2px solid white;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.9);
+                font-weight: 600;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .notification {
+                animation: none !important;
+            }
+        }
+
+        /* Dark mode adjustments */
+        @media (prefers-color-scheme: dark) {
+            .notification {
+                background: var(--success-color);
+                color: white;
+            }
+        }
+
+        /* Print styles - hide notifications */
+        @media print {
+            .notification {
+                display: none !important;
+            }
+        }
+
+        /* Enhanced mobile breakpoints */
+
+        /* Very small phones (320px - 360px) */
+        @media (max-width: 360px) {
+            .comment {
+                padding: 8px;
+                margin-bottom: 10px;
+            }
+
+            .comment-avatar {
+                width: 28px;
+                height: 28px;
+            }
+
+            .comment-user-avatar,
+            .comment-user-avatar-placeholder {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+
+            .comment-content-wrapper {
+                margin-left: 8px;
+            }
+
+            .comment-user-name {
+                font-size: 12px;
+                max-width: calc(100vw - 140px); /* Increased space for delete button */
+            }
+
+            .comment-time {
+                font-size: 10px;
+                margin-left: 2px;
+            }
+
+            .comment-actions {
+                margin-left: 4px; /* Ensure delete button has space */
+            }
+
+            .comment-delete-btn {
+                width: 20px; /* Smaller but still visible */
+                height: 20px;
+                font-size: 10px;
+                min-width: 20px;
+                min-height: 20px;
+            }
+
+            .comment-text {
+                font-size: 13px;
+            }
+
+            .comment-interactions {
+                gap: 8px;
+                margin-top: 6px;
+            }
+
+            .comment-like-btn,
+            .comment-reply-btn {
+                font-size: 11px;
+                padding: 3px 6px;
+                min-height: 24px;
+            }
+
+            .nested-comment {
+                margin-left: 12px;
+                padding-left: 8px;
+            }
+
+            .level-3,
+            .nested-comment .nested-comment {
+                margin-left: 8px;
+                padding-left: 6px;
+            }
+
+            .reply-avatar {
+                width: 24px;
+                height: 24px;
+            }
+
+            .reply-avatar img,
+            .reply-avatar-placeholder {
+                width: 24px;
+                height: 24px;
+                font-size: 10px;
+            }
+
+            .reply-textarea {
+                font-size: 13px;
+                min-height: 50px;
+            }
+
+            .reply-submit-btn,
+            .reply-cancel-btn {
+                font-size: 11px;
+                padding: 5px 10px;
+                min-height: 28px;
+            }
+        }
+
+        /* Small phones (361px - 480px) */
+        @media (min-width: 361px) and (max-width: 480px) {
+            .comment-user-name {
+                max-width: calc(100vw - 140px);
+            }
+
+            .comment-text {
+                font-size: 13px;
+            }
+        }
+
+        /* Larger mobile devices (481px - 768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .comment {
+                padding: 12px;
+                margin-bottom: 14px;
+            }
+
+            .comment-avatar {
+                width: 36px;
+                height: 36px;
+            }
+
+            .comment-user-avatar,
+            .comment-user-avatar-placeholder {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .comment-user-name {
+                font-size: 14px;
+                max-width: calc(100vw - 180px);
+            }
+
+            .comment-time {
+                font-size: 12px;
+            }
+
+            .comment-text {
+                font-size: 15px;
+            }
+
+            .nested-comment {
+                margin-left: 20px;
+                padding-left: 12px;
+            }
+
+            .level-3,
+            .nested-comment .nested-comment {
+                margin-left: 16px;
+                padding-left: 10px;
+            }
+        }
+
+        /* Header notification button */
+        .header-notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--twitter-dark);
+            font-size: 18px;
+            width: 44px;
+            height: 44px;
+            margin: 0 4px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .header-notification-btn:hover {
+            background: rgba(29, 161, 242, 0.1);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(29, 161, 242, 0.2);
+        }
+
+        .header-notification-btn:active {
+            transform: scale(0.95);
+        }
+
+        .header-notification-btn i {
+            transition: all 0.3s ease;
+        }
+
+        .header-notification-btn:hover i {
+            transform: rotate(15deg);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);
+            color: white;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 7px;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid var(--card-bg);
+            box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+            animation: badgePulse 2s ease-in-out infinite;
+            z-index: 10;
+            letter-spacing: -0.5px;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 4px 12px rgba(255, 71, 87, 0.6);
+            }
+        }
+
+        .notification-badge.pulse {
+            animation: badgePulse 0.6s ease-in-out;
+        }
+
+        /* Dark mode adjustments */
+        @media (prefers-color-scheme: dark) {
+            .header-notification-btn {
+                color: #e0e0e0;
+            }
+
+            .header-notification-btn:hover {
+                background: rgba(29, 161, 242, 0.15);
+            }
+        }
+
+        /* Mobile responsive adjustments */
+        @media (max-width: 768px) {
+            .header-notification-btn {
+                padding: 8px;
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .notification-badge {
+                top: 1px;
+                right: 1px;
+                font-size: 9px;
+                padding: 2px 6px;
+                min-width: 16px;
+                height: 16px;
+                border-width: 2px;
+            }
+        }
+
+        /* Dark Theme Notifications dropdown */
+        .notifications-dropdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 60px; /* Account for header */
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+        }
+
+        .notifications-dropdown-content {
+            background: linear-gradient(145deg, rgba(30, 30, 30, 0.98) 0%, rgba(20, 20, 20, 0.95) 100%);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow:
+                0 25px 80px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            width: 90%;
+            max-width: 420px;
+            max-height: 75vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: modernDropdownSlideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+
+        .notifications-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        }
+
+        @keyframes modernDropdownSlideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9) rotateX(15deg);
+                filter: blur(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotateX(0deg);
+                filter: blur(0px);
+            }
+        }
+
+        .notifications-dropdown-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%);
+        }
+
+        .notifications-dropdown-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .notifications-dropdown-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notifications-dropdown-delete-all {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(244, 33, 46, 0.2);
+            border: 1px solid rgba(244, 33, 46, 0.3);
+            color: #ff6b6b;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .notifications-dropdown-delete-all:hover {
+            background: rgba(244, 33, 46, 0.4);
+            border-color: rgba(244, 33, 46, 0.6);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(244, 33, 46, 0.3);
+        }
+
+        .notifications-dropdown-delete-all i {
+            font-size: 11px;
+        }
+
+        .notifications-dropdown-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 16px;
+            color: #cccccc;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notifications-dropdown-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            color: #ffffff;
+            transform: scale(1.05);
+        }
+
+        .notifications-dropdown-body {
+            flex: 1;
+            overflow-y: auto;
+            max-height: calc(70vh - 80px);
+        }
+
+        .notifications-loading,
+        .notifications-empty,
+        .notifications-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--twitter-gray);
+        }
+
+        .notifications-loading p,
+        .notifications-empty p,
+        .notifications-error p {
+            margin: 16px 0 0 0;
+            font-size: 14px;
+        }
+
+        .notifications-empty small {
+            font-size: 12px;
+            color: var(--twitter-gray);
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .notifications-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notification-dropdown-item {
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .notification-dropdown-item:hover {
+            background: var(--hover-bg);
+        }
+
+        .notification-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-dropdown-item.unread {
+            background: linear-gradient(135deg, rgba(29, 161, 242, 0.03) 0%, rgba(29, 161, 242, 0.01) 100%);
+            border-left: 3px solid var(--twitter-blue);
+        }
+
+        .notification-dropdown-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+        }
+
+        .notification-dropdown-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .notification-dropdown-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-dropdown-message {
+            font-size: 14px;
+            line-height: 1.4;
+            color: #e0e0e0;
+            margin-bottom: 2px;
+            word-wrap: break-word;
+        }
+
+        .notification-dropdown-time {
+            font-size: 11px;
+            color: #a0a0a0;
+        }
+
+        .notification-dropdown-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .btn-mark-read,
+        .btn-delete {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-mark-read {
+            background: var(--twitter-blue);
+            color: white;
+        }
+
+        .btn-mark-read:hover {
+            background: #1991DB;
+            transform: scale(1.1);
+        }
+
+        .btn-delete {
+            background: rgba(244, 33, 46, 0.1);
+            color: var(--error-color);
+        }
+
+        .btn-delete:hover {
+            background: var(--error-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Mobile responsiveness for notifications dropdown */
+        @media (max-width: 480px) {
+            .notifications-dropdown-overlay {
+                padding-top: 50px;
+            }
+
+            .notifications-dropdown-content {
+                width: 95%;
+                max-height: 75vh;
+            }
+
+            .notifications-dropdown-header {
+                padding: 14px 16px;
+            }
+
+            .notifications-dropdown-header h3 {
+                font-size: 16px;
+            }
+
+            .notification-dropdown-content {
+                padding: 12px 14px;
+                gap: 10px;
+            }
+
+            .notification-dropdown-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .notification-dropdown-message {
+                font-size: 13px;
+            }
+
+            .notification-dropdown-time {
+                font-size: 10px;
+            }
+        }
 
     </style>
 </head>
@@ -1731,14 +2818,18 @@
                         <i class="fas fa-user"></i>
                     </div>
                 @endif
+                <button type="button" class="header-notification-btn" onclick="toggleNotificationsDropdown()" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="header-notification-badge" style="display: none;">0</span>
+                </button>
             </div>
             @endauth
             <div class="nav-links">
                 @auth
                 <a href="{{ route('home') }}">Home</a>
-
                 <a href="{{ route('stories.index') }}">Stories</a>
                 <a href="{{ route('chat.index') }}">Messages</a>
+                <a href="{{ route('ai.index') }}">AI Assistant</a>
                 <a href="{{ route('explore') }}">Explore</a>
                 <a href="{{ route('search') }}">Search</a>
                 <a href="{{ route('users.saved-posts') }}">Saved Posts</a>
@@ -1789,8 +2880,12 @@
                     <span>Profile</span>
                 </a>
 
+                <a href="{{ route('ai.index') }}" class="nav-item {{ request()->routeIs('ai.index') ? 'active' : '' }}">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Assistant</span>
+                </a>
 
-                
+
                 <div class="user-profile-card">
                     <div class="user-info">
                         @if(auth()->user()->profile && auth()->user()->profile->avatar)
@@ -2145,27 +3240,40 @@
     <script src="{{ asset('js/realtime.js') }}"></script>
 
     <script>
-        // Powerful toast notification system
+        // Ultra-responsive mobile toast notification system
         function showToast(message, type = 'info', duration = 5000) {
             const toastContainer = document.getElementById('toast-container');
+            const isMobile = window.innerWidth <= 768;
+
+            // Remove existing toasts to prevent stacking
+            const existingToasts = toastContainer.querySelectorAll('.toast-notification');
+            existingToasts.forEach(toast => toast.remove());
 
             const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: relative;
-                margin-bottom: 12px;
-                min-width: 320px;
-                max-width: 420px;
-                padding: 16px 20px;
-                border-radius: 16px;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255,255,255,0.1);
-                transform: translateX(100%);
-                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                cursor: pointer;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                overflow: hidden;
-            `;
+            toast.className = 'toast-notification';
+
+            // Responsive styling based on device type
+            const baseStyles = {
+                position: 'relative',
+                marginBottom: isMobile ? '8px' : '12px',
+                minWidth: isMobile ? 'calc(100vw - 32px)' : '320px',
+                maxWidth: isMobile ? 'calc(100vw - 32px)' : '420px',
+                padding: isMobile ? '12px 16px' : '16px 20px',
+                borderRadius: isMobile ? '12px' : '16px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                transform: isMobile ? 'translateY(-20px)' : 'translateX(100%)',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: 'pointer',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                overflow: 'hidden',
+                opacity: '0',
+                zIndex: '10002'
+            };
+
+            // Apply base styles
+            Object.assign(toast.style, baseStyles);
 
             // Powerful gradient backgrounds based on type
             const gradients = {
@@ -2178,43 +3286,59 @@
 
             toast.style.background = gradients[type] || gradients.info;
 
-            // Add inner glow effect
+            // Responsive content structure
+            const iconClass = type === 'message' ? 'fa-envelope' :
+                             type === 'success' ? 'fa-check-circle' :
+                             type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+
+            const titleText = type === 'message' ? 'New Message' : type.toUpperCase();
+
             toast.innerHTML = `
                 <div style="position: relative; z-index: 2;">
-                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
-                        <i class="fas ${type === 'message' ? 'fa-envelope' : type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle'}" style="font-size: 16px; margin-right: 8px; opacity: 0.9;"></i>
-                        <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8;">${type === 'message' ? 'New Message' : type.toUpperCase()}</span>
+                    <div style="display: flex; align-items: center; margin-bottom: ${isMobile ? '4px' : '6px'};">
+                        <i class="fas ${iconClass}" style="font-size: ${isMobile ? '14px' : '16px'}; margin-right: 8px; opacity: 0.9;"></i>
+                        <span style="font-size: ${isMobile ? '11px' : '12px'}; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8;">${titleText}</span>
                     </div>
-                    <p style="font-size: 14px; font-weight: 500; margin: 0; color: white; line-height: 1.4;">${message}</p>
+                    <p style="font-size: ${isMobile ? '13px' : '14px'}; font-weight: 500; margin: 0; color: white; line-height: 1.4; word-wrap: break-word; word-break: break-word;">${message}</p>
                 </div>
                 <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%); pointer-events: none;"></div>
             `;
 
             toastContainer.appendChild(toast);
 
-            // Powerful slide-in animation
+            // Responsive slide-in animation
             setTimeout(() => {
-                toast.style.transform = 'translateX(0) scale(1)';
                 toast.style.opacity = '1';
+                if (isMobile) {
+                    toast.style.transform = 'translateY(0)';
+                } else {
+                    toast.style.transform = 'translateX(0) scale(1)';
+                }
             }, 50);
 
-            // Add hover effects
-            toast.onmouseenter = () => {
-                toast.style.transform = 'translateX(-4px) scale(1.02)';
-                toast.style.boxShadow = '0 12px 40px rgba(0,0,0,0.5)';
-            };
+            // Responsive hover effects (only on non-touch devices)
+            if (!isMobile && window.matchMedia('(hover: hover)').matches) {
+                toast.onmouseenter = () => {
+                    toast.style.transform = 'translateX(-4px) scale(1.02)';
+                    toast.style.boxShadow = '0 12px 40px rgba(0,0,0,0.5)';
+                };
 
-            toast.onmouseleave = () => {
-                toast.style.transform = 'translateX(0) scale(1)';
-                toast.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4)';
-            };
+                toast.onmouseleave = () => {
+                    toast.style.transform = 'translateX(0) scale(1)';
+                    toast.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4)';
+                };
+            }
 
-            // Auto remove with powerful exit animation
+            // Auto remove with responsive exit animation
             if (duration > 0) {
                 setTimeout(() => {
                     if (toast.parentElement) {
-                        toast.style.transform = 'translateX(100%) scale(0.95)';
                         toast.style.opacity = '0';
+                        if (isMobile) {
+                            toast.style.transform = 'translateY(-20px)';
+                        } else {
+                            toast.style.transform = 'translateX(100%) scale(0.95)';
+                        }
                         setTimeout(() => {
                             if (toast.parentElement) toast.remove();
                         }, 400);
@@ -2222,10 +3346,24 @@
                 }, duration);
             }
 
+            // Handle window resize for dynamic responsiveness
+            const handleResize = () => {
+                const currentlyMobile = window.innerWidth <= 768;
+                if (currentlyMobile !== isMobile) {
+                    // If screen size changed significantly, remove the toast
+                    if (toast.parentElement) {
+                        toast.remove();
+                    }
+                }
+            };
+
+            window.addEventListener('resize', handleResize);
+            setTimeout(() => window.removeEventListener('resize', handleResize), duration + 500);
+
             return toast;
         }
 
-        // Real-time message notifications for all pages
+        // Optimized real-time message notifications for mobile performance
         document.addEventListener('DOMContentLoaded', function() {
             // Only run if user is authenticated
             const currentUserId = {{ auth()->id() ?? 'null' }};
@@ -2234,24 +3372,76 @@
                 return;
             }
 
-            console.log('Initializing global message notifications for user:', currentUserId);
+            console.log('Initializing optimized message notifications for user:', currentUserId);
 
-            // Check for new messages every 5 seconds (reduced for testing)
-            setInterval(checkForNewMessages, 5000);
+            // Initialize notification badge
+            initializeNotificationBadge();
 
-            // Initial check after 1 second
-            setTimeout(checkForNewMessages, 1000);
+            // Use different polling intervals based on device type for better mobile performance
+            const isMobile = window.innerWidth <= 768;
+            const notificationPollInterval = isMobile ? 30000 : 15000; // 30s mobile, 15s desktop
+            const messagePollInterval = isMobile ? 15000 : 8000; // 15s mobile, 8s desktop
+
+            // Poll for notification updates
+            setInterval(updateNotificationBadgeFromServer, notificationPollInterval);
+
+            // Check for new messages with optimized frequency
+            setInterval(checkForNewMessages, messagePollInterval);
+
+            // Initial check after 2 seconds (delayed for better page load)
+            setTimeout(checkForNewMessages, 2000);
         });
 
-        let lastNotificationCheck = new Date();
+        // Optimized function to update notification badge
+        function updateNotificationBadgeFromServer() {
+            const currentUserId = {{ auth()->id() ?? 'null' }};
+            if (!currentUserId) return;
+
+            // Use AbortController for better performance
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+            fetch('/api/notifications/unread-count', {
+                signal: controller.signal,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                clearTimeout(timeoutId);
+                return response.json();
+            })
+            .then(data => {
+                if (data.unread_count !== undefined) {
+                    updateNotificationBadge(data.unread_count);
+                }
+            })
+            .catch(error => {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    console.log('Notification polling timed out');
+                } else {
+                    console.log('Notification polling failed:', error.message);
+                }
+            });
+        }
 
         function checkForNewMessages() {
             const currentUserId = {{ auth()->id() ?? 'null' }};
             if (!currentUserId) return;
 
-            console.log('Checking for new messages...');
+            // Skip if user is currently in a chat to reduce unnecessary polling
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('/chat/')) {
+                return; // Don't poll when user is actively chatting
+            }
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
 
             fetch('/api/user/new-messages', {
+                signal: controller.signal,
                 method: 'GET',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -2259,33 +3449,23 @@
                 }
             })
             .then(response => {
-                console.log('API response status:', response.status);
+                clearTimeout(timeoutId);
                 return response.json();
             })
             .then(data => {
-                console.log('API response data:', data);
                 if (data.success && data.messages && data.messages.length > 0) {
-                    console.log('Found', data.messages.length, 'new messages');
+                    // Process messages more efficiently
                     data.messages.forEach(message => {
-                        console.log('Processing message:', message);
-                        // Check if we're not currently in the chat with this user
-                        const currentPath = window.location.pathname;
-                        const isInChat = currentPath.includes('/chat/') && currentPath.includes(message.conversation_id);
-
-                        console.log('Current path:', currentPath, 'Is in chat:', isInChat);
-
-                        if (!isInChat) {
-                            showMessageNotification(message);
-                        } else {
-                            console.log('Skipping notification - already in chat');
-                        }
+                        // Use requestAnimationFrame for smoother UI updates
+                        requestAnimationFrame(() => showMessageNotification(message));
                     });
-                } else {
-                    console.log('No new messages found');
                 }
             })
             .catch(error => {
-                console.error('Error checking for new messages:', error);
+                clearTimeout(timeoutId);
+                if (error.name !== 'AbortError') {
+                    console.error('Error checking messages:', error.message);
+                }
             });
         }
 
@@ -2330,6 +3510,355 @@
         }
 
         // Toast notifications are ready - no browser permissions needed
+
+        // Initialize notification badge on page load
+        function initializeNotificationBadge() {
+            const currentUserId = {{ auth()->id() ?? 'null' }};
+            if (!currentUserId) return;
+
+            fetch('/api/notifications/unread-count', {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.unread_count !== undefined) {
+                    updateNotificationBadge(data.unread_count);
+                }
+            })
+            .catch(error => console.error('Error loading notification count:', error));
+        }
+
+        // Update notification badge function
+        function updateNotificationBadge(count) {
+            const headerBadge = document.getElementById('header-notification-badge');
+            if (headerBadge) {
+                headerBadge.textContent = count > 99 ? '99+' : count;
+                headerBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+
+                if (count > 0) {
+                    headerBadge.classList.add('pulse');
+                    setTimeout(() => headerBadge.classList.remove('pulse'), 1000);
+                }
+            }
+        }
+
+        // Header notifications dropdown functionality
+        let notificationsDropdown = null;
+        let isLoadingNotifications = false;
+
+        // Helper functions for notifications
+        function getNotificationIcon(type) {
+            const iconMap = {
+                'like': 'like',
+                'comment': 'comment',
+                'follow': 'follow',
+                'message': 'message',
+                'mention': 'mention'
+            };
+            return iconMap[type] || 'default';
+        }
+
+        function getNotificationIconClass(type) {
+            const iconMap = {
+                'like': 'fas fa-heart',
+                'comment': 'fas fa-comment',
+                'follow': 'fas fa-user-plus',
+                'message': 'fas fa-envelope',
+                'mention': 'fas fa-at'
+            };
+            return iconMap[type] || 'fas fa-bell';
+        }
+
+        function getTimeAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffInSeconds = Math.floor((now - date) / 1000);
+
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+
+            return date.toLocaleDateString();
+        }
+
+        function toggleNotificationsDropdown() {
+            if (notificationsDropdown) {
+                closeNotificationsDropdown();
+                return;
+            }
+
+            showNotificationsDropdown();
+        }
+
+        function showNotificationsDropdown() {
+            // Create dropdown container
+            notificationsDropdown = document.createElement('div');
+            notificationsDropdown.className = 'notifications-dropdown-overlay';
+            notificationsDropdown.onclick = (e) => {
+                if (e.target === notificationsDropdown) {
+                    closeNotificationsDropdown();
+                }
+            };
+
+            // Create dropdown content
+            const dropdownContent = document.createElement('div');
+            dropdownContent.className = 'notifications-dropdown-content';
+
+            dropdownContent.innerHTML = `
+                <div class="notifications-dropdown-header">
+                    <h3>Notifications</h3>
+                    <div class="notifications-dropdown-actions">
+                        <button class="notifications-dropdown-delete-all" onclick="deleteAllNotifications()" title="Delete All Notifications">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Delete All</span>
+                        </button>
+                        <button class="notifications-dropdown-close" onclick="closeNotificationsDropdown()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="notifications-dropdown-body">
+                    <div class="notifications-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading notifications...</p>
+                    </div>
+                </div>
+            `;
+
+            notificationsDropdown.appendChild(dropdownContent);
+            document.body.appendChild(notificationsDropdown);
+
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+
+            // Load notifications
+            loadNotificationsForDropdown();
+
+            // Handle escape key
+            document.addEventListener('keydown', handleDropdownEscape);
+        }
+
+        function closeNotificationsDropdown() {
+            if (notificationsDropdown) {
+                notificationsDropdown.remove();
+                notificationsDropdown = null;
+                document.body.style.overflow = '';
+                document.removeEventListener('keydown', handleDropdownEscape);
+            }
+        }
+
+        function handleDropdownEscape(e) {
+            if (e.key === 'Escape') {
+                closeNotificationsDropdown();
+            }
+        }
+
+        function loadNotificationsForDropdown() {
+            if (isLoadingNotifications) return;
+            isLoadingNotifications = true;
+
+            fetch("/api/notifications", {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const body = notificationsDropdown.querySelector('.notifications-dropdown-body');
+                body.innerHTML = '';
+
+                if (!data.notifications || data.notifications.length === 0) {
+                    body.innerHTML = `
+                        <div class="notifications-empty">
+                            <div class="empty-icon">
+                                <i class="fas fa-bell-slash"></i>
+                            </div>
+                            <p>No notifications yet</p>
+                            <small>When someone interacts with your posts, you'll see them here.</small>
+                        </div>
+                    `;
+                } else {
+                    const notificationsList = document.createElement('div');
+                    notificationsList.className = 'notifications-list';
+
+                    data.notifications.forEach(notification => {
+                        const notificationElement = createDropdownNotificationElement(notification);
+                        notificationsList.appendChild(notificationElement);
+                    });
+
+                    body.appendChild(notificationsList);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading notifications:', error);
+                console.error('Error details:', error.message, error.status, error.response);
+
+                const body = notificationsDropdown.querySelector('.notifications-dropdown-body');
+                body.innerHTML = `
+                    <div class="notifications-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load notifications</p>
+                        <small style="color: #666; font-size: 11px;">${error.message || 'Unknown error'}</small>
+                    </div>
+                `;
+            })
+            .finally(() => {
+                isLoadingNotifications = false;
+            });
+        }
+
+        function createDropdownNotificationElement(notification) {
+            const item = document.createElement('div');
+            item.className = `notification-dropdown-item ${!notification.read_at ? 'unread' : ''}`;
+
+            // Get notification type icon
+            const iconClass = getNotificationIcon(notification.type);
+            const timeAgo = getTimeAgo(notification.created_at);
+
+            item.innerHTML = `
+                <div class="notification-dropdown-content">
+                    <div class="notification-dropdown-icon ${iconClass}">
+                        <i class="${getNotificationIconClass(notification.type)}"></i>
+                    </div>
+                    <div class="notification-dropdown-text">
+                        <div class="notification-dropdown-message">${notification.message}</div>
+                        <div class="notification-dropdown-time">${timeAgo}</div>
+                    </div>
+                    <div class="notification-dropdown-actions">
+                        ${!notification.read_at ? `<button onclick="markNotificationAsRead(${notification.id}, this)" class="btn-mark-read" title="Mark as read"><i class="fas fa-check"></i></button>` : ''}
+                        <button onclick="deleteNotificationFromDropdown(${notification.id}, this)" class="btn-delete" title="Delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+
+            return item;
+        }
+
+        function markNotificationAsRead(notificationId, buttonElement) {
+            fetch(`/api/notifications/${notificationId}/read`, {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]").getAttribute("content"),
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(() => {
+                // Update UI
+                const item = buttonElement.closest('.notification-dropdown-item');
+                item.classList.remove('unread');
+                buttonElement.remove();
+
+                // Update badge - fetch current count
+                fetch('/api/notifications/unread-count', {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.unread_count !== undefined) {
+                        updateNotificationBadge(data.unread_count);
+                    }
+                })
+                .catch(error => console.error('Error updating badge:', error));
+            })
+            .catch(error => console.error("Error marking notification as read:", error));
+        }
+
+        function deleteNotificationFromDropdown(notificationId, buttonElement) {
+            if (!confirm("Are you sure you want to delete this notification?")) return;
+
+            fetch(`/api/notifications/${notificationId}`, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]").getAttribute("content"),
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(() => {
+                // Remove from UI
+                const item = buttonElement.closest('.notification-dropdown-item');
+                item.remove();
+
+                // Check if empty
+                const body = notificationsDropdown.querySelector('.notifications-dropdown-body');
+                if (body.querySelectorAll('.notification-dropdown-item').length === 0) {
+                    body.innerHTML = `
+                        <div class="notifications-empty">
+                            <div class="empty-icon">
+                                <i class="fas fa-bell-slash"></i>
+                            </div>
+                            <p>No notifications yet</p>
+                            <small>When someone interacts with your posts, you'll see them here.</small>
+                        </div>
+                    `;
+                }
+
+                // Update badge - fetch current count
+                fetch('/api/notifications/unread-count', {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.unread_count !== undefined) {
+                        updateNotificationBadge(data.unread_count);
+                    }
+                })
+                .catch(error => console.error('Error updating badge:', error));
+            })
+            .catch(error => console.error("Error deleting notification:", error));
+        }
+
+        function deleteAllNotifications() {
+            if (!confirm("Are you sure you want to delete ALL notifications? This action cannot be undone.")) return;
+
+            fetch('/api/notifications', {
+                method: "DELETE",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]").getAttribute("content"),
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(() => {
+                // Update UI - show empty state
+                const body = notificationsDropdown.querySelector('.notifications-dropdown-body');
+                body.innerHTML = `
+                    <div class="notifications-empty">
+                        <div class="empty-icon">
+                            <i class="fas fa-bell-slash"></i>
+                        </div>
+                        <p>No notifications yet</p>
+                        <small>When someone interacts with your posts, you'll see them here.</small>
+                    </div>
+                `;
+
+                // Update badge - should be 0 after deleting all
+                updateNotificationBadge(0);
+            })
+            .catch(error => console.error("Error deleting all notifications:", error));
+        }
+
+        function updateNotificationBadge(count) {
+            const headerBadge = document.getElementById('header-notification-badge');
+            if (headerBadge) {
+                headerBadge.textContent = count > 99 ? '99+' : count;
+                headerBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+
+                if (count > 0) {
+                    headerBadge.classList.add('pulse');
+                    setTimeout(() => headerBadge.classList.remove('pulse'), 1000);
+                }
+            }
+        }
     </script>
 </body>
 </html>

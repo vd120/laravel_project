@@ -1,25 +1,82 @@
 <div class="post" data-post-id="{{ $post->id }}">
-    <div class="user">
-        <a href="{{ route('users.show', $post->user) }}">{{ $post->user->name }}</a>
-        @if($post->is_private)
-            <span class="privacy-badge private" style="font-size: 10px; padding: 1px 4px;">
-                <i class="fas fa-lock"></i> Private
-            </span>
-        @endif
-        <small>{{ $post->created_at->diffForHumans() }}</small>
-        @if($post->user_id !== auth()->id())
-            <button type="button"
-                    class="btn follow-btn {{ auth()->user()->isFollowing($post->user) ? 'following' : '' }}"
-                    data-user-id="{{ $post->user->id }}"
-                    data-username="{{ $post->user->name }}"
-                    onclick="toggleFollow(this, {{ $post->user->id }})"
-                    style="font-size: 11px; padding: 3px 8px; margin-left: 10px; background: {{ auth()->user()->isFollowing($post->user) ? '#28a745' : 'var(--twitter-blue)' }};">
-                {{ auth()->user()->isFollowing($post->user) ? 'Following' : 'Follow' }}
+<style>
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.post-delete-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.post-delete-btn:hover {
+    background: #dc3545;
+    color: white;
+    transform: scale(1.05);
+}
+
+.post-delete-btn:active {
+    transform: scale(0.95);
+}
+
+.post .user {
+    flex: 1;
+    margin-right: 50px; /* Space for the delete button */
+}
+</style>
+    <div class="post-header">
+        <div class="user" style="display: flex; align-items: center; gap: 8px;">
+            @if($post->user->profile && $post->user->profile->avatar)
+                <img src="{{ asset('storage/' . $post->user->profile->avatar) }}" alt="{{ $post->user->name }}'s avatar" class="user-avatar-small" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e1e8ed;">
+            @else
+                <div class="user-avatar-small user-avatar-placeholder" style="width: 32px; height: 32px; border-radius: 50%; background-color: #e1e8ed; display: flex; align-items: center; justify-content: center; color: #657786; font-weight: 600; border: 2px solid #e1e8ed; font-size: 14px;">
+                    {{ substr($post->user->name, 0, 1) }}
+                </div>
+            @endif
+            <a href="{{ route('users.show', $post->user) }}" style="font-weight: 600; color: var(--twitter-dark); text-decoration: none;">{{ $post->user->name }}</a>
+            @if($post->user_id !== auth()->id())
+                <button type="button"
+                        class="btn follow-btn {{ auth()->user()->isFollowing($post->user) ? 'following' : '' }}"
+                        data-user-id="{{ $post->user->id }}"
+                        data-username="{{ $post->user->name }}"
+                        onclick="toggleFollow(this, {{ $post->user->id }})"
+                        style="font-size: 11px; padding: 3px 8px; background: {{ auth()->user()->isFollowing($post->user) ? '#28a745' : 'var(--twitter-blue)' }}; margin-left: 8px;">
+                    {{ auth()->user()->isFollowing($post->user) ? 'Following' : 'Follow' }}
+                </button>
+            @endif
+            @if($post->is_private)
+                <span class="privacy-badge private" style="font-size: 10px; padding: 1px 4px; margin-left: 8px;">
+                    <i class="fas fa-lock"></i> Private
+                </span>
+            @endif
+            <small style="color: var(--twitter-gray); font-size: 12px; margin-left: 8px;">{{ $post->created_at->diffForHumans() }}</small>
+        </div>
+        @if($post->user_id === auth()->id())
+            <button type="button" class="post-delete-btn" onclick="deletePost({{ $post->id }}, this)" title="Delete post">
+                <i class="fas fa-trash"></i>
             </button>
         @endif
     </div>
     @if($post->content)
-        <div class="content">{{ $post->content }}</div>
+        <div class="content">{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($post->content) !!}</div>
     @endif
 
     @if($post->media && $post->media->count() > 0)
@@ -76,9 +133,6 @@
         <button onclick="copyPostLink({{ $post->id }})" class="btn" style="background: #6c757d; margin-left: 10px;">
             <i class="fas fa-share"></i> Share
         </button>
-        @if($post->user_id === auth()->id())
-        <button type="button" class="btn" style="background: red; margin-left: 10px;" onclick="deletePost({{ $post->id }}, this)">Delete</button>
-        @endif
     </div>
     <hr>
     <h4>Comments</h4>

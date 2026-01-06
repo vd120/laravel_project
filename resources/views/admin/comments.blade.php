@@ -64,7 +64,7 @@
                 </div>
 
                 <div class="comment-content">
-                    <p>{{ $comment->content }}</p>
+                    <p>{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content) !!}</p>
                 </div>
 
                 <div class="comment-post-info">

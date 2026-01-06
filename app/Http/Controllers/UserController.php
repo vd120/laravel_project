@@ -13,7 +13,6 @@ class UserController extends Controller
     public function show(User $user)
     {
         $user->load('profile');
-        $posts = $user->posts()->with(['comments.replies.user', 'comments.likes'])->latest()->get();
 
         // Load blocked users only for the profile owner
         $blocked = null;
@@ -21,7 +20,7 @@ class UserController extends Controller
             $blocked = $user->blockedUsers()->with('blocked')->get();
         }
 
-        return view('users.show', compact('user', 'posts', 'blocked'));
+        return view('users.show', compact('user', 'blocked'));
     }
 
     public function follow(User $user)
@@ -40,6 +39,18 @@ class UserController extends Controller
             ))->toOthers();
         } else {
             $follow = $currentUser->follows()->create(['followed_id' => $user->id]);
+
+            // Create notification for the followed user
+            \App\Models\Notification::create([
+                'user_id' => $user->id,
+                'type' => 'follow',
+                'data' => [
+                    'follower_name' => $currentUser->name,
+                    'follower_id' => $currentUser->id
+                ],
+                'related_type' => \App\Models\Follow::class,
+                'related_id' => $follow->id
+            ]);
 
             broadcast(new UserFollowed($follow))->toOthers();
         }

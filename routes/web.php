@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\AiController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
@@ -74,6 +75,10 @@ Route::middleware(['auth', 'check.suspension'])->group(function () {
     Route::get('/password/change', function () { return view('auth.password-change'); })->name('password.change');
     Route::post('/password/change', [PasswordController::class, 'change'])->name('password.change');
 
+    // AI Assistant routes
+    Route::get('/ai', [AiController::class, 'index'])->name('ai.index');
+    Route::post('/ai/chat', [AiController::class, 'chat'])->name('ai.chat');
+
     // Chat routes
     Route::get('/chat', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/conversations', [App\Http\Controllers\ChatController::class, 'getConversations'])->name('chat.conversations');
@@ -87,12 +92,7 @@ Route::middleware(['auth', 'check.suspension'])->group(function () {
     Route::get('/chat/{conversation}/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/{conversation}/read', [App\Http\Controllers\ChatController::class, 'markAsRead'])->name('chat.mark-read');
 
-    // Notification routes
-    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
-    Route::post('/notifications/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
-    Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-    Route::delete('/notifications/{notification}', [App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
+
 
     // Admin routes (protected by admin middleware)
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {

@@ -362,32 +362,86 @@ class RealTimeManager {
 
         let deleteButtonHtml = '';
         if (isOwner) {
-            deleteButtonHtml = `<button type="button" class="btn" style="background: red; font-size: 12px; padding: 5px 10px;" onclick="deleteComment(${comment.id}, this)">Delete</button>`;
+            deleteButtonHtml = `
+                <button type="button" class="comment-delete-btn" onclick="deleteComment(${comment.id}, this)" title="Delete comment">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            `;
         }
 
         return `
-            <div class="comment" data-comment-id="${comment.id}" style="margin-left: 0px; border-left: none; padding-left: 10px;">
-                <div class="user">
-                    <a href="/users/${comment.user.id}">${comment.user.name}</a>
-                    <small>Just now</small>
-                </div>
-                <div class="content">${comment.content}</div>
-                <div>
-                    <button type="button"
-                            class="btn comment-like-btn"
-                            onclick="likeComment(${comment.id}, this)"
-                            style="background: var(--twitter-blue); font-size: 12px; padding: 5px 10px;">
-                        <i class="fas fa-heart"></i> <span class="comment-like-count">0</span>
+            <div class="comment nested-comment level-1" data-comment-id="${comment.id}">
+    <div class="comment-avatar">
+                    ${comment.user.profile && comment.user.profile.avatar
+                        ? `<img src="/storage/${comment.user.profile.avatar}" alt="Avatar" class="comment-user-avatar">`
+                        : `<div class="comment-user-avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>`
+                    }
+            </div>
+
+    <div class="comment-content-wrapper">
+        <div class="comment-header">
+            <div class="comment-user-info">
+                <a href="/users/${comment.user.name}" class="comment-user-name">${comment.user.name}</a>
+                <span class="comment-time">Just now</span>
+            </div>
+            <div class="comment-actions">
+                                    ${deleteButtonHtml}
+                            </div>
+        </div>
+
+        <div class="comment-body">
+            <div class="comment-text">${comment.content}</div>
+        </div>
+
+        <div class="comment-footer">
+            <div class="comment-interactions">
+                <button type="button" class="comment-like-btn " onclick="likeComment(${comment.id}, this)">
+                    <i class="fas fa-heart"></i>
+                    <span class="comment-like-count">0</span>
+                </button>
+                                    <button type="button" class="comment-reply-btn" onclick="toggleReplyForm(${comment.id})">
+                        <i class="fas fa-reply"></i>
+                        Reply
                     </button>
-                    <button onclick="toggleReplyForm(${comment.id})" style="background: none; border: none; color: var(--twitter-blue); cursor: pointer;">Reply</button>
-                    ${deleteButtonHtml}
-                </div>
-                <div id="reply-form-${comment.id}" style="display: none; margin-top: 10px;">
-                    <textarea id="reply-content-${comment.id}" placeholder="Reply..." maxlength="280" required style="width: 100%;"></textarea>
-                    <button type="button" class="btn" style="font-size: 12px; padding: 5px 10px;" onclick="submitReply(${comment.id}, ${comment.post_id})">Reply</button>
-                    <button type="button" onclick="toggleReplyForm(${comment.id})" style="background: none; border: none; color: var(--twitter-gray); cursor: pointer;">Cancel</button>
+                            </div>
+        </div>
+
+        <div id="reply-form-${comment.id}" class="comment-reply-form" style="display: none;">
+            <div class="reply-form-container">
+                <div class="reply-avatar">
+                                            ${comment.user.profile && comment.user.profile.avatar
+                                                ? `<img src="/storage/${comment.user.profile.avatar}" alt="Your avatar">`
+                                                : `<div class="reply-avatar-placeholder">
+                                                    <i class="fas fa-user"></i>
+                                                </div>`
+                                            }
+                                    </div>
+                <div class="reply-input-container">
+                    <textarea id="reply-content-${comment.id}" placeholder="Write a reply..." maxlength="280" required="" class="reply-textarea"></textarea>
+                    <div class="reply-actions">
+                        <button type="button" class="reply-submit-btn" onclick="submitReply(${comment.id}, ${comment.post_id})">
+                            <i class="fas fa-paper-plane"></i>
+                            Reply
+                        </button>
+                        <button type="button" class="reply-cancel-btn" onclick="toggleReplyForm(${comment.id})">
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    </div>
+
+<script>
+function toggleReplyForm(commentId) {
+    const form = document.getElementById('reply-form-' + commentId);
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+</script>
         `;
     }
 
@@ -565,11 +619,9 @@ function likeComment(commentId, buttonElement) {
     // Toggle button state immediately
     if (isCurrentlyLiked) {
         buttonElement.classList.remove('liked');
-        buttonElement.style.background = 'var(--twitter-blue)';
         likeCountElement.textContent = parseInt(likeCountElement.textContent) - 1;
     } else {
         buttonElement.classList.add('liked');
-        buttonElement.style.background = 'red';
         likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
     }
 
@@ -591,11 +643,9 @@ function likeComment(commentId, buttonElement) {
             // Revert the optimistic update if request failed
             if (isCurrentlyLiked) {
                 buttonElement.classList.add('liked');
-                buttonElement.style.background = 'red';
                 likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
             } else {
                 buttonElement.classList.remove('liked');
-                buttonElement.style.background = 'var(--twitter-blue)';
                 likeCountElement.textContent = parseInt(likeCountElement.textContent) - 1;
             }
         }
@@ -605,11 +655,9 @@ function likeComment(commentId, buttonElement) {
         // Revert the optimistic update on error
         if (isCurrentlyLiked) {
             buttonElement.classList.add('liked');
-            buttonElement.style.background = 'red';
             likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
         } else {
             buttonElement.classList.remove('liked');
-            buttonElement.style.background = 'var(--twitter-blue)';
             likeCountElement.textContent = parseInt(likeCountElement.textContent) - 1;
         }
         // Show error notification
@@ -624,13 +672,6 @@ function submitComment(postId) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const textarea = document.getElementById(`comment-content-${postId}`);
     const content = textarea.value.trim();
-
-    if (!content) {
-        if (window.realTimeManager) {
-            window.realTimeManager.showNotification('Please enter a comment', true);
-        }
-        return;
-    }
 
     // Disable the textarea and button during submission
     textarea.disabled = true;
@@ -1059,10 +1100,6 @@ function deletePost(postId, buttonElement) {
             const postElement = document.querySelector(`[data-post-id="${postId}"]`);
             if (postElement) {
                 postElement.remove();
-            }
-            // Show success notification
-            if (window.realTimeManager) {
-                window.realTimeManager.showNotification('Post deleted successfully');
             }
         } else {
             console.error('Post deletion failed');

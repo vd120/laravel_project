@@ -27,7 +27,13 @@ class CommentController extends Controller
             'content' => $request->content,
         ]);
 
-        return response()->json($comment->load('user'), 201);
+        // Process mentions in the comment content
+        app(\App\Services\MentionService::class)->processMentions($comment, $comment->content, auth()->id());
+
+        $commentData = $comment->load(['user', 'user.profile']);
+        $commentData->content = app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content);
+
+        return response()->json($commentData, 201);
     }
 
     /**
@@ -43,7 +49,20 @@ class CommentController extends Controller
             'content' => 'required|string|max:280',
         ]);
 
+        $oldContent = $comment->content;
         $comment->update($request->only('content'));
+
+        // Process mentions if content changed
+        if ($oldContent !== $comment->content && $comment->content) {
+            // Remove old mentions for this comment
+            \App\Models\Mention::where('mentionable_type', \App\Models\Comment::class)
+                ->where('mentionable_id', $comment->id)
+                ->delete();
+
+            // Process new mentions
+            app(\App\Services\MentionService::class)->processMentions($comment, $comment->content, auth()->id());
+        }
+
         return response()->json($comment);
     }
 

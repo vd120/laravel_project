@@ -51,5 +51,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/explore', [UserController::class, 'explore']);
     Route::post('/password/change', [App\Http\Controllers\Api\PasswordController::class, 'change']);
 
+});
 
+// Web-authenticated API routes for notifications (session-based auth)
+Route::middleware('web')->group(function () {
+    Route::get('/notifications', [App\Http\Controllers\Api\NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
+    Route::post('/notifications/{notification}/read', [App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/mark-all-read', [App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{notification}', [App\Http\Controllers\Api\NotificationController::class, 'destroy']);
+    Route::delete('/notifications', [App\Http\Controllers\Api\NotificationController::class, 'deleteAll']);
+    Route::get('/notifications/realtime-updates', [App\Http\Controllers\Api\NotificationController::class, 'getRealtimeUpdates']);
 });

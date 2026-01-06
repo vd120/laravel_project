@@ -22,6 +22,19 @@ class Notification extends Model
     ];
 
     /**
+     * Boot the model
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($notification) {
+            // Fire the real-time notification event
+            broadcast(new \App\Events\NotificationReceived($notification, $notification->user_id));
+        });
+    }
+
+    /**
      * Relationship with User model
      */
     public function user(): BelongsTo
@@ -87,6 +100,7 @@ class Notification extends Model
             'like' => $this->getLikeNotificationMessage(),
             'comment' => $this->getCommentNotificationMessage(),
             'follow' => $this->getFollowNotificationMessage(),
+            'mention' => $this->getMentionNotificationMessage(),
             default => 'You have a new notification'
         };
     }
@@ -125,5 +139,22 @@ class Notification extends Model
     {
         $follower = $this->data['follower_name'] ?? 'Someone';
         return "{$follower} started following you";
+    }
+
+    /**
+     * Get mention notification text
+     */
+    private function getMentionNotificationMessage(): string
+    {
+        $mentioner = $this->data['mentioner_name'] ?? 'Someone';
+        $mentionableType = $this->data['mentionable_type'] ?? 'post';
+
+        if ($mentionableType === 'App\\Models\\Post') {
+            return "{$mentioner} mentioned you in a post";
+        } elseif ($mentionableType === 'App\\Models\\Comment') {
+            return "{$mentioner} mentioned you in a comment";
+        }
+
+        return "{$mentioner} mentioned you";
     }
 }

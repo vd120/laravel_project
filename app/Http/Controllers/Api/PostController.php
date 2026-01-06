@@ -57,6 +57,28 @@ class PostController extends Controller
             ->latest()
             ->paginate($perPage);
 
+        // Process mentions in posts and comments
+        $posts->getCollection()->transform(function ($post) {
+            // Convert mentions in post content
+            if ($post->content) {
+                $post->content = app(\App\Services\MentionService::class)->convertMentionsToLinks($post->content);
+            }
+
+            if ($post->comments) {
+                $post->comments->transform(function ($comment) {
+                    $comment->content = app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content);
+                    if ($comment->replies) {
+                        $comment->replies->transform(function ($reply) {
+                            $reply->content = app(\App\Services\MentionService::class)->convertMentionsToLinks($reply->content);
+                            return $reply;
+                        });
+                    }
+                    return $comment;
+                });
+            }
+            return $post;
+        });
+
         return response()->json($posts);
     }
 
@@ -103,7 +125,28 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        return response()->json($post->load(['user', 'comments.replies.user', 'comments.likes']));
+        $post->load(['user', 'comments.replies.user', 'comments.likes']);
+
+        // Convert mentions in post content
+        if ($post->content) {
+            $post->content = app(\App\Services\MentionService::class)->convertMentionsToLinks($post->content);
+        }
+
+        // Process mentions in comments
+        if ($post->comments) {
+            $post->comments->transform(function ($comment) {
+                $comment->content = app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content);
+                if ($comment->replies) {
+                    $comment->replies->transform(function ($reply) {
+                        $reply->content = app(\App\Services\MentionService::class)->convertMentionsToLinks($reply->content);
+                        return $reply;
+                    });
+                }
+                return $comment;
+            });
+        }
+
+        return response()->json($post);
     }
 
     /**
@@ -119,7 +162,20 @@ class PostController extends Controller
             'content' => 'required|string|max:280',
         ]);
 
+        $oldContent = $post->content;
         $post->update($request->only('content'));
+
+        // Process mentions if content changed
+        if ($oldContent !== $post->content && $post->content) {
+            // Remove old mentions for this post
+            \App\Models\Mention::where('mentionable_type', \App\Models\Post::class)
+                ->where('mentionable_id', $post->id)
+                ->delete();
+
+            // Process new mentions
+            app(\App\Services\MentionService::class)->processMentions($post, $post->content, auth()->id());
+        }
+
         return response()->json($post);
     }
 
@@ -133,7 +189,7 @@ class PostController extends Controller
         }
 
         $post->delete();
-        return response()->json(['message' => 'Post deleted']);
+        return response()->json(['success' => true]);
     }
 
     public function like(Post $post)

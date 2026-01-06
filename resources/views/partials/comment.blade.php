@@ -21,16 +21,14 @@
                 <span class="comment-time">{{ $comment->created_at->diffForHumans() }}</span>
             </div>
             <div class="comment-actions">
-                @if($comment->user_id === auth()->id())
-                    <button type="button" class="comment-delete-btn" onclick="deleteComment({{ $comment->id }}, this)" title="Delete comment">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                @endif
+                <button type="button" class="comment-delete-btn" onclick="deleteComment({{ $comment->id }}, this)" title="Delete comment">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             </div>
         </div>
 
         <div class="comment-body">
-            <div class="comment-text">{{ $comment->content }}</div>
+            <div class="comment-text">{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content) !!}</div>
         </div>
 
         <div class="comment-footer">

@@ -10,18 +10,11 @@ use Illuminate\Support\Facades\Auth;
 class NotificationController extends Controller
 {
     /**
-     * Get all notifications for the authenticated user
+     * Display the notifications page for the authenticated user
      */
-    public function index(): JsonResponse
+    public function index()
     {
-        $notifications = Auth::user()->notifications()
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-
-        return response()->json([
-            'notifications' => $notifications,
-            'unread_count' => Auth::user()->notifications()->unread()->count()
-        ]);
+        return view('notifications.index');
     }
 
     /**
