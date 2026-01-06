@@ -38,7 +38,7 @@ Route::middleware('auth')->group(function () {
     })->name('logout');
 });
 
-Route::middleware(['auth', 'check.suspension'])->group(function () {
+Route::middleware('auth')->group(function () {
     Route::get('/', [PostController::class, 'index'])->name('home');
     Route::resource('posts', PostController::class);
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');

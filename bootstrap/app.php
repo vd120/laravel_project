@@ -29,7 +29,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // Admin middleware alias
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
-            'check.suspension' => \App\Http\Middleware\CheckSuspensionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -31,6 +31,13 @@
                             style="font-size: 12px; padding: 4px 10px; margin-left: 12px; background: {{ auth()->user()->isFollowing($user) ? '#28a745' : 'var(--twitter-blue)' }};">
                         {{ auth()->user()->isFollowing($user) ? 'Following' : 'Follow' }}
                     </button>
+                    @if(auth()->user()->isFollowing($user))
+                        <a href="{{ route('chat.start', $user->id) }}"
+                           class="btn message-btn"
+                           style="font-size: 12px; padding: 4px 10px; margin-left: 8px; background: #17a2b8; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                            <i class="fas fa-envelope"></i> Message
+                        </a>
+                    @endif
                 @endif
                 @if($user->is_suspended)
                     <span class="suspension-badge">
@@ -424,6 +431,16 @@
 .follow-btn.following {
     background: #28a745;
     color: white;
+}
+
+.message-btn {
+    background: #17a2b8;
+    color: white;
+}
+
+.message-btn:hover {
+    background: #138f99;
+    transform: translateY(-1px);
 }
 
 .unblock-btn {
