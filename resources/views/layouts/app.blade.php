@@ -3470,7 +3470,7 @@
         }
 
         function showMessageNotification(message) {
-            console.log('Showing message notification for:', message);
+            console.log('Showing enhanced message notification for:', message);
 
             const messageText = message.content.length > 50
                 ? message.content.substring(0, 50) + '...'
@@ -3478,11 +3478,11 @@
 
             const notificationMessage = `<strong>${message.sender.name}</strong> sent: ${messageText}`;
 
-            console.log('Creating toast with message:', notificationMessage);
+            console.log('Creating enhanced toast with message:', notificationMessage);
 
             try {
-                const toast = showToast(notificationMessage, 'message', 3000);
-                console.log('Toast created:', toast);
+                const toast = showToast(notificationMessage, 'message', 4000);
+                console.log('Enhanced toast created:', toast);
 
                 // Add click handler to go to chat
                 toast.style.cursor = 'pointer';
@@ -3493,19 +3493,48 @@
 
                 console.log('Toast click handler added');
 
+                // Enhanced visual styling for message notifications
+                toast.style.border = '2px solid rgba(29, 161, 242, 0.4)';
+                toast.style.background = 'linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(20, 20, 20, 0.9) 100%)';
+                toast.style.boxShadow = '0 12px 40px rgba(29, 161, 242, 0.3), 0 0 60px rgba(0, 186, 124, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
+                toast.style.backdropFilter = 'blur(25px)';
+                toast.style.webkitBackdropFilter = 'blur(25px)';
+
+                // Add neon pulse animation
+                toast.style.animation = 'messageNotificationPulse 0.8s ease-out';
+
+                // Add enhanced text glow
+                const textElement = toast.querySelector('p');
+                if (textElement) {
+                    textElement.style.textShadow = '0 0 8px rgba(255, 255, 255, 0.6), 0 0 16px rgba(255, 255, 255, 0.4)';
+                    textElement.style.fontWeight = '600';
+                }
+
+                // Add sender highlight
+                const strongElement = toast.querySelector('strong');
+                if (strongElement) {
+                    strongElement.style.color = 'var(--twitter-blue)';
+                    strongElement.style.textShadow = '0 0 10px var(--twitter-blue), 0 0 20px var(--twitter-blue)';
+                    strongElement.style.fontWeight = '700';
+                }
+
+                console.log('Enhanced message notification styling applied');
+
                 // Try to show browser notification if permission granted
                 if ('Notification' in window && Notification.permission === 'granted') {
                     console.log('Showing browser notification');
-                    new Notification(`New message from ${message.sender.name}`, {
+                    new Notification(`✨ New message from ${message.sender.name}`, {
                         body: messageText,
                         icon: message.sender.avatar ? `/storage/${message.sender.avatar}` : null,
-                        tag: `message-${message.conversation_id}`
+                        tag: `message-${message.conversation_id}`,
+                        badge: '/favicon.ico',
+                        requireInteraction: false
                     });
                 } else {
                     console.log('Browser notification permission not granted');
                 }
             } catch (error) {
-                console.error('Error creating toast notification:', error);
+                console.error('Error creating enhanced toast notification:', error);
             }
         }
 

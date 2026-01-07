@@ -149,12 +149,7 @@
     border-bottom: 1px solid var(--border-color);
 }
 
-.page-header h1 {
-    margin: 0 0 8px 0;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--twitter-dark);
-}
+
 
 .back-link {
     display: inline-flex;
@@ -630,70 +625,14 @@
         padding-bottom: 12px;
     }
 
-    .page-header h1 {
-        font-size: 20px;
-    }
-
-    .back-link {
-        font-size: 13px;
-    }
-
-    .user-card {
-        padding: 12px;
-        gap: 10px;
-    }
-
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-    }
-
-    .user-avatar-placeholder {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-    }
-
-    .user-name {
-        font-size: 15px;
-    }
-
-    .privacy-badge,
-    .block-indicator {
-        font-size: 9px;
-        padding: 1px 4px;
-    }
-
-    .user-bio {
-        font-size: 13px;
-        margin-bottom: 6px;
-    }
-
-    .user-stats {
-        gap: 8px;
-        font-size: 11px;
-    }
-
-    .follow-btn,
-    .unblock-btn,
-    .block-btn {
-        padding: 5px 10px;
-        font-size: 12px;
-        min-height: 26px;
-    }
-
-    .empty-state {
-        padding: 32px 12px;
-    }
-
-    .empty-icon i {
-        font-size: 36px;
-    }
-
-    .empty-state h3 {
-        font-size: 16px;
-    }
+.page-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--twitter-dark);
 }
+
+
 
 @media (max-width: 360px) {
     .user-card {

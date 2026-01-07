@@ -83,7 +83,7 @@
 </div>
 @endif
 
-<h2>All Posts</h2>
+<h2 class="all-posts-title">All Posts</h2>
 
 <div class="post-form-container">
     <div class="form-group">
@@ -128,6 +128,191 @@
     <i class="fas fa-check-circle"></i> You've seen all posts!
 </div>
 <style>
+/* Powerful Neon Effect for All Posts Title */
+.all-posts-title {
+    text-align: center;
+    margin-bottom: 40px;
+    color: var(--twitter-dark);
+    font-weight: 300;
+    font-size: 48px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 10;
+    /* Powerful neon glow effects */
+    text-shadow:
+        0 0 5px var(--twitter-blue),
+        0 0 10px var(--twitter-blue),
+        0 0 15px var(--twitter-blue),
+        0 0 20px var(--twitter-blue),
+        0 0 35px var(--twitter-blue),
+        0 0 40px var(--twitter-blue),
+        0 0 50px var(--twitter-blue),
+        0 0 75px var(--twitter-blue);
+    animation: neonFlicker 2s ease-in-out infinite alternate, neonGlow 4s ease-in-out infinite;
+}
+
+.all-posts-title::before {
+    content: 'ALL POSTS';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    color: var(--twitter-blue);
+    z-index: -1;
+    opacity: 0.8;
+    animation: neonPulse 3s ease-in-out infinite;
+}
+
+.all-posts-title::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--twitter-blue), var(--neon-lime-bright), var(--twitter-blue), transparent);
+    border-radius: 2px;
+    box-shadow:
+        0 0 10px var(--twitter-blue),
+        0 0 20px var(--neon-lime-bright),
+        0 0 30px var(--twitter-blue);
+    animation: underlineGlow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes neonFlicker {
+    0%, 100% {
+        opacity: 1;
+        text-shadow:
+            0 0 5px var(--twitter-blue),
+            0 0 10px var(--twitter-blue),
+            0 0 15px var(--twitter-blue),
+            0 0 20px var(--twitter-blue),
+            0 0 35px var(--twitter-blue),
+            0 0 40px var(--twitter-blue),
+            0 0 50px var(--twitter-blue),
+            0 0 75px var(--twitter-blue);
+    }
+    2%, 4%, 6%, 8%, 10%, 12%, 14%, 16%, 18% {
+        opacity: 0.3;
+        text-shadow:
+            0 0 1px var(--twitter-blue),
+            0 0 2px var(--twitter-blue);
+    }
+    3%, 7%, 11%, 15%, 19% {
+        opacity: 0.6;
+        text-shadow:
+            0 0 2px var(--twitter-blue),
+            0 0 4px var(--twitter-blue),
+            0 0 6px var(--twitter-blue);
+    }
+    5%, 9%, 13%, 17% {
+        opacity: 0.8;
+        text-shadow:
+            0 0 3px var(--twitter-blue),
+            0 0 6px var(--twitter-blue),
+            0 0 9px var(--twitter-blue),
+            0 0 12px var(--twitter-blue);
+    }
+    20%, 40%, 60%, 80% {
+        opacity: 0.9;
+        text-shadow:
+            0 0 4px var(--twitter-blue),
+            0 0 8px var(--twitter-blue),
+            0 0 12px var(--twitter-blue),
+            0 0 16px var(--twitter-blue),
+            0 0 20px var(--twitter-blue);
+    }
+    25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% {
+        opacity: 0.95;
+        text-shadow:
+            0 0 3px var(--twitter-blue),
+            0 0 6px var(--twitter-blue),
+            0 0 9px var(--twitter-blue),
+            0 0 12px var(--twitter-blue),
+            0 0 18px var(--twitter-blue),
+            0 0 24px var(--twitter-blue);
+    }
+    30%, 50%, 70%, 90% {
+        opacity: 1;
+        text-shadow:
+            0 0 4px var(--twitter-blue),
+            0 0 8px var(--twitter-blue),
+            0 0 12px var(--twitter-blue),
+            0 0 16px var(--twitter-blue),
+            0 0 24px var(--twitter-blue),
+            0 0 32px var(--twitter-blue),
+            0 0 40px var(--twitter-blue);
+    }
+}
+
+@keyframes neonGlow {
+    0% {
+        filter: brightness(1) contrast(1.2);
+    }
+    50% {
+        filter: brightness(1.1) contrast(1.3);
+    }
+    100% {
+        filter: brightness(1) contrast(1.2);
+    }
+}
+
+@keyframes neonPulse {
+    0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes underlineGlow {
+    0% {
+        opacity: 1;
+        box-shadow:
+            0 0 10px var(--twitter-blue),
+            0 0 20px var(--neon-lime-bright);
+    }
+    100% {
+        opacity: 0.8;
+        box-shadow:
+            0 0 15px var(--twitter-blue),
+            0 0 30px var(--neon-lime-bright),
+            0 0 45px var(--twitter-blue);
+    }
+}
+
+/* Responsive adjustments for neon title */
+@media (max-width: 768px) {
+    .all-posts-title {
+        font-size: 32px;
+        letter-spacing: 2px;
+        margin-bottom: 30px;
+    }
+
+    .all-posts-title::after {
+        width: 100px;
+        height: 2px;
+    }
+}
+
+@media (max-width: 480px) {
+    .all-posts-title {
+        font-size: 24px;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+    }
+
+    .all-posts-title::after {
+        width: 80px;
+        height: 2px;
+    }
+}
+
 .stories-section {
     margin-bottom: 30px;
     border-bottom: 1px solid var(--border-color);

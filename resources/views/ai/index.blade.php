@@ -4,18 +4,7 @@
 
 @section('content')
 <div class="ai-assistant">
-    <!-- Simple Header -->
-    <div class="ai-header">
-        <div class="ai-header-content">
-            <div class="ai-avatar">
-                <i class="fas fa-robot"></i>
-            </div>
-            <div class="ai-info">
-                <h1>AI Assistant</h1>
-                <p>Type a number or ask me anything</p>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Chat Interface -->
     <div class="ai-chat">
@@ -67,14 +56,16 @@
 
 <style>
 :root {
-    --ai-primary: #6366f1;
-    --ai-secondary: #8b5cf6;
-    --ai-background: #0f0f23;
-    --ai-surface: #1a1a35;
-    --ai-text: #ffffff;
-    --ai-text-secondary: #a1a1aa;
-    --ai-border: #374151;
-    --ai-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --ai-primary: #1D9BF0;
+    --ai-secondary: var(--neon-lime-bright);
+    --ai-background: #0F0F0F;
+    --ai-surface: #1A1A1A;
+    --ai-text: #FFFFFF;
+    --ai-text-secondary: #A1A1A1;
+    --ai-border: #333333;
+    --ai-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+    --ai-accent: var(--neon-lime-bright);
+    --ai-card-bg: linear-gradient(145deg, #1A1A1A 0%, rgba(255,255,255,0.01) 100%);
 }
 
 .ai-assistant {

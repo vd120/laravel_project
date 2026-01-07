@@ -3,7 +3,7 @@
 @section('content')
 <div style="max-width: 400px; margin: 50px auto; padding: 20px;">
     <div style="background: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); border: 2px solid var(--border-color);">
-        <h2 style="text-align: center; margin-bottom: 30px; color: var(--twitter-dark);">Change Password</h2>
+        <h2 class="change-password-title" style="text-align: center; margin-bottom: 30px; color: var(--twitter-dark);">Change Password</h2>
         <form method="POST" action="{{ route('password.change') }}">
             @csrf
             <div style="margin-bottom: 15px;">
@@ -242,5 +242,172 @@ function togglePasswordVisibility(inputId) {
 .password-toggle:focus {
     outline: 2px solid #007bff;
     outline-offset: 2px;
+}
+
+/* Powerful Neon Effect for Change Password Title */
+.change-password-title {
+    text-align: center !important;
+    margin-bottom: 30px !important;
+    color: var(--twitter-dark) !important;
+    font-weight: 300 !important;
+    font-size: 32px !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    position: relative !important;
+    z-index: 10 !important;
+    /* Powerful neon glow effects */
+    text-shadow:
+        0 0 3px var(--twitter-blue) !important,
+        0 0 6px var(--twitter-blue) !important,
+        0 0 9px var(--twitter-blue) !important,
+        0 0 12px var(--twitter-blue) !important,
+        0 0 18px var(--twitter-blue) !important,
+        0 0 24px var(--twitter-blue) !important;
+    animation: neonFlicker 2s ease-in-out infinite alternate, neonGlow 4s ease-in-out infinite !important;
+}
+
+.change-password-title::before {
+    content: 'CHANGE PASSWORD' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    color: var(--twitter-blue) !important;
+    z-index: -1 !important;
+    opacity: 0.8 !important;
+    animation: neonPulse 3s ease-in-out infinite !important;
+}
+
+.change-password-title::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 120px !important;
+    height: 2px !important;
+    background: linear-gradient(90deg, transparent, var(--twitter-blue), var(--neon-lime-bright), var(--twitter-blue), transparent) !important;
+    border-radius: 1px !important;
+    box-shadow:
+        0 0 6px var(--twitter-blue) !important,
+        0 0 12px var(--neon-lime-bright) !important,
+        0 0 18px var(--twitter-blue) !important;
+    animation: underlineGlow 2.5s ease-in-out infinite alternate !important;
+}
+
+/* Responsive adjustments for neon title */
+@media (max-width: 480px) {
+    .change-password-title {
+        font-size: 24px !important;
+        letter-spacing: 1px !important;
+    }
+
+    .change-password-title::after {
+        width: 100px !important;
+        height: 2px !important;
+    }
+}
+
+@keyframes neonFlicker {
+    0%, 100% {
+        opacity: 1;
+        text-shadow:
+            0 0 3px var(--twitter-blue),
+            0 0 6px var(--twitter-blue),
+            0 0 9px var(--twitter-blue),
+            0 0 12px var(--twitter-blue),
+            0 0 18px var(--twitter-blue),
+            0 0 24px var(--twitter-blue);
+    }
+    2%, 4%, 6%, 8%, 10%, 12%, 14%, 16%, 18% {
+        opacity: 0.3;
+        text-shadow:
+            0 0 1px var(--twitter-blue),
+            0 0 2px var(--twitter-blue);
+    }
+    3%, 7%, 11%, 15%, 19% {
+        opacity: 0.6;
+        text-shadow:
+            0 0 2px var(--twitter-blue),
+            0 0 4px var(--twitter-blue),
+            0 0 6px var(--twitter-blue);
+    }
+    5%, 9%, 13%, 17% {
+        opacity: 0.8;
+        text-shadow:
+            0 0 3px var(--twitter-blue),
+            0 0 6px var(--twitter-blue),
+            0 0 9px var(--twitter-blue),
+            0 0 12px var(--twitter-blue);
+    }
+    20%, 40%, 60%, 80% {
+        opacity: 0.9;
+        text-shadow:
+            0 0 4px var(--twitter-blue),
+            0 0 8px var(--twitter-blue),
+            0 0 12px var(--twitter-blue),
+            0 0 16px var(--twitter-blue),
+            0 0 20px var(--twitter-blue);
+    }
+    25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% {
+        opacity: 0.95;
+        text-shadow:
+            0 0 3px var(--twitter-blue),
+            0 0 6px var(--twitter-blue),
+            0 0 9px var(--twitter-blue),
+            0 0 12px var(--twitter-blue),
+            0 0 18px var(--twitter-blue),
+            0 0 24px var(--twitter-blue);
+    }
+    30%, 50%, 70%, 90% {
+        opacity: 1;
+        text-shadow:
+            0 0 4px var(--twitter-blue),
+            0 0 8px var(--twitter-blue),
+            0 0 12px var(--twitter-blue),
+            0 0 16px var(--twitter-blue),
+            0 0 24px var(--twitter-blue),
+            0 0 32px var(--twitter-blue),
+            0 0 40px var(--twitter-blue);
+    }
+}
+
+@keyframes neonGlow {
+    0% {
+        filter: brightness(1) contrast(1.2);
+    }
+    50% {
+        filter: brightness(1.1) contrast(1.3);
+    }
+    100% {
+        filter: brightness(1) contrast(1.2);
+    }
+}
+
+@keyframes neonPulse {
+    0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes underlineGlow {
+    0% {
+        opacity: 1;
+        box-shadow:
+            0 0 6px var(--twitter-blue),
+            0 0 12px var(--neon-lime-bright);
+    }
+    100% {
+        opacity: 0.8;
+        box-shadow:
+            0 0 9px var(--twitter-blue),
+            0 0 18px var(--neon-lime-bright),
+            0 0 27px var(--twitter-blue);
+    }
 }
 </style>

@@ -139,12 +139,7 @@
     align-items: center;
 }
 
-.chat-header h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--twitter-dark);
-}
+
 
 .new-chat-btn {
     background: var(--twitter-blue);
@@ -498,6 +493,8 @@
     font-size: 12px;
     margin: 8px 0;
 }
+
+
 
 /* Responsive */
 @media (max-width: 768px) {

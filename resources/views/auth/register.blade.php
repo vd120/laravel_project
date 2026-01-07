@@ -3,43 +3,60 @@
 @section('content')
 <div class="auth-container">
     <div class="auth-card">
-        <h2 style="text-align: center; margin-bottom: 30px; color: var(--twitter-dark);">Register</h2>
-        <form method="POST" action="{{ route('register') }}">
+        <h2 class="login-title">Register</h2>
+        <form method="POST" action="{{ route('register') }}" class="login-form">
             @csrf
-            <div style="margin-bottom: 15px;">
-                <label for="username" style="color: var(--twitter-dark); font-weight: 500;">Username</label>
-                <input type="text" name="username" id="username" value="{{ old('username') }}" required style="width: 100%; padding: 14px 18px; border: 2px solid var(--border-color); border-radius: 12px; background: var(--input-bg); color: var(--twitter-dark); font-size: 16px; transition: all 0.3s ease;" onfocus="this.style.borderColor='var(--twitter-blue)'; this.style.boxShadow='0 0 0 4px rgba(29, 161, 242, 0.15)'; this.style.transform='translateY(-1px)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none'; this.style.transform='translateY(0)';">
-                <div id="username-status" style="margin-top: 5px; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;"></div>
-                @error('username') <div style="color: var(--error-color); font-size: 14px; margin-top: 5px;">{{ $message }}</div> @enderror
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-wrapper">
+                    <input type="text" name="username" id="username" value="{{ old('username') }}" required placeholder="Choose a username">
+                </div>
+                <div id="username-status"></div>
+                @error('username') <div class="error-message">{{ $message }}</div> @enderror
             </div>
-            <div style="margin-bottom: 15px;">
-                <label for="email" style="color: var(--twitter-dark); font-weight: 500;">Email</label>
-                <input type="email" name="email" id="email" value="{{ old('email') }}" required style="width: 100%; padding: 14px 18px; border: 2px solid var(--border-color); border-radius: 12px; background: var(--input-bg); color: var(--twitter-dark); font-size: 16px; transition: all 0.3s ease;" onfocus="this.style.borderColor='var(--twitter-blue)'; this.style.boxShadow='0 0 0 4px rgba(29, 161, 242, 0.15)'; this.style.transform='translateY(-1px)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none'; this.style.transform='translateY(0)';">
-                @error('email') <div style="color: var(--error-color); font-size: 14px; margin-top: 5px;">{{ $message }}</div> @enderror
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <div class="input-wrapper">
+                    <input type="email" name="email" id="email" value="{{ old('email') }}" required placeholder="Enter your email address">
+                </div>
+                @error('email') <div class="error-message">{{ $message }}</div> @enderror
             </div>
-            <div style="margin-bottom: 15px;">
-                <label for="password" style="color: var(--twitter-dark); font-weight: 500;">Password</label>
-                <div style="position: relative;">
-                    <input type="password" name="password" id="password" required style="width: 100%; padding: 14px 50px 14px 18px; border: 2px solid var(--border-color); border-radius: 12px; background: var(--input-bg); color: var(--twitter-dark); font-size: 16px; transition: all 0.3s ease;" onfocus="this.style.borderColor='var(--twitter-blue)'; this.style.boxShadow='0 0 0 4px rgba(29, 161, 242, 0.15)'; this.style.transform='translateY(-1px)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none'; this.style.transform='translateY(0)';">
-                    <button type="button" onclick="togglePassword('password')" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--twitter-gray); cursor: pointer; transition: color 0.2s ease;" onmouseover="this.style.color='var(--twitter-blue)';" onmouseout="this.style.color='var(--twitter-gray)';">
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" name="password" id="password" required placeholder="Create a password">
+                    <button type="button" class="password-toggle" onclick="togglePassword('password')">
                         <i class="fas fa-eye" id="password-eye-icon"></i>
                     </button>
                 </div>
-                <div id="password-strength" style="height: 6px; background: var(--border-color); border-radius: 3px; margin-top: 8px; transition: all 0.3s;"></div>
-                <div id="password-strength-text" style="margin-top: 8px; font-size: 14px;"></div>
-                @error('password') <div style="color: var(--error-color); font-size: 14px; margin-top: 5px;">{{ $message }}</div> @enderror
+                <div id="password-strength" class="password-strength-bar"></div>
+                <div id="password-strength-text" class="password-strength-text"></div>
+                @error('password') <div class="error-message">{{ $message }}</div> @enderror
             </div>
-            <div style="margin-bottom: 20px;">
-                <label for="password_confirmation" style="color: var(--twitter-dark); font-weight: 500;">Confirm Password</label>
-                <div style="position: relative;">
-                    <input type="password" name="password_confirmation" id="password_confirmation" required style="width: 100%; padding: 14px 50px 14px 18px; border: 2px solid var(--border-color); border-radius: 12px; background: var(--input-bg); color: var(--twitter-dark); font-size: 16px; transition: all 0.3s ease;" onfocus="this.style.borderColor='var(--twitter-blue)'; this.style.boxShadow='0 0 0 4px rgba(29, 161, 242, 0.15)'; this.style.transform='translateY(-1px)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none'; this.style.transform='translateY(0)';">
-                    <button type="button" onclick="togglePassword('password_confirmation')" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--twitter-gray); cursor: pointer; transition: color 0.2s ease;" onmouseover="this.style.color='var(--twitter-blue)';" onmouseout="this.style.color='var(--twitter-gray)';">
+
+            <div class="form-group">
+                <label for="password_confirmation">Confirm Password</label>
+                <div class="input-wrapper">
+                    <input type="password" name="password_confirmation" id="password_confirmation" required placeholder="Confirm your password">
+                    <button type="button" class="password-toggle" onclick="togglePassword('password_confirmation')">
                         <i class="fas fa-eye" id="confirm-password-eye-icon"></i>
                     </button>
                 </div>
+                @error('password_confirmation') <div class="error-message">{{ $message }}</div> @enderror
             </div>
 
-            <button type="submit" style="width: 100%; padding: 14px; background: var(--twitter-blue); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(29, 161, 242, 0.3);" onmouseover="this.style.background='#1A91DA'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(29, 161, 242, 0.4)';" onmouseout="this.style.background='var(--twitter-blue)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(29, 161, 242, 0.3)';">Register</button>
+            <button type="submit" class="login-btn">
+                <span class="btn-text">Create Account</span>
+                <div class="btn-loader" style="display: none;">
+                    <div class="spinner"></div>
+                </div>
+                <div class="btn-glow"></div>
+                <div class="btn-particles" style="display: none;">
+                    <span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </button>
         </form>
         <p style="text-align: center; margin-top: 20px; color: var(--twitter-gray);">Already have an account? <a href="{{ route('login') }}" style="color: var(--twitter-blue); text-decoration: none;" onmouseover="this.style.color='#1A91DA';" onmouseout="this.style.color='var(--twitter-blue)';">Login</a></p>
     </div>
@@ -99,11 +116,477 @@
     background: var(--card-bg);
     padding: 30px;
     border-radius: 16px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    box-shadow:
+        0 4px 16px rgba(0,0,0,0.3),
+        0 0 0 1px rgba(255,255,255,0.05) inset,
+        0 1px 0 rgba(255,255,255,0.1) inset;
     border: 2px solid var(--border-color);
     width: 100%;
     max-width: 400px;
     box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--twitter-blue), var(--twitter-blue), transparent);
+    opacity: 0.8;
+    box-shadow: 0 0 10px var(--twitter-blue);
+}
+
+.auth-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(255,255,255,0.05), transparent);
+    opacity: 0.6;
+}
+
+/* Add powerful border animation */
+.auth-card {
+    animation: cardGlow 4s ease-in-out infinite alternate;
+}
+
+@keyframes cardGlow {
+    0% {
+        box-shadow:
+            0 4px 16px rgba(0,0,0,0.3),
+            0 0 0 1px rgba(255,255,255,0.05) inset,
+            0 1px 0 rgba(255,255,255,0.1) inset;
+    }
+    100% {
+        box-shadow:
+            0 4px 16px rgba(0,0,0,0.3),
+            0 0 20px rgba(29, 161, 242, 0.1),
+            0 0 0 1px rgba(255,255,255,0.05) inset,
+            0 1px 0 rgba(255,255,255,0.1) inset;
+    }
+}
+
+/* Enhanced form elements with powerful effects */
+.auth-card input[type="email"],
+.auth-card input[type="password"],
+.auth-card input[type="text"] {
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background: linear-gradient(145deg, var(--input-bg) 0%, rgba(255,255,255,0.02) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.auth-card input[type="email"]:focus,
+.auth-card input[type="password"]:focus,
+.auth-card input[type="text"]:focus {
+    transform: translateY(-3px) scale(1.02);
+    border-color: var(--twitter-blue);
+    background: linear-gradient(145deg, var(--input-bg) 0%, rgba(29, 161, 242, 0.03) 100%);
+    box-shadow:
+        0 0 0 4px rgba(29, 161, 242, 0.15),
+        0 6px 20px rgba(29, 161, 242, 0.2),
+        0 0 40px rgba(29, 161, 242, 0.1),
+        inset 0 2px 0 rgba(255,255,255,0.15),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+    animation: inputGlow 0.3s ease-out;
+}
+
+@keyframes inputGlow {
+    0% {
+        box-shadow:
+            0 0 0 0 rgba(29, 161, 242, 0.15),
+            inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    100% {
+        box-shadow:
+            0 0 0 4px rgba(29, 161, 242, 0.15),
+            0 6px 20px rgba(29, 161, 242, 0.2),
+            0 0 40px rgba(29, 161, 242, 0.1),
+            inset 0 2px 0 rgba(255,255,255,0.15),
+            inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+}
+
+/* Advanced input validation states */
+.auth-card input:valid {
+    border-color: rgba(0, 186, 124, 0.5);
+}
+
+.auth-card input:valid:focus {
+    border-color: #00BA7C;
+    box-shadow:
+        0 0 0 4px rgba(0, 186, 124, 0.15),
+        0 6px 20px rgba(0, 186, 124, 0.2),
+        inset 0 2px 0 rgba(255,255,255,0.15);
+}
+
+.auth-card input:invalid:not(:placeholder-shown) {
+    border-color: rgba(244, 33, 46, 0.5);
+    animation: inputError 0.3s ease-out;
+}
+
+.auth-card input:invalid:not(:placeholder-shown):focus {
+    border-color: #F4212E;
+    box-shadow:
+        0 0 0 4px rgba(244, 33, 46, 0.15),
+        0 6px 20px rgba(244, 33, 46, 0.2),
+        inset 0 2px 0 rgba(255,255,255,0.15);
+}
+
+@keyframes inputError {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+/* Ultra-Advanced Button Styling */
+.login-btn {
+    position: relative;
+    width: 100%;
+    padding: 20px 32px;
+    background: linear-gradient(135deg,
+        var(--twitter-blue) 0%,
+        #1A91DA 20%,
+        var(--twitter-blue) 40%,
+        #1A91DA 60%,
+        var(--twitter-blue) 80%,
+        #1A91DA 100%);
+    background-size: 200% 200%;
+    color: white;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 8px 32px rgba(29, 161, 242, 0.3),
+        0 0 60px rgba(29, 161, 242, 0.1),
+        inset 0 2px 0 rgba(255,255,255,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+    overflow: hidden;
+    z-index: 10;
+    animation: btnPulse 3s ease-in-out infinite;
+}
+
+.login-btn:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow:
+        0 16px 40px rgba(29, 161, 242, 0.5),
+        0 0 80px rgba(29, 161, 242, 0.3),
+        0 0 120px rgba(29, 161, 242, 0.1),
+        inset 0 3px 0 rgba(255,255,255,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+    background-position: right center;
+    animation: btnGlow 0.6s ease-out;
+}
+
+.login-btn:active {
+    transform: translateY(-3px) scale(0.97);
+    transition: all 0.1s ease;
+}
+
+/* Advanced shimmer effect */
+.login-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 150%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,255,255,0.4) 30%,
+        rgba(255,255,255,0.6) 50%,
+        rgba(255,255,255,0.4) 70%,
+        transparent 100%
+    );
+    transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+}
+
+.login-btn:hover::before {
+    left: 150%;
+}
+
+/* Button glow effect */
+.btn-glow {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg,
+        var(--twitter-blue),
+        #1A91DA,
+        var(--twitter-blue),
+        #1A91DA);
+    border-radius: 18px;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.4s ease;
+    filter: blur(8px);
+}
+
+.login-btn:hover .btn-glow {
+    opacity: 0.8;
+    animation: glowRotate 2s linear infinite;
+}
+
+/* Particle effects */
+.btn-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.btn-particles span {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50%;
+    animation: particleFloat 3s ease-in-out infinite;
+    opacity: 0;
+}
+
+.btn-particles span:nth-child(1) { left: 20%; animation-delay: 0s; }
+.btn-particles span:nth-child(2) { left: 40%; animation-delay: 0.5s; }
+.btn-particles span:nth-child(3) { left: 60%; animation-delay: 1s; }
+.btn-particles span:nth-child(4) { left: 80%; animation-delay: 1.5s; }
+.btn-particles span:nth-child(5) { left: 30%; animation-delay: 2s; }
+
+/* Button text and loader */
+.btn-text {
+    position: relative;
+    z-index: 3;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.btn-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn-loader.show {
+    opacity: 1;
+}
+
+.btn-loader.hide {
+    opacity: 0;
+}
+
+/* Loading spinner */
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top: 3px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Animations */
+@keyframes btnPulse {
+    0%, 100% {
+        box-shadow:
+            0 8px 32px rgba(29, 161, 242, 0.3),
+            0 0 60px rgba(29, 161, 242, 0.1),
+            inset 0 2px 0 rgba(255,255,255,0.2);
+    }
+    50% {
+        box-shadow:
+            0 8px 32px rgba(29, 161, 242, 0.4),
+            0 0 80px rgba(29, 161, 242, 0.2),
+            inset 0 2px 0 rgba(255,255,255,0.25);
+    }
+}
+
+@keyframes btnGlow {
+    0% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.3) contrast(1.2);
+    }
+    100% {
+        filter: brightness(1.1) contrast(1.1);
+    }
+}
+
+@keyframes glowRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes particleFloat {
+    0% {
+        transform: translateY(0) scale(0);
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100px) scale(1);
+        opacity: 0;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Success state */
+.login-btn.success {
+    background: linear-gradient(135deg,
+        #00BA7C 0%,
+        #00C46A 30%,
+        #00BA7C 70%,
+        #00C46A 100%);
+    box-shadow:
+        0 8px 32px rgba(0, 186, 124, 0.4),
+        0 0 60px rgba(0, 186, 124, 0.2);
+    animation: successPulse 2s ease-in-out infinite;
+}
+
+.login-btn.success .btn-text::after {
+    content: ' ✓';
+    animation: checkmarkSuccess 0.8s ease;
+}
+
+@keyframes successPulse {
+    0%, 100% {
+        box-shadow:
+            0 8px 32px rgba(0, 186, 124, 0.4),
+            0 0 60px rgba(0, 186, 124, 0.2);
+    }
+    50% {
+        box-shadow:
+            0 8px 32px rgba(0, 186, 124, 0.6),
+            0 0 80px rgba(0, 186, 124, 0.3);
+    }
+}
+
+@keyframes checkmarkSuccess {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(-180deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2) rotate(0deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+    .login-btn {
+        padding: 16px 24px;
+        font-size: 16px;
+        border-radius: 12px;
+    }
+
+    .btn-glow {
+        border-radius: 14px;
+    }
+}
+
+/* Powerful link effects */
+.auth-card a {
+    position: relative;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 8px rgba(29, 161, 242, 0.3);
+}
+
+.auth-card a:hover {
+    transform: translateY(-1px);
+    text-shadow: 0 0 15px rgba(29, 161, 242, 0.6);
+}
+
+.auth-card a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--twitter-blue), #1A91DA);
+    transition: width 0.3s ease;
+    border-radius: 1px;
+}
+
+.auth-card a:hover::after {
+    width: 100%;
+    box-shadow: 0 0 8px var(--twitter-blue);
+}
+
+/* Enhanced password toggle */
+.auth-card .password-toggle {
+    transition: all 0.3s ease;
+    border-radius: 50%;
+    padding: 8px;
+    margin: -4px;
+}
+
+.auth-card .password-toggle:hover {
+    background: rgba(29, 161, 242, 0.1);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 0 10px rgba(29, 161, 242, 0.2);
+}
+
+/* Add floating animation to the card on larger screens */
+@media (min-width: 768px) {
+    .auth-card {
+        animation: cardGlow 4s ease-in-out infinite alternate, cardFloat 6s ease-in-out infinite;
+    }
+
+    @keyframes cardFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+    }
+}
+
+/* Enhanced error message styling */
+.auth-card .error-message {
+    background: rgba(244, 33, 46, 0.1);
+    border: 1px solid rgba(244, 33, 46, 0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--error-color);
+    box-shadow: 0 2px 8px rgba(244, 33, 46, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 /* Password strength indicator */
@@ -113,6 +596,17 @@
     margin-top: 8px;
     transition: all 0.3s ease;
     background: #eee;
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: left;
+}
+
+#password-strength.weak,
+#password-strength.medium,
+#password-strength.strong,
+#password-strength.very-strong {
+    opacity: 1;
+    transform: scaleX(1);
 }
 
 #password-strength.weak {
@@ -412,6 +906,244 @@
     .auth-card {
         border-width: 3px;
     }
+}
+
+/* Powerful Neon Title Effect */
+.login-title {
+    text-align: center;
+    margin-bottom: 40px;
+    color: var(--twitter-dark);
+    font-weight: 300;
+    font-size: 48px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 10;
+    /* Powerful neon glow effects */
+    text-shadow:
+        0 0 5px var(--twitter-blue),
+        0 0 10px var(--twitter-blue),
+        0 0 15px var(--twitter-blue),
+        0 0 20px var(--twitter-blue),
+        0 0 35px var(--twitter-blue),
+        0 0 40px var(--twitter-blue),
+        0 0 50px var(--twitter-blue),
+        0 0 75px var(--twitter-blue);
+    animation: neonFlicker 2s ease-in-out infinite alternate, neonGlow 4s ease-in-out infinite;
+}
+
+.login-title::before {
+    content: 'REGISTER';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    color: var(--twitter-blue);
+    z-index: -1;
+    opacity: 0.8;
+    animation: neonPulse 3s ease-in-out infinite;
+}
+
+.login-title::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--twitter-blue), var(--neon-lime-bright), var(--twitter-blue), transparent);
+    border-radius: 2px;
+    box-shadow:
+        0 0 10px var(--twitter-blue),
+        0 0 20px var(--neon-lime-bright),
+        0 0 30px var(--twitter-blue);
+    animation: underlineGlow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes neonFlicker {
+    0%, 100% {
+        opacity: 1;
+        text-shadow:
+            0 0 5px var(--twitter-blue),
+            0 0 10px var(--twitter-blue),
+            0 0 15px var(--twitter-blue),
+            0 0 20px var(--twitter-blue),
+            0 0 35px var(--twitter-blue),
+            0 0 40px var(--twitter-blue),
+            0 0 50px var(--twitter-blue),
+            0 0 75px var(--twitter-blue);
+    }
+    2%, 4%, 6%, 8%, 10%, 12%, 14%, 16%, 18% {
+        opacity: 0.3;
+        text-shadow:
+            0 0 1px var(--twitter-blue),
+            0 0 2px var(--twitter-blue);
+    }
+    3%, 7%, 11%, 15%, 19% {
+        opacity: 0.6;
+        text-shadow:
+            0 0 2px var(--twitter-blue),
+            0 0 4px var(--twitter-blue),
+            0 0 6px var(--twitter-blue);
+    }
+    5%, 9%, 13%, 17% {
+        opacity: 0.8;
+        text-shadow:
+            0 0 3px var(--twitter-blue),
+            0 0 6px var(--twitter-blue),
+            0 0 9px var(--twitter-blue),
+            0 0 12px var(--twitter-blue);
+    }
+    20%, 40%, 60%, 80% {
+        opacity: 0.9;
+        text-shadow:
+            0 0 4px var(--twitter-blue),
+            0 0 8px var(--twitter-blue),
+            0 0 12px var(--twitter-blue),
+            0 0 16px var(--twitter-blue),
+            0 0 20px var(--twitter-blue);
+    }
+    25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% {
+        opacity: 0.95;
+        text-shadow:
+            0 0 3px var(--twitter-blue),
+            0 0 6px var(--twitter-blue),
+            0 0 9px var(--twitter-blue),
+            0 0 12px var(--twitter-blue),
+            0 0 18px var(--twitter-blue),
+            0 0 24px var(--twitter-blue);
+    }
+    30%, 50%, 70%, 90% {
+        opacity: 1;
+        text-shadow:
+            0 0 4px var(--twitter-blue),
+            0 0 8px var(--twitter-blue),
+            0 0 12px var(--twitter-blue),
+            0 0 16px var(--twitter-blue),
+            0 0 24px var(--twitter-blue),
+            0 0 32px var(--twitter-blue),
+            0 0 40px var(--twitter-blue);
+    }
+}
+
+@keyframes neonGlow {
+    0% {
+        filter: brightness(1) contrast(1.2);
+    }
+    50% {
+        filter: brightness(1.1) contrast(1.3);
+    }
+    100% {
+        filter: brightness(1) contrast(1.2);
+    }
+}
+
+@keyframes neonPulse {
+    0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes underlineGlow {
+    0% {
+        opacity: 1;
+        box-shadow:
+            0 0 10px var(--twitter-blue),
+            0 0 20px var(--neon-lime-bright);
+    }
+    100% {
+        opacity: 0.8;
+        box-shadow:
+            0 0 15px var(--twitter-blue),
+            0 0 30px var(--neon-lime-bright),
+            0 0 45px var(--twitter-blue);
+    }
+}
+
+/* Ensure username field icon is visible and positioned correctly */
+.input-wrapper:has(#username) .input-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: absolute !important;
+    right: 16px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: var(--twitter-gray) !important;
+    font-size: 16px !important;
+    z-index: 2 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    width: 20px !important;
+    height: 20px !important;
+    pointer-events: none !important;
+}
+
+/* Make password toggle buttons completely static and properly contained */
+.auth-card button[type="button"] {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: none !important;
+    border: none !important;
+    color: var(--twitter-gray) !important;
+    cursor: pointer !important;
+    padding: 6px !important;
+    margin: 0 !important;
+    width: 24px !important;
+    height: 24px !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: none !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 3 !important;
+}
+
+.auth-card button[type="button"]:focus,
+.auth-card button[type="button"]:active,
+.auth-card button[type="button"]:hover {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: none !important;
+    border: none !important;
+    color: var(--twitter-gray) !important;
+    cursor: pointer !important;
+    padding: 6px !important;
+    margin: 0 !important;
+    width: 24px !important;
+    height: 24px !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: none !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 3 !important;
+}
+
+/* Ensure input wrapper properly contains the button */
+.input-wrapper {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Adjust input padding for proper button containment */
+.input-wrapper:has(button[type="button"]) input {
+    padding-right: 40px !important;
 }
 
 /* Reduced motion support */
