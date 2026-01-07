@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('conversation_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
             $table->text('content');
             $table->enum('type', ['text', 'image', 'file'])->default('text');
             $table->string('file_path')->nullable();
@@ -24,7 +24,7 @@ return new class extends Migration
 
             // Index for performance
             $table->index(['conversation_id', 'created_at']);
-            $table->index(['user_id', 'is_read']);
+            $table->index(['sender_id', 'is_read']);
         });
     }
 

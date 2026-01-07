@@ -19,12 +19,10 @@ return new class extends Migration
             $table->index('is_private'); // For filtering private posts
         });
 
-        Schema::table('conversations', function (Blueprint $table) {
-            $table->index('last_message_at'); // For ordering conversations
-        });
+        // conversations last_message_at index already exists in create migration
 
         Schema::table('messages', function (Blueprint $table) {
-            $table->index(['conversation_id', 'created_at']); // For message history
+            // conversation_id, created_at index already exists in create migration
             $table->index(['sender_id', 'created_at']); // For user message history
             $table->index('read_at'); // For unread message queries
             $table->index('notified_at'); // For notification queries
@@ -49,7 +47,7 @@ return new class extends Migration
         });
 
         Schema::table('notifications', function (Blueprint $table) {
-            $table->index(['user_id', 'read_at']); // For user notifications
+            // user_id, read_at index already exists in create migration
             $table->index(['user_id', 'created_at']); // For recent notifications
         });
     }
@@ -67,7 +65,7 @@ return new class extends Migration
         });
 
         Schema::table('posts', function (Blueprint $table) {
-            $table->dropIndex(['user_id', 'created_at']);
+            $table->dropIndex(['sender_id', 'created_at']);
             $table->dropIndex(['is_private']);
             $table->dropIndex(['created_at']);
         });
@@ -105,7 +103,7 @@ return new class extends Migration
         });
 
         Schema::table('notifications', function (Blueprint $table) {
-            $table->dropIndex(['user_id', 'read_at']);
+            // user_id, read_at index exists in create migration, don't drop it
             $table->dropIndex(['user_id', 'created_at']);
         });
     }
