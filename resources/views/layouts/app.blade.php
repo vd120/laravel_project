@@ -128,22 +128,26 @@
             }
 
         /* Navigation - always show as dropdown on all screen sizes */
-        .nav-links {
-            display: none;
-            flex-direction: column;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: var(--card-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 4px 16px rgba(29, 161, 242, 0.1);
-            min-width: 220px;
-            z-index: 1000;
-            padding: 12px 0;
-            backdrop-filter: blur(10px);
-            animation: dropdownSlideIn 0.2s ease-out;
-        }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: var(--card-bg);
+                border: 2px solid var(--border-color);
+                border-radius: 20px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 4px 16px rgba(29, 161, 242, 0.1);
+                min-width: 220px;
+                z-index: 1000;
+                padding: 12px 0;
+                backdrop-filter: blur(10px);
+                animation: dropdownSlideIn 0.2s ease-out;
+            }
+
+            .nav-links.mobile-show {
+                display: flex;
+            }
 
         @keyframes dropdownSlideIn {
             from {
@@ -430,9 +434,7 @@
                 display: block; /* Show username on mobile screens */
             }
 
-            .admin-link {
-                display: none; /* Hide admin link on mobile */
-            }
+            /* Admin link moved to mobile menu */
 
             .app-layout {
                 padding: 8px;
@@ -2826,22 +2828,25 @@
             @endauth
             <div class="nav-links">
                 @auth
-                <a href="{{ route('home') }}">Home</a>
-                <a href="{{ route('stories.index') }}">Stories</a>
-                <a href="{{ route('chat.index') }}">Messages</a>
-                <a href="{{ route('ai.index') }}">AI Assistant</a>
-                <a href="{{ route('explore') }}">Explore</a>
-                <a href="{{ route('search') }}">Search</a>
-                <a href="{{ route('users.saved-posts') }}">Saved Posts</a>
-                <a href="{{ route('users.show', auth()->user()) }}">Profile</a>
-                <a href="{{ route('password.change') }}">Change Password</a>
-                <a href="{{ route('logout') }}" onclick="confirmLogout(event)">Logout</a>
+                <a href="{{ route('home') }}"><i class="fas fa-home"></i>Home</a>
+                <a href="{{ route('stories.index') }}"><i class="fas fa-circle-play"></i>Stories</a>
+                <a href="{{ route('chat.index') }}"><i class="fas fa-envelope"></i>Messages</a>
+                <a href="{{ route('ai.index') }}"><i class="fas fa-robot"></i>AI Assistant</a>
+                <a href="{{ route('explore') }}"><i class="fas fa-hashtag"></i>Explore</a>
+                <a href="{{ route('search') }}"><i class="fas fa-search"></i>Search</a>
+                <a href="{{ route('users.saved-posts') }}"><i class="fas fa-bookmark"></i>Saved Posts</a>
+                <a href="{{ route('users.show', auth()->user()) }}"><i class="fas fa-user"></i>Profile</a>
+                <a href="{{ route('password.change') }}"><i class="fas fa-key"></i>Change Password</a>
+                @if(auth()->user()->is_admin)
+                <a href="{{ route('admin.dashboard') }}"><i class="fas fa-crown"></i>Admin Panel</a>
+                @endif
+                <a href="{{ route('logout') }}" onclick="confirmLogout(event)"><i class="fas fa-sign-out-alt"></i>Logout</a>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                     @csrf
                 </form>
                 @else
-                <a href="{{ route('login') }}">Login</a>
-                <a href="{{ route('register') }}">Register</a>
+                <a href="{{ route('login') }}"><i class="fas fa-sign-in-alt"></i>Login</a>
+                <a href="{{ route('register') }}"><i class="fas fa-user-plus"></i>Register</a>
                 @endauth
             </div>
             <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
@@ -3890,4 +3895,5 @@
         }
     </script>
 </body>
+</html>
 </html>
