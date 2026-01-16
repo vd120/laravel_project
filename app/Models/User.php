@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -24,6 +24,8 @@ class User extends Authenticatable
         'password',
         'is_admin',
         'is_suspended',
+        'verification_code',
+        'verification_code_expires_at',
     ];
 
     /**
@@ -160,5 +162,47 @@ class User extends Authenticatable
     public function notifications()
     {
         return $this->hasMany(Notification::class);
+    }
+
+    /**
+     * Generate a 6-digit verification code
+     */
+    public function generateVerificationCode()
+    {
+        $this->verification_code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $this->verification_code_expires_at = now()->addMinutes(10); // Code expires in 10 minutes
+        $this->save();
+
+        return $this->verification_code;
+    }
+
+    /**
+     * Verify the provided code
+     */
+    public function verifyCode($code)
+    {
+        if ($this->verification_code !== $code) {
+            return false;
+        }
+
+        if (now()->isAfter($this->verification_code_expires_at)) {
+            return false; // Code expired
+        }
+
+        // Mark email as verified
+        $this->email_verified_at = now();
+        $this->verification_code = null;
+        $this->verification_code_expires_at = null;
+        $this->save();
+
+        return true;
+    }
+
+    /**
+     * Check if verification code is expired
+     */
+    public function isVerificationCodeExpired()
+    {
+        return $this->verification_code_expires_at && now()->isAfter($this->verification_code_expires_at);
     }
 }

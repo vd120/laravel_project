@@ -24,6 +24,11 @@ class LoginController extends Controller
                 return redirect()->route('login')->with('suspended', true);
             }
 
+            // Check if email is verified
+            if (!Auth::user()->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice');
+            }
+
             $request->session()->regenerate();
 
             return redirect()->intended('/');

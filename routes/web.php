@@ -38,7 +38,97 @@ Route::middleware('auth')->group(function () {
     })->name('logout');
 });
 
-Route::get('/', [PostController::class, 'index'])->name('home');
+// Email verification routes (6-digit code system)
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
+
+Route::get('/email/verify', function () {
+    // Allow access for both logged-in users and users with pending verification
+    if (auth()->check()) {
+        return view('auth.verify-email');
+    }
+
+    // Check if there's a pending verification user in session
+    $pendingUserId = session('pending_verification_user_id');
+    if ($pendingUserId) {
+        $pendingUser = \App\Models\User::find($pendingUserId);
+        if ($pendingUser && !$pendingUser->hasVerifiedEmail()) {
+            // Temporarily log in the user for verification
+            auth()->login($pendingUser);
+            return view('auth.verify-email');
+        }
+    }
+
+    return redirect('/')->with('error', 'Please register first.');
+})->name('verification.notice');
+
+Route::post('/email/verification-notification', function (Request $request) {
+    $user = $request->user();
+
+    // If no authenticated user, check for pending verification user
+    if (!$user) {
+        $pendingUserId = session('pending_verification_user_id');
+        if ($pendingUserId) {
+            $user = \App\Models\User::find($pendingUserId);
+        }
+    }
+
+    if ($user && !$user->hasVerifiedEmail()) {
+        // Generate and send new verification code
+        $verificationCode = $user->generateVerificationCode();
+
+        // Send simple verification code via email
+        \Illuminate\Support\Facades\Mail::raw(
+            "Welcome to " . config('app.name') . "!\n\n" .
+            "Your verification code is: {$verificationCode}\n\n" .
+            "Please enter this code to verify your account.",
+            function ($message) use ($user) {
+                $message->to($user->email)
+                        ->subject(config('app.name') . ' - Verification Code');
+            }
+        );
+
+        return back()->with('message', 'New verification code sent!');
+    }
+
+    return back()->with('error', 'Unable to send verification email.');
+})->middleware(['throttle:6,1'])->name('verification.send');
+
+Route::post('/email/verify-code', function (Request $request) {
+    $request->validate([
+        'code' => 'required|string|size:6|regex:/^\d{6}$/',
+    ]);
+
+    $user = $request->user();
+
+    // If no authenticated user, check for pending verification user
+    if (!$user) {
+        $pendingUserId = session('pending_verification_user_id');
+        if ($pendingUserId) {
+            $user = \App\Models\User::find($pendingUserId);
+        }
+    }
+
+    if (!$user) {
+        return redirect()->route('login')->withErrors(['code' => 'User not found.']);
+    }
+
+    if ($user->verifyCode($request->code)) {
+        // Clear pending verification session
+        session()->forget('pending_verification_user_id');
+
+        // Log the user in
+        if (!auth()->check()) {
+            auth()->login($user);
+        }
+
+        return redirect('/')->with('message', 'Email verified successfully! Welcome to the platform.');
+    }
+
+    return back()->withErrors(['code' => 'Invalid or expired verification code.']);
+})->name('verification.verify-code');
+
+Route::get('/', [PostController::class, 'index'])->middleware(['auth', 'verified'])->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::resource('posts', PostController::class);

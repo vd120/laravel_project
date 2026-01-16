@@ -1,6 +1,84 @@
 @extends('layouts.app')
 
 @section('content')
+@if (session('verified'))
+    <div style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(40, 167, 69, 0.95);
+        color: white;
+        padding: 16px 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(40, 167, 69, 0.3);
+        z-index: 10000;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        animation: slideInRight 0.5s ease-out;
+        max-width: 400px;
+    ">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fas fa-check-circle" style="font-size: 24px; color: white;"></i>
+            <div>
+                <div style="font-weight: 700; font-size: 16px; margin-bottom: 4px;">Email Verified Successfully!</div>
+                <div style="font-size: 14px; opacity: 0.9;">Welcome to Laravel Social! You can now enjoy all features.</div>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" style="
+                background: none;
+                border: none;
+                color: white;
+                cursor: pointer;
+                font-size: 18px;
+                padding: 4px;
+                margin-left: 8px;
+                opacity: 0.7;
+                transition: opacity 0.2s ease;
+            " onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.7';">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <style>
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+    <script>
+        // Auto-hide success message after 5 seconds
+        setTimeout(() => {
+            const message = document.querySelector('[style*="position: fixed"]');
+            if (message) {
+                message.style.animation = 'slideOutRight 0.5s ease-out';
+                setTimeout(() => message.remove(), 500);
+            }
+        }, 5000);
+
+        // Add slideOutRight animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+@endif
+
 <div style="padding: 20px 0;">
 
 @if($followedUsersWithStories->count() > 0 || $myStories->count() > 0)
@@ -2353,8 +2431,231 @@ function initializeInfiniteScroll() {
     }
 }
 
+// Show welcome modal for non-logged-in users automatically
+function showWelcomeModalForGuests() {
+    // Check if user is not logged in
+    const isLoggedIn = @if(auth()->check()) true @else false @endif;
+
+    console.log('Welcome modal check:', { isLoggedIn, currentUser: @json(auth()->user()) });
+
+    if (!isLoggedIn) {
+        console.log('Showing welcome modal for guest user (appears every time)');
+        // Show modal immediately when page loads - appears every time for non-logged-in users
+        showWelcomeModal();
+    } else {
+        console.log('User is logged in, not showing welcome modal');
+    }
+}
+
+// Welcome modal for guests
+function showWelcomeModal() {
+    // Remove any existing modals
+    const existingModal = document.getElementById('welcome-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // Create modal overlay
+    const modalOverlay = document.createElement('div');
+    modalOverlay.id = 'welcome-modal';
+    modalOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: modalFadeIn 0.4s ease-out;
+    `;
+
+    // Create modal content
+    modalOverlay.innerHTML = `
+        <div style="
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 0;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+            animation: modalSlideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        ">
+            <!-- Header with gradient -->
+            <div style="
+                background: linear-gradient(135deg, var(--twitter-blue) 0%, #1A91DA 100%);
+                padding: 20px 24px 18px 24px;
+                text-align: center;
+                position: relative;
+            ">
+                <div style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(45deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.06) 100%);
+                    opacity: 0.8;
+                "></div>
+                <i class="fas fa-handshake" style="
+                    font-size: 40px;
+                    color: white;
+                    margin-bottom: 8px;
+                    animation: iconBounce 0.7s ease-out;
+                "></i>
+                <h2 style="
+                    color: white;
+                    margin: 0;
+                    font-size: 22px;
+                    font-weight: 700;
+                    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+                ">Welcome to Laravel Social!</h2>
+                <p style="
+                    color: rgba(255,255,255,0.95);
+                    margin: 6px 0 0 0;
+                    font-size: 14px;
+                    font-weight: 500;
+                ">Join our community to connect, share, and discover amazing content.</p>
+            </div>
+
+            <!-- Content -->
+            <div style="padding: 20px;">
+
+
+                <!-- Action buttons -->
+                <div style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 10px;
+                ">
+                    <a href="{{ route('register') }}" style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 6px;
+                        padding: 12px 16px;
+                        background: var(--twitter-blue);
+                        color: white;
+                        text-decoration: none;
+                        border-radius: 10px;
+                        font-weight: 600;
+                        font-size: 14px;
+                        transition: all 0.2s ease;
+                        box-shadow: 0 3px 10px rgba(29, 161, 242, 0.3);
+                    " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 15px rgba(29, 161, 242, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 10px rgba(29, 161, 242, 0.3)';">
+                        <i class="fas fa-user-plus"></i>
+                        Sign Up
+                    </a>
+
+                    <a href="{{ route('login') }}" style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 6px;
+                        padding: 12px 16px;
+                        background: transparent;
+                        color: var(--twitter-blue);
+                        text-decoration: none;
+                        border: 1.5px solid var(--twitter-blue);
+                        border-radius: 10px;
+                        font-weight: 600;
+                        font-size: 14px;
+                        transition: all 0.2s ease;
+                    " onmouseover="this.style.background='var(--twitter-blue)'; this.style.color='white'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='transparent'; this.style.color='var(--twitter-blue)'; this.style.transform='translateY(0)';">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </a>
+                </div>
+
+                <!-- Close button -->
+                <button onclick="closeWelcomeModal()" style="
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    width: 30px;
+                    height: 30px;
+                    border: none;
+                    border-radius: 50%;
+                    background: rgba(255,255,255,0.2);
+                    color: white;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 12px;
+                    transition: all 0.2s ease;
+                " onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='scale(1.1)';" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)';">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <!-- Skip button - positioned below the action buttons -->
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                    <button onclick="closeWelcomeModal()" style="
+                        background: rgba(255,255,255,0.1);
+                        border: 1px solid rgba(255,255,255,0.2);
+                        color: rgba(255,255,255,0.8);
+                        cursor: pointer;
+                        font-size: 13px;
+                        font-weight: 500;
+                        padding: 6px 14px;
+                        border-radius: 16px;
+                        transition: all 0.2s ease;
+                        backdrop-filter: blur(4px);
+                        -webkit-backdrop-filter: blur(4px);
+                    " onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)'; this.style.color='white';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,255,255,0.2)'; this.style.color='rgba(255,255,255,0.8)';">
+                        <i class="fas fa-arrow-right" style="margin-right: 4px; font-size: 10px;"></i>
+                        Continue browsing
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add modal to page
+    document.body.appendChild(modalOverlay);
+
+    // Close on overlay click
+    modalOverlay.addEventListener('click', function(e) {
+        if (e.target === modalOverlay) {
+            closeWelcomeModal();
+        }
+    });
+
+    // Close on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeWelcomeModal();
+        }
+    });
+}
+
+function closeWelcomeModal() {
+    const modal = document.getElementById('welcome-modal');
+    if (modal) {
+        // Mark as dismissed in localStorage
+        localStorage.setItem('welcomeModalDismissed', 'true');
+
+        modal.style.animation = 'modalFadeOut 0.3s ease-out';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.remove();
+            }
+        }, 300);
+    }
+}
+
 // Initialize everything on page load
 document.addEventListener('DOMContentLoaded', function() {
+    // Show welcome modal for guests
+    showWelcomeModalForGuests();
+
     // Initialize video overlays for existing posts
     initializeVideoOverlays();
 

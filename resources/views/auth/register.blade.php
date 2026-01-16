@@ -47,7 +47,7 @@
                 @error('password_confirmation') <div class="error-message">{{ $message }}</div> @enderror
             </div>
 
-            <button type="submit" class="login-btn">
+            <button type="submit" class="login-btn" id="register-btn">
                 <span class="btn-text">Create Account</span>
                 <div class="btn-loader" style="display: none;">
                     <div class="spinner"></div>
@@ -1248,9 +1248,47 @@ function checkUsernameAvailability(username) {
         return;
     }
 
+    // Define reserved usernames (same list as server-side)
+    const reservedUsernames = [
+        // Admin and system related
+        'admin', 'administrator', 'root', 'system', 'sysadmin',
+        'moderator', 'mod', 'staff', 'support', 'help',
+        'bot', 'robot', 'api', 'service',
+
+        // Laravel/social platform related
+        'laravel', 'social', 'twitter', 'x', 'meta', 'facebook',
+        'instagram', 'linkedin', 'youtube', 'tiktok',
+
+        // Common variations
+        'admin1', 'admin123', 'administrator1', 'root1',
+        'mod1', 'moderator1', 'staff1', 'support1',
+
+        // Application specific
+        'app', 'application', 'platform', 'site', 'website',
+        'company', 'official', 'team', 'dev', 'developer',
+
+        // Common admin variations
+        'superuser', 'superadmin', 'master', 'owner',
+        'ceo', 'founder', 'manager', 'director'
+    ];
+
+    // Check if username is reserved
+    if (reservedUsernames.includes(username.toLowerCase())) {
+        statusDiv.textContent = 'This username is reserved and cannot be used';
+        statusDiv.className = 'invalid';
+        return;
+    }
+
     if (username.length < 3) {
         statusDiv.textContent = 'Username must be at least 3 characters';
         statusDiv.className = 'warning';
+        return;
+    }
+
+    // Check for invalid characters (client-side validation)
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+        statusDiv.textContent = 'Username can only contain letters, numbers, underscores, and hyphens';
+        statusDiv.className = 'invalid';
         return;
     }
 
@@ -1324,6 +1362,46 @@ document.addEventListener('DOMContentLoaded', function() {
             usernameCheckTimeout = setTimeout(() => {
                 checkUsernameAvailability(username);
             }, 500);
+        });
+    }
+
+    // Form submission validation
+    const registerForm = document.querySelector('form');
+    const registerBtn = document.getElementById('register-btn');
+
+    if (registerForm && registerBtn) {
+        registerForm.addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('password_confirmation').value;
+
+            // Check password strength
+            let strength = 0;
+            if (password.length >= 8) strength += 1;
+            if (/[a-z]/.test(password)) strength += 1;
+            if (/[A-Z]/.test(password)) strength += 1;
+            if (/\d/.test(password)) strength += 1;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+
+            // Require at least "Medium" strength (3 criteria met)
+            if (strength < 3) {
+                e.preventDefault();
+                alert('Password is too weak. Please use a stronger password with uppercase, lowercase, numbers, and/or special characters.');
+                document.getElementById('password').focus();
+                return false;
+            }
+
+            // Check password confirmation
+            if (password !== passwordConfirm) {
+                e.preventDefault();
+                alert('Passwords do not match.');
+                document.getElementById('password_confirmation').focus();
+                return false;
+            }
+
+            // Disable button and show loading
+            registerBtn.disabled = true;
+            registerBtn.querySelector('.btn-text').textContent = 'Creating Account...';
+            registerBtn.querySelector('.btn-loader').style.display = 'block';
         });
     }
 });
