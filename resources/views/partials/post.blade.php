@@ -52,7 +52,7 @@
                 </div>
             @endif
             <a href="{{ route('users.show', $post->user) }}" style="font-weight: 600; color: var(--twitter-dark); text-decoration: none;">{{ $post->user->name }}</a>
-            @if($post->user_id !== auth()->id())
+            @if(auth()->check() && $post->user_id !== auth()->id())
                 <button type="button"
                         class="btn follow-btn {{ auth()->user()->isFollowing($post->user) ? 'following' : '' }}"
                         data-user-id="{{ $post->user->id }}"
@@ -118,28 +118,50 @@
     @endif
 
     <div>
-        <button type="button"
-                class="btn like-btn {{ $post->likedBy(auth()->user()) ? 'liked' : '' }}"
-                onclick="toggleLike({{ $post->id }}, this)"
-                style="background: {{ $post->likedBy(auth()->user()) ? 'red' : 'var(--twitter-blue)' }};">
-            <i class="fas fa-heart"></i> <span class="like-count">{{ $post->likes->count() }}</span>
-        </button>
-        <button type="button"
-                class="btn save-btn {{ $post->savedBy(auth()->user()) ? 'saved' : '' }}"
-                onclick="toggleSave({{ $post->id }}, this)"
-                style="background: {{ $post->savedBy(auth()->user()) ? '#17a2b8' : '#6c757d' }}; margin-left: 10px;">
-            <i class="fas fa-bookmark"></i> <span class="save-text">{{ $post->savedBy(auth()->user()) ? 'Saved' : 'Save' }}</span>
-        </button>
+        @if(auth()->check())
+            <button type="button"
+                    class="btn like-btn {{ $post->likedBy(auth()->user()) ? 'liked' : '' }}"
+                    onclick="toggleLike({{ $post->id }}, this)"
+                    style="background: {{ $post->likedBy(auth()->user()) ? 'red' : 'var(--twitter-blue)' }};">
+                <i class="fas fa-heart"></i> <span class="like-count">{{ $post->likes->count() }}</span>
+            </button>
+            <button type="button"
+                    class="btn save-btn {{ $post->savedBy(auth()->user()) ? 'saved' : '' }}"
+                    onclick="toggleSave({{ $post->id }}, this)"
+                    style="background: {{ $post->savedBy(auth()->user()) ? '#17a2b8' : '#6c757d' }}; margin-left: 10px;">
+                <i class="fas fa-bookmark"></i> <span class="save-text">{{ $post->savedBy(auth()->user()) ? 'Saved' : 'Save' }}</span>
+            </button>
+        @else
+            <button type="button"
+                    class="btn like-btn"
+                    onclick="showLoginModal('like', 'Like posts to show your appreciation and support creators!')"
+                    style="background: var(--twitter-blue);">
+                <i class="fas fa-heart"></i> <span class="like-count">{{ $post->likes->count() }}</span>
+            </button>
+            <button type="button"
+                    class="btn save-btn"
+                    onclick="showLoginModal('save', 'Save posts to keep your favorite content organized and easily accessible!')"
+                    style="background: #6c757d; margin-left: 10px;">
+                <i class="fas fa-bookmark"></i> Save
+            </button>
+        @endif
         <button onclick="copyPostLink({{ $post->id }})" class="btn" style="background: #6c757d; margin-left: 10px;">
             <i class="fas fa-share"></i> Share
         </button>
     </div>
     <hr>
     <h4>Comments</h4>
-    <div class="comment-form-container">
-        <textarea id="comment-content-{{ $post->id }}" placeholder="Add a comment..." maxlength="280" required></textarea>
-        <button type="button" class="btn" style="font-size: 12px; padding: 5px 10px;" onclick="submitComment({{ $post->id }})">Comment</button>
-    </div>
+    @if(auth()->check())
+        <div class="comment-form-container">
+            <textarea id="comment-content-{{ $post->id }}" placeholder="Add a comment..." maxlength="280" required></textarea>
+            <button type="button" class="btn" style="font-size: 12px; padding: 5px 10px;" onclick="submitComment({{ $post->id }})">Comment</button>
+        </div>
+    @else
+        <div class="guest-comment-message" style="text-align: center; padding: 20px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 15px;">
+            <i class="fas fa-comment-slash" style="font-size: 24px; color: var(--twitter-gray); margin-bottom: 10px;"></i>
+            <p style="color: var(--twitter-gray); margin: 0; font-size: 14px;">Please <a href="{{ route('login') }}" style="color: var(--twitter-blue); text-decoration: none; font-weight: 500;">login</a> to comment on posts</p>
+        </div>
+    @endif
     <div class="comments-container" style="margin-top: 15px;">
 @php
     $totalComments = $post->comments->count();

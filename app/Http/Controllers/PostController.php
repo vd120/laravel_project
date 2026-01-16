@@ -18,54 +18,71 @@ class PostController extends Controller
         $user = auth()->user();
         $perPage = $request->get('per_page', 10); // Default 10 posts per page for web view
 
-        // Get paginated posts, but filter based on privacy settings and blocks
-        $posts = Post::with(['user', 'media', 'likes', 'savedPosts', 'comments.replies.user', 'comments.likes'])
-            ->where(function($query) use ($user) {
-                // Always show public posts from non-private accounts
-                $query->where('is_private', false)
-                      ->whereHas('user.profile', function($profileQuery) {
-                          $profileQuery->where('is_private', false);
-                      })
-                // Or show private posts from non-private accounts that the user follows
-                ->orWhere(function($subQuery) use ($user) {
-                    $subQuery->where('is_private', true)
-                             ->whereHas('user.profile', function($profileQuery) {
-                                 $profileQuery->where('is_private', false);
-                             })
-                             ->whereHas('user.followers', function($followerQuery) use ($user) {
-                                 $followerQuery->where('follower_id', $user->id);
-                             });
-                })
-                // Or show posts from private accounts that the user follows (both account and post level)
-                ->orWhere(function($subQuery) use ($user) {
-                    $subQuery->whereHas('user.profile', function($profileQuery) {
-                        $profileQuery->where('is_private', true);
+        if ($user) {
+            // Authenticated user logic
+            // Get paginated posts, but filter based on privacy settings and blocks
+            $posts = Post::with(['user', 'media', 'likes', 'savedPosts', 'comments.replies.user', 'comments.likes'])
+                ->where(function($query) use ($user) {
+                    // Always show public posts from non-private accounts
+                    $query->where('is_private', false)
+                          ->whereHas('user.profile', function($profileQuery) {
+                              $profileQuery->where('is_private', false);
+                          })
+                    // Or show private posts from non-private accounts that the user follows
+                    ->orWhere(function($subQuery) use ($user) {
+                        $subQuery->where('is_private', true)
+                                 ->whereHas('user.profile', function($profileQuery) {
+                                     $profileQuery->where('is_private', false);
+                                 })
+                                 ->whereHas('user.followers', function($followerQuery) use ($user) {
+                                     $followerQuery->where('follower_id', $user->id);
+                                 });
                     })
-                    ->whereHas('user.followers', function($followerQuery) use ($user) {
-                        $followerQuery->where('follower_id', $user->id);
-                    });
+                    // Or show posts from private accounts that the user follows (both account and post level)
+                    ->orWhere(function($subQuery) use ($user) {
+                        $subQuery->whereHas('user.profile', function($profileQuery) {
+                            $profileQuery->where('is_private', true);
+                        })
+                        ->whereHas('user.followers', function($followerQuery) use ($user) {
+                            $followerQuery->where('follower_id', $user->id);
+                        });
+                    })
+                    // Or show the user's own posts
+                    ->orWhere('user_id', $user->id);
                 })
-                // Or show the user's own posts
-                ->orWhere('user_id', $user->id);
-            })
-            // Exclude posts from users that blocked the current user or that the current user blocked
-            ->whereDoesntHave('user.blockedBy', function($blockedByQuery) use ($user) {
-                $blockedByQuery->where('blocker_id', $user->id);
-            })
-            ->whereDoesntHave('user.blockedUsers', function($blockedUsersQuery) use ($user) {
-                $blockedUsersQuery->where('blocked_id', $user->id);
-            })
-            ->latest()
-            ->paginate($perPage)
-            ->withQueryString(); // Preserve query parameters
+                // Exclude posts from users that blocked the current user or that the current user blocked
+                ->whereDoesntHave('user.blockedBy', function($blockedByQuery) use ($user) {
+                    $blockedByQuery->where('blocker_id', $user->id);
+                })
+                ->whereDoesntHave('user.blockedUsers', function($blockedUsersQuery) use ($user) {
+                    $blockedUsersQuery->where('blocked_id', $user->id);
+                })
+                ->latest()
+                ->paginate($perPage)
+                ->withQueryString(); // Preserve query parameters
 
-        // Get active stories from followed users and current user
-        $followedUsersWithStories = \App\Models\User::whereHas('followers', function($query) use ($user) {
-            $query->where('follower_id', $user->id);
-        })->whereHas('activeStories')->with(['activeStories'])->get();
+            // Get active stories from followed users and current user
+            $followedUsersWithStories = \App\Models\User::whereHas('followers', function($query) use ($user) {
+                $query->where('follower_id', $user->id);
+            })->whereHas('activeStories')->with(['activeStories'])->get();
 
-        // Include current user's stories
-        $myStories = $user->activeStories;
+            // Include current user's stories
+            $myStories = $user->activeStories;
+        } else {
+            // Guest user logic - show only public posts from non-private accounts
+            $posts = Post::with(['user', 'media', 'likes', 'comments.replies.user', 'comments.likes'])
+                ->where('is_private', false)
+                ->whereHas('user.profile', function($profileQuery) {
+                    $profileQuery->where('is_private', false);
+                })
+                ->latest()
+                ->paginate($perPage)
+                ->withQueryString();
+
+            // No stories for guests
+            $followedUsersWithStories = collect();
+            $myStories = collect();
+        }
 
         return view('posts.index', compact('posts', 'followedUsersWithStories', 'myStories'));
     }

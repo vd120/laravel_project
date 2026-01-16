@@ -38,8 +38,9 @@ Route::middleware('auth')->group(function () {
     })->name('logout');
 });
 
+Route::get('/', [PostController::class, 'index'])->name('home');
+
 Route::middleware('auth')->group(function () {
-    Route::get('/', [PostController::class, 'index'])->name('home');
     Route::resource('posts', PostController::class);
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
     Route::post('/posts/{post}/save', [PostController::class, 'save'])->name('posts.save');

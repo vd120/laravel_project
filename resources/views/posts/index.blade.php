@@ -85,6 +85,7 @@
 
 <h2 class="all-posts-title">All Posts</h2>
 
+@if(auth()->check())
 <div class="post-form-container">
     <div class="form-group">
         <textarea id="post-content" placeholder="What's happening?" maxlength="280"></textarea>
@@ -113,6 +114,7 @@
     <button type="button" class="btn" onclick="submitPost()">Post</button>
     <div id="post-errors" style="color: red; margin-top: 5px; display: none;"></div>
 </div>
+@endif
 
 <div id="posts-container">
     @foreach($posts as $post)
@@ -287,6 +289,61 @@
 }
 
 /* Responsive adjustments for neon title */
+@media (min-width: 1025px) {
+    /* Large desktop */
+    .all-posts-title {
+        font-size: 52px;
+        letter-spacing: 5px;
+        margin-bottom: 45px;
+    }
+
+    .all-posts-title::after {
+        width: 160px;
+        height: 3px;
+    }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+    /* Tablets and small laptops */
+    .all-posts-title {
+        font-size: 38px;
+        letter-spacing: 3px;
+        margin-bottom: 35px;
+    }
+
+    .all-posts-title::after {
+        width: 130px;
+        height: 2px;
+    }
+
+    /* Improve container spacing for tablets */
+    div[style*="padding: 20px 0;"] {
+        padding: 25px 15px;
+    }
+
+    /* Better button layout for tablets */
+    .guest-message {
+        padding: 35px 25px;
+        margin-bottom: 25px;
+    }
+
+    .guest-message .btn {
+        padding: 14px 28px;
+        font-size: 15px;
+    }
+
+    /* Adjust post form for tablets */
+    .post-form-container {
+        padding: 20px;
+        border-radius: 20px;
+    }
+
+    .post-form-container textarea {
+        font-size: 15px;
+        padding: 14px 18px;
+    }
+}
+
 @media (max-width: 768px) {
     .all-posts-title {
         font-size: 32px;

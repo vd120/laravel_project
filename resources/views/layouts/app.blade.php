@@ -380,22 +380,125 @@
             color: var(--twitter-gray);
         }
 
-        /* Responsive design */
-        @media (max-width: 1200px) {
+        /* Responsive design - Perfect centering for all screen sizes */
+        @media (min-width: 1025px) {
+            /* All laptops and desktops - perfect centering system */
             .app-layout {
-                grid-template-columns: 275px 1fr;
-                gap: 20px;
+                display: grid;
+                grid-template-columns: 250px 1fr 250px;
+                gap: 25px;
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 25px;
+                place-items: start;
+            }
+
+            .left-sidebar {
+                width: 250px;
+                grid-column: 1;
+            }
+
+            .main-content {
+                width: 100%;
+                max-width: none;
+                grid-column: 2;
             }
 
             .right-sidebar {
-                display: none;
+                width: 250px;
+                grid-column: 3;
             }
         }
 
-        @media (max-width: 900px) {
+        /* Ultra-wide monitors (1921px+) */
+        @media (min-width: 1921px) {
+            .app-layout {
+                gap: 30px;
+                padding: 30px;
+            }
+
+            .left-sidebar, .right-sidebar {
+                width: 320px;
+                max-width: 320px;
+                min-width: 240px;
+            }
+
+            .main-content {
+                max-width: 900px;
+            }
+        }
+
+        /* Large monitors (1441px-1920px) */
+        @media (max-width: 1920px) and (min-width: 1441px) {
+            .app-layout {
+                gap: 25px;
+                padding: 25px;
+            }
+
+            .left-sidebar, .right-sidebar {
+                width: 300px;
+                max-width: 300px;
+                min-width: 220px;
+            }
+
+            .main-content {
+                max-width: 850px;
+            }
+        }
+
+        /* Standard large laptops (1281px-1440px) */
+        @media (max-width: 1440px) and (min-width: 1281px) {
+            .left-sidebar, .right-sidebar {
+                width: 260px;
+                max-width: 260px;
+                min-width: 200px;
+            }
+
+            .main-content {
+                max-width: 800px;
+            }
+        }
+
+        /* Standard laptops (1025px-1280px) */
+        @media (max-width: 1280px) and (min-width: 1025px) {
+            .left-sidebar, .right-sidebar {
+                width: 240px;
+                max-width: 240px;
+                min-width: 180px;
+            }
+
+            .main-content {
+                max-width: 750px;
+                min-width: 450px;
+            }
+        }
+
+        @media (max-width: 1024px) and (min-width: 769px) {
+            /* Smaller laptops and tablets - full width centering */
+            .app-layout {
+                grid-template-columns: 60px 1fr 100px;
+                gap: 20px;
+                max-width: 95vw;
+                margin: 0 auto;
+                padding: 16px;
+            }
+
+            .left-sidebar {
+                width: 60px;
+            }
+
+            .right-sidebar {
+                width: 100px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            /* Standard tablets and smaller laptops */
             .app-layout {
                 grid-template-columns: 1fr;
                 gap: 0;
+                max-width: 900px;
+                padding: 16px;
             }
 
             .left-sidebar {
@@ -404,6 +507,19 @@
 
             .right-sidebar {
                 display: none;
+            }
+
+            .main-content {
+                max-width: none;
+                margin: 0;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+                gap: 0;
+                padding: 12px;
             }
 
             .main-content {
@@ -2038,42 +2154,60 @@
             }
         }
 
-        /* Ultra-responsive mobile notification system - TOP FULL WIDTH */
-        @media (max-width: 1200px) {
+        /* Improved mobile and small laptop notification system */
+        @media (max-width: 1024px) {
             .notification {
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: auto;
-                width: 100vw;
-                max-width: 100vw;
-                margin: 0;
-                padding: 12px 16px;
-                font-size: 14px;
-                border-radius: 0;
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                width: calc(100vw - 20px);
+                max-width: none;
+                padding: 14px 16px;
+                border-radius: 8px;
+                font-size: 15px;
+                font-weight: 600;
                 text-align: center;
-                word-wrap: break-word;
-                word-break: break-word;
-                hyphens: auto;
                 line-height: 1.4;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                background: linear-gradient(135deg, var(--success-color) 0%, #00c46a 100%);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.2);
                 z-index: 10001;
             }
 
+            /* Make mobile notifications more prominent but not overwhelming */
             .notification.show {
-                animation: mobileNotificationSlideDown 0.3s ease-out;
+                animation: mobileNotificationSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
-            @keyframes mobileNotificationSlideDown {
+            @keyframes mobileNotificationSlideIn {
                 from {
                     opacity: 0;
-                    transform: translateY(-100%);
+                    transform: translateY(-20px) scale(0.95);
                 }
                 to {
                     opacity: 1;
-                    transform: translateY(0);
+                    transform: translateY(0) scale(1);
                 }
+            }
+
+            /* Adjust icon size for mobile */
+            .notification i {
+                font-size: 18px !important;
+            }
+        }
+
+        /* Extra small mobile devices */
+        @media (max-width: 480px) {
+            .notification {
+                top: 8px;
+                left: 8px;
+                right: 8px;
+                width: calc(100vw - 16px);
+                padding: 12px 14px;
+                font-size: 14px;
+                border-radius: 6px;
+            }
+
+            .notification i {
+                font-size: 16px !important;
             }
         }
 
@@ -2492,63 +2626,44 @@
             }
         }
 
-        /* Dark Theme Notifications dropdown */
+        /* Lightweight Notifications dropdown - optimized for performance */
         .notifications-dropdown-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.4);
             z-index: 10000;
             display: flex;
             align-items: flex-start;
             justify-content: center;
-            padding-top: 60px; /* Account for header */
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            padding-top: 60px;
         }
 
         .notifications-dropdown-content {
-            background: linear-gradient(145deg, rgba(30, 30, 30, 0.98) 0%, rgba(20, 20, 20, 0.95) 100%);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            background: rgba(30, 30, 30, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            box-shadow:
-                0 25px 80px rgba(0, 0, 0, 0.4),
-                0 0 40px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
             width: 90%;
-            max-width: 420px;
-            max-height: 75vh;
+            max-width: 380px;
+            max-height: 70vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            animation: modernDropdownSlideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: quickFadeIn 0.15s ease-out;
             position: relative;
         }
 
-        .notifications-dropdown-content::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-        }
-
-        @keyframes modernDropdownSlideDown {
+        @keyframes quickFadeIn {
             from {
                 opacity: 0;
-                transform: translateY(-30px) scale(0.9) rotateX(15deg);
-                filter: blur(10px);
+                transform: translateY(-5px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0) scale(1) rotateX(0deg);
-                filter: blur(0px);
+                transform: translateY(0);
             }
         }
 
@@ -2916,16 +3031,9 @@
         </div>
 
         @auth
-        
+
         <aside class="right-sidebar">
-            <div style="background: var(--twitter-light); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 16px;">
-                <h4 style="margin: 0 0 12px 0; font-size: 18px; color: var(--twitter-dark);">What's happening</h4>
-                <p style="margin: 0; color: var(--twitter-gray); font-size: 14px;">Stay tuned for trending topics and updates!</p>
-            </div>
-            <div style="background: var(--twitter-light); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px;">
-                <h4 style="margin: 0 0 12px 0; font-size: 18px; color: var(--twitter-dark);">Who to follow</h4>
-                <p style="margin: 0; color: var(--twitter-gray); font-size: 14px;">Discover new people to follow!</p>
-            </div>
+            <!-- Sidebar content can be added here in the future -->
         </aside>
         @endauth
     </main>
@@ -3045,34 +3153,96 @@
             const existingNotifications = document.querySelectorAll('.notification');
             existingNotifications.forEach(notification => notification.remove());
 
+            // Check if mobile device
+            const isMobile = window.innerWidth <= 1024;
+
             // Create notification element
             const notification = document.createElement('div');
             notification.className = 'notification';
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: ${isError ? '#dc3545' : '#28a745'};
-                color: white;
-                padding: 12px 16px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                z-index: 10000;
-                font-size: 14px;
-                max-width: 300px;
-                word-wrap: break-word;
+
+            // Responsive styling based on device type
+            if (isMobile) {
+                // Mobile/tablet styling
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 10px;
+                    left: 10px;
+                    right: 10px;
+                    width: calc(100vw - 20px);
+                    background: ${isError ? '#dc3545' : '#28a745'};
+                    color: white;
+                    padding: 14px 16px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+                    z-index: 10001;
+                    font-size: 15px;
+                    font-weight: 600;
+                    word-wrap: break-word;
+                    line-height: 1.4;
+                    text-align: center;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    letter-spacing: 0.3px;
+                    max-height: 120px;
+                    overflow-y: auto;
+                `;
+            } else {
+                // Desktop styling
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${isError ? '#dc3545' : '#28a745'};
+                    color: white;
+                    padding: 14px 18px;
+                    border-radius: 8px;
+                    box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.1);
+                    z-index: 10000;
+                    font-size: 15px;
+                    font-weight: 600;
+                    max-width: 340px;
+                    word-wrap: break-word;
+                    line-height: 1.5;
+                    text-align: center;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    letter-spacing: 0.3px;
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                `;
+            }
+
+            // Create notification content with better structure
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="${isError ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'}" style="font-size: ${isMobile ? '18px' : '16px'}; opacity: 0.9;"></i>
+                    <span style="flex: 1; font-weight: 600;">${message}</span>
+                </div>
             `;
-            notification.textContent = message;
 
             // Add to page
             document.body.appendChild(notification);
 
-            // Auto remove after 3 seconds
+            // Enhanced animation and auto removal
+            if (isMobile) {
+                // Mobile slide-in animation
+                notification.style.transform = 'translateY(-20px)';
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                    notification.style.transform = 'translateY(0)';
+                    notification.style.opacity = '1';
+                }, 50);
+            }
+
             setTimeout(() => {
                 if (notification.parentNode) {
-                    notification.remove();
+                    notification.style.transform = isMobile ? 'translateY(-20px)' : 'translateY(-10px) scale(0.95)';
+                    notification.style.opacity = '0';
+                    notification.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                    setTimeout(() => {
+                        if (notification.parentNode) notification.remove();
+                    }, 400);
                 }
-            }, 3000);
+            }, isMobile ? 4000 : 3500);
         }
 
         // Logout confirmation function
@@ -3220,9 +3390,227 @@
             setTimeout(() => cancelButton.focus(), 100);
         }
 
+        // Powerful login modal for unlogged users
+        function showLoginModal(action, message) {
+            // Remove any existing modals
+            const existingModal = document.getElementById('login-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Create modal overlay
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'login-modal';
+            modalOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                animation: modalFadeIn 0.3s ease-out;
+            `;
+
+            // Create modal content
+            modalOverlay.innerHTML = `
+                <div style="
+                    background: var(--card-bg);
+                    border: 2px solid var(--border-color);
+                    border-radius: 20px;
+                    padding: 0;
+                    max-width: 450px;
+                    width: 90%;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+                    position: relative;
+                    overflow: hidden;
+                    animation: modalSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                ">
+                    <!-- Header with gradient -->
+                    <div style="
+                        background: linear-gradient(135deg, var(--twitter-blue) 0%, #1A91DA 100%);
+                        padding: 24px 24px 20px 24px;
+                        text-align: center;
+                        position: relative;
+                    ">
+                        <div style="
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background: linear-gradient(45deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 50%, rgba(255,255,255,0.08) 100%);
+                            opacity: 0.6;
+                        "></div>
+                        <i class="fas ${action === 'like' ? 'fa-heart' : action === 'save' ? 'fa-bookmark' : 'fa-star'}" style="
+                            font-size: 48px;
+                            color: white;
+                            margin-bottom: 12px;
+                            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                            animation: iconBounce 0.6s ease-out;
+                        "></i>
+                        <h2 style="
+                            color: white;
+                            margin: 0;
+                            font-size: 24px;
+                            font-weight: 700;
+                            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                        ">Join the Community</h2>
+                        <p style="
+                            color: rgba(255,255,255,0.9);
+                            margin: 8px 0 0 0;
+                            font-size: 16px;
+                            font-weight: 500;
+                        ">${message}</p>
+                    </div>
+
+                    <!-- Content -->
+                    <div style="padding: 24px;">
+                        <!-- Action buttons -->
+                        <div style="
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 12px;
+                        ">
+                            <a href="{{ route('login') }}" style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 8px;
+                                padding: 14px 20px;
+                                background: var(--twitter-blue);
+                                color: white;
+                                text-decoration: none;
+                                border-radius: 12px;
+                                font-weight: 600;
+                                font-size: 15px;
+                                transition: all 0.2s ease;
+                                box-shadow: 0 4px 12px rgba(29, 161, 242, 0.3);
+                            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(29, 161, 242, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(29, 161, 242, 0.3)';">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Login
+                            </a>
+
+                            <a href="{{ route('register') }}" style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 8px;
+                                padding: 14px 20px;
+                                background: transparent;
+                                color: var(--twitter-blue);
+                                text-decoration: none;
+                                border: 2px solid var(--twitter-blue);
+                                border-radius: 12px;
+                                font-weight: 600;
+                                font-size: 15px;
+                                transition: all 0.2s ease;
+                            " onmouseover="this.style.background='var(--twitter-blue)'; this.style.color='white'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='transparent'; this.style.color='var(--twitter-blue)'; this.style.transform='translateY(0)';">
+                                <i class="fas fa-user-plus"></i>
+                                Register
+                            </a>
+                        </div>
+
+                        <!-- Close button -->
+                        <button onclick="closeLoginModal()" style="
+                            position: absolute;
+                            top: 12px;
+                            right: 12px;
+                            width: 32px;
+                            height: 32px;
+                            border: none;
+                            border-radius: 50%;
+                            background: rgba(255,255,255,0.2);
+                            color: white;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 14px;
+                            transition: all 0.2s ease;
+                        " onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='scale(1.1)';" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)';">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Add modal to page
+            document.body.appendChild(modalOverlay);
+
+            // Close on overlay click
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === modalOverlay) {
+                    closeLoginModal();
+                }
+            });
+
+            // Close on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeLoginModal();
+                }
+            });
+        }
+
+        function closeLoginModal() {
+            const modal = document.getElementById('login-modal');
+            if (modal) {
+                modal.style.animation = 'modalFadeOut 0.3s ease-out';
+                setTimeout(() => {
+                    if (modal.parentNode) {
+                        modal.remove();
+                    }
+                }, 300);
+            }
+        }
+
         // Add fade-in animation
         const style = document.createElement('style');
         style.textContent = `
+            @keyframes modalFadeIn {
+                from {
+                    opacity: 0;
+                }
+                to {
+                    opacity: 1;
+                }
+            }
+
+            @keyframes modalSlideUp {
+                from {
+                    opacity: 0;
+                    transform: scale(0.9) translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+
+            @keyframes modalFadeOut {
+                from {
+                    opacity: 1;
+                }
+                to {
+                    opacity: 0;
+                }
+            }
+
+            @keyframes iconBounce {
+                0%, 100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.1);
+                }
+            }
+
             @keyframes dialogFadeIn {
                 from {
                     opacity: 0;
@@ -3245,125 +3633,68 @@
     <script src="{{ asset('js/realtime.js') }}"></script>
 
     <script>
-        // Ultra-responsive mobile toast notification system
-        function showToast(message, type = 'info', duration = 5000) {
-            const toastContainer = document.getElementById('toast-container');
-            const isMobile = window.innerWidth <= 768;
-
-            // Remove existing toasts to prevent stacking
-            const existingToasts = toastContainer.querySelectorAll('.toast-notification');
+        // Ultra-simple toast notification system
+        function showToast(message, type = 'info', duration = 3000) {
+            // Remove any existing toasts
+            const existingToasts = document.querySelectorAll('.toast-notification');
             existingToasts.forEach(toast => toast.remove());
 
+            const toastContainer = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = 'toast-notification';
 
-            // Responsive styling based on device type
-            const baseStyles = {
-                position: 'relative',
-                marginBottom: isMobile ? '8px' : '12px',
-                minWidth: isMobile ? 'calc(100vw - 32px)' : '320px',
-                maxWidth: isMobile ? 'calc(100vw - 32px)' : '420px',
-                padding: isMobile ? '12px 16px' : '16px 20px',
-                borderRadius: isMobile ? '12px' : '16px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                transform: isMobile ? 'translateY(-20px)' : 'translateX(100%)',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                cursor: 'pointer',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                overflow: 'hidden',
-                opacity: '0',
-                zIndex: '10002'
+            // Simple solid colors
+            const colors = {
+                success: '#28a745',
+                error: '#dc3545',
+                warning: '#ffc107',
+                info: '#17a2b8',
+                message: '#007bff'
             };
 
-            // Apply base styles
-            Object.assign(toast.style, baseStyles);
-
-            // Powerful gradient backgrounds based on type
-            const gradients = {
-                info: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                success: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
-                warning: 'linear-gradient(135deg, #fcb045 0%, #fd1d1d 100%)',
-                error: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
-                message: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-            };
-
-            toast.style.background = gradients[type] || gradients.info;
-
-            // Responsive content structure
-            const iconClass = type === 'message' ? 'fa-envelope' :
-                             type === 'success' ? 'fa-check-circle' :
-                             type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle';
-
-            const titleText = type === 'message' ? 'New Message' : type.toUpperCase();
-
-            toast.innerHTML = `
-                <div style="position: relative; z-index: 2;">
-                    <div style="display: flex; align-items: center; margin-bottom: ${isMobile ? '4px' : '6px'};">
-                        <i class="fas ${iconClass}" style="font-size: ${isMobile ? '14px' : '16px'}; margin-right: 8px; opacity: 0.9;"></i>
-                        <span style="font-size: ${isMobile ? '11px' : '12px'}; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8;">${titleText}</span>
-                    </div>
-                    <p style="font-size: ${isMobile ? '13px' : '14px'}; font-weight: 500; margin: 0; color: white; line-height: 1.4; word-wrap: break-word; word-break: break-word;">${message}</p>
-                </div>
-                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%); pointer-events: none;"></div>
+            toast.style.cssText = `
+                background: ${colors[type] || colors.info};
+                color: white;
+                padding: 12px 16px;
+                border-radius: 4px;
+                margin-bottom: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                max-width: 350px;
+                word-wrap: break-word;
+                position: relative;
+                opacity: 1;
+                transition: opacity 0.3s ease;
             `;
+
+            toast.textContent = message;
+
+            // Add close button
+            const closeBtn = document.createElement('span');
+            closeBtn.innerHTML = '×';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 4px;
+                right: 8px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                opacity: 0.8;
+            `;
+            closeBtn.onclick = () => toast.remove();
+            toast.appendChild(closeBtn);
 
             toastContainer.appendChild(toast);
 
-            // Responsive slide-in animation
-            setTimeout(() => {
-                toast.style.opacity = '1';
-                if (isMobile) {
-                    toast.style.transform = 'translateY(0)';
-                } else {
-                    toast.style.transform = 'translateX(0) scale(1)';
-                }
-            }, 50);
-
-            // Responsive hover effects (only on non-touch devices)
-            if (!isMobile && window.matchMedia('(hover: hover)').matches) {
-                toast.onmouseenter = () => {
-                    toast.style.transform = 'translateX(-4px) scale(1.02)';
-                    toast.style.boxShadow = '0 12px 40px rgba(0,0,0,0.5)';
-                };
-
-                toast.onmouseleave = () => {
-                    toast.style.transform = 'translateX(0) scale(1)';
-                    toast.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4)';
-                };
-            }
-
-            // Auto remove with responsive exit animation
+            // Auto remove after duration
             if (duration > 0) {
                 setTimeout(() => {
                     if (toast.parentElement) {
                         toast.style.opacity = '0';
-                        if (isMobile) {
-                            toast.style.transform = 'translateY(-20px)';
-                        } else {
-                            toast.style.transform = 'translateX(100%) scale(0.95)';
-                        }
-                        setTimeout(() => {
-                            if (toast.parentElement) toast.remove();
-                        }, 400);
+                        setTimeout(() => toast.remove(), 300);
                     }
                 }, duration);
             }
-
-            // Handle window resize for dynamic responsiveness
-            const handleResize = () => {
-                const currentlyMobile = window.innerWidth <= 768;
-                if (currentlyMobile !== isMobile) {
-                    // If screen size changed significantly, remove the toast
-                    if (toast.parentElement) {
-                        toast.remove();
-                    }
-                }
-            };
-
-            window.addEventListener('resize', handleResize);
-            setTimeout(() => window.removeEventListener('resize', handleResize), duration + 500);
 
             return toast;
         }
@@ -3475,72 +3806,14 @@
         }
 
         function showMessageNotification(message) {
-            console.log('Showing enhanced message notification for:', message);
-
             const messageText = message.content.length > 50
                 ? message.content.substring(0, 50) + '...'
                 : message.content;
 
-            const notificationMessage = `<strong>${message.sender.name}</strong> sent: ${messageText}`;
+            const notificationMessage = `New message from ${message.sender.name}`;
 
-            console.log('Creating enhanced toast with message:', notificationMessage);
-
-            try {
-                const toast = showToast(notificationMessage, 'message', 4000);
-                console.log('Enhanced toast created:', toast);
-
-                // Add click handler to go to chat
-                toast.style.cursor = 'pointer';
-                toast.onclick = function() {
-                    console.log('Toast clicked, navigating to chat');
-                    window.location.href = `/chat/${message.conversation_id}`;
-                };
-
-                console.log('Toast click handler added');
-
-                // Enhanced visual styling for message notifications
-                toast.style.border = '2px solid rgba(29, 161, 242, 0.4)';
-                toast.style.background = 'linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(20, 20, 20, 0.9) 100%)';
-                toast.style.boxShadow = '0 12px 40px rgba(29, 161, 242, 0.3), 0 0 60px rgba(0, 186, 124, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-                toast.style.backdropFilter = 'blur(25px)';
-                toast.style.webkitBackdropFilter = 'blur(25px)';
-
-                // Add neon pulse animation
-                toast.style.animation = 'messageNotificationPulse 0.8s ease-out';
-
-                // Add enhanced text glow
-                const textElement = toast.querySelector('p');
-                if (textElement) {
-                    textElement.style.textShadow = '0 0 8px rgba(255, 255, 255, 0.6), 0 0 16px rgba(255, 255, 255, 0.4)';
-                    textElement.style.fontWeight = '600';
-                }
-
-                // Add sender highlight
-                const strongElement = toast.querySelector('strong');
-                if (strongElement) {
-                    strongElement.style.color = 'var(--twitter-blue)';
-                    strongElement.style.textShadow = '0 0 10px var(--twitter-blue), 0 0 20px var(--twitter-blue)';
-                    strongElement.style.fontWeight = '700';
-                }
-
-                console.log('Enhanced message notification styling applied');
-
-                // Try to show browser notification if permission granted
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    console.log('Showing browser notification');
-                    new Notification(`✨ New message from ${message.sender.name}`, {
-                        body: messageText,
-                        icon: message.sender.avatar ? `/storage/${message.sender.avatar}` : null,
-                        tag: `message-${message.conversation_id}`,
-                        badge: '/favicon.ico',
-                        requireInteraction: false
-                    });
-                } else {
-                    console.log('Browser notification permission not granted');
-                }
-            } catch (error) {
-                console.error('Error creating enhanced toast notification:', error);
-            }
+            // Just use the simple toast notification
+            showToast(notificationMessage, 'message', 4000);
         }
 
         // Toast notifications are ready - no browser permissions needed
