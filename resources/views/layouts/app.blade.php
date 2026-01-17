@@ -2952,9 +2952,6 @@
                 <a href="{{ route('users.saved-posts') }}"><i class="fas fa-bookmark"></i>Saved Posts</a>
                 <a href="{{ route('users.show', auth()->user()) }}"><i class="fas fa-user"></i>Profile</a>
                 <a href="{{ route('password.change') }}"><i class="fas fa-key"></i>Change Password</a>
-                @if(auth()->user()->is_admin)
-                <a href="{{ route('admin.dashboard') }}"><i class="fas fa-crown"></i>Admin Panel</a>
-                @endif
                 <a href="{{ route('logout') }}" onclick="confirmLogout(event)"><i class="fas fa-sign-out-alt"></i>Logout</a>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                     @csrf

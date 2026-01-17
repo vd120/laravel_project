@@ -21,9 +21,11 @@
                 <span class="comment-time">{{ $comment->created_at->diffForHumans() }}</span>
             </div>
             <div class="comment-actions">
-                <button type="button" class="comment-delete-btn" onclick="deleteComment({{ $comment->id }}, this)" title="Delete comment">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
+                @if(auth()->check() && $comment->user_id === auth()->id())
+                    <button type="button" class="comment-delete-btn" onclick="deleteComment({{ $comment->id }}, this)" title="Delete comment">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -33,15 +35,28 @@
 
         <div class="comment-footer">
             <div class="comment-interactions">
-                <button type="button" class="comment-like-btn {{ $comment->likedBy(auth()->user()) ? 'liked' : '' }}" onclick="likeComment({{ $comment->id }}, this)">
-                    <i class="fas fa-heart"></i>
-                    <span class="comment-like-count">{{ $comment->likes->count() }}</span>
-                </button>
-                @if($level < $maxLevel)
-                    <button type="button" class="comment-reply-btn" onclick="toggleReplyForm({{ $comment->id }})">
-                        <i class="fas fa-reply"></i>
-                        Reply
+                @if(auth()->check())
+                    <button type="button" class="comment-like-btn {{ $comment->likedBy(auth()->user()) ? 'liked' : '' }}" onclick="likeComment({{ $comment->id }}, this)">
+                        <i class="fas fa-heart"></i>
+                        <span class="comment-like-count">{{ $comment->likes->count() }}</span>
                     </button>
+                    @if($level < $maxLevel)
+                        <button type="button" class="comment-reply-btn" onclick="toggleReplyForm({{ $comment->id }})">
+                            <i class="fas fa-reply"></i>
+                            Reply
+                        </button>
+                    @endif
+                @else
+                    <button type="button" class="comment-like-btn" onclick="showLoginModal('like', 'Like comments to show your appreciation and engage with the community!')">
+                        <i class="fas fa-heart"></i>
+                        <span class="comment-like-count">{{ $comment->likes->count() }}</span>
+                    </button>
+                    @if($level < $maxLevel)
+                        <button type="button" class="comment-reply-btn" onclick="showLoginModal('reply', 'Join the conversation by replying to comments!')">
+                            <i class="fas fa-reply"></i>
+                            Reply
+                        </button>
+                    @endif
                 @endif
             </div>
         </div>
@@ -49,7 +64,7 @@
         <div id="reply-form-{{ $comment->id }}" class="comment-reply-form" style="display: none;">
             <div class="reply-form-container">
                 <div class="reply-avatar">
-                    @if(auth()->user()->profile && auth()->user()->profile->avatar)
+                    @if(auth()->check() && auth()->user()->profile && auth()->user()->profile->avatar)
                         <img src="{{ asset('storage/' . auth()->user()->profile->avatar) }}" alt="Your avatar">
                     @else
                         <div class="reply-avatar-placeholder">

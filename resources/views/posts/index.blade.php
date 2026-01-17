@@ -92,12 +92,12 @@
     <div class="stories-container">
         @if($myStories->count() > 0)
             @foreach($myStories as $story)
-            <div class="story-item" data-story-id="{{ $story->id }}" onclick="viewStory('{{ auth()->user()->name }}', {{ $story->id }})">
+            <div class="story-item" data-story-id="{{ $story->id }}" onclick="viewStory('{{ auth()->check() ? auth()->user()->name : 'User' }}', {{ $story->id }})">
                 <div class="story-avatar">
-                    @if(auth()->user()->profile && auth()->user()->profile->avatar)
+                    @if(auth()->check() && auth()->user()->profile && auth()->user()->profile->avatar)
                         <img src="{{ asset('storage/' . auth()->user()->profile->avatar) }}" alt="{{ auth()->user()->name }}">
                     @else
-                        <div class="avatar-placeholder">{{ substr(auth()->user()->name, 0, 1) }}</div>
+                        <div class="avatar-placeholder">{{ auth()->check() ? substr(auth()->user()->name, 0, 1) : 'U' }}</div>
                     @endif
                 </div>
                 <div class="story-preview">
@@ -117,10 +117,10 @@
         @else
         <div class="story-item create-story" onclick="window.location.href='{{ route('stories.create') }}'">
             <div class="story-avatar">
-                @if(auth()->user()->profile && auth()->user()->profile->avatar)
+                @if(auth()->check() && auth()->user()->profile && auth()->user()->profile->avatar)
                     <img src="{{ asset('storage/' . auth()->user()->profile->avatar) }}" alt="{{ auth()->user()->name }}">
                 @else
-                    <div class="avatar-placeholder">{{ substr(auth()->user()->name, 0, 1) }}</div>
+                    <div class="avatar-placeholder">{{ auth()->check() ? substr(auth()->user()->name, 0, 1) : 'U' }}</div>
                 @endif
                 <div class="add-story-icon">
                     <i class="fas fa-plus"></i>

@@ -128,7 +128,7 @@ Route::post('/email/verify-code', function (Request $request) {
     return back()->withErrors(['code' => 'Invalid or expired verification code.']);
 })->name('verification.verify-code');
 
-Route::get('/', [PostController::class, 'index'])->middleware(['auth', 'verified'])->name('home');
+Route::get('/', [PostController::class, 'index'])->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::resource('posts', PostController::class);
