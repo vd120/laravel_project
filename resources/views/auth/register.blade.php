@@ -82,6 +82,14 @@ body {
     background-attachment: fixed;
 }
 
+/* Optimize background image for mobile */
+@media (max-width: 767px) {
+    body {
+        background-attachment: scroll !important; /* Better performance on mobile */
+        background-size: cover !important;
+    }
+}
+
 .auth-container {
     display: flex;
     justify-content: center;
@@ -93,7 +101,7 @@ body {
     z-index: 1;
 }
 
-/* Enhanced centering for laptops */
+/* Laptop styles - simplified like mobile to prevent lagging */
 @media (min-width: 768px) {
     .auth-container {
         min-height: calc(100vh - 120px);
@@ -106,11 +114,20 @@ body {
     }
 
     .auth-card {
-        width: 550px;
-        max-width: 550px;
-        padding: 40px;
-        border-radius: 18px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        width: 420px;
+        max-width: 420px;
+        padding: 35px;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .auth-card::before,
+    .auth-card::after {
+        display: none !important;
     }
 
     .auth-card h2 {
@@ -120,30 +137,72 @@ body {
     }
 
     .auth-card input {
-        padding: 18px 20px !important;
-        font-size: 18px !important;
-        border-radius: 14px !important;
+        padding: 16px 50px 16px 50px !important;
+        font-size: 16px !important;
+        border-radius: 12px !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        transition: none !important;
+        animation: none !important;
     }
 
     .auth-card button[type="submit"] {
-        padding: 18px !important;
-        font-size: 18px !important;
+        padding: 18px 24px !important;
+        font-size: 16px !important;
         font-weight: 700 !important;
-        border-radius: 14px !important;
+        border-radius: 12px !important;
+        background: var(--twitter-blue) !important;
+        box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .auth-card button[type="submit"]::before {
+        display: none !important;
+    }
+
+    .btn-glow,
+    .btn-particles {
+        display: none !important;
+    }
+
+    .password-toggle:hover {
+        transform: translateY(-50%) !important;
+        background: none !important;
+        box-shadow: none !important;
+    }
+
+    .input-wrapper input:focus + .input-icon,
+    .input-wrapper input:focus ~ .input-icon {
+        transform: translateY(-50%) !important;
+    }
+
+    .auth-card input:valid:focus,
+    .auth-card input:invalid:not(:placeholder-shown):focus {
+        animation: none !important;
+        box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3) !important;
+    }
+
+    .auth-card input:invalid:not(:placeholder-shown) {
+        animation: none !important;
+    }
+
+    .error-message {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        animation: none !important;
+        transition: none !important;
     }
 }
 
 .auth-card {
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     padding: 35px;
     border-radius: 20px;
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.6),
-        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-        0 2px 0 rgba(255, 255, 255, 0.05) inset;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     width: 100%;
     max-width: 420px;
     box-sizing: border-box;
@@ -151,100 +210,7 @@ body {
     overflow: hidden;
 }
 
-.auth-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--twitter-blue), var(--twitter-blue), transparent);
-    opacity: 0.8;
-    box-shadow: 0 0 10px var(--twitter-blue);
-}
 
-.auth-card::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(255,255,255,0.05), transparent);
-    opacity: 0.6;
-}
-
-/* Enhanced form elements with powerful effects */
-.auth-card input[type="email"],
-.auth-card input[type="password"],
-.auth-card input[type="text"] {
-    position: relative;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    background: linear-gradient(145deg, var(--input-bg) 0%, rgba(255,255,255,0.02) 100%);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-.auth-card input[type="email"]:focus,
-.auth-card input[type="password"]:focus,
-.auth-card input[type="text"]:focus {
-    border-color: rgba(147, 197, 253, 0.8);
-    box-shadow:
-        0 0 0 3px rgba(59, 130, 246, 0.2),
-        0 4px 12px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-        inset 0 2px 0 rgba(255, 255, 255, 0.05);
-}
-
-@keyframes inputGlow {
-    0% {
-        box-shadow:
-            0 0 0 0 rgba(29, 161, 242, 0.15),
-            inset 0 1px 0 rgba(255,255,255,0.1);
-    }
-    100% {
-        box-shadow:
-            0 0 0 4px rgba(29, 161, 242, 0.15),
-            0 6px 20px rgba(29, 161, 242, 0.2),
-            0 0 40px rgba(29, 161, 242, 0.1),
-            inset 0 2px 0 rgba(255,255,255,0.15),
-            inset 0 1px 0 rgba(255,255,255,0.1);
-    }
-}
-
-/* Advanced input validation states */
-.auth-card input:valid {
-    border-color: rgba(0, 186, 124, 0.5);
-}
-
-.auth-card input:valid:focus {
-    border-color: #00BA7C;
-    box-shadow:
-        0 0 0 4px rgba(0, 186, 124, 0.15),
-        0 6px 20px rgba(0, 186, 124, 0.2),
-        inset 0 2px 0 rgba(255,255,255,0.15);
-}
-
-.auth-card input:invalid:not(:placeholder-shown) {
-    border-color: rgba(244, 33, 46, 0.5);
-    animation: inputError 0.3s ease-out;
-}
-
-.auth-card input:invalid:not(:placeholder-shown):focus {
-    border-color: #F4212E;
-    box-shadow:
-        0 0 0 4px rgba(244, 33, 46, 0.15),
-        0 6px 20px rgba(244, 33, 46, 0.2),
-        inset 0 2px 0 rgba(255,255,255,0.15);
-}
-
-@keyframes inputError {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-2px); }
-    75% { transform: translateX(2px); }
-}
 
 /* Ultra-Advanced Button Styling */
 .login-btn {
@@ -666,51 +632,247 @@ body {
 
 /* Responsive breakpoints */
 
-/* Ultra-wide Laptops (2560px+) */
+/* Ultra-wide Laptops (2560px+) - simplified like mobile */
 @media (min-width: 2560px) {
     .auth-container {
-        padding: 60px 40px;
+        padding: 40px 30px;
     }
 
     .auth-card {
-        max-width: 600px;
-        padding: 50px;
+        max-width: 420px;
+        padding: 35px;
+        background: rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .auth-card::before,
+    .auth-card::after {
+        display: none !important;
+    }
+
+    .auth-card h2 {
+        text-shadow: 0 0 5px var(--twitter-blue) !important;
+    }
+
+    .auth-card h2::before,
+    .auth-card h2::after {
+        display: none !important;
+    }
+
+    .auth-card input {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .auth-card button[type="submit"] {
+        background: var(--twitter-blue) !important;
+        box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .auth-card button[type="submit"]::before {
+        display: none !important;
+    }
+
+    .btn-glow,
+    .btn-particles {
+        display: none !important;
+    }
+
+    .error-message {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        animation: none !important;
+        transition: none !important;
     }
 }
 
-/* Large Laptops (1920px - 2559px) */
+/* Large Laptops (1920px - 2559px) - simplified like mobile */
 @media (min-width: 1920px) and (max-width: 2559px) {
     .auth-container {
-        padding: 50px 30px;
+        padding: 40px 30px;
     }
 
     .auth-card {
-        max-width: 550px;
-        padding: 45px;
+        max-width: 420px;
+        padding: 35px;
+        background: rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .auth-card::before,
+    .auth-card::after {
+        display: none !important;
+    }
+
+    .auth-card h2 {
+        text-shadow: 0 0 5px var(--twitter-blue) !important;
+    }
+
+    .auth-card h2::before,
+    .auth-card h2::after {
+        display: none !important;
+    }
+
+    .auth-card input {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .auth-card button[type="submit"] {
+        background: var(--twitter-blue) !important;
+        box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .auth-card button[type="submit"]::before {
+        display: none !important;
+    }
+
+    .btn-glow,
+    .btn-particles {
+        display: none !important;
+    }
+
+    .error-message {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        animation: none !important;
+        transition: none !important;
     }
 }
 
-/* Standard Laptops (1440px - 1919px) */
+/* Standard Laptops (1440px - 1919px) - simplified like mobile */
 @media (min-width: 1440px) and (max-width: 1919px) {
     .auth-container {
-        padding: 40px 25px;
+        padding: 40px 30px;
     }
 
     .auth-card {
-        max-width: 500px;
-        padding: 40px;
+        max-width: 420px;
+        padding: 35px;
+        background: rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .auth-card::before,
+    .auth-card::after {
+        display: none !important;
+    }
+
+    .auth-card h2 {
+        text-shadow: 0 0 5px var(--twitter-blue) !important;
+    }
+
+    .auth-card h2::before,
+    .auth-card h2::after {
+        display: none !important;
+    }
+
+    .auth-card input {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .auth-card button[type="submit"] {
+        background: var(--twitter-blue) !important;
+        box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .auth-card button[type="submit"]::before {
+        display: none !important;
+    }
+
+    .btn-glow,
+    .btn-particles {
+        display: none !important;
+    }
+
+    .error-message {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        animation: none !important;
+        transition: none !important;
     }
 }
 
-/* Compact Laptops (1366px - 1439px) */
+/* Compact Laptops (1366px - 1439px) - simplified like mobile */
 @media (min-width: 1366px) and (max-width: 1439px) {
     .auth-container {
-        padding: 35px 20px;
+        padding: 40px 30px;
     }
 
     .auth-card {
-        max-width: 480px;
-        padding: 38px;
+        max-width: 420px;
+        padding: 35px;
+        background: rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .auth-card::before,
+    .auth-card::after {
+        display: none !important;
+    }
+
+    .auth-card h2 {
+        text-shadow: 0 0 5px var(--twitter-blue) !important;
+    }
+
+    .auth-card h2::before,
+    .auth-card h2::after {
+        display: none !important;
+    }
+
+    .auth-card input {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .auth-card button[type="submit"] {
+        background: var(--twitter-blue) !important;
+        box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .auth-card button[type="submit"]::before {
+        display: none !important;
+    }
+
+    .btn-glow,
+    .btn-particles {
+        display: none !important;
+    }
+
+    .error-message {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        animation: none !important;
+        transition: none !important;
     }
 }
 
@@ -904,152 +1066,13 @@ body {
     text-transform: uppercase;
     position: relative;
     z-index: 10;
-    /* Powerful neon glow effects */
-    text-shadow:
-        0 0 5px var(--twitter-blue),
-        0 0 10px var(--twitter-blue),
-        0 0 15px var(--twitter-blue),
-        0 0 20px var(--twitter-blue),
-        0 0 35px var(--twitter-blue),
-        0 0 40px var(--twitter-blue),
-        0 0 50px var(--twitter-blue),
-        0 0 75px var(--twitter-blue);
-    animation: neonFlicker 2s ease-in-out infinite alternate, neonGlow 4s ease-in-out infinite;
+    /* Simple glow effect like mobile */
+    text-shadow: 0 0 10px var(--twitter-blue);
 }
 
-.login-title::before {
-    content: 'REGISTER';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    color: var(--twitter-blue);
-    z-index: -1;
-    opacity: 0.8;
-    animation: neonPulse 3s ease-in-out infinite;
-}
 
-.login-title::after {
-    content: '';
-    position: absolute;
-    bottom: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 140px;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--twitter-blue), var(--neon-lime-bright), var(--twitter-blue), transparent);
-    border-radius: 2px;
-    box-shadow:
-        0 0 10px var(--twitter-blue),
-        0 0 20px var(--neon-lime-bright),
-        0 0 30px var(--twitter-blue);
-    animation: underlineGlow 2.5s ease-in-out infinite alternate;
-}
 
-@keyframes neonFlicker {
-    0%, 100% {
-        opacity: 1;
-        text-shadow:
-            0 0 5px var(--twitter-blue),
-            0 0 10px var(--twitter-blue),
-            0 0 15px var(--twitter-blue),
-            0 0 20px var(--twitter-blue),
-            0 0 35px var(--twitter-blue),
-            0 0 40px var(--twitter-blue),
-            0 0 50px var(--twitter-blue),
-            0 0 75px var(--twitter-blue);
-    }
-    2%, 4%, 6%, 8%, 10%, 12%, 14%, 16%, 18% {
-        opacity: 0.3;
-        text-shadow:
-            0 0 1px var(--twitter-blue),
-            0 0 2px var(--twitter-blue);
-    }
-    3%, 7%, 11%, 15%, 19% {
-        opacity: 0.6;
-        text-shadow:
-            0 0 2px var(--twitter-blue),
-            0 0 4px var(--twitter-blue),
-            0 0 6px var(--twitter-blue);
-    }
-    5%, 9%, 13%, 17% {
-        opacity: 0.8;
-        text-shadow:
-            0 0 3px var(--twitter-blue),
-            0 0 6px var(--twitter-blue),
-            0 0 9px var(--twitter-blue),
-            0 0 12px var(--twitter-blue);
-    }
-    20%, 40%, 60%, 80% {
-        opacity: 0.9;
-        text-shadow:
-            0 0 4px var(--twitter-blue),
-            0 0 8px var(--twitter-blue),
-            0 0 12px var(--twitter-blue),
-            0 0 16px var(--twitter-blue),
-            0 0 20px var(--twitter-blue);
-    }
-    25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% {
-        opacity: 0.95;
-        text-shadow:
-            0 0 3px var(--twitter-blue),
-            0 0 6px var(--twitter-blue),
-            0 0 9px var(--twitter-blue),
-            0 0 12px var(--twitter-blue),
-            0 0 18px var(--twitter-blue),
-            0 0 24px var(--twitter-blue);
-    }
-    30%, 50%, 70%, 90% {
-        opacity: 1;
-        text-shadow:
-            0 0 4px var(--twitter-blue),
-            0 0 8px var(--twitter-blue),
-            0 0 12px var(--twitter-blue),
-            0 0 16px var(--twitter-blue),
-            0 0 24px var(--twitter-blue),
-            0 0 32px var(--twitter-blue),
-            0 0 40px var(--twitter-blue);
-    }
-}
 
-@keyframes neonGlow {
-    0% {
-        filter: brightness(1) contrast(1.2);
-    }
-    50% {
-        filter: brightness(1.1) contrast(1.3);
-    }
-    100% {
-        filter: brightness(1) contrast(1.2);
-    }
-}
-
-@keyframes neonPulse {
-    0%, 100% {
-        opacity: 0.8;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.6;
-        transform: scale(1.02);
-    }
-}
-
-@keyframes underlineGlow {
-    0% {
-        opacity: 1;
-        box-shadow:
-            0 0 10px var(--twitter-blue),
-            0 0 20px var(--neon-lime-bright);
-    }
-    100% {
-        opacity: 0.8;
-        box-shadow:
-            0 0 15px var(--twitter-blue),
-            0 0 30px var(--neon-lime-bright),
-            0 0 45px var(--twitter-blue);
-    }
-}
 
 /* Form Styling Overhaul */
 .login-form {
@@ -1493,42 +1516,95 @@ body {
     }
 }
 
-/* Performance optimizations for mobile */
-@media (max-width: 767px) {
-    .auth-card {
-        /* Remove expensive blur effect on mobile */
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-        background: rgba(0, 0, 0, 0.8);
-    }
+/* Apply performance optimizations to ALL devices */
+.auth-card,
+.login-btn,
+.input-wrapper input,
+.error-message {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
 
-    .login-btn {
-        /* Reduce expensive effects on mobile */
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-    }
+.auth-card {
+    background: rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
 
-    .input-wrapper input {
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-    }
+.auth-card::before,
+.auth-card::after {
+    display: none !important;
+}
 
-    .error-message {
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-    }
+/* Disable all animations for performance */
+.login-btn,
+.input-wrapper input,
+.password-toggle,
+.btn-glow,
+.btn-particles,
+.error-message,
+.login-title {
+    animation: none !important;
+    transition: none !important;
+}
 
-    /* Simplify animations on mobile */
-    .login-btn:hover {
-        transform: none;
-        box-shadow:
-            0 4px 15px rgba(29, 161, 242, 0.3),
-            inset 0 1px 0 rgba(255,255,255,0.2);
-    }
+.login-btn:hover {
+    transform: none !important;
+    box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
+}
 
-    .input-wrapper input:focus {
-        transform: none;
-    }
+.input-wrapper input:focus {
+    transform: none !important;
+    box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3) !important;
+}
+
+.login-title::before,
+.login-title::after {
+    display: none !important;
+}
+
+/* Disable particle effects */
+.btn-particles {
+    display: none !important;
+}
+
+/* Simplify button */
+.login-btn {
+    background: var(--twitter-blue) !important;
+    box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
+}
+
+.btn-glow {
+    display: none !important;
+}
+
+/* Disable shimmer effects */
+.login-btn::before {
+    display: none !important;
+}
+
+/* Simplify password toggle */
+.password-toggle:hover {
+    transform: translateY(-50%) !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+/* Disable focus glow effects */
+.input-wrapper input:focus + .input-icon,
+.input-wrapper input:focus ~ .input-icon {
+    transform: translateY(-50%) !important;
+}
+
+/* Disable validation animations */
+.auth-card input:valid:focus,
+.auth-card input:invalid:not(:placeholder-shown):focus {
+    animation: none !important;
+    box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3) !important;
+}
+
+.auth-card input:invalid:not(:placeholder-shown) {
+    animation: none !important;
 }
 
 /* Ensure username field icon is visible and positioned correctly */
@@ -1806,15 +1882,36 @@ function checkUsernameAvailability(username) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Password strength checker
+    // Detect if device is mobile for performance optimizations
+    const isMobile = window.innerWidth <= 767 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Password strength checker with mobile optimization
     const passwordInput = document.getElementById('password');
+    let passwordStrengthTimeout = null;
+
     if (passwordInput) {
-        passwordInput.addEventListener('input', checkPasswordStrength);
+        // Use different debounce timing for mobile vs desktop
+        const debounceDelay = isMobile ? 300 : 100; // Faster on desktop, slower on mobile
+
+        passwordInput.addEventListener('input', function() {
+            // Clear previous timeout
+            if (passwordStrengthTimeout) {
+                clearTimeout(passwordStrengthTimeout);
+            }
+
+            // Debounce password strength checking
+            passwordStrengthTimeout = setTimeout(() => {
+                checkPasswordStrength();
+            }, debounceDelay);
+        });
     }
 
-    // Username availability checker
+    // Username availability checker with mobile optimization
     const usernameInput = document.getElementById('username');
     if (usernameInput) {
+        // Use different debounce timing for mobile vs desktop
+        const usernameDebounceDelay = isMobile ? 1000 : 500; // Slower on mobile to reduce API calls
+
         usernameInput.addEventListener('input', function() {
             const username = this.value.trim();
 
@@ -1823,10 +1920,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearTimeout(usernameCheckTimeout);
             }
 
+            // Skip API calls for very short usernames on mobile
+            if (isMobile && username.length < 3) {
+                const statusDiv = document.getElementById('username-status');
+                statusDiv.textContent = '';
+                statusDiv.className = '';
+                return;
+            }
+
             // Debounce the API call
             usernameCheckTimeout = setTimeout(() => {
                 checkUsernameAvailability(username);
-            }, 500);
+            }, usernameDebounceDelay);
         });
     }
 

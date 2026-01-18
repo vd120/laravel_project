@@ -66,11 +66,8 @@ body {
     background-position: center center;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
+    width: 100%;
+    position: relative;
     z-index: -2;
 }
 
@@ -89,7 +86,7 @@ body {
 
 
 
-/* Enhanced centering for laptops */
+/* Laptop styles - simplified like mobile to prevent lagging */
 @media (min-width: 768px) {
     .auth-container {
         min-height: calc(100vh - 120px);
@@ -102,30 +99,90 @@ body {
     }
 
     .auth-card {
-        width: 550px;
-        max-width: 550px;
-        padding: 40px;
-        border-radius: 18px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        width: 420px;
+        max-width: 420px;
+        padding: 35px;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .auth-card::before,
+    .auth-card::after {
+        display: none !important;
     }
 
     .auth-card h2 {
         font-size: 32px;
         margin-bottom: 40px;
         font-weight: 700;
+        text-shadow: 0 0 5px var(--twitter-blue) !important;
+    }
+
+    .auth-card h2::before,
+    .auth-card h2::after {
+        display: none !important;
     }
 
     .auth-card input {
-        padding: 18px 20px !important;
-        font-size: 18px !important;
-        border-radius: 14px !important;
+        padding: 16px 50px 16px 50px !important;
+        font-size: 16px !important;
+        border-radius: 12px !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        transition: none !important;
+        animation: none !important;
     }
 
     .auth-card button[type="submit"] {
-        padding: 18px !important;
-        font-size: 18px !important;
+        padding: 18px 24px !important;
+        font-size: 16px !important;
         font-weight: 700 !important;
-        border-radius: 14px !important;
+        border-radius: 12px !important;
+        background: var(--twitter-blue) !important;
+        box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .auth-card button[type="submit"]::before {
+        display: none !important;
+    }
+
+    .btn-glow,
+    .btn-particles {
+        display: none !important;
+    }
+
+    .password-toggle:hover {
+        transform: translateY(-50%) !important;
+        background: none !important;
+        box-shadow: none !important;
+    }
+
+    .input-wrapper input:focus + .input-icon,
+    .input-wrapper input:focus ~ .input-icon {
+        transform: translateY(-50%) !important;
+    }
+
+    .auth-card input:valid:focus,
+    .auth-card input:invalid:not(:placeholder-shown):focus {
+        animation: none !important;
+        box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3) !important;
+    }
+
+    .auth-card input:invalid:not(:placeholder-shown) {
+        animation: none !important;
+    }
+
+    .error-message {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        animation: none !important;
+        transition: none !important;
     }
 }
 
@@ -322,17 +379,8 @@ body {
     text-transform: uppercase;
     position: relative;
     z-index: 10;
-    /* Powerful neon glow effects */
-    text-shadow:
-        0 0 5px var(--twitter-blue),
-        0 0 10px var(--twitter-blue),
-        0 0 15px var(--twitter-blue),
-        0 0 20px var(--twitter-blue),
-        0 0 35px var(--twitter-blue),
-        0 0 40px var(--twitter-blue),
-        0 0 50px var(--twitter-blue),
-        0 0 75px var(--twitter-blue);
-    animation: neonFlicker 2s ease-in-out infinite alternate, neonGlow 4s ease-in-out infinite;
+    /* Simple glow effect like mobile */
+    text-shadow: 0 0 10px var(--twitter-blue);
 }
 
 .login-title::before {
@@ -364,92 +412,7 @@ body {
     animation: underlineGlow 2.5s ease-in-out infinite alternate;
 }
 
-@keyframes neonFlicker {
-    0%, 100% {
-        opacity: 1;
-        filter: brightness(1.1) contrast(1.2);
-        text-shadow:
-            0 0 5px var(--twitter-blue),
-            0 0 10px var(--twitter-blue),
-            0 0 15px var(--twitter-blue),
-            0 0 20px var(--twitter-blue),
-            0 0 35px var(--twitter-blue),
-            0 0 40px var(--twitter-blue),
-            0 0 50px var(--twitter-blue),
-            0 0 75px var(--twitter-blue);
-    }
-    12%, 37%, 68%, 89% {
-        opacity: 0.92;
-        filter: brightness(0.95) contrast(1.1);
-        text-shadow:
-            0 0 3px var(--twitter-blue),
-            0 0 6px var(--twitter-blue),
-            0 0 9px var(--twitter-blue),
-            0 0 12px var(--twitter-blue),
-            0 0 18px var(--twitter-blue),
-            0 0 24px var(--twitter-blue);
-    }
-    25%, 55%, 78% {
-        opacity: 0.96;
-        filter: brightness(1.05) contrast(1.3);
-        text-shadow:
-            0 0 7px var(--twitter-blue),
-            0 0 14px var(--twitter-blue),
-            0 0 21px var(--twitter-blue),
-            0 0 28px var(--twitter-blue),
-            0 0 42px var(--twitter-blue),
-            0 0 56px var(--twitter-blue),
-            0 0 84px var(--twitter-blue);
-    }
-    45%, 72% {
-        opacity: 0.88;
-        filter: brightness(0.9) contrast(1.0);
-        text-shadow:
-            0 0 2px var(--twitter-blue),
-            0 0 4px var(--twitter-blue),
-            0 0 6px var(--twitter-blue),
-            0 0 8px var(--twitter-blue);
-    }
-}
 
-@keyframes neonGlow {
-    0% {
-        filter: brightness(1) contrast(1.2);
-    }
-    50% {
-        filter: brightness(1.1) contrast(1.3);
-    }
-    100% {
-        filter: brightness(1) contrast(1.2);
-    }
-}
-
-@keyframes neonPulse {
-    0%, 100% {
-        opacity: 0.8;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.6;
-        transform: scale(1.02);
-    }
-}
-
-@keyframes underlineGlow {
-    0% {
-        opacity: 1;
-        box-shadow:
-            0 0 10px var(--twitter-blue),
-            0 0 20px var(--neon-lime-bright);
-    }
-    100% {
-        opacity: 0.8;
-        box-shadow:
-            0 0 15px var(--twitter-blue),
-            0 0 30px var(--neon-lime-bright),
-            0 0 45px var(--twitter-blue);
-    }
-}
 
 /* Responsive breakpoints */
 
@@ -1127,23 +1090,95 @@ body {
     }
 }
 
-/* Performance optimizations for mobile */
-@media (max-width: 767px) {
-    .login-btn {
-        /* Reduce expensive effects on mobile */
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-    }
+/* Apply performance optimizations to ALL devices */
+.auth-card,
+.login-btn,
+.input-wrapper input,
+.error-message {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
 
-    .input-wrapper input {
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-    }
+.auth-card {
+    background: rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
 
-    .error-message {
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-    }
+.auth-card::before,
+.auth-card::after {
+    display: none !important;
+}
+
+/* Disable all animations for performance */
+.login-btn,
+.input-wrapper input,
+.password-toggle,
+.btn-glow,
+.btn-particles,
+.error-message,
+.login-title {
+    animation: none !important;
+    transition: none !important;
+}
+
+.login-btn:hover {
+    transform: none !important;
+    box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
+}
+
+.input-wrapper input:focus {
+    transform: none !important;
+    box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3) !important;
+}
+
+.login-title::before,
+.login-title::after {
+    display: none !important;
+}
+
+/* Disable particle effects */
+.btn-particles {
+    display: none !important;
+}
+
+/* Simplify button */
+.login-btn {
+    background: var(--twitter-blue) !important;
+    box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
+}
+
+.btn-glow {
+    display: none !important;
+}
+
+/* Disable shimmer effects */
+.login-btn::before {
+    display: none !important;
+}
+
+/* Simplify password toggle */
+.password-toggle:hover {
+    transform: translateY(-50%) !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+/* Disable focus glow effects */
+.input-wrapper input:focus + .input-icon,
+.input-wrapper input:focus ~ .input-icon {
+    transform: translateY(-50%) !important;
+}
+
+/* Disable validation animations */
+.auth-card input:valid:focus,
+.auth-card input:invalid:not(:placeholder-shown):focus {
+    animation: none !important;
+    box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3) !important;
+}
+
+.auth-card input:invalid:not(:placeholder-shown) {
+    animation: none !important;
 }
 
 /* Make password toggle buttons completely static */
