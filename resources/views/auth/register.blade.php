@@ -113,14 +113,13 @@
 }
 
 .auth-card {
-    background: var(--card-bg);
+    /* Glass morphism effect */
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 30px;
-    border-radius: 16px;
-    box-shadow:
-        0 4px 16px rgba(0,0,0,0.3),
-        0 0 0 1px rgba(255,255,255,0.05) inset,
-        0 1px 0 rgba(255,255,255,0.1) inset;
-    border: 2px solid var(--border-color);
+    border-radius: 20px;
     width: 100%;
     max-width: 400px;
     box-sizing: border-box;
@@ -149,27 +148,6 @@
     height: 2px;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(255,255,255,0.05), transparent);
     opacity: 0.6;
-}
-
-/* Add powerful border animation */
-.auth-card {
-    animation: cardGlow 4s ease-in-out infinite alternate;
-}
-
-@keyframes cardGlow {
-    0% {
-        box-shadow:
-            0 4px 16px rgba(0,0,0,0.3),
-            0 0 0 1px rgba(255,255,255,0.05) inset,
-            0 1px 0 rgba(255,255,255,0.1) inset;
-    }
-    100% {
-        box-shadow:
-            0 4px 16px rgba(0,0,0,0.3),
-            0 0 20px rgba(29, 161, 242, 0.1),
-            0 0 0 1px rgba(255,255,255,0.05) inset,
-            0 1px 0 rgba(255,255,255,0.1) inset;
-    }
 }
 
 /* Enhanced form elements with powerful effects */
@@ -563,15 +541,10 @@
     box-shadow: 0 0 10px rgba(29, 161, 242, 0.2);
 }
 
-/* Add floating animation to the card on larger screens */
+/* No animations on larger screens */
 @media (min-width: 768px) {
     .auth-card {
-        animation: cardGlow 4s ease-in-out infinite alternate, cardFloat 6s ease-in-out infinite;
-    }
-
-    @keyframes cardFloat {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-5px); }
+        /* No animations */
     }
 }
 
