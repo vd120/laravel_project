@@ -56,17 +56,22 @@
     left: 0;
     right: 0;
     bottom: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg,
-        #0a0a0a 0%,
-        #1a0a1a 25%,
-        #0a0a2a 50%,
-        #1a1a1a 75%,
-        #0a0a0a 100%
-    );
+    font-family: 'Courier New', monospace;
+    background: #000000;
     background-attachment: fixed;
     overflow: hidden;
     z-index: 1000;
+    color: #00FF00;
+    background-image:
+        radial-gradient(circle at 25% 25%, rgba(0, 255, 0, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(0, 255, 0, 0.1) 0%, transparent 50%),
+        linear-gradient(45deg, transparent 49%, rgba(0, 255, 0, 0.03) 50%, transparent 51%);
+    animation: matrixRain 20s linear infinite;
+}
+
+@keyframes matrixRain {
+    0% { background-position: 0% 0%, 100% 100%, 0% 0%; }
+    100% { background-position: 0% 100%, 100% 0%, 100% 100%; }
 }
 
 .close-button {
@@ -92,8 +97,6 @@
 
 .close-button:hover {
     background: rgba(244, 33, 46, 0.8);
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(244, 33, 46, 0.5);
 }
 
 .ai-assistant::before {
@@ -135,7 +138,6 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
     padding: 16px 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 .ai-header-content {
@@ -155,13 +157,12 @@
     justify-content: center;
     font-size: 20px;
     color: white;
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
     animation: avatarGlow 3s ease-in-out infinite alternate;
 }
 
 @keyframes avatarGlow {
-    0% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
-    100% { box-shadow: 0 0 30px rgba(139, 92, 246, 0.8), 0 0 60px rgba(139, 92, 246, 0.3); }
+    0% { }
+    100% { }
 }
 
 .ai-info h1 {
@@ -309,52 +310,36 @@
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow:
-        0 4px 16px rgba(0, 0, 0, 0.15),
-        0 0 32px rgba(139, 92, 246, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     max-width: 100%;
 }
 
 .message-bubble:hover {
-    transform: translateY(-1px);
-    box-shadow:
-        0 6px 24px rgba(0, 0, 0, 0.2),
-        0 0 48px rgba(139, 92, 246, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .ai-bubble {
     background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.15) 0%,
-        rgba(255, 255, 255, 0.08) 50%,
-        rgba(139, 92, 246, 0.1) 100%);
-    color: var(--twitter-dark);
+        rgba(0, 255, 0, 0.1) 0%,
+        rgba(0, 255, 0, 0.05) 50%,
+        rgba(0, 200, 0, 0.08) 100%);
+    color: #00FF00;
     border-bottom-left-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
 }
 
 .user-bubble {
     background: linear-gradient(135deg,
-        var(--twitter-blue) 0%,
-        #7C3AED 50%,
-        var(--twitter-blue) 100%);
-    color: white;
+        rgba(0, 255, 0, 0.8) 0%,
+        rgba(0, 200, 0, 0.9) 50%,
+        rgba(0, 255, 0, 0.8) 100%);
+    color: #000000;
     border-bottom-right-radius: 6px;
-    border: 1px solid rgba(255, 107, 107, 0.3);
-    box-shadow:
-        0 4px 16px rgba(139, 92, 246, 0.3),
-        0 0 32px rgba(139, 92, 246, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(0, 255, 0, 0.6);
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
 }
 
-.user-bubble:hover {
-    box-shadow:
-        0 6px 24px rgba(139, 92, 246, 0.4),
-        0 0 48px rgba(139, 92, 246, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
+
 
 .typing-text {
     margin: 0;
@@ -413,14 +398,15 @@
     background: transparent;
     border: none;
     outline: none;
-    color: var(--twitter-dark);
+    color: #00FF00;
     font-size: 16px;
     padding: 4px 0;
     font-family: inherit;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
 }
 
 .input-container input::placeholder {
-    color: var(--twitter-gray);
+    color: rgba(0, 255, 0, 0.6);
 }
 
 .send-button {
@@ -428,31 +414,22 @@
     height: 56px;
     border-radius: 50%;
     background: linear-gradient(135deg,
-        var(--twitter-blue) 0%,
-        #7C3AED 20%,
-        #FF6B6B 50%,
-        #FF1744 80%,
-        var(--twitter-blue) 100%);
-    border: none;
-    color: white;
+        #00FF00 0%,
+        #00DD00 50%,
+        #00FF00 100%);
+    border: 2px solid #00FF00;
+    color: #000000;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow:
-        0 8px 32px rgba(139, 92, 246, 0.6),
-        0 0 64px rgba(139, 92, 246, 0.4),
-        0 0 96px rgba(255, 107, 107, 0.3),
-        0 0 128px rgba(255, 23, 68, 0.2),
-        inset 0 3px 0 rgba(255, 255, 255, 0.25),
-        inset 0 -3px 0 rgba(0, 0, 0, 0.1);
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
     margin-left: 16px;
-    transform: scale(1);
-    filter: brightness(1.1) saturate(1.2);
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
 .send-button::before {
@@ -477,21 +454,10 @@
 }
 
 .send-button:hover {
-    transform: translateY(-4px) scale(1.1) rotate(5deg);
-    box-shadow:
-        0 12px 40px rgba(139, 92, 246, 0.8),
-        0 0 80px rgba(139, 92, 246, 0.4),
-        0 0 120px rgba(255, 107, 107, 0.3),
-        inset 0 2px 0 rgba(255, 255, 255, 0.2);
-    animation-play-state: paused;
 }
 
 .send-button:active {
     transform: translateY(-2px) scale(1.05) rotate(2deg);
-    box-shadow:
-        0 6px 20px rgba(139, 92, 246, 0.9),
-        0 0 40px rgba(139, 92, 246, 0.5),
-        inset 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .send-button i {
@@ -613,7 +579,6 @@
         right: 0 !important;
         width: 100vw !important;
         z-index: 1000 !important;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
     }
 
     /* Adjust chat messages area for fixed input bar */

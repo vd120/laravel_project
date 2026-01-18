@@ -30,7 +30,7 @@
         </div>
 
         <div class="comment-body">
-            <div class="comment-text">{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content) !!}</div>
+            <div class="comment-text" style="word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; line-height: 1.4;">{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content) !!}</div>
         </div>
 
         <div class="comment-footer">

@@ -1,101 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="saved-posts-page">
-    <div class="saved-posts-header">
-        <h2><i class="fas fa-bookmark"></i> Saved Posts</h2>
-    </div>
+<div class="max-w-2xl mx-auto px-4 py-6 space-y-6">
+    <h2 class="text-2xl font-bold text-white text-center mb-6">
+        <i class="fas fa-bookmark mr-2"></i>Saved Posts
+    </h2>
 
     @if($savedPosts->count() > 0)
-        @foreach($savedPosts as $savedPost)
-            <a href="{{ route('posts.show', $savedPost->post) }}" style="text-decoration: none; color: inherit;">
-            <div class="post" data-post-id="{{ $savedPost->post->id }}">
-                <div class="user">
-                    <a href="{{ route('users.show', $savedPost->post->user) }}" onclick="event.stopPropagation()">{{ $savedPost->post->user->name }}</a>
-                    <small>Saved {{ $savedPost->created_at->diffForHumans() }}</small>
-                    <small>Posted {{ $savedPost->post->created_at->diffForHumans() }}</small>
-                    @if($savedPost->post->user_id !== auth()->id())
-                        <button type="button"
-                                class="btn follow-btn {{ auth()->user()->isFollowing($savedPost->post->user) ? 'following' : '' }}"
-                                data-user-id="{{ $savedPost->post->user->id }}"
-                                data-username="{{ $savedPost->post->user->name }}"
-                                onclick="event.stopPropagation(); toggleFollow(this, {{ $savedPost->post->user->id }})"
-                                style="font-size: 11px; padding: 3px 8px; margin-left: 10px; background: {{ auth()->user()->isFollowing($savedPost->post->user) ? '#28a745' : 'var(--twitter-blue)' }};">
-                            {{ auth()->user()->isFollowing($savedPost->post->user) ? 'Following' : 'Follow' }}
-                        </button>
-                    @endif
-                </div>
-                @if($savedPost->post->content)
-                    <div class="content">{{ $savedPost->post->content }}</div>
-                @endif
+        <div id="posts-container">
+            @foreach($savedPosts as $savedPost)
+                @include('partials.post', ['post' => $savedPost->post])
+            @endforeach
+        </div>
 
-                @if($savedPost->post->media && $savedPost->post->media->count() > 0)
-                    <div class="post-media">
-                        @if($savedPost->post->media->count() === 1)
-                            @php $media = $savedPost->post->media->first(); @endphp
-                            @if($media->media_type === 'image')
-                                <img src="{{ asset('storage/' . $media->media_path) }}" alt="Post image">
-                            @elseif($media->media_type === 'video')
-                                <div class="video-container">
-                                    <video controls preload="metadata">
-                                        <source src="{{ asset('storage/' . $media->media_path) }}" type="video/mp4">
-                                    </video>
-                                    <div class="video-overlay" onclick="playVideo(this)">
-                                        <button class="play-button"><i class="fas fa-play"></i></button>
-                                    </div>
-                                </div>
-                            @endif
-                        @else
-                            <div class="media-grid">
-                                @foreach($savedPost->post->media as $media)
-                                    <div class="media-item">
-                                        @if($media->media_type === 'image')
-                                            <img src="{{ asset('storage/' . $media->media_path) }}" alt="Post image">
-                                        @elseif($media->media_type === 'video')
-                                            <video controls>
-                                                <source src="{{ asset('storage/' . $media->media_path) }}" type="video/mp4">
-                                            </video>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                @endif
-
-                <div class="post-actions">
-                    <button type="button"
-                            class="btn like-btn {{ $savedPost->post->likedBy(auth()->user()) ? 'liked' : '' }}"
-                            data-post-id="{{ $savedPost->post->id }}"
-                            onclick="event.stopPropagation(); toggleLike({{ $savedPost->post->id }}, this)">
-                        <i class="fas fa-heart"></i> <span class="like-count">{{ $savedPost->post->likes->count() }}</span>
-                    </button>
-                    <button type="button"
-                            class="btn save-btn {{ $savedPost->post->savedBy(auth()->user()) ? 'saved' : '' }}"
-                            onclick="event.stopPropagation(); toggleSave({{ $savedPost->post->id }}, this)">
-                        <i class="fas fa-bookmark"></i> <span class="save-text">{{ $savedPost->post->savedBy(auth()->user()) ? 'Saved' : 'Save' }}</span>
-                    </button>
-                    <a href="{{ route('posts.show', $savedPost->post) }}" class="btn" onclick="event.stopPropagation()">
-                        <i class="fas fa-external-link-alt"></i> View Post
-                    </a>
-                </div>
-
-                <hr>
-                <h4>Comments</h4>
-                <div class="comment-form-container">
-                    <textarea id="comment-content-{{ $savedPost->post->id }}" placeholder="Add a comment..." maxlength="280" required></textarea>
-                    <button type="button" class="btn" onclick="submitComment({{ $savedPost->post->id }})">Comment</button>
-                </div>
-                <div class="comments-container">
-                    @foreach($savedPost->post->comments as $comment)
-                        @include('partials.comment', ['comment' => $comment])
-                    @endforeach
-                </div>
-            </div>
-            </a>
-        @endforeach
-
-        {{ $savedPosts->links() }}
+        <div class="mt-6">
+            {{ $savedPosts->links() }}
+        </div>
     @else
         <div class="empty-state">
             <i class="fas fa-bookmark"></i>
@@ -126,7 +46,7 @@
 .post {
     margin-bottom: 20px;
     padding: 16px;
-    background: white;
+    background: var(--card-bg);
     border-radius: 12px;
     border: 1px solid var(--border-color);
     transition: box-shadow 0.2s ease;
@@ -311,7 +231,7 @@ hr {
 
 .comment-form-container {
     margin: 16px 0;
-    background: white;
+    background: var(--card-bg);
     border-radius: 12px;
     padding: 16px;
     border: 1px solid var(--border-color);
@@ -414,7 +334,7 @@ hr {
 }
 
 .pagination .page-link {
-    background: white;
+    background: var(--card-bg);
 }
 
 .pagination a:hover,

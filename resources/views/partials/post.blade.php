@@ -41,6 +41,74 @@
     flex: 1;
     margin-right: 50px; /* Space for the delete button */
 }
+
+.content {
+    margin: 16px 0;
+    line-height: 1.6;
+    font-size: 18px;
+    color: var(--twitter-dark);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+    background: var(--twitter-gray);
+}
+
+.read-more-btn {
+    background: none;
+    border: none;
+    color: var(--twitter-blue);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 0;
+    margin-top: 8px;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+
+.read-more-btn:hover {
+    color: var(--twitter-dark);
+}
+
+.content-container {
+    position: relative;
+}
+
+.content.truncated {
+    max-height: 120px;
+    overflow: hidden;
+    position: relative;
+}
+
+.content.truncated::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(transparent, var(--card-bg));
+    pointer-events: none;
+}
 </style>
     <div class="post-header">
         <div class="user" style="display: flex; align-items: center; gap: 8px;">
@@ -76,7 +144,16 @@
         @endif
     </div>
     @if($post->content)
-        <div class="content">{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($post->content) !!}</div>
+        <div class="content-container">
+            <div class="content" id="content-{{ $post->id }}">
+                {!! app(\App\Services\MentionService::class)->convertMentionsToLinks($post->content) !!}
+            </div>
+            @if(strlen($post->content) > 500)
+                <button type="button" class="read-more-btn" onclick="toggleReadMore({{ $post->id }})" id="read-more-btn-{{ $post->id }}">
+                    Read more
+                </button>
+            @endif
+        </div>
     @endif
 
     @if($post->media && $post->media->count() > 0)
@@ -151,12 +228,12 @@
     </div>
     <hr>
     <h4>Comments</h4>
-    @if(auth()->check())
+    @if(auth()->check() && !request()->routeIs('users.saved-posts'))
         <div class="comment-form-container">
             <textarea id="comment-content-{{ $post->id }}" placeholder="Add a comment..." maxlength="280" required></textarea>
             <button type="button" class="btn" style="font-size: 12px; padding: 5px 10px;" onclick="submitComment({{ $post->id }})">Comment</button>
         </div>
-    @else
+    @elseif(!auth()->check() && !request()->routeIs('users.saved-posts'))
         <div class="guest-comment-message" style="text-align: center; padding: 20px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 15px;">
             <i class="fas fa-comment-slash" style="font-size: 24px; color: var(--twitter-gray); margin-bottom: 10px;"></i>
             <p style="color: var(--twitter-gray); margin: 0; font-size: 14px;">Please <a href="{{ route('login') }}" style="color: var(--twitter-blue); text-decoration: none; font-weight: 500;">login</a> to comment on posts</p>
@@ -197,3 +274,33 @@
 @endif
     </div>
 </div>
+
+<script>
+function toggleReadMore(postId) {
+    const content = document.getElementById('content-' + postId);
+    const button = document.getElementById('read-more-btn-' + postId);
+
+    if (content.classList.contains('truncated')) {
+        // Show full content
+        content.classList.remove('truncated');
+        button.textContent = 'Read less';
+    } else {
+        // Truncate content
+        content.classList.add('truncated');
+        button.textContent = 'Read more';
+    }
+}
+
+// Initialize truncated state on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Find all content elements with read more buttons
+    const readMoreButtons = document.querySelectorAll('.read-more-btn');
+    readMoreButtons.forEach(button => {
+        const postId = button.id.replace('read-more-btn-', '');
+        const content = document.getElementById('content-' + postId);
+        if (content && !content.classList.contains('truncated')) {
+            content.classList.add('truncated');
+        }
+    });
+});
+</script>
