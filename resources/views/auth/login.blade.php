@@ -50,19 +50,44 @@
                 </div>
             </button>
         </form>
-        <p style="text-align: center; margin-top: 20px; color: var(--twitter-gray);">Don't have an account? <a href="{{ route('register') }}" style="color: var(--twitter-blue); text-decoration: none;" onmouseover="this.style.color='#1A91DA';" onmouseout="this.style.color='var(--twitter-blue)';">Register</a></p>
+        <p style="text-align: center; margin-top: 20px; color: #e5e7eb; text-shadow: 0 0 8px rgba(59, 130, 246, 0.3);">Don't have an account? <a href="{{ route('register') }}" style="color: #93c5fd; text-decoration: none; text-shadow: 0 0 12px rgba(59, 130, 246, 0.6);" onmouseover="this.style.color='#dbeafe'; this.style.textShadow='0 0 20px rgba(59, 130, 246, 0.8)';" onmouseout="this.style.color='#93c5fd'; this.style.textShadow='0 0 12px rgba(59, 130, 246, 0.6)';">Register</a></p>
     </div>
 </div>
 
 <style>
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background:
+        linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%),
+        url('https://zebreus.github.io/all-gnome-backgrounds/images/earth-horizon-1abefd2c263947e408c36d3972da15fca4790951.webp');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -2;
+}
+
 .auth-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 60px);
+    min-height: 100vh;
     padding: 20px;
     box-sizing: border-box;
+    position: relative;
+    z-index: 1;
 }
+
+
+
+
 
 /* Enhanced centering for laptops */
 @media (min-width: 768px) {
@@ -105,16 +130,16 @@
 }
 
 .auth-card {
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 35px;
+    border-radius: 20px;
     box-shadow:
-        0 4px 16px rgba(0,0,0,0.3),
-        0 0 0 1px rgba(255,255,255,0.05) inset,
-        0 1px 0 rgba(255,255,255,0.1) inset;
-    border: 2px solid var(--border-color);
+        0 8px 32px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        0 2px 0 rgba(255, 255, 255, 0.05) inset;
+    border: 2px solid rgba(255, 255, 255, 0.1);
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     box-sizing: border-box;
     position: relative;
     overflow: hidden;
@@ -143,22 +168,6 @@
     opacity: 0.6;
 }
 
-/* Add powerful border animation */
-.auth-card {
-    /* Glass morphism effect */
-    background: rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 30px;
-    border-radius: 20px;
-    width: 100%;
-    max-width: 400px;
-    box-sizing: border-box;
-    position: relative;
-    overflow: hidden;
-}
-
 /* Enhanced form elements with powerful effects */
 .auth-card input[type="email"],
 .auth-card input[type="password"] {
@@ -183,13 +192,7 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.auth-card button[type="submit"]:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow:
-        0 8px 25px rgba(29, 161, 242, 0.4),
-        0 0 40px rgba(29, 161, 242, 0.2),
-        inset 0 1px 0 rgba(255,255,255,0.2);
-}
+
 
 .auth-card button[type="submit"]:active {
     transform: translateY(-1px) scale(0.98);
@@ -364,6 +367,7 @@
 @keyframes neonFlicker {
     0%, 100% {
         opacity: 1;
+        filter: brightness(1.1) contrast(1.2);
         text-shadow:
             0 0 5px var(--twitter-blue),
             0 0 10px var(--twitter-blue),
@@ -374,38 +378,9 @@
             0 0 50px var(--twitter-blue),
             0 0 75px var(--twitter-blue);
     }
-    2%, 4%, 6%, 8%, 10%, 12%, 14%, 16%, 18% {
-        opacity: 0.3;
-        text-shadow:
-            0 0 1px var(--twitter-blue),
-            0 0 2px var(--twitter-blue);
-    }
-    3%, 7%, 11%, 15%, 19% {
-        opacity: 0.6;
-        text-shadow:
-            0 0 2px var(--twitter-blue),
-            0 0 4px var(--twitter-blue),
-            0 0 6px var(--twitter-blue);
-    }
-    5%, 9%, 13%, 17% {
-        opacity: 0.8;
-        text-shadow:
-            0 0 3px var(--twitter-blue),
-            0 0 6px var(--twitter-blue),
-            0 0 9px var(--twitter-blue),
-            0 0 12px var(--twitter-blue);
-    }
-    20%, 40%, 60%, 80% {
-        opacity: 0.9;
-        text-shadow:
-            0 0 4px var(--twitter-blue),
-            0 0 8px var(--twitter-blue),
-            0 0 12px var(--twitter-blue),
-            0 0 16px var(--twitter-blue),
-            0 0 20px var(--twitter-blue);
-    }
-    25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% {
-        opacity: 0.95;
+    12%, 37%, 68%, 89% {
+        opacity: 0.92;
+        filter: brightness(0.95) contrast(1.1);
         text-shadow:
             0 0 3px var(--twitter-blue),
             0 0 6px var(--twitter-blue),
@@ -414,16 +389,26 @@
             0 0 18px var(--twitter-blue),
             0 0 24px var(--twitter-blue);
     }
-    30%, 50%, 70%, 90% {
-        opacity: 1;
+    25%, 55%, 78% {
+        opacity: 0.96;
+        filter: brightness(1.05) contrast(1.3);
         text-shadow:
+            0 0 7px var(--twitter-blue),
+            0 0 14px var(--twitter-blue),
+            0 0 21px var(--twitter-blue),
+            0 0 28px var(--twitter-blue),
+            0 0 42px var(--twitter-blue),
+            0 0 56px var(--twitter-blue),
+            0 0 84px var(--twitter-blue);
+    }
+    45%, 72% {
+        opacity: 0.88;
+        filter: brightness(0.9) contrast(1.0);
+        text-shadow:
+            0 0 2px var(--twitter-blue),
             0 0 4px var(--twitter-blue),
-            0 0 8px var(--twitter-blue),
-            0 0 12px var(--twitter-blue),
-            0 0 16px var(--twitter-blue),
-            0 0 24px var(--twitter-blue),
-            0 0 32px var(--twitter-blue),
-            0 0 40px var(--twitter-blue);
+            0 0 6px var(--twitter-blue),
+            0 0 8px var(--twitter-blue);
     }
 }
 
@@ -707,7 +692,7 @@
 
 .form-group label {
     display: block;
-    color: var(--twitter-dark);
+    color: #e5e7eb;
     font-weight: 600;
     font-size: 14px;
     margin-bottom: 8px;
@@ -715,6 +700,7 @@
     letter-spacing: 0.5px;
     opacity: 0.9;
     transition: all 0.3s ease;
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
 }
 
 .input-wrapper {
@@ -726,29 +712,29 @@
 .input-wrapper input {
     width: 100%;
     padding: 16px 50px 16px 50px;
-    border: 2px solid var(--border-color);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
-    background: linear-gradient(145deg, var(--input-bg) 0%, rgba(255,255,255,0.02) 100%);
-    color: var(--twitter-dark);
+    background: rgba(0, 0, 0, 0.4);
+    color: #ffffff;
     font-size: 16px;
     font-weight: 400;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255,255,255,0.05);
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        inset 0 2px 0 rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
 
 .input-wrapper input:focus {
     outline: none;
-    border-color: var(--twitter-blue);
-    background: linear-gradient(145deg, var(--input-bg) 0%, rgba(29, 161, 242, 0.02) 100%);
+    border-color: rgba(147, 197, 253, 0.8);
     box-shadow:
-        0 0 0 4px rgba(29, 161, 242, 0.1),
-        0 8px 20px rgba(29, 161, 242, 0.15),
-        inset 0 1px 0 rgba(255,255,255,0.1);
-    transform: translateY(-2px) scale(1.01);
+        0 0 0 3px rgba(59, 130, 246, 0.2),
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        inset 0 2px 0 rgba(255, 255, 255, 0.05);
 }
 
 .input-wrapper input::placeholder {
@@ -895,6 +881,8 @@
 .checkbox-text {
     font-weight: 500;
     user-select: none;
+    color: #e5e7eb;
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
 }
 
 /* Advanced Button Styling */
@@ -947,12 +935,7 @@
 }
 
 .login-btn:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow:
-        0 12px 30px rgba(29, 161, 242, 0.4),
-        0 0 60px rgba(29, 161, 242, 0.2),
-        0 0 100px rgba(29, 161, 242, 0.1),
-        inset 0 2px 0 rgba(255,255,255,0.3);
+    /* No hover effects */
 }
 
 .login-btn:active {

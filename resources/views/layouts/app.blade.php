@@ -138,11 +138,55 @@
                 border: 2px solid var(--border-color);
                 border-radius: 20px;
                 box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 4px 16px rgba(29, 161, 242, 0.1);
-                min-width: 220px;
+                min-width: 280px;
                 z-index: 1000;
-                padding: 12px 0;
+                padding: 20px 0;
                 backdrop-filter: blur(10px);
                 animation: dropdownSlideIn 0.2s ease-out;
+                max-height: 80vh;
+                overflow-y: auto;
+                max-width: 90vw;
+            }
+
+            /* Optimized for wide laptops (1200px+) */
+            @media (min-width: 1200px) {
+                .nav-links {
+                    min-width: 420px;
+                    max-width: 500px;
+                    padding: 32px 0;
+                    right: 0;
+                    transform: translateX(0);
+                    box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 6px 20px rgba(29, 161, 242, 0.25);
+                    border-radius: 16px;
+                    position: absolute;
+                    top: 100%;
+                    left: auto;
+                    z-index: 1000;
+                }
+            }
+
+            /* Standard laptops (1025px-1199px) */
+            @media (min-width: 1025px) and (max-width: 1199px) {
+                .nav-links {
+                    min-width: 280px;
+                    max-width: 320px;
+                    padding: 20px 0;
+                    right: 0;
+                    box-shadow: 0 10px 35px rgba(0,0,0,0.65), 0 5px 18px rgba(29, 161, 242, 0.22);
+                    border-radius: 14px;
+                }
+            }
+
+            /* Compact laptops (769px-1024px) */
+            @media (min-width: 769px) and (max-width: 1024px) {
+                .nav-links {
+                    min-width: 260px;
+                    max-width: 300px;
+                    padding: 18px 0;
+                    right: 0;
+                    box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 4px 16px rgba(29, 161, 242, 0.2);
+                    border-radius: 12px;
+                }
             }
 
             .nav-links.mobile-show {
@@ -3003,21 +3047,7 @@
                 </a>
 
 
-                <div class="user-profile-card">
-                    <div class="user-info">
-                        @if(auth()->user()->profile && auth()->user()->profile->avatar)
-                            <img src="{{ asset('storage/' . auth()->user()->profile->avatar) }}" alt="{{ auth()->user()->name }}" class="user-avatar-small">
-                        @else
-                            <div class="user-avatar-small user-avatar-placeholder">
-                                {{ substr(auth()->user()->name, 0, 1) }}
-                            </div>
-                        @endif
-                        <div>
-                            <div class="user-name">{{ auth()->user()->name }}</div>
-                            <div class="user-handle">{{ '@' . auth()->user()->name }}</div>
-                        </div>
-                    </div>
-                </div>
+
             </nav>
         </aside>
         @endauth

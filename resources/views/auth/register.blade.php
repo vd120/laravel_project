@@ -10,6 +10,9 @@
                 <label for="username">Username</label>
                 <div class="input-wrapper">
                     <input type="text" name="username" id="username" value="{{ old('username') }}" required placeholder="Choose a username">
+                    <div class="input-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
                 </div>
                 <div id="username-status"></div>
                 @error('username') <div class="error-message">{{ $message }}</div> @enderror
@@ -19,6 +22,9 @@
                 <label for="email">Email Address</label>
                 <div class="input-wrapper">
                     <input type="email" name="email" id="email" value="{{ old('email') }}" required placeholder="Enter your email address">
+                    <div class="input-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
                 </div>
                 @error('email') <div class="error-message">{{ $message }}</div> @enderror
             </div>
@@ -63,13 +69,28 @@
 </div>
 
 <style>
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background:
+        linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%),
+        url('https://zebreus.github.io/all-gnome-backgrounds/images/earth-horizon-1abefd2c263947e408c36d3972da15fca4790951.webp');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
 .auth-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 60px);
+    min-height: 100vh;
     padding: 20px;
     box-sizing: border-box;
+    position: relative;
+    z-index: 1;
 }
 
 /* Enhanced centering for laptops */
@@ -113,15 +134,18 @@
 }
 
 .auth-card {
-    /* Glass morphism effect */
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 30px;
+    padding: 35px;
     border-radius: 20px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        0 2px 0 rgba(255, 255, 255, 0.05) inset;
+    border: 2px solid rgba(255, 255, 255, 0.1);
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     box-sizing: border-box;
     position: relative;
     overflow: hidden;
@@ -166,16 +190,12 @@
 .auth-card input[type="email"]:focus,
 .auth-card input[type="password"]:focus,
 .auth-card input[type="text"]:focus {
-    transform: translateY(-3px) scale(1.02);
-    border-color: var(--twitter-blue);
-    background: linear-gradient(145deg, var(--input-bg) 0%, rgba(29, 161, 242, 0.03) 100%);
+    border-color: rgba(147, 197, 253, 0.8);
     box-shadow:
-        0 0 0 4px rgba(29, 161, 242, 0.15),
-        0 6px 20px rgba(29, 161, 242, 0.2),
-        0 0 40px rgba(29, 161, 242, 0.1),
-        inset 0 2px 0 rgba(255,255,255,0.15),
-        inset 0 1px 0 rgba(255,255,255,0.1);
-    animation: inputGlow 0.3s ease-out;
+        0 0 0 3px rgba(59, 130, 246, 0.2),
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        inset 0 2px 0 rgba(255, 255, 255, 0.05);
 }
 
 @keyframes inputGlow {
@@ -259,21 +279,13 @@
 }
 
 .login-btn:hover {
-    transform: translateY(-6px) scale(1.03);
     box-shadow:
-        0 16px 40px rgba(29, 161, 242, 0.5),
-        0 0 80px rgba(29, 161, 242, 0.3),
-        0 0 120px rgba(29, 161, 242, 0.1),
-        inset 0 3px 0 rgba(255,255,255,0.3),
-        inset 0 1px 0 rgba(255,255,255,0.2);
-    background-position: right center;
-    animation: btnGlow 0.6s ease-out;
+        0 8px 25px rgba(29, 161, 242, 0.4),
+        0 0 40px rgba(29, 161, 242, 0.2),
+        inset 0 2px 0 rgba(255,255,255,0.3);
 }
 
-.login-btn:active {
-    transform: translateY(-3px) scale(0.97);
-    transition: all 0.1s ease;
-}
+
 
 /* Advanced shimmer effect */
 .login-btn::before {
@@ -1036,6 +1048,486 @@
             0 0 15px var(--twitter-blue),
             0 0 30px var(--neon-lime-bright),
             0 0 45px var(--twitter-blue);
+    }
+}
+
+/* Form Styling Overhaul */
+.login-form {
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    color: #e5e7eb;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 16px 50px 16px 50px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 400;
+    transition: all 0.3s ease;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        inset 0 2px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.input-wrapper input:focus {
+    outline: none;
+    border-color: rgba(147, 197, 253, 0.8);
+    box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.2),
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        inset 0 2px 0 rgba(255, 255, 255, 0.05);
+}
+
+.input-wrapper input::placeholder {
+    color: var(--twitter-gray);
+    opacity: 0.7;
+    font-style: italic;
+    transition: opacity 0.3s ease;
+}
+
+.input-wrapper input:focus::placeholder {
+    opacity: 0.4;
+}
+
+/* Input Icons */
+.input-icon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--twitter-gray);
+    font-size: 16px;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.input-wrapper input:focus + .input-icon,
+.input-wrapper input:focus ~ .input-icon {
+    color: var(--twitter-blue);
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* Password Toggle Enhancement */
+.password-toggle {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--twitter-gray);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.password-toggle:hover {
+    color: var(--twitter-blue);
+    background: rgba(29, 161, 242, 0.1);
+    transform: translateY(-50%) scale(1.2);
+    box-shadow: 0 0 15px rgba(29, 161, 242, 0.2);
+}
+
+/* Form Options */
+.form-options {
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    font-size: 14px;
+    color: var(--twitter-gray);
+    transition: color 0.3s ease;
+}
+
+.checkbox-label:hover {
+    color: var(--twitter-dark);
+}
+
+.checkbox-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: relative;
+    height: 20px;
+    width: 20px;
+    background: var(--input-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    margin-right: 12px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkbox-label:hover .checkmark {
+    border-color: var(--twitter-blue);
+    box-shadow: 0 0 8px rgba(29, 161, 242, 0.2);
+}
+
+.checkbox-label input:checked ~ .checkmark {
+    background: var(--twitter-blue);
+    border-color: var(--twitter-blue);
+    box-shadow: 0 0 15px rgba(29, 161, 242, 0.3);
+    transform: scale(1.1);
+}
+
+.checkmark::after {
+    content: '';
+    position: absolute;
+    display: none;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    transition: all 0.2s ease;
+}
+
+.checkbox-label input:checked ~ .checkmark::after {
+    display: block;
+    animation: checkmarkDraw 0.3s ease;
+}
+
+@keyframes checkmarkDraw {
+    0% {
+        opacity: 0;
+        transform: rotate(45deg) scale(0);
+    }
+    50% {
+        opacity: 1;
+        transform: rotate(45deg) scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: rotate(45deg) scale(1);
+    }
+}
+
+.checkbox-text {
+    font-weight: 500;
+    user-select: none;
+}
+
+/* Advanced Button Styling */
+.login-btn {
+    width: 100%;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, var(--twitter-blue) 0%, #1A91DA 30%, var(--twitter-blue) 70%, #1A91DA 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 6px 20px rgba(29, 161, 242, 0.3),
+        0 0 40px rgba(29, 161, 242, 0.1),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+    position: relative;
+    overflow: hidden;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.login-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 150%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,255,255,0.4) 30%,
+        rgba(255,255,255,0.6) 50%,
+        rgba(255,255,255,0.4) 70%,
+        transparent 100%
+    );
+    transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+}
+
+.login-btn:hover::before {
+    left: 150%;
+}
+
+.login-btn:hover {
+    box-shadow:
+        0 8px 25px rgba(29, 161, 242, 0.4),
+        0 0 40px rgba(29, 161, 242, 0.2),
+        inset 0 2px 0 rgba(255,255,255,0.3);
+}
+
+
+
+.btn-text {
+    position: relative;
+    z-index: 2;
+}
+
+.btn-loader {
+    position: relative;
+    z-index: 2;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Enhanced Error Messages */
+.error-message {
+    background: linear-gradient(135deg, rgba(244, 33, 46, 0.1) 0%, rgba(244, 33, 46, 0.05) 100%);
+    border: 1px solid rgba(244, 33, 46, 0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #ff6b6b;
+    box-shadow: 0 2px 8px rgba(244, 33, 46, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    animation: errorShake 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.error-message::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #ff4757, #ff3838);
+    border-radius: 2px 0 0 2px;
+}
+
+@keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Advanced Focus States */
+.form-group:focus-within label {
+    color: var(--twitter-blue);
+    transform: translateY(-2px);
+    text-shadow: 0 0 8px rgba(29, 161, 242, 0.3);
+}
+
+/* Loading State Enhancement */
+.login-form.submitting .btn-text {
+    opacity: 0;
+}
+
+.login-form.submitting .btn-loader {
+    display: block;
+}
+
+.login-form.submitting .login-btn {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* Success Animation */
+.login-form.success .login-btn {
+    background: linear-gradient(135deg, #00BA7C 0%, #00C46A 100%);
+    box-shadow:
+        0 6px 20px rgba(0, 186, 124, 0.3),
+        0 0 40px rgba(0, 186, 124, 0.2);
+}
+
+.login-form.success .btn-text::after {
+    content: ' ✓';
+    animation: successCheck 0.6s ease;
+}
+
+@keyframes successCheck {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(-180deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2) rotate(0deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* Enhanced Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .auth-card input,
+    .auth-card button,
+    .login-btn,
+    .password-toggle,
+    .checkmark,
+    .error-message {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* High contrast mode enhancements */
+@media (prefers-contrast: high) {
+    .input-wrapper input {
+        border-width: 3px;
+    }
+
+    .login-btn {
+        border: 2px solid white;
+    }
+
+    .checkmark {
+        border-width: 3px;
+    }
+}
+
+/* Advanced responsive enhancements */
+@media (min-width: 768px) {
+    .form-group {
+        margin-bottom: 28px;
+    }
+
+    .input-wrapper input {
+        padding: 20px 55px 20px 55px;
+        font-size: 18px;
+    }
+
+.input-icon {
+    right: 18px;
+    font-size: 18px;
+}
+
+    .password-toggle {
+        right: 18px;
+        font-size: 18px;
+        padding: 10px;
+    }
+
+    .login-btn {
+        padding: 22px 28px;
+        font-size: 18px;
+        letter-spacing: 1.5px;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .input-wrapper input:focus {
+        transform: none;
+        box-shadow: 0 0 0 3px var(--twitter-blue);
+    }
+
+    .login-btn:hover {
+        transform: none;
+    }
+
+    .password-toggle:hover {
+        transform: translateY(-50%);
+        background: none;
+    }
+}
+
+/* Performance optimizations for mobile */
+@media (max-width: 767px) {
+    .auth-card {
+        /* Remove expensive blur effect on mobile */
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .login-btn {
+        /* Reduce expensive effects on mobile */
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .input-wrapper input {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .error-message {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    /* Simplify animations on mobile */
+    .login-btn:hover {
+        transform: none;
+        box-shadow:
+            0 4px 15px rgba(29, 161, 242, 0.3),
+            inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    .input-wrapper input:focus {
+        transform: none;
     }
 }
 
