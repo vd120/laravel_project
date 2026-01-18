@@ -3666,20 +3666,7 @@
 
             toast.textContent = message;
 
-            // Add close button
-            const closeBtn = document.createElement('span');
-            closeBtn.innerHTML = '×';
-            closeBtn.style.cssText = `
-                position: absolute;
-                top: 4px;
-                right: 8px;
-                font-size: 16px;
-                font-weight: bold;
-                cursor: pointer;
-                opacity: 0.8;
-            `;
-            closeBtn.onclick = () => toast.remove();
-            toast.appendChild(closeBtn);
+            // Close button removed as requested
 
             toastContainer.appendChild(toast);
 
@@ -3803,11 +3790,11 @@
         }
 
         function showMessageNotification(message) {
-            const messageText = message.content.length > 50
-                ? message.content.substring(0, 50) + '...'
+            const messageText = message.content.length > 35
+                ? message.content.substring(0, 35) + '...'
                 : message.content;
 
-            const notificationMessage = `New message from ${message.sender.name}`;
+            const notificationMessage = `${message.sender.name}: ${messageText}`;
 
             // Just use the simple toast notification
             showToast(notificationMessage, 'message', 4000);

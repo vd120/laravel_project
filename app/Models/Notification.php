@@ -111,7 +111,8 @@ class Notification extends Model
     private function getMessageNotificationMessage(): string
     {
         $sender = $this->data['sender_name'] ?? 'Someone';
-        return "New message from {$sender}";
+        $preview = $this->data['message_preview'] ?? '';
+        return "{$sender}: {$preview}";
     }
 
     /**

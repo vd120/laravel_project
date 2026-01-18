@@ -133,6 +133,24 @@
 .chat-page {
     height: calc(100vh - 80px);
     background: var(--twitter-light);
+    /* Make main header static on chat pages */
+    padding-top: 80px;
+}
+
+/* Make the main website header static on chat pages */
+.chat-page ~ header,
+.chat-page header,
+header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 10000 !important;
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1) !important;
 }
 
 .chat-container {
@@ -612,11 +630,31 @@
         height: 100%;
     }
 
+    /* FIXED HEADER - Always below main header, never moves */
     .chat-header-main {
-        position: relative;
+        position: fixed !important;
+        top: 80px !important; /* Below the fixed main header (80px) */
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 9998 !important; /* Below input (9999) but above everything else */
         padding: 12px 16px;
-        border-bottom: 1px solid var(--border-color);
         background: var(--card-bg);
+        border-bottom: 1px solid var(--border-color);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        /* Prevent header compression */
+        flex-shrink: 0 !important;
+        min-height: 56px;
+        /* Safe area for notched devices */
+        padding-top: max(12px, env(safe-area-inset-top));
+        /* Full viewport coverage */
+        width: 100vw !important;
+        margin-left: calc(-50vw + 50%) !important;
+        /* Enhanced shadow for better separation */
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1) !important;
+        /* Hardware acceleration */
+        transform: translateZ(0) !important;
+        will-change: transform !important;
     }
 
     .chat-header-main::before {
@@ -699,9 +737,29 @@
     }
 
     .chat-input {
-        padding: 12px 16px;
-        border-top: 1px solid var(--border-color);
-        background: var(--card-bg);
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        /* FULL BOTTOM - extends to very edge */
+        padding: 12px 16px 0 !important;
+        border-top: 1px solid var(--border-color) !important;
+        background: var(--card-bg) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        z-index: 9999 !important;
+        /* Safe area for devices with home indicators - only top padding */
+        padding-bottom: 0 !important;
+        /* Enhanced shadow for better separation */
+        box-shadow: 0 -6px 20px rgba(0,0,0,0.15) !important;
+        /* Force positioning - no matter what */
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        /* Full viewport coverage */
+        width: 100vw !important;
+        margin-left: calc(-50vw + 50%) !important;
     }
 
     #messageInput {

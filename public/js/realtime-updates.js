@@ -186,8 +186,8 @@ class SocialRealtime {
     }
 
     handleMessage(data) {
-        this.showToast(`New message from ${data.sender.name}`, 'message');
-        
+        this.showToast(`${data.sender.name}: ${data.content}`, 'message');
+
         this.updateChatUI(data);
     }
 

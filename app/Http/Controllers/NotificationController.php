@@ -98,7 +98,7 @@ class NotificationController extends Controller
             [
                 'sender_name' => $sender->name ?? 'Unknown',
                 'sender_id' => $sender->id,
-                'message_preview' => substr($message->content ?? '', 0, 50) . (strlen($message->content ?? '') > 50 ? '...' : ''),
+                'message_preview' => substr($message->content ?? '', 0, 35) . (strlen($message->content ?? '') > 35 ? '...' : ''),
                 'conversation_id' => $message->conversation_id ?? null
             ],
             $message
