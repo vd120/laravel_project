@@ -195,10 +195,45 @@
 @endif
 
 <div id="posts-container">
-    @foreach($posts as $post)
+    @forelse($posts as $post)
         @include('partials.post', ['post' => $post])
-    @endforeach
+    @empty
+        <div style="text-align: center; padding: 40px 20px; background: var(--card-bg); border-radius: 12px; margin: 20px 0;">
+            <i class="fas fa-newspaper" style="font-size: 48px; color: var(--twitter-gray); margin-bottom: 20px; display: block;"></i>
+            @if(auth()->check())
+                <h3 style="color: var(--twitter-dark); margin-bottom: 10px;">Welcome to your feed, {{ auth()->user()->name }}!</h3>
+                <p style="color: var(--twitter-gray); margin-bottom: 20px; font-size: 16px;">Your timeline is ready. Start by sharing your first post or follow some friends to see their amazing content!</p>
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <a href="#post-content" class="btn" style="background: var(--twitter-blue); text-decoration: none; font-weight: 600;">Create Your First Post</a>
+                    <a href="{{ route('explore') }}" class="btn" style="background: transparent; color: var(--twitter-blue); border: 2px solid var(--twitter-blue); text-decoration: none; font-weight: 600;">Discover People</a>
+                </div>
+            @else
+                <h3 style="color: var(--twitter-dark); margin-bottom: 10px;">No Posts Yet</h3>
+                <p style="color: var(--twitter-gray); margin-bottom: 20px; font-size: 16px;">Be the first to share something amazing!</p>
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <a href="{{ route('register') }}" class="btn" style="background: var(--twitter-blue); text-decoration: none; font-weight: 600;">Sign Up Free</a>
+                    <a href="{{ route('login') }}" class="btn" style="background: transparent; color: var(--twitter-blue); border: 2px solid var(--twitter-blue); text-decoration: none; font-weight: 600;">Login</a>
+                </div>
+            @endif
+        </div>
+    @endforelse
 </div>
+
+@if(!auth()->check())
+<div style="text-align: center; padding: 30px 20px; background: var(--card-bg); border-radius: 12px; margin: 20px 0; border: 1px solid var(--border-color);">
+    <i class="fas fa-users" style="font-size: 36px; color: var(--twitter-blue); margin-bottom: 15px; display: block;"></i>
+    <h3 style="color: var(--twitter-dark); margin-bottom: 8px; font-size: 18px;">Join Our Community</h3>
+    <p style="color: var(--twitter-gray); margin-bottom: 16px; font-size: 14px; line-height: 1.4;">Create your account to share posts, connect with friends, and access all features.</p>
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a href="{{ route('register') }}" class="btn" style="background: var(--twitter-blue); text-decoration: none; font-weight: 600;">Sign Up Free</a>
+        <a href="{{ route('login') }}" class="btn" style="background: transparent; color: var(--twitter-blue); border: 2px solid var(--twitter-blue); text-decoration: none; font-weight: 600;">Login</a>
+    </div>
+    <p style="margin-top: 16px; font-size: 12px; color: var(--twitter-gray); opacity: 0.8;">
+        <i class="fas fa-lock" style="margin-right: 4px;"></i>
+        Private posts are only visible to their owners
+    </p>
+</div>
+@endif
 
 <div id="loading-indicator" style="display: none; text-align: center; padding: 20px;">
     <i class="fas fa-spinner fa-spin"></i> Loading more posts...
@@ -365,6 +400,41 @@
             0 0 45px var(--twitter-blue);
     }
 }
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes modalFadeIn {
+    0% {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+    }
+    100% {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+}
+
+@keyframes modalSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
 
 /* Responsive adjustments for neon title */
 @media (min-width: 1025px) {
@@ -2431,7 +2501,7 @@ function initializeInfiniteScroll() {
     }
 }
 
-// Show welcome modal for non-logged-in users automatically
+// Show welcome modal for non-logged-in users automatically with 5-second delay
 function showWelcomeModalForGuests() {
     // Check if user is not logged in
     const isLoggedIn = @if(auth()->check()) true @else false @endif;
@@ -2439,15 +2509,17 @@ function showWelcomeModalForGuests() {
     console.log('Welcome modal check:', { isLoggedIn, currentUser: @json(auth()->user()) });
 
     if (!isLoggedIn) {
-        console.log('Showing welcome modal for guest user (appears every time)');
-        // Show modal immediately when page loads - appears every time for non-logged-in users
-        showWelcomeModal();
+        console.log('Showing welcome modal for guest user after 5 seconds');
+        // Show modal after 5 seconds delay for non-logged-in users
+        setTimeout(() => {
+            showWelcomeModal();
+        }, 5000);
     } else {
         console.log('User is logged in, not showing welcome modal');
     }
 }
 
-// Welcome modal for guests
+    // Simple, clean welcome modal
 function showWelcomeModal() {
     // Remove any existing modals
     const existingModal = document.getElementById('welcome-modal');
@@ -2455,7 +2527,10 @@ function showWelcomeModal() {
         existingModal.remove();
     }
 
-    // Create modal overlay
+    // Detect mobile
+    const isMobile = window.innerWidth <= 768;
+
+    // Create modal overlay with simple animations
     const modalOverlay = document.createElement('div');
     modalOverlay.id = 'welcome-modal';
     modalOverlay.style.cssText = `
@@ -2465,175 +2540,225 @@ function showWelcomeModal() {
         right: 0;
         bottom: 0;
         background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 10000;
-        animation: modalFadeIn 0.4s ease-out;
+        padding: 20px;
+        animation: fadeIn 0.3s ease-out;
     `;
 
-    // Create modal content
+    // Create modal content with subtle animations
     modalOverlay.innerHTML = `
         <div style="
             background: var(--card-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             padding: 0;
-            max-width: 480px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             position: relative;
-            overflow: hidden;
-            animation: modalSlideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideUp 0.4s ease-out 0.1s both;
+            transform: translateY(20px);
+            opacity: 0;
         ">
-            <!-- Header with gradient -->
+
+            <!-- Header with subtle animation -->
             <div style="
-                background: linear-gradient(135deg, var(--twitter-blue) 0%, #1A91DA 100%);
-                padding: 20px 24px 18px 24px;
+                background: var(--twitter-blue);
+                padding: 24px 20px;
                 text-align: center;
+                border-radius: 12px 12px 0 0;
                 position: relative;
+                overflow: hidden;
             ">
                 <div style="
                     position: absolute;
                     top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: linear-gradient(45deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.06) 100%);
-                    opacity: 0.8;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+                    animation: shimmer 2s ease-in-out infinite;
                 "></div>
-                <i class="fas fa-handshake" style="
-                    font-size: 40px;
-                    color: white;
-                    margin-bottom: 8px;
-                    animation: iconBounce 0.7s ease-out;
-                "></i>
                 <h2 style="
                     color: white;
-                    margin: 0;
-                    font-size: 22px;
-                    font-weight: 700;
-                    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-                ">Welcome to Laravel Social!</h2>
+                    margin: 0 0 8px 0;
+                    font-size: 24px;
+                    font-weight: 600;
+                    position: relative;
+                    z-index: 1;
+                    animation: fadeInUp 0.5s ease-out 0.2s both;
+                ">Welcome to Laravel Social</h2>
+
                 <p style="
-                    color: rgba(255,255,255,0.95);
-                    margin: 6px 0 0 0;
+                    color: rgba(255,255,255,0.9);
+                    margin: 0;
                     font-size: 14px;
-                    font-weight: 500;
-                ">Join our community to connect, share, and discover amazing content.</p>
+                    line-height: 1.4;
+                    position: relative;
+                    z-index: 1;
+                    animation: fadeInUp 0.5s ease-out 0.3s both;
+                ">Connect with friends and share your moments</p>
             </div>
 
-            <!-- Content -->
-            <div style="padding: 20px;">
-
-
-                <!-- Action buttons -->
+            <!-- Content with staggered animations -->
+            <div style="
+                padding: 24px 20px;
+                animation: fadeInUp 0.5s ease-out 0.4s both;
+            ">
+                <!-- Action buttons with hover animations -->
                 <div style="
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 10px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    margin-bottom: 20px;
                 ">
                     <a href="{{ route('register') }}" style="
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        gap: 6px;
-                        padding: 12px 16px;
+                        padding: 14px 20px;
                         background: var(--twitter-blue);
                         color: white;
                         text-decoration: none;
-                        border-radius: 10px;
+                        border-radius: 8px;
                         font-weight: 600;
                         font-size: 14px;
                         transition: all 0.2s ease;
-                        box-shadow: 0 3px 10px rgba(29, 161, 242, 0.3);
-                    " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 15px rgba(29, 161, 242, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 10px rgba(29, 161, 242, 0.3)';">
-                        <i class="fas fa-user-plus"></i>
-                        Sign Up
+                        transform: translateY(0);
+                        animation: fadeInUp 0.5s ease-out 0.5s both;
+                    " onmouseover="this.style.background='#1A91DA'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(29, 161, 242, 0.3)'" onmouseout="this.style.background='var(--twitter-blue)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        <i class="fas fa-user-plus" style="margin-right: 8px;"></i>
+                        Get Started
                     </a>
 
                     <a href="{{ route('login') }}" style="
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        gap: 6px;
-                        padding: 12px 16px;
+                        padding: 14px 20px;
                         background: transparent;
                         color: var(--twitter-blue);
                         text-decoration: none;
-                        border: 1.5px solid var(--twitter-blue);
-                        border-radius: 10px;
+                        border: 2px solid var(--twitter-blue);
+                        border-radius: 8px;
                         font-weight: 600;
                         font-size: 14px;
                         transition: all 0.2s ease;
-                    " onmouseover="this.style.background='var(--twitter-blue)'; this.style.color='white'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='transparent'; this.style.color='var(--twitter-blue)'; this.style.transform='translateY(0)';">
-                        <i class="fas fa-sign-in-alt"></i>
-                        Login
+                        transform: translateY(0);
+                        animation: fadeInUp 0.5s ease-out 0.6s both;
+                    " onmouseover="this.style.background='var(--twitter-blue)'; this.style.color='white'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(29, 161, 242, 0.3)'" onmouseout="this.style.background='transparent'; this.style.color='var(--twitter-blue)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>
+                        Sign In
                     </a>
                 </div>
 
-                <!-- Close button -->
-                <button onclick="closeWelcomeModal()" style="
-                    position: absolute;
-                    top: 10px;
-                    right: 10px;
-                    width: 30px;
-                    height: 30px;
-                    border: none;
-                    border-radius: 50%;
-                    background: rgba(255,255,255,0.2);
-                    color: white;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 12px;
-                    transition: all 0.2s ease;
-                " onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='scale(1.1)';" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)';">
-                    <i class="fas fa-times"></i>
-                </button>
-
-                <!-- Skip button - positioned below the action buttons -->
-                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                <!-- Skip option with animation -->
+                <div style="text-align: center; animation: fadeInUp 0.5s ease-out 0.7s both;">
                     <button onclick="closeWelcomeModal()" style="
-                        background: rgba(255,255,255,0.1);
-                        border: 1px solid rgba(255,255,255,0.2);
-                        color: rgba(255,255,255,0.8);
+                        background: none;
+                        border: none;
+                        color: var(--twitter-gray);
+                        font-size: 14px;
                         cursor: pointer;
-                        font-size: 13px;
-                        font-weight: 500;
-                        padding: 6px 14px;
-                        border-radius: 16px;
+                        padding: 8px 12px;
+                        border-radius: 6px;
                         transition: all 0.2s ease;
-                        backdrop-filter: blur(4px);
-                        -webkit-backdrop-filter: blur(4px);
-                    " onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)'; this.style.color='white';" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='rgba(255,255,255,0.2)'; this.style.color='rgba(255,255,255,0.8)';">
-                        <i class="fas fa-arrow-right" style="margin-right: 4px; font-size: 10px;"></i>
-                        Continue browsing
+                    " onmouseover="this.style.color='var(--twitter-dark)'; this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.color='var(--twitter-gray)'; this.style.background='none'">
+                        Continue browsing →
                     </button>
                 </div>
             </div>
+
+
         </div>
     `;
+
+    // Add CSS animations to the document
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes modalFadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
 
     // Add modal to page
     document.body.appendChild(modalOverlay);
 
-    // Close on overlay click
+    // Event listeners
     modalOverlay.addEventListener('click', function(e) {
         if (e.target === modalOverlay) {
             closeWelcomeModal();
         }
     });
 
-    // Close on escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeWelcomeModal();
-        }
-    });
+    if (!isMobile) {
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeWelcomeModal();
+            }
+        });
+    }
+}
+
+function closeWelcomeModal() {
+    const modal = document.getElementById('welcome-modal');
+    if (modal) {
+        localStorage.setItem('welcomeModalDismissed', 'true');
+        modal.style.animation = 'modalFadeOut 0.3s ease-out';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.remove();
+            }
+        }, 300);
+    }
 }
 
 function closeWelcomeModal() {

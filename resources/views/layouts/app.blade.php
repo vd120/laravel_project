@@ -246,8 +246,6 @@
         .nav-links a:hover {
             background: linear-gradient(135deg, var(--hover-bg) 0%, rgba(29, 161, 242, 0.05) 100%);
             color: var(--twitter-blue);
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(29, 161, 242, 0.1);
         }
 
         .nav-links a:hover::before {
@@ -263,7 +261,6 @@
 
         .nav-links a:hover i {
             opacity: 1;
-            transform: scale(1.1);
         }
 
         /* Special styling for logout link */
