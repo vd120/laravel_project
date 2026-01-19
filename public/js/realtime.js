@@ -484,19 +484,34 @@ function toggleReplyForm(commentId) {
 function toggleLike(postId, buttonElement) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    // Optimistically update UI immediately
-    const likeCountElement = buttonElement.querySelector('.like-count');
+    // Find like count as sibling element (new layout)
+    const likeContainer = buttonElement.parentElement;
+    const likeCountElement = likeContainer ? likeContainer.querySelector('.like-count') : null;
     const isCurrentlyLiked = buttonElement.classList.contains('liked');
+
+    // Get current count
+    const currentCount = likeCountElement ? parseInt(likeCountElement.textContent) || 0 : 0;
 
     // Toggle button state immediately
     if (isCurrentlyLiked) {
         buttonElement.classList.remove('liked');
         buttonElement.style.background = 'var(--twitter-blue)';
-        buttonElement.innerHTML = '<i class="fas fa-heart"></i> <span class="like-count">' + (parseInt(likeCountElement.textContent) - 1) + '</span>';
+        if (likeCountElement) {
+            likeCountElement.textContent = currentCount - 1;
+        }
     } else {
         buttonElement.classList.add('liked');
         buttonElement.style.background = 'red';
-        buttonElement.innerHTML = '<i class="fas fa-heart"></i> <span class="like-count">' + (parseInt(likeCountElement.textContent) + 1) + '</span>';
+        if (likeCountElement) {
+            likeCountElement.textContent = currentCount + 1;
+        }
+    }
+
+    // Show/hide likers button based on new count
+    const newCount = isCurrentlyLiked ? currentCount - 1 : currentCount + 1;
+    const likersBtn = likeContainer ? likeContainer.querySelector('.likers-btn') : null;
+    if (likersBtn) {
+        likersBtn.style.display = newCount > 0 ? 'inline-flex' : 'none';
     }
 
     fetch(`/posts/${postId}/like`, {

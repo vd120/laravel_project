@@ -131,9 +131,12 @@ Route::post('/email/verify-code', function (Request $request) {
 Route::get('/', [PostController::class, 'index'])->name('home');
 
 Route::middleware('auth')->group(function () {
-    Route::resource('posts', PostController::class);
-    Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');
-    Route::post('/posts/{post}/save', [PostController::class, 'save'])->name('posts.save');
+    Route::resource('posts', PostController::class)->parameters([
+        'posts' => 'post:slug'
+    ]);
+    Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like')->where('post', '[a-zA-Z0-9]{24}');
+    Route::post('/posts/{post}/save', [PostController::class, 'save'])->name('posts.save')->where('post', '[a-zA-Z0-9]{24}');
+    Route::get('/posts/{post}/likers', [PostController::class, 'getLikers'])->name('posts.likers')->where('post', '[a-zA-Z0-9]{24}');
     Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->name('comments.like');
@@ -194,12 +197,11 @@ Route::middleware('auth')->group(function () {
         Route::put('/users/{user}', [App\Http\Controllers\AdminController::class, 'updateUser'])->name('users.update');
         Route::delete('/users/{user}', [App\Http\Controllers\AdminController::class, 'deleteUser'])->name('users.delete');
         Route::get('/posts', [App\Http\Controllers\AdminController::class, 'posts'])->name('posts');
-        Route::delete('/posts/{post}', [App\Http\Controllers\AdminController::class, 'deletePost'])->name('posts.delete');
+        Route::delete('/posts/{post}', [App\Http\Controllers\AdminController::class, 'deletePost'])->name('posts.delete')->where('post', '[a-zA-Z0-9]{24}');
         Route::get('/comments', [App\Http\Controllers\AdminController::class, 'comments'])->name('comments');
         Route::delete('/comments/{comment}', [App\Http\Controllers\AdminController::class, 'deleteComment'])->name('comments.delete');
         Route::get('/stories', [App\Http\Controllers\AdminController::class, 'stories'])->name('stories');
         Route::delete('/stories/{story}', [App\Http\Controllers\AdminController::class, 'deleteStory'])->name('stories.delete');
-        Route::get('/system-info', [App\Http\Controllers\AdminController::class, 'systemInfo'])->name('system-info');
         Route::post('/create-admin', [App\Http\Controllers\AdminController::class, 'createAdminAccount'])->name('create-admin');
     });
 

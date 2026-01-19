@@ -130,7 +130,15 @@ class UserController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('users.saved-posts', compact('user', 'savedPosts'));
+        // Get active stories from followed users and current user (same as home page)
+        $followedUsersWithStories = \App\Models\User::whereHas('followers', function($query) use ($user) {
+            $query->where('follower_id', $user->id);
+        })->whereHas('activeStories')->with(['activeStories'])->get();
+
+        // Include current user's stories
+        $myStories = $user->activeStories;
+
+        return view('users.saved-posts', compact('user', 'savedPosts', 'followedUsersWithStories', 'myStories'));
     }
 
     public function explore()

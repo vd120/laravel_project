@@ -11,23 +11,139 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Twitter/X Dark Mode colors - Enhanced */
+        /* Theme Variables */
         :root {
-            --twitter-blue: #1D9BF0;
-            --twitter-dark: #FFFFFF;
-            --twitter-light: #0F1419;
-            --twitter-gray: #71767B;
-            --twitter-light-gray: #16181C;
-            --border-color: #2F3336;
-            --shadow: 0 4px 12px rgba(0,0,0,0.4);
-            --hover-bg: #1C1F23;
-            --divider: #2F3336;
-            --card-bg: #16181C;
-            --input-bg: #202327;
-            --header-bg: #000000;
-            --focus-border: #1D9BF0;
-            --success-color: #00BA7C;
-            --error-color: #F4212E;
+            /* Light Theme (Winter Wonderland) */
+            --light-twitter-blue: #4A90E2;
+            --light-twitter-dark: #2C3E50;
+            --light-twitter-light: #F8F9FF;
+            --light-twitter-gray: #7F8C8D;
+            --light-twitter-light-gray: #ECF0F1;
+            --light-border-color: #BDC3C7;
+            --light-shadow: 0 2px 8px rgba(52, 73, 94, 0.1);
+            --light-hover-bg: #F5F7FA;
+            --light-divider: #BDC3C7;
+            --light-card-bg: #FFFFFF;
+            --light-input-bg: #F8F9FF;
+            --light-header-bg: #FFFFFF;
+            --light-focus-border: #4A90E2;
+            --light-success-color: #27AE60;
+            --light-error-color: #E74C3C;
+            --light-accent-green: #A8DADC;
+            --light-accent-purple: #D5DBE5;
+            --light-soft-blue: #A8DADC;
+            --light-mint-green: #BDC3C7;
+
+            /* Dark Theme */
+            --dark-twitter-blue: #1D9BF0;
+            --dark-twitter-dark: #FFFFFF;
+            --dark-twitter-light: #0F1419;
+            --dark-twitter-gray: #71767B;
+            --dark-twitter-light-gray: #16181C;
+            --dark-border-color: #2F3336;
+            --dark-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            --dark-hover-bg: #1C1F23;
+            --dark-divider: #2F3336;
+            --dark-card-bg: #16181C;
+            --dark-input-bg: #202327;
+            --dark-header-bg: #000000;
+            --dark-focus-border: #1D9BF0;
+            --dark-success-color: #00BA7C;
+            --dark-error-color: #F4212E;
+            --dark-accent-green: #A8DADC;
+            --dark-accent-purple: #E6E6FA;
+            --dark-soft-blue: #B8E6E6;
+            --dark-mint-green: #C7EFCF;
+            --dark-neon-accent: #FF0080;
+            --dark-neon-secondary: #00FF7F;
+
+            /* Default to light theme */
+            --twitter-blue: var(--light-twitter-blue);
+            --twitter-dark: var(--light-twitter-dark);
+            --twitter-light: var(--light-twitter-light);
+            --twitter-gray: var(--light-twitter-gray);
+            --twitter-light-gray: var(--light-twitter-light-gray);
+            --border-color: var(--light-border-color);
+            --shadow: var(--light-shadow);
+            --hover-bg: var(--light-hover-bg);
+            --divider: var(--light-divider);
+            --card-bg: var(--light-card-bg);
+            --input-bg: var(--light-input-bg);
+            --header-bg: var(--light-header-bg);
+            --focus-border: var(--light-focus-border);
+            --success-color: var(--light-success-color);
+            --error-color: var(--light-error-color);
+            --accent-green: var(--light-accent-green);
+            --accent-purple: var(--light-accent-purple);
+            --soft-blue: var(--light-soft-blue);
+            --mint-green: var(--light-mint-green);
+        }
+
+        /* Dark theme overrides */
+        body.dark-theme {
+            --twitter-blue: var(--dark-twitter-blue);
+            --twitter-dark: var(--dark-twitter-dark);
+            --twitter-light: var(--dark-twitter-light);
+            --twitter-gray: var(--dark-twitter-gray);
+            --twitter-light-gray: var(--dark-twitter-light-gray);
+            --border-color: var(--dark-border-color);
+            --shadow: var(--dark-shadow);
+            --hover-bg: var(--dark-hover-bg);
+            --divider: var(--dark-divider);
+            --card-bg: var(--dark-card-bg);
+            --input-bg: var(--dark-input-bg);
+            --header-bg: var(--dark-header-bg);
+            --focus-border: var(--dark-focus-border);
+            --success-color: var(--dark-success-color);
+            --error-color: var(--dark-error-color);
+            --accent-green: var(--dark-accent-green);
+            --accent-purple: var(--dark-accent-purple);
+            --soft-blue: var(--dark-soft-blue);
+            --mint-green: var(--dark-mint-green);
+        }
+
+        /* Theme transition */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* Theme toggle button */
+        .header-theme-btn {
+            position: relative;
+            background: none;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--twitter-dark);
+            font-size: 18px;
+            width: 44px;
+            height: 44px;
+            margin: 0 4px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .header-theme-btn:hover {
+            background: rgba(127, 179, 213, 0.1);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(127, 179, 213, 0.2);
+        }
+
+        .header-theme-btn:active {
+            transform: scale(0.95);
+        }
+
+        .header-theme-btn i {
+            transition: all 0.3s ease;
+        }
+
+        .header-theme-btn:hover i {
+            transform: rotate(15deg);
         }
 
         * {
@@ -36,13 +152,24 @@
 
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: var(--twitter-light);
-            color: var(--twitter-dark);
             margin: 0;
             padding: 0;
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+        }
+
+        /* Light theme body styling */
+        body:not(.dark-theme) {
+            background: linear-gradient(135deg, var(--soft-blue) 0%, var(--mint-green) 100%);
+            color: var(--twitter-dark);
+        }
+
+        /* Dark theme body styling */
+        body.dark-theme {
+            background: linear-gradient(135deg, var(--dark-twitter-light) 0%, #1a1a1a 100%);
+            color: var(--twitter-dark);
         }
 
         .header {
@@ -710,6 +837,34 @@
                 top: 4px;
                 left: 4px;
             }
+
+            /* Mobile navigation sidebar theme fixes */
+            .nav-sidebar {
+                background: var(--card-bg);
+                border-top: 1px solid var(--border-color);
+            }
+
+            .nav-item {
+                color: var(--twitter-dark);
+            }
+
+            .nav-item:hover {
+                background-color: var(--hover-bg);
+                color: var(--twitter-blue);
+            }
+
+            .user-profile-card {
+                background: var(--card-bg);
+                border: 1px solid var(--border-color);
+            }
+
+            .user-profile-card .user-info {
+                color: var(--twitter-dark);
+            }
+
+            .user-profile-card .user-handle {
+                color: var(--twitter-gray);
+            }
         }
 
         /* Very small mobile screens */
@@ -1036,8 +1191,19 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             z-index: 999;
+        }
+
+        /* Light theme mobile menu overlay */
+        body:not(.dark-theme) .mobile-menu-overlay {
+            background-color: rgba(127, 179, 213, 0.3);
+        }
+
+        /* Dark theme mobile menu overlay */
+        body.dark-theme .mobile-menu-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
         }
 
         .mobile-menu-overlay.active {
@@ -2976,6 +3142,9 @@
                         <i class="fas fa-user"></i>
                     </div>
                 @endif
+                <button type="button" class="header-theme-btn" onclick="toggleTheme()" title="Toggle Theme">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
                 <button type="button" class="header-notification-btn" onclick="toggleNotificationsDropdown()" title="Notifications">
                     <i class="fas fa-bell"></i>
                     <span class="notification-badge" id="header-notification-badge" style="display: none;">0</span>
@@ -3862,6 +4031,46 @@
                 }
             }
         }
+
+        // Theme toggle functionality
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+
+            if (body.classList.contains('dark-theme')) {
+                // Switch to light theme
+                body.classList.remove('dark-theme');
+                themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
+                showToast('Switched to Light Theme', 'info', 2000);
+            } else {
+                // Switch to dark theme
+                body.classList.add('dark-theme');
+                themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+                showToast('Switched to Dark Theme', 'info', 2000);
+            }
+        }
+
+        // Initialize theme on page load
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-theme');
+                themeIcon.className = 'fas fa-sun';
+            } else {
+                body.classList.remove('dark-theme');
+                themeIcon.className = 'fas fa-moon';
+            }
+        }
+
+        // Initialize theme when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTheme();
+        });
 
         // Header notifications dropdown functionality
         let notificationsDropdown = null;

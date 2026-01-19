@@ -100,7 +100,7 @@
                 <div class="action-buttons">
                     <button type="button"
                             class="action-btn like-btn {{ $post->likedBy(auth()->user()) ? 'liked' : '' }}"
-                            onclick="toggleLike({{ $post->id }}, this)"
+                            onclick="toggleLike('{{ $post->slug }}', this)"
                             aria-label="Like post">
                         <i class="fas fa-heart"></i>
                         <span class="action-count">{{ $post->likes->count() }}</span>
@@ -116,7 +116,7 @@
 
                     <button type="button"
                             class="action-btn save-btn {{ $post->savedBy(auth()->user()) ? 'saved' : '' }}"
-                            onclick="toggleSave({{ $post->id }}, this)"
+                            onclick="toggleSave('{{ $post->slug }}', this)"
                             aria-label="Save post">
                         <i class="fas fa-bookmark"></i>
                         <span class="save-text">{{ $post->savedBy(auth()->user()) ? 'Saved' : 'Save' }}</span>
@@ -124,7 +124,7 @@
 
                     <button type="button"
                             class="action-btn share-btn"
-                            onclick="copyPostLink({{ $post->id }})"
+                            onclick="copyPostLink('{{ $post->slug }}')"
                             aria-label="Share post">
                         <i class="fas fa-share"></i>
                         <span class="share-text">Share</span>
@@ -136,7 +136,7 @@
                     <div class="post-owner-actions">
                         <button type="button"
                                 class="delete-btn"
-                                onclick="deletePost({{ $post->id }}, this)"
+                                onclick="deletePost('{{ $post->slug }}', this)"
                                 aria-label="Delete post">
                             <i class="fas fa-trash"></i>
                         </button>

@@ -376,5 +376,44 @@ class PostController extends Controller
         return back();
     }
 
+    public function getLikers(Post $post)
+    {
+        $user = auth()->user();
+
+        // Check if user can view the post (privacy and blocks)
+        if ($post->is_private && !$user->isFollowing($post->user) && $post->user_id !== $user->id) {
+            return response()->json(['success' => false, 'message' => 'Cannot view likers of private post']);
+        }
+
+        if ($user->isBlocking($post->user) || $post->user->isBlocking($user)) {
+            return response()->json(['success' => false, 'message' => 'Cannot view likers due to blocking restrictions']);
+        }
+
+        // Get users who liked this post
+        $likers = $post->likes()
+            ->with('user:id,name')
+            ->with('user.profile:id,user_id,avatar,bio')
+            ->get()
+            ->map(function ($like) use ($user) {
+                $liker = $like->user;
+                $profile = $liker->profile;
+
+                return [
+                    'id' => $liker->id,
+                    'name' => $liker->name,
+                    'username' => $liker->name, // Use name as username
+                    'avatar' => $profile && $profile->avatar ? asset('storage/' . $profile->avatar) : null,
+                    'bio' => $profile ? $profile->bio : null,
+                    'can_follow' => $liker->id !== $user->id && !$user->isFollowing($liker) && !$liker->isBlocking($user),
+                    'is_following' => $user->isFollowing($liker)
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'likers' => $likers
+        ]);
+    }
+
 
 }

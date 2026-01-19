@@ -42,8 +42,10 @@ Route::middleware('web')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('posts', PostController::class);
-    Route::post('/posts/{post}/like', [PostController::class, 'like']);
+    Route::apiResource('posts', PostController::class)->parameters([
+        'posts' => 'post:slug'
+    ]);
+    Route::post('/posts/{post}/like', [PostController::class, 'like'])->where('post', '[a-zA-Z0-9]{24}');
     Route::apiResource('comments', CommentController::class)->except(['index', 'show']);
     Route::post('/comments/{comment}/like', [CommentController::class, 'like']);
     Route::get('/users/{user}', [UserController::class, 'show'])->where('user', '[a-zA-Z0-9_-]+');

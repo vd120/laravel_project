@@ -112,10 +112,7 @@
                 <i class="fas fa-camera"></i>
                 <span>Manage Stories</span>
             </a>
-            <a href="{{ route('admin.system-info') }}" class="action-card">
-                <i class="fas fa-server"></i>
-                <span>System Info</span>
-            </a>
+
             <a href="#" onclick="showCreateAdminModal()" class="action-card">
                 <i class="fas fa-user-plus"></i>
                 <span>Create Admin</span>

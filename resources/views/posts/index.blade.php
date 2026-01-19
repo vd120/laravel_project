@@ -254,16 +254,13 @@
     text-transform: uppercase;
     position: relative;
     z-index: 10;
-    /* Powerful neon glow effects */
+    /* Reduced neon glow effects */
     text-shadow:
         0 0 5px var(--twitter-blue),
         0 0 10px var(--twitter-blue),
         0 0 15px var(--twitter-blue),
-        0 0 20px var(--twitter-blue),
-        0 0 35px var(--twitter-blue),
-        0 0 40px var(--twitter-blue),
-        0 0 50px var(--twitter-blue),
-        0 0 75px var(--twitter-blue);
+        0 0 25px var(--twitter-blue),
+        0 0 35px var(--twitter-blue);
     animation: neonFlicker 2s ease-in-out infinite alternate, neonGlow 4s ease-in-out infinite;
 }
 
@@ -287,11 +284,11 @@
     transform: translateX(-50%);
     width: 140px;
     height: 3px;
-    background: linear-gradient(90deg, transparent, var(--twitter-blue), var(--neon-lime-bright), var(--twitter-blue), transparent);
+    background: linear-gradient(90deg, transparent, var(--twitter-blue), var(--light-neon-secondary), var(--twitter-blue), transparent);
     border-radius: 2px;
     box-shadow:
         0 0 10px var(--twitter-blue),
-        0 0 20px var(--neon-lime-bright),
+        0 0 20px var(--light-neon-secondary),
         0 0 30px var(--twitter-blue);
     animation: underlineGlow 2.5s ease-in-out infinite alternate;
 }
@@ -792,55 +789,101 @@
     color: var(--twitter-dark);
 }
 
-.post .btn {
-    padding: 8px 14px;
-    border: none;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-right: 6px;
-    margin-bottom: 6px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+/* Completely Plain Text Reaction Buttons - No Visual Styling */
+.post .btn,
+.post .btn:hover,
+.post .btn:focus,
+.post .btn:active,
+.post .btn:visited,
+.post .btn:focus-visible,
+.post .btn:focus-within,
+.post .btn:target,
+.post .btn:link {
+    all: unset !important;
+    display: inline !important;
+    color: var(--twitter-gray) !important;
+    cursor: pointer !important;
+    transition: color 0.2s ease !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background: none !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    border-color: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    outline: none !important;
+    outline-color: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    text-decoration: none !important;
+    font: inherit !important;
+    text-align: left !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    line-height: inherit !important;
+    vertical-align: baseline !important;
+    position: static !important;
+    z-index: auto !important;
 }
 
-.like-btn {
-    background: var(--twitter-blue);
-    color: white;
+/* Add spacing and click color for reaction buttons - Higher specificity */
+.post .reaction-buttons .btn,
+.post .reaction-buttons .btn:hover,
+.post .reaction-buttons .btn:focus,
+.post .reaction-buttons .btn:active {
+    margin-right: 30px !important;
 }
 
-.like-btn:hover {
-    background: #1A91DA;
-    transform: translateY(-1px);
+.post .reaction-buttons .btn:last-child,
+.post .reaction-buttons .btn:last-child:hover,
+.post .reaction-buttons .btn:last-child:focus,
+.post .reaction-buttons .btn:last-child:active {
+    margin-right: 0 !important;
 }
 
-.like-btn.liked {
-    background: var(--error-color);
+.post .reaction-buttons .btn:active {
+    background-color: rgba(29, 161, 242, 0.1) !important;
 }
 
-.like-btn.liked:hover {
-    background: #E0245E;
+/* Allow specific color changes for liked/saved states while preventing unwanted colors */
+
+/* Like button colors with higher specificity */
+.post .reaction-buttons .like-btn {
+    background: transparent !important;
+    color: var(--twitter-gray) !important;
+}
+
+.post .reaction-buttons .like-btn:hover {
+    color: var(--twitter-blue) !important;
+}
+
+.post .reaction-buttons .like-btn.liked {
+    color: var(--error-color) !important;
+}
+
+.post .reaction-buttons .like-btn.liked:hover {
+    color: var(--error-color) !important;
 }
 
 .save-btn {
-    background: #6c757d;
-    color: white;
+    background: transparent;
+    color: var(--twitter-gray);
 }
 
 .save-btn:hover {
-    background: #5a6268;
-    transform: translateY(-1px);
+    color: var(--twitter-blue);
 }
 
 .save-btn.saved {
-    background: #17a2b8;
+    color: var(--twitter-blue);
 }
 
 .save-btn.saved:hover {
-    background: #138496;
+    color: var(--twitter-blue);
 }
 
 .post hr {
@@ -2444,12 +2487,15 @@ function renderPostHTML(post) {
     }
 
     html += `
-        <div>
-            <button type="button" class="btn like-btn" onclick="toggleLike(${post.id}, this)" style="background: ${post.likes_count > 0 ? 'red' : 'var(--twitter-blue)'}">
+        <div class="reaction-buttons">
+            <button type="button" class="btn like-btn" onclick="toggleLike('${post.slug}', this)">
                 <i class="fas fa-heart"></i> <span class="like-count">${post.likes_count || 0}</span>
             </button>
-            <button type="button" class="btn save-btn" onclick="toggleSave(${post.id}, this)" style="background: #6c757d; margin-left: 10px;">
+            <button type="button" class="btn save-btn" onclick="toggleSave('${post.slug}', this)">
                 <i class="fas fa-bookmark"></i> <span class="save-text">Save</span>
+            </button>
+            <button onclick="copyPostLink('${post.slug}')" class="btn">
+                <i class="fas fa-share"></i> Share
             </button>
         </div>
         <hr>
@@ -2856,8 +2902,10 @@ function playVideo(overlay) {
 // Like functionality for posts
 function toggleLike(postId, button) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const likeCount = button.querySelector('.like-count');
-    const currentCount = parseInt(likeCount.textContent) || 0;
+    // Find like count in the container (sibling element)
+    const likeContainer = button.parentElement;
+    const likeCount = likeContainer ? likeContainer.querySelector('.like-count') : null;
+    const currentCount = likeCount ? parseInt(likeCount.textContent) || 0 : 0;
 
     // Add loading state only
     const originalHTML = button.innerHTML;
@@ -2879,7 +2927,15 @@ function toggleLike(postId, button) {
         if (data.success) {
             // Update count with server response
             const newCount = data.likes_count || 0;
-            likeCount.textContent = newCount;
+            if (likeCount) {
+                likeCount.textContent = newCount;
+
+                // Show/hide likers button based on count
+                const likersBtn = likeContainer.querySelector('.likers-btn');
+                if (likersBtn) {
+                    likersBtn.style.display = newCount > 0 ? 'inline-flex' : 'none';
+                }
+            }
         } else {
             // Show error but don't change appearance
             console.error('Like failed:', data.message);
@@ -2999,17 +3055,15 @@ function toggleSave(postId, button) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const saveText = button.querySelector('.save-text');
 
-    // Immediately update UI for better UX
+    // Immediately update UI for better UX (no color changes)
     const isSaved = button.classList.contains('saved');
     if (isSaved) {
-        // Unsave: remove saved class, change color and text
+        // Unsave: remove saved class, change text only
         button.classList.remove('saved');
-        button.style.background = '#6c757d';
         saveText.textContent = 'Save';
     } else {
-        // Save: add saved class, change color and text
+        // Save: add saved class, change text only
         button.classList.add('saved');
-        button.style.background = '#17a2b8';
         saveText.textContent = 'Saved';
     }
 
@@ -3030,14 +3084,12 @@ function toggleSave(postId, button) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update with server response
+            // Update with server response (no color changes)
             if (data.saved) {
                 button.classList.add('saved');
-                button.style.background = '#17a2b8';
                 saveText.textContent = 'Saved';
             } else {
                 button.classList.remove('saved');
-                button.style.background = '#6c757d';
                 saveText.textContent = 'Save';
             }
         } else {
@@ -3045,11 +3097,9 @@ function toggleSave(postId, button) {
             console.error('Save failed:', data.message);
             if (isSaved) {
                 button.classList.add('saved');
-                button.style.background = '#17a2b8';
                 saveText.textContent = 'Saved';
             } else {
                 button.classList.remove('saved');
-                button.style.background = '#6c757d';
                 saveText.textContent = 'Save';
             }
         }
@@ -3059,11 +3109,9 @@ function toggleSave(postId, button) {
         // Revert UI changes on error
         if (isSaved) {
             button.classList.add('saved');
-            button.style.background = '#17a2b8';
             saveText.textContent = 'Saved';
         } else {
             button.classList.remove('saved');
-            button.style.background = '#6c757d';
             saveText.textContent = 'Save';
         }
     })
@@ -3272,8 +3320,8 @@ function deleteComment(commentId, button) {
 }
 
 // Copy post link functionality
-function copyPostLink(postId) {
-    const url = window.location.origin + '/posts/' + postId;
+function copyPostLink(postSlug) {
+    const url = window.location.origin + '/posts/' + postSlug;
 
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(url).then(() => {

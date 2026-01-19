@@ -314,26 +314,7 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'Story deleted successfully');
     }
 
-    public function systemInfo()
-    {
-        $info = [
-            'php_version' => PHP_VERSION,
-            'laravel_version' => app()->version(),
-            'database' => config('database.default'),
-            'cache_driver' => config('cache.default'),
-            'session_driver' => config('session.driver'),
-            'queue_driver' => config('queue.default'),
-            'mail_driver' => config('mail.default'),
-            'storage_path' => storage_path(),
-            'public_path' => public_path(),
-            'app_url' => config('app.url'),
-            'timezone' => config('app.timezone'),
-            'debug_mode' => config('app.debug') ? 'Enabled' : 'Disabled',
-            'maintenance_mode' => app()->isDownForMaintenance() ? 'Enabled' : 'Disabled',
-        ];
 
-        return view('admin.system-info', compact('info'));
-    }
 
     public function createAdminAccount(Request $request)
     {
