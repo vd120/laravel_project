@@ -160,14 +160,14 @@
             min-height: 100vh;
         }
 
-        /* Light theme body styling */
-        body:not(.dark-theme) {
+        /* Light theme body styling - exclude auth pages */
+        body:not(.dark-theme):not(.auth-page) {
             background: linear-gradient(135deg, var(--soft-blue) 0%, var(--mint-green) 100%);
             color: var(--twitter-dark);
         }
 
-        /* Dark theme body styling */
-        body.dark-theme {
+        /* Dark theme body styling - exclude auth pages */
+        body.dark-theme:not(.auth-page) {
             background: linear-gradient(135deg, var(--dark-twitter-light) 0%, #1a1a1a 100%);
             color: var(--twitter-dark);
         }
@@ -3112,7 +3112,7 @@
 
     </style>
 </head>
-<body class="{{ request()->routeIs(['login', 'register']) ? 'auth-page' : '' }}">
+<body class="{{ request()->routeIs(['login', 'register']) ? 'auth-page' : '' }} {{ !auth()->check() ? 'dark-theme' : '' }}">
     <header class="header">
         <nav class="nav">
             <a href="{{ route('home') }}" class="logo">Laravel Social</a>
@@ -3141,6 +3141,10 @@
                 </button>
             </div>
             @endauth
+            <!-- Theme toggle button for all visitors -->
+            <button type="button" class="header-theme-btn" onclick="toggleTheme()" title="Toggle Theme">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </button>
             <div class="nav-links">
                 @auth
                 <a href="{{ route('home') }}"><i class="fas fa-home"></i>Home</a>

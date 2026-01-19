@@ -74,12 +74,16 @@ body {
     padding: 0;
     min-height: 100vh;
     background:
-        linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%),
-        url('https://zebreus.github.io/all-gnome-backgrounds/images/earth-horizon-1abefd2c263947e408c36d3972da15fca4790951.webp');
+        linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.9) 100%),
+        url('https://zebreus.github.io/all-gnome-backgrounds/thumbs500/earth-horizon-1abefd2c263947e408c36d3972da15fca4790951.webp');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
     background-attachment: fixed;
+    width: 100%;
+    position: relative;
+    z-index: -2;
+    color: #ffffff;
 }
 
 /* Optimize background image for mobile */
