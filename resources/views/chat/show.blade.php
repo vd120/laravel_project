@@ -5,12 +5,16 @@
 @section('content')
 <div class="chat-page">
     <div class="chat-container">
-        <div class="chat-sidebar">
+        <!-- Minimized Sidebar - Only visible when toggled -->
+        <div class="chat-sidebar minimized">
             <div class="chat-header">
                 <button class="back-btn" onclick="window.location.href='{{ route('chat.index') }}'">
                     <i class="fas fa-arrow-left"></i>
                 </button>
                 <h2>Messages</h2>
+                <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle conversations">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
 
             <div class="conversations-list">
@@ -68,6 +72,9 @@
 
         <div class="chat-main">
             <div class="chat-header-main">
+                <button class="sidebar-toggle-main" onclick="toggleSidebar()" title="Toggle conversations">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <div class="chat-user-info">
                     <div class="chat-avatar">
                         @if($conversation->other_user->profile && $conversation->other_user->profile->avatar)
@@ -156,16 +163,32 @@ header {
 .chat-container {
     display: flex;
     height: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+    width: 100%;
 }
 
 .chat-sidebar {
-    width: 350px;
+    width: min(350px, 25vw);
+    min-width: 280px;
     background: var(--card-bg);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1001;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+}
+
+.chat-sidebar.open {
+    transform: translateX(0);
+}
+
+.chat-sidebar.minimized {
+    display: none;
 }
 
 .chat-header {
@@ -311,6 +334,48 @@ header {
     align-items: center;
 }
 
+.sidebar-toggle-main {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--twitter-gray);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+}
+
+.sidebar-toggle-main:hover {
+    background: var(--hover-bg);
+    color: var(--twitter-dark);
+}
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: var(--twitter-gray);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.sidebar-toggle:hover {
+    background: var(--hover-bg);
+    color: var(--twitter-dark);
+}
+
 .chat-user-info {
     display: flex;
     align-items: center;
@@ -397,6 +462,25 @@ header {
     max-width: 70%;
     animation: messageSlideIn 0.3s ease-out;
     position: relative;
+}
+
+/* Limit message width on very wide screens for better readability */
+@media (min-width: 1200px) {
+    .message {
+        max-width: 60%;
+    }
+}
+
+@media (min-width: 1600px) {
+    .message {
+        max-width: 50%;
+    }
+}
+
+@media (min-width: 2000px) {
+    .message {
+        max-width: 40%;
+    }
 }
 
 .message.own {
@@ -1262,6 +1346,13 @@ function toggleMobileSidebar() {
     const sidebar = document.querySelector('.chat-sidebar');
     if (sidebar) {
         sidebar.classList.toggle('mobile-open');
+    }
+}
+
+function toggleSidebar() {
+    const sidebar = document.querySelector('.chat-sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('open');
     }
 }
 

@@ -426,15 +426,11 @@
             transform: scale(0.95);
         }
 
-        /* Twitter-like layout */
+        /* Basic layout */
         .app-layout {
-            display: grid;
-            grid-template-columns: 275px 1fr 350px;
-            gap: 30px;
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 16px;
-            min-height: calc(100vh - 60px);
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
         }
 
         /* Auth pages - full width centering */
@@ -446,12 +442,6 @@
             width: 100%;
             max-width: none;
             margin: 0;
-        }
-
-        .left-sidebar {
-            position: sticky;
-            top: 80px;
-            height: fit-content;
         }
 
         .main-content {
@@ -3178,57 +3168,9 @@
     </header>
     <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
     <main class="app-layout">
-        @auth
-        
-        <aside class="left-sidebar">
-            <nav class="nav-sidebar">
-                <a href="{{ route('home') }}" class="nav-item {{ request()->routeIs('home', 'posts.*') ? 'active' : '' }}">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
-                <a href="{{ route('stories.index') }}" class="nav-item {{ request()->routeIs('stories.*') ? 'active' : '' }}">
-                    <i class="fas fa-circle-play"></i>
-                    <span>Stories</span>
-                </a>
-                <a href="{{ route('chat.index') }}" class="nav-item {{ request()->routeIs('chat.*') ? 'active' : '' }}">
-                    <i class="fas fa-envelope"></i>
-                    <span>Messages</span>
-                </a>
-                <a href="{{ route('explore') }}" class="nav-item {{ request()->routeIs('explore') ? 'active' : '' }}">
-                    <i class="fas fa-hashtag"></i>
-                    <span>Explore</span>
-                </a>
-                <a href="{{ route('users.saved-posts') }}" class="nav-item {{ request()->routeIs('users.saved-posts') ? 'active' : '' }}">
-                    <i class="fas fa-bookmark"></i>
-                    <span>Bookmarks</span>
-                </a>
-                <a href="{{ route('users.show', auth()->user()) }}" class="nav-item {{ request()->routeIs('users.show') && request()->route('user') == auth()->user()->name ? 'active' : '' }}">
-                    <i class="fas fa-user"></i>
-                    <span>Profile</span>
-                </a>
-
-                <a href="{{ route('ai.index') }}" class="nav-item {{ request()->routeIs('ai.index') ? 'active' : '' }}">
-                    <i class="fas fa-robot"></i>
-                    <span>AI Assistant</span>
-                </a>
-
-
-
-            </nav>
-        </aside>
-        @endauth
-
-        
         <div class="main-content">
             @yield('content')
         </div>
-
-        @auth
-
-        <aside class="right-sidebar">
-            <!-- Sidebar content can be added here in the future -->
-        </aside>
-        @endauth
     </main>
 
 

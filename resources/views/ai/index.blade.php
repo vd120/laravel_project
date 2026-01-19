@@ -3,288 +3,274 @@
 @section('title', 'AI Assistant - Laravel Social')
 
 @section('content')
-<div class="ai-assistant">
-    <button class="close-button" onclick="closeAIAssistant()">
-        <i class="fas fa-times"></i>
-    </button>
+<div class="w-full px-4 py-6">
+    <div class="max-w-full mx-auto">
+        <!-- Page Header - Ultra Minimized -->
+        <div class="ai-header mb-2">
+            <h1 class="text-lg font-medium text-gray-600 mb-0">
+                <i class="fas fa-robot text-blue-400 text-sm mr-1"></i>
+                AI Assistant
+            </h1>
+            <button class="clear-chat-header-btn" onclick="clearChat()" title="Clear all messages">
+                <i class="fas fa-trash-alt"></i>
+                Clear Chat
+            </button>
+        </div>
 
-    <!-- Theme Toggle Button -->
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
-        <i class="fas fa-sun"></i>
-    </button>
-
-    <!-- Chat Interface -->
-    <div class="ai-chat">
-        <div class="chat-messages" id="chatMessages">
-            <div class="welcome-message">
-                <div class="ai-avatar-small">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="message-bubble ai-bubble">
-                    <p>👋 Hi! I'm your AI assistant for Laravel Social. Choose an option by typing the number or ask me anything!</p>
-                    <div class="menu-options">
-                        <div class="menu-item">1️- Help & Menu</div>
-                        <div class="menu-item">2️- Writing Posts</div>
-                        <div class="menu-item">3️- Find Friends</div>
-                        <div class="menu-item">4️- Stories Guide</div>
-                        <div class="menu-item">5️- Privacy Help</div>
-                        <div class="menu-item">6️- Profile Tips</div>
-                        <div class="menu-item">7️- Messaging</div>
-                        <div class="menu-item">8️- Account Settings</div>
-                        <div class="menu-item">9️- Getting Started</div>
+        <!-- Chat Interface - Full Width -->
+        <div class="chat-container bg-white rounded-xl shadow-lg border border-gray-200 relative" style="padding-bottom: 120px;">
+            <!-- Chat Messages Area - Full Width -->
+            <div class="chat-messages" id="chatMessages" style="height: calc(100vh - 200px); padding: 20px; overflow-y: auto;">
+                <div class="welcome-message">
+                    <div class="message ai">
+                        <div class="ai-avatar-small">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-bubble ai-bubble">
+                            <div class="message-content">
+                                <p>🤖 <strong>Laravel Social AI Assistant</strong></p>
+                                <p>Welcome! Choose an option by typing the number:</p>
+                                <div class="menu-options">
+                                    <div class="menu-item">
+                                        <span class="menu-icon">1️⃣</span>
+                                        <span class="menu-text">Help & Menu</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span class="menu-icon">2️⃣</span>
+                                        <span class="menu-text">Writing Posts</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span class="menu-icon">3️⃣</span>
+                                        <span class="menu-text">Follow Suggestions</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span class="menu-icon">4️⃣</span>
+                                        <span class="menu-text">Trending Topics</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span class="menu-icon">5️⃣</span>
+                                        <span class="menu-text">Privacy Guide</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span class="menu-icon">6️⃣</span>
+                                        <span class="menu-text">Engagement Tips</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span class="menu-icon">7️⃣</span>
+                                        <span class="menu-text">Stories Guide</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span class="menu-icon">8️⃣</span>
+                                        <span class="menu-text">Profile Setup</span>
+                                    </div>
+                                    <div class="menu-item">
+                                        <span class="menu-icon">9️⃣</span>
+                                        <span class="menu-text">Search & Discover</span>
+                                    </div>
+                                </div>
+                                <p><em>What would you like help with? Just type a number!</em></p>
+                            </div>
+                            <div class="message-time">{{ now()->format('H:i') }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="chat-input">
+        <!-- Fixed Chat Input - Bottom of Page -->
+        <div class="chat-input-fixed">
             <div class="input-container">
                 <input
                     type="text"
                     id="chatInput"
-                    placeholder="Ask me anything..."
+                    placeholder="Type a number (1-9) or ask me anything..."
                     maxlength="200"
+                    autocomplete="off"
                 >
+                <button type="button" id="sendButton" class="send-button" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
             </div>
-            <button type="button" id="sendButton" class="send-button" onclick="sendMessage()">
-                <i class="fas fa-paper-plane"></i>
-            </button>
+            <div class="input-footer">
+                <!-- Removed character counter and input hint -->
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-.ai-assistant {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    font-family: 'Courier New', monospace;
-    background: #000000;
-    overflow: hidden;
-    z-index: 1000;
-    color: #00FF00;
-}
-
-.close-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
-    border-radius: 0;
-    background: #1a1a1a;
-    border: 1px solid #00ff00;
-    color: #00ff00;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    z-index: 1001;
-}
-
-.close-button:hover {
-    /* No hover effect */
-}
-
+/* AI Header Layout */
 .ai-header {
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    z-index: 10;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-.ai-header-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-
-.ai-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--twitter-blue) 0%, #7C3AED 100%);
+.clear-chat-header-btn {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 20px;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--error-color);
     color: white;
-    animation: avatarGlow 3s ease-in-out infinite alternate;
+    border: none;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(244, 33, 46, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-@keyframes avatarGlow {
-    0% { }
-    100% { }
+.clear-chat-header-btn:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(244, 33, 46, 0.4);
 }
 
-.ai-info h1 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--twitter-blue) 0%, #7C3AED 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+.clear-chat-header-btn:active {
+    transform: translateY(0);
 }
 
-.ai-info p {
-    margin: 0;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
-    opacity: 0.9;
+.clear-chat-header-btn i {
+    font-size: 11px;
 }
 
-.ai-chat {
-    position: absolute;
-    top: 120px;
-    left: 0;
-    right: 0;
-    bottom: 0;
+/* Chat Container */
+.chat-container {
+    background: var(--bg-primary);
+    border-color: var(--border-primary);
+}
+
+/* Chat Interface Styles */
+.chat-messages {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-}
-
-.chat-messages {
-    position: absolute;
-    top: 120px;
-    left: 0;
-    right: 0;
-    bottom: 120px;
-    padding: 20px;
-    overflow-y: auto;
-    background: transparent;
+    gap: 16px;
+    scroll-behavior: smooth;
 }
 
 .welcome-message {
-    display: flex;
-    gap: 15px;
     margin-bottom: 20px;
 }
 
+/* Message Styles */
+.message {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+}
+
+.message.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.message.ai {
+    align-self: flex-start;
+}
+
 .ai-avatar-small {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--twitter-blue) 0%, #7C3AED 100%);
+    background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 14px;
     color: white;
     flex-shrink: 0;
     margin-top: 2px;
 }
 
-.message {
-    margin-bottom: 20px;
-    display: flex;
-    align-items: flex-end;
-    gap: 10px;
-    position: relative;
-    animation: messageFloatIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    min-height: 40px;
-    width: 100%;
-    max-width: 70%;
-}
-
-.message.user {
-    flex-direction: row-reverse;
-    justify-content: flex-end;
-    margin-left: auto;
-    margin-right: 0;
-    width: fit-content;
-    max-width: 60%;
-}
-
-.message.ai {
-    justify-content: flex-start;
-    margin-right: auto;
-    margin-left: 0;
-    width: fit-content;
-    max-width: 60%;
-    transform: translateX(-20px);
-}
-
-.message.ai .ai-avatar-small {
-    order: -1;
-    align-self: flex-start;
-    margin-top: 4px;
-    margin-bottom: 8px;
-    flex-shrink: 0;
-    z-index: 2;
-}
-
-.message.user .ai-avatar-small {
-    display: none;
-}
-
-.message:nth-child(even).ai {
-    margin-left: 8%;
-}
-
-.message:nth-child(odd).ai {
-    margin-left: 2%;
-}
-
-.message:nth-child(3n).ai {
-    margin-left: 12%;
-}
-
-.message:nth-child(4n).user {
-    margin-right: 8%;
-}
-
-.message:nth-child(5n).user {
-    margin-right: 12%;
-}
-
-@keyframes messageFloatIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
 .message-bubble {
-    padding: 14px 18px;
-    border-radius: 20px;
-    font-size: 15px;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
     line-height: 1.5;
     word-wrap: break-word;
     position: relative;
-    z-index: 1;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     max-width: 100%;
+    box-shadow: var(--shadow-primary);
 }
 
 .message-bubble:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+}
+
+.ai-bubble {
+    background: var(--bg-message-ai);
+    color: var(--text-ai);
+    border-bottom-left-radius: 4px;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.user-bubble {
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    color: var(--text-user);
+    border-bottom-right-radius: 4px;
+}
+
+.message-content {
+    position: relative;
+    z-index: 1;
+}
+
+.message-time {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+    text-align: right;
+    opacity: 0.8;
+}
+
+.menu-options {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--text-accent);
+    line-height: 1.4;
+    border: 1px solid var(--border-secondary);
+}
+
+.menu-icon {
+    font-size: 14px;
+}
+
+.menu-text {
+    flex: 1;
+}
+
+.typing-text {
+    display: inline;
 }
 
 .typing-cursor {
+    display: inline-block;
+    color: var(--text-accent);
+    font-family: 'Courier New', monospace;
     font-weight: bold;
-    animation: cursorBlink 1s infinite;
-    text-shadow: 0 0 5px #00ff00;
+    animation: cursorBlink 0.8s infinite;
 }
 
 @keyframes cursorBlink {
@@ -292,80 +278,27 @@
     51%, 100% { opacity: 0; }
 }
 
-.ai-bubble {
-    background: linear-gradient(135deg,
-        rgba(0, 255, 0, 0.1) 0%,
-        rgba(0, 255, 0, 0.05) 50%,
-        rgba(0, 200, 0, 0.08) 100%);
-    color: #00FF00;
-    border-bottom-left-radius: 6px;
-    border: 1px solid rgba(0, 255, 0, 0.3);
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-}
-
-.user-bubble {
-    background: linear-gradient(135deg,
-        rgba(0, 255, 0, 0.8) 0%,
-        rgba(0, 200, 0, 0.9) 50%,
-        rgba(0, 255, 0, 0.8) 100%);
-    color: #000000;
-    border-bottom-right-radius: 6px;
-    border: 1px solid rgba(0, 255, 0, 0.6);
-    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
-}
-
-
-
-.typing-text {
-    margin: 0;
-    line-height: 1.4;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-.typing-cursor {
-    display: inline-block;
-    margin-left: 2px;
-    font-weight: bold;
-    color: var(--twitter-blue);
-    animation: blink 1s infinite;
-    font-size: 14px;
-}
-
-@keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
-}
-
+/* Chat Input */
 .chat-input {
+    background: var(--bg-primary);
     padding: 16px 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    border-top: 1px solid var(--border-primary);
 }
 
 .input-container {
-    flex: 1;
     display: flex;
     align-items: center;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    padding: 0;
-    margin: 0;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 0 16px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
 }
 
 .input-container:focus-within {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    transform: none;
+    border-color: var(--border-focus);
+    background: var(--bg-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .input-container input {
@@ -373,1822 +306,526 @@
     background: transparent;
     border: none;
     outline: none;
-    color: #00FF00;
+    padding: 12px 8px;
     font-size: 16px;
-    padding: 4px 0;
+    color: var(--text-primary);
     font-family: inherit;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-    transition: opacity 0.3s ease;
-}
-
-.input-container input:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    text-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+    min-height: 20px;
 }
 
 .input-container input::placeholder {
-    color: rgba(0, 255, 0, 0.6);
+    color: var(--text-tertiary);
+    font-style: italic;
 }
 
 .send-button {
-    width: 56px;
-    height: 56px;
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    border: none;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg,
-        #00FF00 0%,
-        #00DD00 50%,
-        #00FF00 100%);
-    border: 2px solid #00FF00;
-    color: #000000;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    color: white;
+    cursor: pointer;
+    margin-left: 8px;
     transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    margin-left: 16px;
-    font-weight: bold;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-}
-
-.send-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.2) 30%,
-        rgba(255, 255, 255, 0.4) 50%,
-        rgba(255, 255, 255, 0.2) 70%,
-        transparent 100%
-    );
-    transition: left 0.8s ease;
-}
-
-.send-button:hover::before {
-    left: 100%;
+    box-shadow: var(--shadow-button);
 }
 
 .send-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
 }
 
 .send-button:active {
-    transform: translateY(-2px) scale(1.05) rotate(2deg);
-}
-
-.send-button i {
-    font-size: 20px;
-    transition: all 0.4s ease;
-    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
-    z-index: 1;
-    position: relative;
-}
-
-.send-button:hover i {
-    transform: scale(1.2) rotate(10deg);
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
-}
-
-@keyframes buttonPulse {
-    0%, 100% {
-        box-shadow:
-            0 4px 20px rgba(139, 92, 246, 0.5),
-            0 0 40px rgba(139, 92, 246, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    }
-    50% {
-        box-shadow:
-            0 4px 25px rgba(139, 92, 246, 0.7),
-            0 0 60px rgba(139, 92, 246, 0.3),
-            0 0 20px rgba(255, 107, 107, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    }
-}
-
-.send-button i {
-    font-size: 20px;
-    transition: all 0.3s ease;
+    transform: scale(0.95);
 }
 
 .send-button:disabled {
-    background: linear-gradient(135deg,
-        #444444 0%,
-        #333333 50%,
-        #444444 100%) !important;
-    border-color: #555555 !important;
-    color: #888888 !important;
-    cursor: not-allowed !important;
-    opacity: 0.8 !important;
-    filter: grayscale(50%) !important;
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 
-/* Theme Toggle Button */
-.theme-toggle {
-    position: absolute;
-    top: 20px;
-    right: 80px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.8);
-    border: 1px solid #00ff00;
-    color: #00ff00;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.send-button i {
     font-size: 16px;
-    z-index: 1001;
-    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
 }
 
-.theme-toggle:hover {
-    background: rgba(0, 255, 0, 0.1);
-    transform: scale(1.1);
+.input-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding: 0 4px;
 }
 
-/* Light Theme Styles */
-.ai-assistant.light-theme {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    color: #2c3e50;
+.char-count {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
 }
 
-.ai-assistant.light-theme .close-button,
-.ai-assistant.light-theme .theme-toggle {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: #3498db;
-    color: #3498db;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+.input-hint {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-style: italic;
 }
 
-.ai-assistant.light-theme .close-button:hover,
-.ai-assistant.light-theme .theme-toggle:hover {
-    background: rgba(52, 152, 219, 0.1);
-    border-color: #2980b9;
-    color: #2980b9;
-}
-
-.ai-assistant.light-theme .message-bubble {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
-    border: 1px solid rgba(52, 152, 219, 0.2);
-    color: #2c3e50;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.ai-assistant.light-theme .message.ai .message-bubble.ai-bubble {
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.08) 0%, rgba(52, 152, 219, 0.04) 100%) !important;
-    border: 1px solid rgba(52, 152, 219, 0.3) !important;
-    color: #2c3e50 !important;
-    text-shadow: none !important;
-}
-
-.ai-assistant.light-theme .message.ai .message-bubble.ai-bubble p {
-    color: #2c3e50 !important;
-    text-shadow: none !important;
-}
-
-.ai-assistant.light-theme .message.ai .message-bubble.ai-bubble .typing-text {
-    color: #2c3e50 !important;
-    text-shadow: none !important;
-}
-
-.ai-assistant.light-theme .message.ai .message-bubble.ai-bubble .typing-cursor {
-    color: #3498db !important;
-    text-shadow: 0 0 5px rgba(52, 152, 219, 0.5) !important;
-}
-
-.ai-assistant.light-theme .user-bubble {
-    background: linear-gradient(135deg, rgba(46, 204, 113, 0.1) 0%, rgba(46, 204, 113, 0.05) 100%);
-    border: 1px solid rgba(46, 204, 113, 0.3);
-    color: #2c3e50;
-}
-
-.ai-assistant.light-theme .ai-avatar-small {
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-}
-
-.ai-assistant.light-theme .input-container input {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(52, 152, 219, 0.3);
-    color: #2c3e50;
-    text-shadow: none;
-}
-
-.ai-assistant.light-theme .input-container input::placeholder {
-    color: rgba(44, 62, 80, 0.6);
-}
-
-.ai-assistant.light-theme .input-container input:disabled {
-    background: rgba(236, 240, 241, 0.8);
-    border-color: rgba(149, 165, 166, 0.5);
-    color: rgba(149, 165, 166, 0.8);
-}
-
-.ai-assistant.light-theme .send-button {
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 50%, #3498db 100%);
-    border-color: #3498db;
-    color: #ffffff;
-}
-
-.ai-assistant.light-theme .send-button:disabled {
-    background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 50%, #bdc3c7 100%) !important;
-    border-color: #95a5a6 !important;
-    color: #7f8c8d !important;
-}
-
-.ai-assistant.light-theme .chat-input {
-    background: rgba(255, 255, 255, 0.9);
-    border-top: 1px solid rgba(52, 152, 219, 0.2);
-}
-
-.ai-assistant.light-theme .menu-options .menu-item {
-    color: #3498db;
-}
-
-.ai-assistant.light-theme .typing-cursor {
-    color: #3498db;
-    text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
-}
-
-/* Removed typing indicator and input hints styles */
-
+/* Enhanced Scrollbar */
 .chat-messages::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
 }
 
 .chat-messages::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb {
-    background: var(--twitter-blue);
-    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
 }
 
-/* Laptop and Desktop Optimizations (All laptop sizes) */
-@media (min-width: 768px) {
-    .message.user {
-        max-width: 70%;
-        margin-left: auto;
-        margin-right: 5%;
-    }
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
 
-    .message.ai {
-        max-width: 70%;
-        margin-right: auto;
-        margin-left: 5%;
-    }
+/* Typing indicator */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+}
 
-    .message:nth-child(even).ai {
-        margin-left: 10%;
-    }
+.typing-dots {
+    display: flex;
+    gap: 4px;
+}
 
-    .message:nth-child(odd).ai {
-        margin-left: 3%;
-    }
+.typing-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    animation: typingBounce 1.4s infinite ease-in-out;
+}
 
-    .message:nth-child(3n).ai {
-        margin-left: 15%;
-    }
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+.typing-dots span:nth-child(3) { animation-delay: 0s; }
 
-    .message:nth-child(4n).user {
-        margin-right: 10%;
+@keyframes typingBounce {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
     }
-
-    .message:nth-child(5n).user {
-        margin-right: 15%;
-    }
-
-    .message-bubble {
-        font-size: 15px;
-        padding: 14px 18px;
-        max-width: 600px;
-    }
-
-    .ai-avatar-small {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-
-    .chat-messages {
-        padding: 30px 40px;
-    }
-
-    /* Enhanced input bar for ALL laptop views - BOTTOM */
-    .chat-input {
-        padding: 20px 40px;
-        background: rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 16px;
-        max-width: 900px;
-        margin: 0 auto;
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        width: 100vw !important;
-        z-index: 1000 !important;
-    }
-
-    /* Adjust chat messages area for fixed input bar */
-    .chat-messages {
-        bottom: 120px !important;
-        padding-bottom: 140px !important; /* Extra space for fixed input */
-    }
-
-    .ai-chat {
-        bottom: 0 !important;
+    40% {
+        transform: scale(1);
+        opacity: 1;
     }
 }
 
-/* Tablet Optimizations */
-@media (min-width: 769px) and (max-width: 1023px) {
-    .message.user {
-        max-width: 75%;
-        margin-left: auto;
-        margin-right: 3%;
-    }
+/* Fixed Chat Input at Bottom */
+.chat-input-fixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    padding: 16px 20px;
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+}
 
-    .message.ai {
-        max-width: 75%;
-        margin-right: auto;
-        margin-left: 3%;
-    }
+.chat-input-fixed .input-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 0 16px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
 
-    .message:nth-child(even).ai {
-        margin-left: 8%;
-    }
+.chat-input-fixed .input-container:focus-within {
+    border-color: var(--border-focus);
+    background: var(--card-bg);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
 
-    .message:nth-child(odd).ai {
-        margin-left: 2%;
-    }
+.chat-input-fixed .input-container input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 12px 8px;
+    font-size: 16px;
+    color: var(--text-primary);
+    font-family: inherit;
+    min-height: 20px;
+}
 
-    .message:nth-child(3n).ai {
-        margin-left: 12%;
-    }
+.chat-input-fixed .input-container input::placeholder {
+    color: var(--text-tertiary);
+    font-style: italic;
+}
 
-    .message:nth-child(4n).user {
-        margin-right: 8%;
-    }
+.chat-input-fixed .send-button {
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-button);
+}
 
-    .message:nth-child(5n).user {
-        margin-right: 12%;
-    }
+.chat-input-fixed .send-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
+}
 
-    .message-bubble {
-        font-size: 14px;
-        padding: 12px 16px;
-    }
+.chat-input-fixed .send-button:active {
+    transform: scale(0.95);
+}
 
-    .ai-avatar-small {
-        width: 38px;
-        height: 38px;
-        font-size: 17px;
-    }
+.chat-input-fixed .send-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
 
-    .chat-messages {
-        padding: 25px 30px;
-    }
+.chat-input-fixed .send-button i {
+    font-size: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.chat-input-fixed .input-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding: 0 4px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.chat-input-fixed .char-count {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.chat-input-fixed .input-hint {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-style: italic;
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-    .ai-assistant {
-        padding: 8px;
-        min-height: calc(100vh - 80px);
-    }
-
-    .ai-header {
+    .chat-messages {
         padding: 16px;
-        margin-bottom: 16px;
-        border-radius: 12px;
+        gap: 12px;
+        height: calc(100vh - 160px) !important;
     }
 
-    .ai-avatar {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
+    .chat-container {
+        padding-bottom: 100px !important;
     }
 
-    .ai-info h1 {
-        font-size: 20px;
-        margin-bottom: 6px;
+    .chat-input-fixed {
+        padding: 12px 16px;
     }
 
-    .ai-info p {
+    .chat-input-fixed .input-container {
+        padding: 0 12px;
+    }
+
+    .chat-input-fixed .input-container input {
+        padding: 10px 6px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    .chat-input-fixed .send-button {
+        width: 32px;
+        height: 32px;
+    }
+
+    .chat-input-fixed .send-button i {
         font-size: 14px;
     }
 
-    .ai-chat {
-        height: calc(100vh - 200px);
-        border-radius: 12px;
-        margin-bottom: 8px;
-    }
-
-    .chat-messages {
-        padding: 12px;
-        height: calc(100% - 80px);
-        max-height: calc(100vh - 280px);
-    }
-
     .message {
-        margin-bottom: 12px;
+        width: 100%;
     }
 
     .message-bubble {
-        max-width: 85%;
         font-size: 14px;
         padding: 10px 14px;
     }
 
     .ai-avatar-small {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-    }
-
-    .chat-input {
-        padding: 10px 12px;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        width: 100vw;
-        background: var(--card-bg);
-        border-top: 1px solid var(--border-color);
-        border-radius: 16px 16px 0 0;
-        z-index: 1000;
-        margin: 0;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        transform: translateZ(0);
-        will-change: transform;
-        padding-bottom: env(safe-area-inset-bottom);
-        padding-bottom: calc(10px + env(safe-area-inset-bottom));
-    }
-
-    .input-container input:focus,
-    .input-container:focus-within {
-        /* No animation on focus */
-    }
-
-    @media (max-width: 768px) and (orientation: portrait) {
-        .chat-input {
-            bottom: max(0px, calc(100vh - 100vh));
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-        }
-
-        .input-container input:focus,
-        .input-container:focus-within {
-            /* No animation on focus */
-        }
-    }
-
-    @media (max-width: 768px) and (orientation: landscape) {
-        .chat-input {
-            padding: 8px 12px;
-        }
-    }
-
-@media (max-width: 360px) {
-.ai-assistant {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    font-family: 'Courier New', 'Monaco', 'Consolas', monospace;
-    background: #000000;
-    overflow: hidden;
-    z-index: 1000;
-    color: #00ff00;
-    animation: matrixRain 20s linear infinite;
-}
-
-@keyframes matrixRain {
-    0% {
-        background-image:
-            repeating-linear-gradient(
-                0deg,
-                rgba(0, 255, 0, 0.03) 0px,
-                rgba(0, 255, 0, 0.03) 1px,
-                transparent 1px,
-                transparent 20px
-            ),
-            repeating-linear-gradient(
-                90deg,
-                rgba(0, 255, 0, 0.02) 0px,
-                rgba(0, 255, 0, 0.02) 1px,
-                transparent 1px,
-                transparent 50px
-            );
-        background-size: 20px 20px, 50px 50px;
-    }
-    100% {
-        background-image:
-            repeating-linear-gradient(
-                0deg,
-                rgba(0, 255, 0, 0.03) 20px,
-                rgba(0, 255, 0, 0.03) 21px,
-                transparent 21px,
-                transparent 40px
-            ),
-            repeating-linear-gradient(
-                90deg,
-                rgba(0, 255, 0, 0.02) 50px,
-                rgba(0, 255, 0, 0.02) 51px,
-                transparent 51px,
-                transparent 100px
-            );
-        background-size: 20px 20px, 50px 50px;
-    }
-}
-
-.ai-assistant::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background:
-        radial-gradient(circle at 20% 30%, rgba(0, 255, 0, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(0, 255, 0, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 60% 10%, rgba(0, 255, 0, 0.06) 0%, transparent 50%);
-    animation: glowShift 15s ease-in-out infinite alternate;
-    pointer-events: none;
-    z-index: -1;
-}
-
-@keyframes glowShift {
-    0% {
-        opacity: 0.3;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.6;
-        transform: scale(1.05);
-    }
-    100% {
-        opacity: 0.3;
-        transform: scale(1);
-    }
-}
-
-    .ai-info p {
+        width: 28px;
+        height: 28px;
         font-size: 12px;
-    }
-
-    .ai-chat {
-        height: calc(100vh - 160px);
-    }
-
-    .chat-messages {
-        padding: 6px;
-        max-height: calc(100vh - 240px);
-        padding-bottom: 60px;
-    }
-
-    .message-bubble {
-        font-size: 12px;
-        padding: 6px 10px;
-    }
-
-    .chat-input {
-        padding: 6px 8px;
-    }
-}
-
-@media (max-height: 500px) and (orientation: landscape) {
-    .ai-chat {
-        height: calc(100vh - 120px);
-    }
-
-    .chat-messages {
-        max-height: calc(100vh - 200px);
-        padding-bottom: 40px;
-    }
-
-    .chat-input {
-        padding: 6px 12px;
-    }
-
-    .input-container input {
-        font-size: 14px;
-    }
-}
-
-@media (hover: none) and (pointer: coarse) {
-    .input-container button {
-        min-height: 44px;
-    }
-
-    .input-container input {
-        font-size: 16px;
     }
 }
 </style>
 
 <script>
-// Chat Interface
 document.addEventListener('DOMContentLoaded', function() {
-    // Set up input event listeners
     const chatInput = document.getElementById('chatInput');
-    if (chatInput) {
-        chatInput.addEventListener('keypress', handleKeyPress);
-        chatInput.addEventListener('input', handleNumericInput);
-        chatInput.addEventListener('input', updateCharCount);
-    }
-
-    // Handle mobile viewport height issues
-    function setVH() {
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-    }
-
-    setVH();
-    window.addEventListener('resize', setVH);
-    window.addEventListener('orientationchange', setVH);
-});
-
-// Global state to track AI typing and theme
-let isAITyping = false;
-let currentTheme = 'dark'; // 'dark' or 'light'
-
-// Theme toggle function
-function toggleTheme() {
-    const aiAssistant = document.querySelector('.ai-assistant');
-    const themeToggle = document.querySelector('.theme-toggle');
-    const themeIcon = themeToggle.querySelector('i');
-
-    if (currentTheme === 'dark') {
-        // Switch to light theme
-        currentTheme = 'light';
-        aiAssistant.classList.add('light-theme');
-        themeIcon.className = 'fas fa-moon';
-        themeToggle.title = 'Switch to Dark Theme';
-        // Save preference to localStorage
-        localStorage.setItem('ai-chat-theme', 'light');
-    } else {
-        // Switch to dark theme
-        currentTheme = 'dark';
-        aiAssistant.classList.remove('light-theme');
-        themeIcon.className = 'fas fa-sun';
-        themeToggle.title = 'Switch to Light Theme';
-        // Save preference to localStorage
-        localStorage.setItem('ai-chat-theme', 'dark');
-    }
-}
-
-// Initialize theme on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Load saved theme preference
-    const savedTheme = localStorage.getItem('ai-chat-theme');
-    if (savedTheme === 'light') {
-        toggleTheme(); // This will switch from dark to light
-    }
-});
-
-// Handle menu selection by number
-function handleMenuSelection(number) {
-    const menuOptions = {
-        '1': 'help',
-        '2': 'writing',
-        '3': 'friends',
-        '4': 'stories',
-        '5': 'privacy',
-        '6': 'profile',
-        '7': 'messaging',
-        '8': 'settings',
-        '9': 'getting-started'
-    };
-
-    const option = menuOptions[number];
-    if (option) {
-    // Add user selection to chat
-    addMessage(number, 'user');
-
-    // Get response and always include menu
-    setTimeout(() => {
-        const response = getMenuResponse(option) + getMenuText();
-        addMessage(response, 'ai');
-    }, 800);
-    }
-}
-
-function getQuickResponse(question) {
-    // Simple keyword matching for responses
-    const responses = {
-        'how do i create a post': `📝 **Creating Posts - Quick Guide**
-
-1. **Click the "+" button** in the top navigation
-2. **Write your text** (max 280 characters)
-3. **Add media** (photos/videos) if desired
-4. **Add hashtags** like #LaravelSocial
-5. **Click "Post"** to share!
-
-💡 **Pro Tip**: Use @mentions to tag friends and add relevant hashtags to reach more people!`,
-
-        'how do i find friends': `🔍 **Finding Friends & People**
-
-🌟 **Ways to Discover People:**
-• **Explore page** - Browse trending posts
-• **Search** - Look for usernames or keywords
-• **Who to Follow** - Check personalized suggestions
-• **Hashtags** - Find communities with shared interests
-
-📱 **Quick Actions:**
-• Tap search icon in navigation
-• Use the explore tab
-• Check "Suggested for you" section
-
-👥 **Connection Tips:**
-• Follow people you find interesting
-• Engage with their posts first
-• Send personalized messages`,
-
-        'how do stories work': `📱 **Stories - Quick Start Guide**
-
-🎬 **How to Create Stories:**
-1. **Click your avatar** in the top navigation
-2. **Tap "Create Story"** or take a photo/video
-3. **Add text, stickers, or effects**
-4. **Share** - stories last 24 hours
-
-🎨 **Story Features:**
-• **Text overlays** - Add captions
-• **Stickers** - Emojis and fun elements
-• **Polls & Questions** - Engage viewers
-• **Highlights** - Save stories permanently
-
-⏰ **Story Tips:**
-• Post daily for best engagement
-• Use stories for behind-the-scenes content
-• Save important stories as highlights`,
-
-        'how do i change my privacy settings': `🔒 **Privacy Settings - Quick Setup**
-
-🛡️ **Essential Privacy Steps:**
-1. **Go to your profile** → click "Edit Profile"
-2. **Account Privacy** → toggle "Private Account"
-3. **Story Settings** → control who sees your stories
-4. **Blocked Users** → manage blocked accounts
-
-🔐 **Security Tips:**
-• Use a strong, unique password
-• Enable two-factor authentication
-• Review app permissions regularly
-• Be cautious with personal information
-
-⚙️ **Advanced Settings:**
-• Control who can message you
-• Manage tag approvals
-• Set up close friends list`,
-
-        'how do i improve my profile': `👤 **Profile Optimization - Quick Wins**
-
-🎯 **Profile Essentials:**
-• **Profile Photo**: Clear, friendly face photo
-• **Bio**: Tell people who you are (80-160 characters)
-• **Cover Image**: Add visual appeal
-• **Link**: Include your website or important link
-
-📊 **Optimization Tips:**
-• Use keywords in your bio for discoverability
-• Add emojis for personality
-• Keep bio updated and relevant
-• Choose a consistent theme for posts
-
-🚀 **Next Steps:**
-• Complete all profile sections
-• Add profile highlights/stories
-• Engage consistently with your audience`,
-
-        'how does messaging work': `💬 **Messaging System - Quick Guide**
-
-📨 **How to Message:**
-1. **Go to Messages** in the navigation
-2. **Click "New Message"** or search for a user
-3. **Type your message** and send
-4. **Use emoji reactions** on messages
-
-💡 **Messaging Features:**
-• **Real-time chat** with online indicators
-• **Photo sharing** in conversations
-• **Message reactions** with emojis
-• **Group chats** (up to 50 people)
-
-🔒 **Privacy Controls:**
-• Control who can message you
-• Block unwanted conversations
-• Report inappropriate messages`
-    };
-
-    // Find matching response (case insensitive partial match)
-    const questionLower = question.toLowerCase();
-    for (const [key, response] of Object.entries(responses)) {
-        if (questionLower.includes(key)) {
-            return response;
-        }
-    }
-
-    // Default response if no match found
-    return `🤔 I understand you're asking about "${question}". 
-
-Here are some popular topics I can help with:
-• How to create engaging posts
-• Finding and connecting with friends  
-• Using Stories effectively
-• Privacy and security settings
-• Optimizing your profile
-
-Try clicking one of the buttons above or ask me something specific!`;
-}
-
-function getMenuOptionText(option) {
-    const optionTexts = {
-        help: "I need help with the platform",
-        writing: "Help me write better posts",
-        discover: "Help me discover new people to follow",
-        trends: "What are the current trending topics?",
-        engage: "How can I increase my engagement?",
-        analytics: "Show me my analytics and growth",
-        profile: "Help me optimize my profile",
-        privacy: "Privacy and security tips",
-        stories: "How do I use stories effectively?",
-        media: "Tips for posting photos and videos",
-        chat: "How does the messaging system work?",
-        settings: "Help with account settings"
-    };
-    return optionTexts[option] || option;
-}
-
-function getAIResponses() {
-    return {
-        help: `🤖 **Welcome to Laravel Social!** Here's how I can help you:
-
-📝 **Getting Started**
-• Complete your profile with a photo and bio
-• Follow friends and interesting people
-• Explore trending posts and topics
-
-✍️ **Creating Content**
-• Write engaging posts (max 280 characters)
-• Add photos, videos, or links
-• Use @mentions to tag people
-• Add hashtags for discoverability
-
-👥 **Connecting**
-• Follow users you find interesting
-• Like and comment on posts
-• Send private messages
-• Create and share stories
-
-📊 **Analytics**
-• Check your profile stats
-• See post engagement metrics
-• Track follower growth
-
-🔒 **Privacy & Security**
-• Control who sees your posts
-• Block unwanted users
-• Report inappropriate content
-
-💡 **Pro Tips**
-• Post consistently for better engagement
-• Use relevant hashtags
-• Engage with comments on your posts
-• Share valuable content
-
-What would you like to learn more about?`,
-
-        writing: `📝 **Writing Better Posts - Pro Tips**
-
-🎯 **Content Strategy**
-• **Know your audience**: Write for your followers' interests
-• **Value first**: Share helpful, entertaining, or insightful content
-• **Consistency**: Post regularly to stay visible
-• **Timing**: Post when your audience is most active
-
-✍️ **Writing Techniques**
-• **Hook immediately**: Start with a question, fact, or story
-• **Keep it concise**: 280 characters maximum - be punchy!
-• **Use emojis**: 😊 Add personality and visual interest
-• **Ask questions**: Encourage engagement and comments
-
-📸 **Visual Content**
-• **High-quality images**: Clear, well-lit photos
-• **Videos**: Short, engaging clips (15-60 seconds)
-• **Stories**: Behind-the-scenes, polls, Q&A sessions
-
-🔍 **Optimization**
-• **Hashtags**: Use 2-3 relevant hashtags per post
-• **Keywords**: Include searchable terms naturally
-• **Mentions**: @tag people and brands when relevant
-
-📊 **Best Practices**
-• **Engage first**: Like and comment before posting
-• **Cross-promote**: Share content across platforms
-• **Analyze**: Check what posts perform best
-• **Experiment**: Try different content types
-
-💡 **Example Post Structure:**
-"🚀 Just launched my new project! So excited to share this journey with you all. The feedback has been amazing already. What's one project you've been working on? #Entrepreneur #ProjectLaunch #Tech"
-
-Try writing a post now and I can help you improve it!`,
-
-        discover: `🔍 **Discover New People & Content**
-
-🌟 **Finding People to Follow**
-• **Explore Page**: Browse trending posts and discover new users
-• **Search**: Use keywords, usernames, or hashtags
-• **Who to Follow**: Check suggestions based on your interests
-• **Mutual Connections**: See who your friends follow
-
-🔍 **Search Strategies**
-• **Keywords**: Search for topics you're interested in
-• **Hashtags**: Find communities around specific topics
-• **Usernames**: Look for specific people you know
-• **Locations**: Discover local communities
-
-📈 **Growing Your Network**
-• **Follow back**: Engage with people who follow you
-• **Quality over quantity**: Better to have engaged followers
-• **Niche communities**: Join groups with shared interests
-• **Collaborate**: Partner with complementary creators
-
-💡 **Discovery Tips**
-• **Trending hashtags**: Explore what's popular right now
-• **Related users**: Check who similar people follow
-• **Saved posts**: Create collections of inspiring content
-• **Notifications**: Get alerts when people you follow engage
-
-🔧 **Advanced Features**
-• **Lists**: Organize people into custom groups
-• **Muted words**: Filter out unwanted content
-• **Blocked users**: Control who can interact with you
-
-Start exploring! Who are you looking to connect with?`,
-
-        trends: `📈 **Trending Topics & Viral Content**
-
-🔥 **Understanding Trends**
-• **Real-time data**: See what's popular right now
-• **Regional trends**: Location-based trending topics
-• **Hashtag challenges**: Community-driven movements
-• **Breaking news**: Current events and discussions
-
-📊 **Trending Categories**
-• **Entertainment**: Movies, music, celebrities
-• **Sports**: Games, athletes, championships
-• **Technology**: New gadgets, apps, innovations
-• **Politics**: Current events and discussions
-• **Lifestyle**: Fashion, food, travel trends
-
-🎯 **How to Use Trends**
-• **Timing**: Post when trends are peaking
-• **Authenticity**: Only join trends that fit your brand
-• **Originality**: Add your unique perspective
-• **Hashtags**: Use trending hashtags strategically
-
-💡 **Trending Strategies**
-• **Early adoption**: Jump on trends before they peak
-• **Local trends**: Participate in location-specific trends
-• **Create trends**: Start your own hashtag challenges
-• **Cross-platform**: Share trending content everywhere
-
-📱 **Trend Types**
-• **Challenge trends**: Dance, cooking, fitness challenges
-• **Discussion trends**: Important conversations
-• **Meme trends**: Viral humor and reactions
-• **Product trends**: New releases and launches
-
-⚠️ **Trend Best Practices**
-• **Research first**: Understand trend context
-• **Quality content**: Don't sacrifice quality for trends
-• **Engagement**: Trends work best with community interaction
-• **Analytics**: Track which trends perform for you
-
-What's trending that interests you right now?`,
-
-        engage: `🚀 **Boost Your Engagement - Expert Strategies**
-
-💬 **Comment Engagement**
-• **Respond promptly**: Reply within 24 hours
-• **Personal responses**: Use names and be specific
-• **Ask questions**: Encourage further discussion
-• **Thread conversations**: Keep discussions going
-
-❤️ **Like Strategy**
-• **Authentic likes**: Only like content you genuinely enjoy
-• **Strategic timing**: Like posts from people you want to notice you
-• **Comment + like**: Combine for maximum impact
-
-🔄 **Interaction Techniques**
-• **Follow then engage**: Build relationships before asking for follows
-• **Share others' content**: Give credit and add value
-• **Collaborate**: Partner with complementary accounts
-• **User-generated content**: Feature your community
-
-📊 **Engagement Analytics**
-• **Track metrics**: Monitor likes, comments, shares
-• **Best posting times**: Find when your audience is active
-• **Content performance**: See what works best
-• **Growth rate**: Monitor follower increases
-
-🎯 **Advanced Tactics**
-• **Stories engagement**: Polls, questions, Q&A sessions
-• **Live sessions**: Real-time interaction opportunities
-• **Contests & giveaways**: Boost participation
-• **Behind-the-scenes**: Build personal connections
-
-📈 **Growth Hacks**
-• **Consistent posting**: 3-5 times per week minimum
-• **Content variety**: Mix photos, videos, text, links
-• **Hashtag strategy**: Use relevant, trending hashtags
-• **Cross-promotion**: Share content on other platforms
-
-💡 **Pro Tips**
-• **Quality over quantity**: Better engagement than many followers
-• **Authenticity matters**: Be genuine in all interactions
-• **Value exchange**: Give before you ask
-• **Community building**: Create a loyal following
-
-What's your biggest engagement challenge?`,
-
-        analytics: `📊 **Analytics & Growth Tracking**
-
-📈 **Key Metrics to Monitor**
-• **Follower growth**: Track daily/weekly increases
-• **Engagement rate**: Likes + comments per post
-• **Reach**: How many people see your content
-• **Impressions**: Total content views
-
-📱 **Post Performance**
-• **Best performing content**: Photos vs videos vs text
-• **Optimal posting times**: When your audience is active
-• **Hashtag effectiveness**: Which tags drive most engagement
-• **Content themes**: What topics resonate most
-
-👥 **Audience Insights**
-• **Demographics**: Age, location, interests
-• **Top followers**: Most engaged users
-• **New vs returning**: Fresh audience growth
-• **Engagement patterns**: When people interact most
-
-📊 **Growth Analytics**
-• **Follower milestones**: Track progress toward goals
-• **Engagement trends**: Improving or declining
-• **Content reach**: Expanding or contracting
-• **Competitor comparison**: How you stack up
-
-🛠️ **Tools & Features**
-• **Built-in analytics**: Check your profile stats
-• **Post insights**: Individual post performance
-• **Story analytics**: View completion rates
-• **Export data**: Download your metrics
-
-🎯 **Using Analytics for Growth**
-• **Content optimization**: Double down on what works
-• **Posting schedule**: Time posts for maximum reach
-• **Audience targeting**: Create content for your core audience
-• **Trend analysis**: Spot patterns and opportunities
-
-💡 **Analytics Best Practices**
-• **Regular monitoring**: Check stats weekly at minimum
-• **Goal setting**: Define measurable growth targets
-• **A/B testing**: Experiment with different approaches
-• **Long-term tracking**: Monitor trends over months
-
-📋 **Action Items**
-1. Set specific growth goals
-2. Track your posting consistency
-3. Analyze top-performing content
-4. Adjust strategy based on data
-5. Celebrate milestones!
-
-Ready to check your analytics?`,
-
-        profile: `👤 **Profile Optimization Guide**
-
-🎯 **Profile Photo**
-• **High quality**: Clear, well-lit, professional image
-• **Facial recognition**: Show your face for better connections
-• **Branding**: Consistent with your content theme
-• **Square format**: Works best across platforms
-
-📝 **Bio Writing**
-• **Clear value proposition**: What you offer followers
-• **Keywords**: Include searchable terms
-• **Call to action**: Encourage follows/engagement
-• **Emojis**: Add personality and visual interest
-• **Length**: 80-160 characters for optimal display
-
-🔗 **Link Strategy**
-• **Link in bio**: Direct to your most important content
-• **Consistent branding**: Match your online presence
-• **Call to action**: Make it clear what you want visitors to do
-• **Track performance**: Use link tracking tools
-
-📍 **Location & Contact**
-• **Accurate location**: Help local people find you
-• **Contact info**: Email/website if appropriate
-• **Business hours**: For local businesses
-• **Time zone**: Set for scheduling posts
-
-🎨 **Visual Consistency**
-• **Color scheme**: Consistent brand colors
-• **Filters**: Use consistent photo editing
-• **Themes**: Stick to 2-3 content categories
-• **Grid layout**: Plan your profile's visual flow
-
-📊 **Profile Analytics**
-• **Profile visits**: How many people view your profile
-• **Link clicks**: Track bio link performance
-• **Audience demographics**: Understand who follows you
-• **Content performance**: Which posts drive follows
-
-💡 **Profile Optimization Checklist**
-✅ Professional profile photo
-✅ Compelling, keyword-rich bio
-✅ Working link in bio
-✅ Consistent visual theme
-✅ Complete profile information
-✅ Regular content posting
-✅ Active engagement with followers
-
-🚀 **Advanced Profile Tips**
-• **Stories highlight**: Create pinned story collections
-• **Custom emoji**: Add personality to your name
-• **Location tags**: Help with local discoverability
-• **Collaborations**: Partner with similar accounts
-
-Your profile is your digital storefront - make it count!`,
-
-        privacy: `🔒 **Privacy & Security Guide**
-
-🛡️ **Account Security**
-• **Strong password**: Use complex, unique passwords
-• **Two-factor authentication**: Enable 2FA when available
-• **Login alerts**: Monitor account access
-• **App permissions**: Review connected applications
-
-👀 **Privacy Settings**
-• **Private account**: Control who sees your posts
-• **Story privacy**: Choose who can view your stories
-• **Message controls**: Manage who can message you
-• **Tag approvals**: Review tags before they appear
-
-🚫 **Blocking & Reporting**
-• **Block users**: Prevent unwanted interactions
-• **Report abuse**: Flag inappropriate content
-• **Restrict accounts**: Limit problematic users
-• **Muted words**: Filter unwanted content
-
-🔐 **Data Protection**
-• **Download data**: Export your information
-• **Account deletion**: Permanently remove your account
-• **Privacy policy**: Understand data usage
-• **Third-party access**: Control app permissions
-
-💡 **Privacy Best Practices**
-• **Think before posting**: Consider long-term consequences
-• **Location sharing**: Be cautious with location data
-• **Personal information**: Avoid sharing sensitive details
-• **Photo tagging**: Review photo tags carefully
-• **Public vs private**: Use private accounts for personal use
-
-🚨 **Safety Tips**
-• **Recognize scams**: Be wary of suspicious accounts
-• **Phishing awareness**: Don't click suspicious links
-• **Meeting people**: Use caution when meeting online contacts
-• **Cyberbullying**: Report and block abusive users
-• **Mental health**: Take breaks from social media
-
-📱 **Device Security**
-• **App updates**: Keep apps and OS updated
-• **Secure connections**: Use HTTPS and secure WiFi
-• **Device locking**: Use PIN/password/biometric locks
-• **Backup data**: Regularly backup important content
-
-🔧 **Advanced Privacy Features**
-• **Close friends**: Share with select followers only
-• **Custom audiences**: Create specific follower groups
-• **Time limits**: Set screen time limits
-• **Notification controls**: Manage what notifications you receive
-
-Remember: Your privacy is in your hands!`,
-
-        stories: `📱 **Stories - Complete Usage Guide**
-
-🎬 **Creating Stories**
-• **Photo stories**: Single images with text overlays
-• **Video stories**: 15-second clips for dynamic content
-• **Multi-photo**: Combine multiple images in one story
-• **Boomerang**: Short looping videos
-
-🎨 **Story Features**
-• **Text overlays**: Add text with various fonts and colors
-• **Stickers**: Emojis, GIFs, location tags, mentions
-• **Drawing tools**: Freehand drawing with colors
-• **Music**: Add trending audio to videos
-• **Polls**: Ask questions and get instant feedback
-• **Questions**: Let followers ask you questions
-• **Quizzes**: Create interactive quizzes
-
-📊 **Story Analytics**
-• **View counts**: See who viewed your stories
-• **Completion rate**: Track engagement percentage
-• **Reply insights**: See what questions you get
-• **Poll results**: Analyze audience preferences
-
-🎯 **Story Strategies**
-• **Behind-the-scenes**: Show your daily life
-• **Teasers**: Build excitement for upcoming content
-• **Polls & questions**: Increase audience interaction
-• **User-generated content**: Feature community submissions
-• **Live sessions**: Real-time audience engagement
-
-⏰ **Best Practices**
-• **Post regularly**: Daily or every other day
-• **24-hour window**: Stories disappear after 24 hours
-• **Highlights**: Save important stories permanently
-• **Consistent branding**: Maintain visual consistency
-
-💡 **Advanced Tips**
-• **Story series**: Create multi-part story sequences
-• **Collaborations**: Tag friends for joint stories
-• **Location stories**: Show you're at events
-• **Countdown**: Build anticipation for launches
-• **Swipe up**: Direct traffic to external links
-
-📈 **Growing with Stories**
-• **Cross-promotion**: Share story content in posts
-• **Story highlights**: Create profile sections
-• **Engagement boost**: Stories increase profile visits
-• **Algorithm boost**: Active stories improve visibility
-
-🎨 **Design Tips**
-• **Brand colors**: Use consistent color schemes
-• **Readable text**: Choose contrasting colors
-• **Vertical format**: Optimize for mobile viewing
-• **High quality**: Use good lighting and clear images
-
-Start creating amazing stories today!`,
-
-        media: `📸 **Media Content - Photo & Video Tips**
-
-📷 **Photography Basics**
-• **Lighting**: Natural light is always best
-• **Composition**: Rule of thirds, leading lines, symmetry
-• **Focus**: Sharp subjects, clean backgrounds
-• **Angles**: Experiment with perspectives
-
-🎥 **Video Content**
-• **Short & engaging**: 15-60 seconds for maximum impact
-• **High quality**: Steady camera, good audio
-• **Hook early**: Grab attention in first 3 seconds
-• **Clear message**: One main point per video
-
-🖼️ **Image Optimization**
-• **Resolution**: High quality but optimized file size
-• **Aspect ratio**: 1:1 for square, 4:5 for vertical
-• **File formats**: JPEG for photos, PNG for graphics
-• **Alt text**: Describe images for accessibility
-
-🎨 **Editing & Filters**
-• **Consistency**: Use same filter style across posts
-• **Enhancement**: Adjust brightness, contrast, saturation
-• **Text overlays**: Add captions directly on images
-• **Branding**: Include logos or watermarks
-
-📱 **Mobile Photography**
-• **Camera quality**: Use rear camera for better quality
-• **Stabilization**: Keep camera steady or use tripods
-• **Lighting apps**: Use phone flash creatively
-• **Editing apps**: Lightroom Mobile, Snapseed, VSCO
-
-🎭 **Content Types**
-• **Flat lays**: Product photography, food, objects
-• **Portraits**: People, pets, self-portraits
-• **Landscapes**: Nature, cityscapes, travel
-• **Action shots**: Sports, events, activities
-
-📊 **Performance Tips**
-• **First impression**: High-quality images get more engagement
-• **Color psychology**: Different colors evoke different emotions
-• **Text in images**: 80% of users read text in photos
-• **Carousel posts**: Tell stories with multiple images
-
-🔧 **Technical Specs**
-• **Image size**: 1080x1080px minimum for square posts
-• **Video format**: MP4 with H.264 codec
-• **File size**: Under 15MB for images, 100MB for videos
-• **Frame rate**: 30fps for smooth playback
-
-💡 **Pro Tips**
-• **Golden hour**: Shoot during morning/evening light
-• **Negative space**: Use empty space for visual impact
-• **Patterns**: Find and photograph interesting patterns
-• **Reflections**: Creative use of mirrors, water, glass
-
-📈 **Growing with Media**
-• **User-generated content**: Feature community photos
-• **Photo series**: Create themed collections
-• **Challenges**: Photo challenges with hashtags
-• **Collaborations**: Partner with photographers
-
-Ready to create stunning visual content?`,
-
-        chat: `💬 **Messaging System - Complete Guide**
-
-📨 **Private Messaging**
-• **One-on-one chats**: Direct conversations with individuals
-• **Group chats**: Up to 50 people in group conversations
-• **Message reactions**: React with emojis to messages
-• **Message replies**: Reply to specific messages in threads
-
-🎨 **Message Features**
-• **Text messages**: Regular text with emoji support
-• **Photo sharing**: Send images in conversations
-• **Voice messages**: Record and send audio clips
-• **GIF support**: Express yourself with animated GIFs
-
-🔒 **Privacy Controls**
-• **Message requests**: Control who can message you
-• **Block users**: Prevent unwanted conversations
-• **Report messages**: Flag inappropriate content
-• **Mute conversations**: Silence notification for specific chats
-
-💡 **Messaging Best Practices**
-• **Quick responses**: Reply promptly to build relationships
-• **Personal touch**: Use names and reference previous conversations
-• **Value exchange**: Share helpful information and resources
-• **Professional tone**: Maintain appropriate communication style
-
-🚀 **Business Messaging**
-• **Customer service**: Handle inquiries professionally
-• **Collaboration**: Coordinate with team members
-• **Networking**: Connect with industry professionals
-• **Lead generation**: Convert conversations to opportunities
-
-📱 **Mobile Experience**
-• **Push notifications**: Get notified of new messages
-• **Offline access**: Messages sync when you reconnect
-• **Typing indicators**: See when others are typing
-• **Read receipts**: Know when messages are seen
-
-🔧 **Advanced Features**
-• **Message search**: Find specific conversations quickly
-• **Conversation pinning**: Keep important chats at top
-• **Message scheduling**: Plan messages for later
-• **Auto-responses**: Set up automated replies
-
-📊 **Analytics & Insights**
-• **Response times**: Track how quickly you reply
-• **Conversation volume**: Monitor message frequency
-• **Popular topics**: See what people message about most
-• **Engagement rates**: Measure conversation quality
-
-💼 **Professional Communication**
-• **Clear communication**: Be concise and specific
-• **Follow up**: Send reminders when needed
-• **Meeting coordination**: Schedule calls and meetings
-• **File sharing**: Exchange documents and resources
-
-🎯 **Growing Your Network**
-• **Initial outreach**: Personalized connection requests
-• **Value first**: Offer help before asking for favors
-• **Follow up**: Stay in touch with valuable connections
-• **Group participation**: Join industry-specific groups
-
-Start connecting with your network today!`
-    };
-}
-
-// Chat Functions
-function handleKeyPress(event) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        sendMessage();
-    }
-    updateCharCount();
-}
-
-function handleNumericInput(event) {
-    const input = event.target;
-    const value = input.value;
-    // Only allow numbers (0-9)
-    const numericValue = value.replace(/[^0-9]/g, '');
-    input.value = numericValue;
-    updateCharCount();
-}
-
-function updateCharCount() {
-    const input = document.getElementById('chatInput');
-    const counter = document.getElementById('charCount');
-    if (input && counter) {
-        const count = input.value.length;
-        counter.textContent = count + '/200';
-    }
-}
-
-function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-
-    if (!message) return;
-
-    // Check if it's a number selection (1-9)
-    const numberMatch = message.match(/^(\d)$/);
-    if (numberMatch && parseInt(numberMatch[1]) >= 1 && parseInt(numberMatch[1]) <= 9) {
-        handleMenuSelection(numberMatch[1]);
-        input.value = '';
-        updateCharCount();
-        return;
-    }
-
-    // Add user message
-    addMessage(message, 'user');
-
-    // Clear input
-    input.value = '';
-
-    // Send to AI endpoint
-    fetch('/ai/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ message: message })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        try {
-            // Handle successful AI response
-            if (data && data.success && data.response && typeof data.response === 'string') {
-                const aiResponse = data.response.trim();
-                if (aiResponse) {
-                    // Add the AI response with menu options
-                    addMessage(aiResponse + getMenuText(), 'ai');
-                } else {
-                    addMessage('I received an empty response. Please try asking your question again.' + getMenuText(), 'ai');
-                }
-            } else {
-                // Handle invalid or missing response data
-                console.warn('Invalid AI response format:', data);
-                addMessage('I\'m having trouble understanding the response. Please try again.' + getMenuText(), 'ai');
-            }
-        } catch (parseError) {
-            console.error('Error processing AI response:', parseError);
-            addMessage('There was an error processing the response. Please try again.' + getMenuText(), 'ai');
-        }
-    })
-    .catch(error => {
-        console.error('AI chat error:', error);
-        let errorMessage = 'Sorry, I\'m having trouble connecting right now. ';
-
-        if (error.message.includes('HTTP error')) {
-            errorMessage += 'The server returned an error. ';
-        } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            errorMessage += 'Please check your internet connection. ';
-        } else {
-            errorMessage += 'An unexpected error occurred. ';
-        }
-
-        errorMessage += 'Please try again later.' + getMenuText();
-        addMessage(errorMessage, 'ai');
+    const sendButton = document.getElementById('sendButton');
+    const charCount = document.getElementById('charCount');
+    const chatMessages = document.getElementById('chatMessages');
+
+    // Enable/disable send button based on input
+    chatInput.addEventListener('input', function() {
+        const hasText = this.value.trim().length > 0;
+        sendButton.disabled = !hasText;
+        sendButton.style.opacity = hasText ? '1' : '0.6';
     });
-}
 
-function getMenuResponse(option) {
-    const responses = {
-        'help': `\n📋 **Help & Menu**\n\nWelcome to Laravel Social! Here's what I can help you with:\n\n• Platform navigation and features\n• Account setup and management\n• Content creation and posting\n• Privacy and security settings\n• Community engagement tips\n\nChoose another option or ask me anything!`,
+    // Handle Enter key
+    chatInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
 
-        'writing': `\n📝 **Writing Better Posts**\n\n🎯 **Content Strategy Tips:**\n• Start with a hook (question, fact, or story)\n• Keep posts under 280 characters\n• Use emojis for personality\n• End with a call-to-action\n\n📸 **Visual Content:**\n• High-quality images work best\n• Use relevant hashtags (2-3 per post)\n• Tag people with @mentions\n\n💡 **Pro Tip:** Post consistently and engage with comments to grow your audience!`,
+    // Send button click
+    sendButton.addEventListener('click', sendMessage);
 
-        'friends': `\n👥 **Finding Friends & People**\n\n🔍 **Discovery Methods:**\n• Explore trending posts\n• Search by interests or location\n• Check "Who to Follow" suggestions\n• Browse hashtag communities\n\n📱 **Connection Tips:**\n• Follow people you find interesting\n• Engage with their content first\n• Send personalized messages\n• Join niche communities\n\n🌟 **Growth Strategy:** Quality over quantity - focus on engaged followers!`,
+    function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
 
-        'stories': `\n📱 **Stories Guide**\n\n🎬 **Creating Stories:**\n• Tap your profile picture\n• Take photo/video or upload\n• Add text, stickers, effects\n• Share (lasts 24 hours)\n\n🎨 **Features:**\n• Text overlays and colors\n• Polls and questions\n• Music and effects\n• Save as highlights\n\n⏰ **Best Practices:**\n• Post daily for engagement\n• Use for behind-the-scenes\n• Interactive elements work great`,
+        // Add user message
+        addMessage(message, 'user');
+        chatInput.value = '';
 
-        'privacy': `\n🔒 **Privacy & Security**\n\n🛡️ **Account Protection:**\n• Use strong, unique passwords\n• Enable 2FA when available\n• Review app permissions\n• Monitor login activity\n\n👀 **Privacy Controls:**\n• Set account to private\n• Control story visibility\n• Manage message requests\n• Block unwanted users\n\n💡 **Safety First:** Think before posting, be cautious with personal information!`,
+        // Show typing indicator
+        const typingIndicator = showTypingIndicator();
 
-        'profile': `\n👤 **Profile Optimization**\n\n🎯 **Essential Elements:**\n• Professional profile photo\n• Compelling bio (80-160 chars)\n• Link in bio\n• Consistent theme\n\n📊 **Tips:**\n• Use keywords for discoverability\n• Add personality with emojis\n• Update regularly\n• Complete all sections\n\n🚀 **Advanced:** Add story highlights and collaborate with others!`,
+        // Send to AI endpoint
+        fetch('/ai/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ message: message })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Hide typing indicator
+            hideTypingIndicator(typingIndicator);
 
-        'messaging': `\n💬 **Messaging System**\n\n📨 **How to Message:**\n• Go to Messages tab\n• Start new conversation\n• Search for users\n• Send text, photos, reactions\n\n🎨 **Features:**\n• Real-time chat\n• Online indicators\n• Message reactions\n• Group chats (up to 50)\n\n💡 **Best Practices:**\n• Respond promptly\n• Personalize messages\n• Use professionally\n• Respect privacy settings`,
+            if (data.success && data.response) {
+                // Add AI response
+                addMessage(data.response, 'ai');
+            } else {
+                addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+            }
+        })
+        .catch(error => {
+            console.error('AI chat error:', error);
+            hideTypingIndicator(typingIndicator);
+            addMessage('Sorry, I\'m having trouble connecting right now. Please try again later.', 'ai');
+        });
+    }
 
-        'settings': `\n⚙️ **Account Settings**\n\n🔧 **General Settings:**\n• Change password regularly\n• Update email and notifications\n• Manage connected apps\n• Set language preferences\n\n🎨 **Appearance:**\n• Dark/light mode\n• Font size and display\n• Media quality settings\n\n🔔 **Notifications:**\n• Control what you see\n• Mute specific content\n• Manage push notifications\n• Set quiet hours`,
+    function addMessage(text, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ' + type;
 
-        'getting-started': `\n🚀 **Getting Started Guide**\n\n📋 **Quick Setup:**\n1. Complete your profile\n2. Upload a profile photo\n3. Write a compelling bio\n4. Follow friends and interests\n\n📱 **First Steps:**\n• Explore the platform\n• Create your first post\n• Try stories feature\n• Connect with community\n\n💡 **Pro Tips:**\n• Post consistently\n• Engage with others\n• Use relevant hashtags\n• Be authentic and helpful`
-    };
+        const timestamp = new Date().toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
 
-    return responses[option] || `\n🤔 I don't have specific information about "${option}" yet, but I can help with general questions about Laravel Social!`;
-}
+        if (type === 'user') {
+            messageDiv.innerHTML = `
+                <div class="message-bubble user-bubble">
+                    <p>${escapeHtml(text)}</p>
+                </div>
+                <div class="message-time">${timestamp}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        } else {
+            // AI messages with typing effect
+            messageDiv.innerHTML = `
+                <div class="ai-avatar-small">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-bubble ai-bubble">
+                    <div class="message-content">
+                        <span class="typing-text"></span>
+                        <span class="typing-cursor">|</span>
+                    </div>
+                </div>
+                <div class="message-time">${timestamp}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 
-function getMenuText() {
-    return `\n\n---\n\n**Choose an option:**\n1️⃣ Help & Menu\n2️⃣ Writing Posts\n3️⃣ Find Friends\n4️⃣ Stories Guide\n5️⃣ Privacy Help\n6️⃣ Profile Tips\n7️⃣ Messaging\n8️⃣ Account Settings\n9️⃣ Getting Started\n\nOr just type your question!`;
-}
+            // Start typing animation
+            typeText(messageDiv, text);
+        }
+    }
 
-function addMessage(text, type) {
-    const container = document.getElementById('chatMessages');
-    if (!container) return;
+    function typeText(messageDiv, fullText) {
+        const textElement = messageDiv.querySelector('.typing-text');
+        const cursorElement = messageDiv.querySelector('.typing-cursor');
+        const contentElement = messageDiv.querySelector('.message-content');
 
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message ' + (type === 'user' ? 'user' : 'ai');
+        let currentIndex = 0;
+        let currentText = '';
+        let isTyping = true;
 
-    if (type === 'user') {
-        // User messages appear instantly
-        messageDiv.innerHTML = `
-            <div class="message-bubble user-bubble">
-                <p>${escapeHtml(text)}</p>
-            </div>
-        `;
-        container.appendChild(messageDiv);
-        container.scrollTop = container.scrollHeight;
-    } else {
-        // AI messages use typing effect
-        messageDiv.innerHTML = `
+        // Different typing speeds for different characters
+        function getTypingSpeed(char) {
+            if (char === ' ' || char === '\n' || char === '\t') {
+                return 30 + Math.random() * 20; // Faster for whitespace
+            } else if (char.match(/[a-z]/)) {
+                return 25 + Math.random() * 15; // Fast for lowercase
+            } else if (char.match(/[A-Z]/)) {
+                return 35 + Math.random() * 15; // Medium-fast for uppercase
+            } else if (char.match(/[0-9]/)) {
+                return 20 + Math.random() * 10; // Very fast for numbers
+            } else if (char.match(/[.,!?;:]/)) {
+                return 80 + Math.random() * 40; // Slower for punctuation
+            } else {
+                return 40 + Math.random() * 20; // Medium for symbols
+            }
+        }
+
+        // Cursor blink animation
+        const cursorInterval = setInterval(() => {
+            if (cursorElement) {
+                cursorElement.style.opacity = cursorElement.style.opacity === '0' ? '1' : '0';
+            }
+        }, 100);
+
+        function typeCharacter() {
+            if (currentIndex < fullText.length && isTyping) {
+                const char = fullText[currentIndex];
+                currentText += char;
+                textElement.innerHTML = formatAIResponse(currentText);
+
+                currentIndex++;
+
+                // Auto-scroll to keep typing visible
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                // Continue typing with realistic speed
+                const typingSpeed = getTypingSpeed(char);
+                setTimeout(typeCharacter, typingSpeed);
+            } else {
+                // Typing complete
+                clearInterval(cursorInterval);
+                if (cursorElement) {
+                    cursorElement.style.display = 'none';
+                }
+                isTyping = false;
+            }
+        }
+
+        // Start typing
+        setTimeout(typeCharacter, 100);
+    }
+
+    function formatAIResponse(text) {
+        // Convert markdown-style formatting to HTML
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/•/g, '<br>•')
+            .replace(/\n/g, '<br>')
+            .replace(/<br><br>•/g, '<br>•'); // Fix bullet points
+    }
+
+    function showTypingIndicator() {
+        const indicator = document.createElement('div');
+        indicator.className = 'message ai typing-indicator';
+        indicator.innerHTML = `
             <div class="ai-avatar-small">
                 <i class="fas fa-robot"></i>
             </div>
             <div class="message-bubble ai-bubble">
-                <p class="typing-text"></p>
-                <span class="typing-cursor">|</span>
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
             </div>
         `;
-        container.appendChild(messageDiv);
-        container.scrollTop = container.scrollHeight;
 
-        // Start typing animation
-        typeText(messageDiv, text);
-    }
-}
-
-function typeText(messageDiv, fullText) {
-    const textElement = messageDiv.querySelector('.typing-text');
-    const cursorElement = messageDiv.querySelector('.typing-cursor');
-    const messageBubble = messageDiv.querySelector('.message-bubble');
-    let currentIndex = 0;
-    let currentText = '';
-    let glitchChars = '!@#$%^&*()[]{}|;:,.<>?ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-
-    // Set AI typing flag and disable input
-    isAITyping = true;
-    const chatInput = document.getElementById('chatInput');
-    const sendButton = document.getElementById('sendButton');
-    if (chatInput) chatInput.disabled = true;
-    if (sendButton) sendButton.disabled = true;
-
-    // Add typing glow effect to message bubble
-    if (messageBubble) {
-        messageBubble.classList.add('typing-active');
+        chatMessages.appendChild(indicator);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return indicator;
     }
 
-    // Create faster typing variations
-    function getTypingSpeed(char) {
-        if (char === ' ' || char === '\n' || char === '\t') {
-            return 25 + Math.random() * 20; // Faster for whitespace
-        } else if (char.match(/[a-z]/)) {
-            return 15 + Math.random() * 15; // Fast for lowercase
-        } else if (char.match(/[A-Z]/)) {
-            return 20 + Math.random() * 15; // Medium-fast for uppercase
-        } else if (char.match(/[0-9]/)) {
-            return 12 + Math.random() * 10; // Very fast for numbers
-        } else {
-            return 10 + Math.random() * 8; // Fastest for symbols
+    function hideTypingIndicator(indicator) {
+        if (indicator && indicator.parentNode) {
+            indicator.parentNode.removeChild(indicator);
         }
     }
 
-    // Faster cursor animation
-    const cursorChars = ['|', '/', '-', '\\', '█', '▊', '▌', '▍', '▎', '▏'];
-    let cursorIndex = 0;
-    const cursorInterval = setInterval(() => {
-        if (cursorElement) {
-            cursorElement.textContent = cursorChars[cursorIndex % cursorChars.length];
-            cursorIndex++;
-
-            // Random cursor color changes for hacker effect (less frequent)
-            if (Math.random() < 0.05) {
-                const colors = ['#00ff00', '#ff0000', '#ffff00', '#00ffff', '#ff00ff'];
-                cursorElement.style.color = colors[Math.floor(Math.random() * colors.length)];
-                cursorElement.style.textShadow = `0 0 10px ${cursorElement.style.color}`;
-                setTimeout(() => {
-                    cursorElement.style.color = '#00ff00';
-                    cursorElement.style.textShadow = '0 0 5px #00ff00';
-                }, 50);
-            }
-        }
-    }, 80); // Much faster cursor animation
-
-    function typeCharacter() {
-        if (currentIndex < fullText.length) {
-            const char = fullText[currentIndex];
-
-            // Always add the correct character to current text
-            currentText += char;
-            textElement.innerHTML = escapeHtml(currentText);
-
-            // Visual glitch effects (don't modify actual text)
-            if (Math.random() < 0.08 && currentIndex > 5) { // 8% chance after first few chars
-                // Screen shake effect
-                const container = document.getElementById('chatMessages');
-                if (container) {
-                    container.style.transform = `translateX(${Math.random() * 2 - 1}px)`;
-                    setTimeout(() => {
-                        container.style.transform = 'translateX(0)';
-                    }, 50);
-                }
-
-                // Brief text color flash for glitch effect
-                textElement.style.textShadow = '0 0 20px #ff0000, 0 0 40px #ff0000';
-                setTimeout(() => {
-                    textElement.style.textShadow = '0 0 5px rgba(0, 255, 0, 0.5)';
-                }, 100);
-
-            } else if (Math.random() < 0.03 && currentIndex > 3) { // 3% chance for brief flash
-                // Brief color flash effect
-                textElement.style.color = '#ffff00';
-                textElement.style.textShadow = '0 0 15px #ffff00';
-
-                setTimeout(() => {
-                    textElement.style.color = '#00ff00';
-                    textElement.style.textShadow = '0 0 5px rgba(0, 255, 0, 0.5)';
-                }, 40);
-            }
-
-            currentIndex++;
-
-            // Auto-scroll to keep typing visible
-            const container = document.getElementById('chatMessages');
-            if (container) {
-                container.scrollTop = container.scrollHeight;
-            }
-
-            // Continue typing with realistic speed variations
-            const typingSpeed = getTypingSpeed(char);
-            setTimeout(typeCharacter, typingSpeed);
-
-        } else {
-            // Typing complete - simple cursor fade
-            clearInterval(cursorInterval);
-            if (cursorElement) {
-                cursorElement.style.opacity = '0';
-                setTimeout(() => {
-                    cursorElement.style.display = 'none';
-                }, 300);
-            }
-
-            // Remove typing glow effect
-            if (messageBubble) {
-                setTimeout(() => {
-                    messageBubble.classList.remove('typing-active');
-                }, 500);
-            }
-
-            // Re-enable input after AI finishes typing
-            setTimeout(() => {
-                isAITyping = false;
-                const chatInput = document.getElementById('chatInput');
-                const sendButton = document.getElementById('sendButton');
-                if (chatInput) chatInput.disabled = false;
-                if (sendButton) sendButton.disabled = false;
-            }, 600);
-        }
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
-    // Start typing animation with hacker-style initialization
-    setTimeout(() => {
-        // Initial system beep effect (visual)
-        if (cursorElement) {
-            cursorElement.style.textShadow = '0 0 30px #00ff00, 0 0 60px #00ff00';
-            setTimeout(() => {
-                cursorElement.style.textShadow = '0 0 5px #00ff00';
-            }, 200);
+    // Clear chat functionality
+    window.clearChat = function() {
+        if (!confirm('Are you sure you want to clear all messages in this chat? This action cannot be undone.')) {
+            return;
         }
-        typeCharacter();
-    }, 400);
-}
 
-/* Removed showTyping() and hideTyping() functions */
+        // Clear all messages except the welcome message
+        const messages = chatMessages.querySelectorAll('.message:not(.welcome-message)');
+        messages.forEach(message => message.remove());
 
-function performQuickSearch() {
-    const input = document.getElementById('quickSearch');
-    const query = input.value.trim();
+        // Reset input
+        chatInput.value = '';
+        sendButton.disabled = true;
+        sendButton.style.opacity = '0.6';
 
-    if (!query) return;
+        // Scroll to top
+        chatMessages.scrollTop = 0;
 
-    // Show chat and send search query
-    showChatInterface();
-    addMessage(`Search: ${query}`, 'user');
-
-    setTimeout(() => {
-        addMessage(`🔍 Searching for "${query}"...\n\nI found some relevant information about your query. Here are the key points:\n\n• Point 1\n• Point 2\n• Point 3\n\nFor more specific help, try selecting a category from the menu above!`, 'ai');
-    }, 500);
-
-    input.value = '';
-}
-
-function autoResizeTextarea(textarea) {
-    // Reset height to auto to get the correct scrollHeight
-    textarea.style.height = 'auto';
-
-    // Calculate the minimum height (1 line) and maximum height (5 lines)
-    const lineHeight = parseInt(getComputedStyle(textarea).lineHeight);
-    const minHeight = lineHeight * 1; // 1 line minimum
-    const maxHeight = lineHeight * 5; // 5 lines maximum
-    const scrollHeight = textarea.scrollHeight;
-
-    // Set the height within bounds
-    const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
-    textarea.style.height = newHeight + 'px';
-
-    // Update character count
-    updateCharCount();
-}
-
-function updateCharCount() {
-    const textarea = document.getElementById('chatInput');
-    const counter = document.getElementById('charCount');
-    if (textarea && counter) {
-        const count = textarea.value.length;
-        const max = parseInt(textarea.getAttribute('maxlength')) || 500;
-        counter.textContent = count + '/' + max;
-
-        // Add warning class for near limit
-        if (count > max * 0.9) {
-            counter.classList.add('warning');
-        } else {
-            counter.classList.remove('warning');
-        }
-    }
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// Close AI Assistant
-function closeAIAssistant() {
-    const aiAssistant = document.querySelector('.ai-assistant');
-    if (aiAssistant) {
-        aiAssistant.style.animation = 'fadeOut 0.3s ease-out';
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 300);
-    }
-}
-
-// Add fade out animation
-const fadeOutStyle = document.createElement('style');
-fadeOutStyle.textContent = `
-    @keyframes fadeOut {
-        from {
-            opacity: 1;
-        }
-        to {
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(fadeOutStyle);
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Set up initial state
-    showMainMenu();
-
-    // Handle mobile viewport height issues
-    function setVH() {
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-    }
-
-    setVH();
-    window.addEventListener('resize', setVH);
-    window.addEventListener('orientationchange', setVH);
+        // Show confirmation
+        showToast('Chat cleared successfully!', 'info', 2000);
+    };
 });
 </script>
 @endsection

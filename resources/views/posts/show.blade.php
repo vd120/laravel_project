@@ -208,8 +208,7 @@
 <style>
 /* Modern Post Detail Page Styles */
 .post-detail-page {
-    max-width: 800px;
-    margin: 0 auto;
+    width: 100%;
     padding: 20px;
 }
 
