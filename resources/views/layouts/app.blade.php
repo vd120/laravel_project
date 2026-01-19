@@ -3112,7 +3112,7 @@
 
     </style>
 </head>
-<body class="{{ request()->routeIs(['login', 'register']) ? 'auth-page' : '' }} {{ !auth()->check() ? 'dark-theme' : '' }}">
+<body class="{{ request()->routeIs(['login', 'register']) ? 'auth-page dark-theme' : (!auth()->check() ? 'dark-theme' : '') }}">
     <header class="header">
         <nav class="nav">
             <a href="{{ route('home') }}" class="logo">Laravel Social</a>
@@ -3161,6 +3161,28 @@
                 <a href="{{ route('register') }}"><i class="fas fa-user-plus"></i>Register</a>
                 @endauth
             </div>
+
+            @guest
+            <button type="button" class="guest-header-theme-btn" onclick="toggleTheme()" title="Toggle Theme" style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                background: none;
+                border: none;
+                font-size: 18px;
+                color: var(--twitter-gray);
+                cursor: pointer;
+                border-radius: 50%;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                margin: 0 8px;
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            " onmouseover="this.style.background='rgba(127, 179, 213, 0.1)'; this.style.color='var(--twitter-dark)'; this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(127, 179, 213, 0.2)'" onmouseout="this.style.background='none'; this.style.color='var(--twitter-gray)'; this.style.transform='scale(1)'; this.style.boxShadow='none'">
+                <i class="fas fa-moon" id="guest-header-theme-icon"></i>
+            </button>
+            @endguest
             <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
                 <i class="fas fa-bars"></i>
             </button>
@@ -3978,17 +4000,20 @@
         function toggleTheme() {
             const body = document.body;
             const themeIcon = document.getElementById('theme-icon');
+            const guestHeaderIcon = document.getElementById('guest-header-theme-icon');
 
             if (body.classList.contains('dark-theme')) {
                 // Switch to light theme
                 body.classList.remove('dark-theme');
-                themeIcon.className = 'fas fa-moon';
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
+                if (guestHeaderIcon) guestHeaderIcon.className = 'fas fa-moon';
                 localStorage.setItem('theme', 'light');
                 showToast('Switched to Light Theme', 'info', 2000);
             } else {
                 // Switch to dark theme
                 body.classList.add('dark-theme');
-                themeIcon.className = 'fas fa-sun';
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+                if (guestHeaderIcon) guestHeaderIcon.className = 'fas fa-sun';
                 localStorage.setItem('theme', 'dark');
                 showToast('Switched to Dark Theme', 'info', 2000);
             }
@@ -3999,13 +4024,27 @@
             const savedTheme = localStorage.getItem('theme');
             const body = document.body;
             const themeIcon = document.getElementById('theme-icon');
+            const guestHeaderIcon = document.getElementById('guest-header-theme-icon');
 
-            if (savedTheme === 'dark') {
+            // Check if we're on auth pages (login/register) - force dark theme
+            const isAuthPage = window.location.pathname.includes('/login') || window.location.pathname.includes('/register');
+
+            if (isAuthPage) {
+                // Always force dark theme on auth pages
                 body.classList.add('dark-theme');
-                themeIcon.className = 'fas fa-sun';
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+                if (guestHeaderIcon) guestHeaderIcon.className = 'fas fa-sun';
             } else {
-                body.classList.remove('dark-theme');
-                themeIcon.className = 'fas fa-moon';
+                // Use saved theme preference for other pages
+                if (savedTheme === 'dark') {
+                    body.classList.add('dark-theme');
+                    if (themeIcon) themeIcon.className = 'fas fa-sun';
+                    if (guestHeaderIcon) guestHeaderIcon.className = 'fas fa-sun';
+                } else {
+                    body.classList.remove('dark-theme');
+                    if (themeIcon) themeIcon.className = 'fas fa-moon';
+                    if (guestHeaderIcon) guestHeaderIcon.className = 'fas fa-moon';
+                }
             }
         }
 
