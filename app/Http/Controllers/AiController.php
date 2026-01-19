@@ -35,7 +35,14 @@ class AiController extends Controller
         $user = Auth::user();
         $message = trim(strtolower($message));
 
-        
+        // Check for invalid numeric inputs (multi-digit, > 9, or negative)
+        if (is_numeric($message)) {
+            $num = (int)$message;
+            if ($num < 0 || $num > 9 || strlen($message) > 1) {
+                return "⚠️ **Please type from 0-9 only**\n\nChoose an option by typing a single number (1-9).";
+            }
+        }
+
         switch ($message) {
             case '1':
             case 'help':

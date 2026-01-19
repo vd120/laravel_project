@@ -8,6 +8,10 @@
         <i class="fas fa-times"></i>
     </button>
 
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+        <i class="fas fa-sun"></i>
+    </button>
 
     <!-- Chat Interface -->
     <div class="ai-chat">
@@ -42,7 +46,7 @@
                     maxlength="200"
                 >
             </div>
-            <button type="button" id="sendButton" onclick="sendMessage()">
+            <button type="button" id="sendButton" class="send-button" onclick="sendMessage()">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
@@ -58,20 +62,9 @@
     bottom: 0;
     font-family: 'Courier New', monospace;
     background: #000000;
-    background-attachment: fixed;
     overflow: hidden;
     z-index: 1000;
     color: #00FF00;
-    background-image:
-        radial-gradient(circle at 25% 25%, rgba(0, 255, 0, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(0, 255, 0, 0.1) 0%, transparent 50%),
-        linear-gradient(45deg, transparent 49%, rgba(0, 255, 0, 0.03) 50%, transparent 51%);
-    animation: matrixRain 20s linear infinite;
-}
-
-@keyframes matrixRain {
-    0% { background-position: 0% 0%, 100% 100%, 0% 0%; }
-    100% { background-position: 0% 100%, 100% 0%, 100% 100%; }
 }
 
 .close-button {
@@ -80,49 +73,20 @@
     right: 20px;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
+    border-radius: 0;
+    background: #1a1a1a;
+    border: 1px solid #00ff00;
+    color: #00ff00;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 18px;
-    transition: all 0.3s ease;
     z-index: 1001;
 }
 
 .close-button:hover {
-    background: rgba(244, 33, 46, 0.8);
-}
-
-.ai-assistant::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background:
-        radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(255, 107, 107, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 60% 10%, rgba(29, 161, 242, 0.15) 0%, transparent 50%);
-    animation: backgroundShift 60s ease-in-out infinite;
-    z-index: -1;
-}
-
-@keyframes backgroundShift {
-    0%, 100% {
-        transform: scale(1) rotate(0deg);
-        opacity: 0.3;
-    }
-    50% {
-        transform: scale(1.02) rotate(0.2deg);
-        opacity: 0.4;
-    }
+    /* No hover effect */
 }
 
 .ai-header {
@@ -317,6 +281,17 @@
 .message-bubble:hover {
 }
 
+.typing-cursor {
+    font-weight: bold;
+    animation: cursorBlink 1s infinite;
+    text-shadow: 0 0 5px #00ff00;
+}
+
+@keyframes cursorBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
 .ai-bubble {
     background: linear-gradient(135deg,
         rgba(0, 255, 0, 0.1) 0%,
@@ -403,6 +378,13 @@
     padding: 4px 0;
     font-family: inherit;
     text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    transition: opacity 0.3s ease;
+}
+
+.input-container input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
 }
 
 .input-container input::placeholder {
@@ -492,6 +474,146 @@
 .send-button i {
     font-size: 20px;
     transition: all 0.3s ease;
+}
+
+.send-button:disabled {
+    background: linear-gradient(135deg,
+        #444444 0%,
+        #333333 50%,
+        #444444 100%) !important;
+    border-color: #555555 !important;
+    color: #888888 !important;
+    cursor: not-allowed !important;
+    opacity: 0.8 !important;
+    filter: grayscale(50%) !important;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    z-index: 1001;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    background: rgba(0, 255, 0, 0.1);
+    transform: scale(1.1);
+}
+
+/* Light Theme Styles */
+.ai-assistant.light-theme {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #2c3e50;
+}
+
+.ai-assistant.light-theme .close-button,
+.ai-assistant.light-theme .theme-toggle {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #3498db;
+    color: #3498db;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.ai-assistant.light-theme .close-button:hover,
+.ai-assistant.light-theme .theme-toggle:hover {
+    background: rgba(52, 152, 219, 0.1);
+    border-color: #2980b9;
+    color: #2980b9;
+}
+
+.ai-assistant.light-theme .message-bubble {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+    border: 1px solid rgba(52, 152, 219, 0.2);
+    color: #2c3e50;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ai-assistant.light-theme .message.ai .message-bubble.ai-bubble {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.08) 0%, rgba(52, 152, 219, 0.04) 100%) !important;
+    border: 1px solid rgba(52, 152, 219, 0.3) !important;
+    color: #2c3e50 !important;
+    text-shadow: none !important;
+}
+
+.ai-assistant.light-theme .message.ai .message-bubble.ai-bubble p {
+    color: #2c3e50 !important;
+    text-shadow: none !important;
+}
+
+.ai-assistant.light-theme .message.ai .message-bubble.ai-bubble .typing-text {
+    color: #2c3e50 !important;
+    text-shadow: none !important;
+}
+
+.ai-assistant.light-theme .message.ai .message-bubble.ai-bubble .typing-cursor {
+    color: #3498db !important;
+    text-shadow: 0 0 5px rgba(52, 152, 219, 0.5) !important;
+}
+
+.ai-assistant.light-theme .user-bubble {
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.1) 0%, rgba(46, 204, 113, 0.05) 100%);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    color: #2c3e50;
+}
+
+.ai-assistant.light-theme .ai-avatar-small {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+.ai-assistant.light-theme .input-container input {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    color: #2c3e50;
+    text-shadow: none;
+}
+
+.ai-assistant.light-theme .input-container input::placeholder {
+    color: rgba(44, 62, 80, 0.6);
+}
+
+.ai-assistant.light-theme .input-container input:disabled {
+    background: rgba(236, 240, 241, 0.8);
+    border-color: rgba(149, 165, 166, 0.5);
+    color: rgba(149, 165, 166, 0.8);
+}
+
+.ai-assistant.light-theme .send-button {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 50%, #3498db 100%);
+    border-color: #3498db;
+    color: #ffffff;
+}
+
+.ai-assistant.light-theme .send-button:disabled {
+    background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 50%, #bdc3c7 100%) !important;
+    border-color: #95a5a6 !important;
+    color: #7f8c8d !important;
+}
+
+.ai-assistant.light-theme .chat-input {
+    background: rgba(255, 255, 255, 0.9);
+    border-top: 1px solid rgba(52, 152, 219, 0.2);
+}
+
+.ai-assistant.light-theme .menu-options .menu-item {
+    color: #3498db;
+}
+
+.ai-assistant.light-theme .typing-cursor {
+    color: #3498db;
+    text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
 }
 
 /* Removed typing indicator and input hints styles */
@@ -720,7 +842,7 @@
 
     .input-container input:focus,
     .input-container:focus-within {
-        transform: translateY(-2px);
+        /* No animation on focus */
     }
 
     @media (max-width: 768px) and (orientation: portrait) {
@@ -732,8 +854,7 @@
 
         .input-container input:focus,
         .input-container:focus-within {
-            transform: translateY(-5px);
-            margin-bottom: 10px;
+            /* No animation on focus */
         }
     }
 
@@ -744,18 +865,89 @@
     }
 
 @media (max-width: 360px) {
-    .ai-assistant {
-        padding: 2px;
-    }
+.ai-assistant {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    font-family: 'Courier New', 'Monaco', 'Consolas', monospace;
+    background: #000000;
+    overflow: hidden;
+    z-index: 1000;
+    color: #00ff00;
+    animation: matrixRain 20s linear infinite;
+}
 
-    .ai-header {
-        padding: 8px;
-        margin-bottom: 8px;
+@keyframes matrixRain {
+    0% {
+        background-image:
+            repeating-linear-gradient(
+                0deg,
+                rgba(0, 255, 0, 0.03) 0px,
+                rgba(0, 255, 0, 0.03) 1px,
+                transparent 1px,
+                transparent 20px
+            ),
+            repeating-linear-gradient(
+                90deg,
+                rgba(0, 255, 0, 0.02) 0px,
+                rgba(0, 255, 0, 0.02) 1px,
+                transparent 1px,
+                transparent 50px
+            );
+        background-size: 20px 20px, 50px 50px;
     }
+    100% {
+        background-image:
+            repeating-linear-gradient(
+                0deg,
+                rgba(0, 255, 0, 0.03) 20px,
+                rgba(0, 255, 0, 0.03) 21px,
+                transparent 21px,
+                transparent 40px
+            ),
+            repeating-linear-gradient(
+                90deg,
+                rgba(0, 255, 0, 0.02) 50px,
+                rgba(0, 255, 0, 0.02) 51px,
+                transparent 51px,
+                transparent 100px
+            );
+        background-size: 20px 20px, 50px 50px;
+    }
+}
 
-    .ai-info h1 {
-        font-size: 16px;
+.ai-assistant::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(0, 255, 0, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(0, 255, 0, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 60% 10%, rgba(0, 255, 0, 0.06) 0%, transparent 50%);
+    animation: glowShift 15s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes glowShift {
+    0% {
+        opacity: 0.3;
+        transform: scale(1);
     }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+}
 
     .ai-info p {
         font-size: 12px;
@@ -831,6 +1023,44 @@ document.addEventListener('DOMContentLoaded', function() {
     setVH();
     window.addEventListener('resize', setVH);
     window.addEventListener('orientationchange', setVH);
+});
+
+// Global state to track AI typing and theme
+let isAITyping = false;
+let currentTheme = 'dark'; // 'dark' or 'light'
+
+// Theme toggle function
+function toggleTheme() {
+    const aiAssistant = document.querySelector('.ai-assistant');
+    const themeToggle = document.querySelector('.theme-toggle');
+    const themeIcon = themeToggle.querySelector('i');
+
+    if (currentTheme === 'dark') {
+        // Switch to light theme
+        currentTheme = 'light';
+        aiAssistant.classList.add('light-theme');
+        themeIcon.className = 'fas fa-moon';
+        themeToggle.title = 'Switch to Dark Theme';
+        // Save preference to localStorage
+        localStorage.setItem('ai-chat-theme', 'light');
+    } else {
+        // Switch to dark theme
+        currentTheme = 'dark';
+        aiAssistant.classList.remove('light-theme');
+        themeIcon.className = 'fas fa-sun';
+        themeToggle.title = 'Switch to Light Theme';
+        // Save preference to localStorage
+        localStorage.setItem('ai-chat-theme', 'dark');
+    }
+}
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Load saved theme preference
+    const savedTheme = localStorage.getItem('ai-chat-theme');
+    if (savedTheme === 'light') {
+        toggleTheme(); // This will switch from dark to light
+    }
 });
 
 // Handle menu selection by number
@@ -1608,19 +1838,47 @@ function sendMessage() {
         },
         body: JSON.stringify({ message: message })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
-        hideTyping();
-        if (data.success) {
-            addMessage(data.response + getMenuText(), 'ai');
-        } else {
-            addMessage('Sorry, I encountered an error. Please try again.' + getMenuText(), 'ai');
+        try {
+            // Handle successful AI response
+            if (data && data.success && data.response && typeof data.response === 'string') {
+                const aiResponse = data.response.trim();
+                if (aiResponse) {
+                    // Add the AI response with menu options
+                    addMessage(aiResponse + getMenuText(), 'ai');
+                } else {
+                    addMessage('I received an empty response. Please try asking your question again.' + getMenuText(), 'ai');
+                }
+            } else {
+                // Handle invalid or missing response data
+                console.warn('Invalid AI response format:', data);
+                addMessage('I\'m having trouble understanding the response. Please try again.' + getMenuText(), 'ai');
+            }
+        } catch (parseError) {
+            console.error('Error processing AI response:', parseError);
+            addMessage('There was an error processing the response. Please try again.' + getMenuText(), 'ai');
         }
     })
     .catch(error => {
-        hideTyping();
         console.error('AI chat error:', error);
-        addMessage('Sorry, I\'m having trouble connecting right now. Please try again later.' + getMenuText(), 'ai');
+        let errorMessage = 'Sorry, I\'m having trouble connecting right now. ';
+
+        if (error.message.includes('HTTP error')) {
+            errorMessage += 'The server returned an error. ';
+        } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            errorMessage += 'Please check your internet connection. ';
+        } else {
+            errorMessage += 'An unexpected error occurred. ';
+        }
+
+        errorMessage += 'Please try again later.' + getMenuText();
+        addMessage(errorMessage, 'ai');
     });
 }
 
@@ -1690,25 +1948,94 @@ function addMessage(text, type) {
 function typeText(messageDiv, fullText) {
     const textElement = messageDiv.querySelector('.typing-text');
     const cursorElement = messageDiv.querySelector('.typing-cursor');
+    const messageBubble = messageDiv.querySelector('.message-bubble');
     let currentIndex = 0;
-    let typingSpeed = 25; // milliseconds per character
     let currentText = '';
+    let glitchChars = '!@#$%^&*()[]{}|;:,.<>?ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-    // Start cursor blinking
-    const blinkInterval = setInterval(() => {
-        if (cursorElement) {
-            cursorElement.style.opacity = cursorElement.style.opacity === '0' ? '1' : '0';
+    // Set AI typing flag and disable input
+    isAITyping = true;
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
+    if (chatInput) chatInput.disabled = true;
+    if (sendButton) sendButton.disabled = true;
+
+    // Add typing glow effect to message bubble
+    if (messageBubble) {
+        messageBubble.classList.add('typing-active');
+    }
+
+    // Create faster typing variations
+    function getTypingSpeed(char) {
+        if (char === ' ' || char === '\n' || char === '\t') {
+            return 25 + Math.random() * 20; // Faster for whitespace
+        } else if (char.match(/[a-z]/)) {
+            return 15 + Math.random() * 15; // Fast for lowercase
+        } else if (char.match(/[A-Z]/)) {
+            return 20 + Math.random() * 15; // Medium-fast for uppercase
+        } else if (char.match(/[0-9]/)) {
+            return 12 + Math.random() * 10; // Very fast for numbers
+        } else {
+            return 10 + Math.random() * 8; // Fastest for symbols
         }
-    }, 530);
+    }
+
+    // Faster cursor animation
+    const cursorChars = ['|', '/', '-', '\\', '█', '▊', '▌', '▍', '▎', '▏'];
+    let cursorIndex = 0;
+    const cursorInterval = setInterval(() => {
+        if (cursorElement) {
+            cursorElement.textContent = cursorChars[cursorIndex % cursorChars.length];
+            cursorIndex++;
+
+            // Random cursor color changes for hacker effect (less frequent)
+            if (Math.random() < 0.05) {
+                const colors = ['#00ff00', '#ff0000', '#ffff00', '#00ffff', '#ff00ff'];
+                cursorElement.style.color = colors[Math.floor(Math.random() * colors.length)];
+                cursorElement.style.textShadow = `0 0 10px ${cursorElement.style.color}`;
+                setTimeout(() => {
+                    cursorElement.style.color = '#00ff00';
+                    cursorElement.style.textShadow = '0 0 5px #00ff00';
+                }, 50);
+            }
+        }
+    }, 80); // Much faster cursor animation
 
     function typeCharacter() {
         if (currentIndex < fullText.length) {
-            // Add next character
             const char = fullText[currentIndex];
-            currentText += char;
 
-            // Update the display
+            // Always add the correct character to current text
+            currentText += char;
             textElement.innerHTML = escapeHtml(currentText);
+
+            // Visual glitch effects (don't modify actual text)
+            if (Math.random() < 0.08 && currentIndex > 5) { // 8% chance after first few chars
+                // Screen shake effect
+                const container = document.getElementById('chatMessages');
+                if (container) {
+                    container.style.transform = `translateX(${Math.random() * 2 - 1}px)`;
+                    setTimeout(() => {
+                        container.style.transform = 'translateX(0)';
+                    }, 50);
+                }
+
+                // Brief text color flash for glitch effect
+                textElement.style.textShadow = '0 0 20px #ff0000, 0 0 40px #ff0000';
+                setTimeout(() => {
+                    textElement.style.textShadow = '0 0 5px rgba(0, 255, 0, 0.5)';
+                }, 100);
+
+            } else if (Math.random() < 0.03 && currentIndex > 3) { // 3% chance for brief flash
+                // Brief color flash effect
+                textElement.style.color = '#ffff00';
+                textElement.style.textShadow = '0 0 15px #ffff00';
+
+                setTimeout(() => {
+                    textElement.style.color = '#00ff00';
+                    textElement.style.textShadow = '0 0 5px rgba(0, 255, 0, 0.5)';
+                }, 40);
+            }
 
             currentIndex++;
 
@@ -1718,23 +2045,49 @@ function typeText(messageDiv, fullText) {
                 container.scrollTop = container.scrollHeight;
             }
 
-            // Continue typing with slight random variation for realism
-            const randomDelay = Math.random() * 10 - 5; // -5 to +5 ms variation
-            setTimeout(typeCharacter, typingSpeed + randomDelay);
+            // Continue typing with realistic speed variations
+            const typingSpeed = getTypingSpeed(char);
+            setTimeout(typeCharacter, typingSpeed);
+
         } else {
-            // Typing complete - stop blinking and hide cursor
-            clearInterval(blinkInterval);
+            // Typing complete - simple cursor fade
+            clearInterval(cursorInterval);
             if (cursorElement) {
                 cursorElement.style.opacity = '0';
                 setTimeout(() => {
                     cursorElement.style.display = 'none';
+                }, 300);
+            }
+
+            // Remove typing glow effect
+            if (messageBubble) {
+                setTimeout(() => {
+                    messageBubble.classList.remove('typing-active');
                 }, 500);
             }
+
+            // Re-enable input after AI finishes typing
+            setTimeout(() => {
+                isAITyping = false;
+                const chatInput = document.getElementById('chatInput');
+                const sendButton = document.getElementById('sendButton');
+                if (chatInput) chatInput.disabled = false;
+                if (sendButton) sendButton.disabled = false;
+            }, 600);
         }
     }
 
-    // Start typing animation with a slight delay
-    setTimeout(typeCharacter, 300);
+    // Start typing animation with hacker-style initialization
+    setTimeout(() => {
+        // Initial system beep effect (visual)
+        if (cursorElement) {
+            cursorElement.style.textShadow = '0 0 30px #00ff00, 0 0 60px #00ff00';
+            setTimeout(() => {
+                cursorElement.style.textShadow = '0 0 5px #00ff00';
+            }, 200);
+        }
+        typeCharacter();
+    }, 400);
 }
 
 /* Removed showTyping() and hideTyping() functions */
