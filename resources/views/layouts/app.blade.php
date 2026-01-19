@@ -3141,10 +3141,6 @@
                 </button>
             </div>
             @endauth
-            <!-- Theme toggle button for all visitors -->
-            <button type="button" class="header-theme-btn" onclick="toggleTheme()" title="Toggle Theme">
-                <i class="fas fa-moon" id="theme-icon"></i>
-            </button>
             <div class="nav-links">
                 @auth
                 <a href="{{ route('home') }}"><i class="fas fa-home"></i>Home</a>
