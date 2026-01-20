@@ -445,28 +445,10 @@ function toggleReplyForm(commentId) {
         `;
     }
 
-    showNotification(message) {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.innerHTML = `
-            <div class="notification-content">
-                <i class="fas fa-bell"></i>
-                <span>${message}</span>
-            </div>
-        `;
-
-        // Add to page
-        document.body.appendChild(notification);
-
-        // Show with animation
-        setTimeout(() => notification.classList.add('show'), 100);
-
-        // Remove after 5 seconds
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 5000);
+    showNotification(message, isError = false) {
+        // Skip showing notifications to avoid conflicts
+        console.log('RealTime notification:', message, isError ? 'error' : 'info');
+        // Notifications are handled by the main application
     }
 
     // Cleanup method
@@ -1086,53 +1068,49 @@ function toggleBlock(buttonElement) {
     });
 }
 
-// Delete a post
-function deletePost(postId, buttonElement) {
-    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+function deletePost(postSlug, button) {
+    if (!confirm('Are you sure you want to delete this post?')) {
+        return;
+    }
+
+    const postId = button.closest('.post').dataset.postId;
+    const postElement = document.getElementById('post-' + postId);
+
+    if (!postElement) {
+        alert('Could not find the post to delete. Please refresh the page.');
         return;
     }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    // Disable button during deletion
-    buttonElement.disabled = true;
-    buttonElement.textContent = 'Deleting...';
+    // Add loading state
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    button.disabled = true;
 
-    fetch(`/posts/${postId}`, {
-        method: 'POST',
+    fetch(`/posts/${postSlug}`, {
+        method: 'DELETE',
         headers: {
-            'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken,
-            'X-HTTP-Method-Override': 'DELETE',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
         }
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('Post deleted successfully');
-            // Remove the post from the UI
-            const postElement = document.querySelector(`[data-post-id="${postId}"]`);
-            if (postElement) {
-                postElement.remove();
-            }
+            postElement.remove();
+            showNotification('Post deleted successfully!', 'success');
         } else {
-            console.error('Post deletion failed');
-            if (window.realTimeManager) {
-                window.realTimeManager.showNotification('Failed to delete post', true);
-            }
+            alert(data.message || 'Failed to delete post.');
         }
     })
     .catch(error => {
-        console.error('Error deleting post:', error);
-        if (window.realTimeManager) {
-            window.realTimeManager.showNotification('Failed to delete post', true);
-        }
+        alert('An error occurred while deleting the post.');
     })
     .finally(() => {
-        // Re-enable button
-        buttonElement.disabled = false;
-        buttonElement.textContent = 'Delete';
+        button.innerHTML = originalHTML;
+        button.disabled = false;
     });
 }
 

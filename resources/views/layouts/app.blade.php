@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#1D9BF0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Laravel Social">
+    <meta name="format-detection" content="telephone=no">
     <title>@yield('title', 'Laravel Social')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="current-user-id" content="{{ auth()->id() }}">
@@ -158,6 +163,83 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            width: 100%;
+            max-width: 100vw;
+        }
+
+        /* Prevent horizontal overflow on all elements */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Ensure html and body don't exceed viewport */
+        html, body {
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Force all content to fit within viewport */
+        .app-layout {
+            max-width: 100vw !important;
+            width: 100% !important;
+            overflow-x: hidden !important;
+        }
+
+        .main-content {
+            max-width: 100% !important;
+            width: 100% !important;
+            overflow-x: hidden !important;
+        }
+
+        /* Prevent any element from causing horizontal scroll */
+        * {
+            box-sizing: border-box;
+            max-width: 100%;
+        }
+
+        /* Specific fixes for common overflow causes */
+        .nav-links {
+            max-width: 90vw;
+            width: 90vw;
+        }
+
+        .notifications-dropdown-content {
+            max-width: 95vw;
+            width: 95vw;
+        }
+
+        .post {
+            max-width: 100%;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        .media-grid {
+            max-width: 100%;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        /* Ensure images never overflow */
+        img, video {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+
+        /* Force word wrapping to prevent overflow */
+        .post .content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+
+        /* Ensure no element has negative margins or positioning that could cause overflow */
+        [style*="margin-left"], [style*="left"] {
+            max-width: 100% !important;
         }
 
         /* Light theme body styling - exclude auth pages */
@@ -180,6 +262,10 @@
             top: 0;
             z-index: 1000;
             box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .nav {
@@ -188,6 +274,171 @@
             align-items: center;
             max-width: 1200px;
             margin: 0 auto;
+            position: relative;
+        }
+
+        .mobile-menu-toggle {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--twitter-gray);
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            margin-left: 8px;
+            position: relative;
+            z-index: 1001;
+            /* Ensure it's always visible on mobile */
+            order: 999;
+        }
+
+        .mobile-menu-toggle:hover {
+            background-color: var(--twitter-light);
+            color: var(--twitter-dark);
+        }
+
+        .mobile-menu-toggle:active {
+            transform: scale(0.95);
+        }
+
+        /* Simple Header Username Button */
+        .header-username-btn {
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--twitter-dark);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .header-username-btn:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .header-username {
+            font-weight: 500;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
+        }
+
+        /* Mobile styling */
+        @media (max-width: 768px) {
+            .admin-link {
+                margin-left: 8px !important;
+            }
+
+            .header-theme-btn {
+                margin-left: 16px !important;
+            }
+
+            .header-notification-btn {
+                margin-left: 12px !important;
+            }
+
+            .header-username-btn {
+                padding: 10px 16px;
+                font-size: 15px;
+            }
+
+            .header-username {
+                font-size: 15px;
+                max-width: 120px;
+            }
+        }
+
+        /* Force mobile menu toggle to be visible on very small screens */
+        @media (max-width: 480px) {
+            .mobile-menu-toggle {
+                position: absolute;
+                right: 8px;
+                top: 50%;
+                transform: translateY(-50%);
+                margin-left: 0;
+                order: unset;
+            }
+
+            /* Username button specific styling - ensure it's always visible */
+            .mobile-username-btn {
+                background: var(--card-bg) !important;
+                border: 1px solid var(--border-color) !important;
+                border-radius: 20px !important;
+                padding: 8px 14px !important;
+                font-size: 14px !important;
+                font-weight: 600 !important;
+                color: var(--twitter-dark) !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 6px !important;
+                min-width: 90px !important;
+                max-width: 140px !important;
+                justify-content: center !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+                transition: all 0.2s ease !important;
+                cursor: pointer !important;
+                position: relative !important;
+                z-index: 1001 !important;
+            }
+
+            /* Static button - no hover effects */
+
+            .mobile-username {
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                max-width: 100px !important;
+                font-size: 13px !important;
+                font-weight: 600 !important;
+            }
+
+            .mobile-menu-arrow {
+                font-size: 12px !important;
+                transition: transform 0.2s ease !important;
+                flex-shrink: 0 !important;
+            }
+
+            .mobile-username-btn:hover .mobile-menu-arrow {
+                transform: rotate(180deg) !important;
+            }
+
+            /* Ensure header has enough height for the toggle */
+            .header {
+                min-height: 56px;
+                position: relative;
+            }
+
+            /* Hide user avatar on small screens to free up space */
+            .user-avatar-container {
+                display: none !important;
+            }
+        }
+
+        /* On very small screens, make sure nothing hides the toggle */
+        @media (max-width: 320px) {
+            .mobile-menu-toggle {
+                right: 4px;
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .header {
+                min-height: 52px;
+            }
         }
 
         .logo {
@@ -195,18 +446,27 @@
             font-weight: bold;
             color: var(--twitter-blue);
             text-decoration: none;
+            flex-shrink: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
         .user-name {
             font-size: 16px;
             font-weight: 600;
             color: var(--twitter-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
         }
 
         .admin-link {
@@ -538,21 +798,22 @@
             color: var(--twitter-gray);
         }
 
-        /* Responsive design - Perfect centering for all screen sizes */
+        /* Enhanced Responsive Design - Perfect for all screen sizes */
+
+        /* Desktop and Large Screens (1025px+) */
         @media (min-width: 1025px) {
-            /* All laptops and desktops - perfect centering system */
             .app-layout {
                 display: grid;
-                grid-template-columns: 250px 1fr 250px;
-                gap: 25px;
+                grid-template-columns: 260px 1fr 280px;
+                gap: 30px;
                 max-width: 1400px;
                 margin: 0 auto;
-                padding: 25px;
+                padding: 30px;
                 place-items: start;
             }
 
             .left-sidebar {
-                width: 250px;
+                width: 260px;
                 grid-column: 1;
             }
 
@@ -560,10 +821,11 @@
                 width: 100%;
                 max-width: none;
                 grid-column: 2;
+                min-width: 0; /* Allow flex shrinking */
             }
 
             .right-sidebar {
-                width: 250px;
+                width: 280px;
                 grid-column: 3;
             }
         }
@@ -571,13 +833,32 @@
         /* Ultra-wide monitors (1921px+) */
         @media (min-width: 1921px) {
             .app-layout {
-                gap: 30px;
-                padding: 30px;
+                gap: 40px;
+                padding: 40px;
+                max-width: 1600px;
             }
 
             .left-sidebar, .right-sidebar {
                 width: 320px;
                 max-width: 320px;
+                min-width: 260px;
+            }
+
+            .main-content {
+                max-width: 1000px;
+            }
+        }
+
+        /* Large monitors (1441px-1920px) */
+        @media (max-width: 1920px) and (min-width: 1441px) {
+            .app-layout {
+                gap: 30px;
+                padding: 30px;
+            }
+
+            .left-sidebar, .right-sidebar {
+                width: 280px;
+                max-width: 280px;
                 min-width: 240px;
             }
 
@@ -586,30 +867,12 @@
             }
         }
 
-        /* Large monitors (1441px-1920px) */
-        @media (max-width: 1920px) and (min-width: 1441px) {
-            .app-layout {
-                gap: 25px;
-                padding: 25px;
-            }
-
-            .left-sidebar, .right-sidebar {
-                width: 300px;
-                max-width: 300px;
-                min-width: 220px;
-            }
-
-            .main-content {
-                max-width: 850px;
-            }
-        }
-
         /* Standard large laptops (1281px-1440px) */
         @media (max-width: 1440px) and (min-width: 1281px) {
             .left-sidebar, .right-sidebar {
-                width: 260px;
-                max-width: 260px;
-                min-width: 200px;
+                width: 250px;
+                max-width: 250px;
+                min-width: 220px;
             }
 
             .main-content {
@@ -622,7 +885,7 @@
             .left-sidebar, .right-sidebar {
                 width: 240px;
                 max-width: 240px;
-                min-width: 180px;
+                min-width: 200px;
             }
 
             .main-content {
@@ -631,14 +894,14 @@
             }
         }
 
+        /* Tablets and Small Laptops (769px-1024px) */
         @media (max-width: 1024px) and (min-width: 769px) {
-            /* Smaller laptops and tablets - full width centering */
             .app-layout {
-                grid-template-columns: 60px 1fr 100px;
+                grid-template-columns: 60px 1fr 120px;
                 gap: 20px;
                 max-width: 95vw;
                 margin: 0 auto;
-                padding: 16px;
+                padding: 20px;
             }
 
             .left-sidebar {
@@ -646,23 +909,21 @@
             }
 
             .right-sidebar {
-                width: 100px;
+                width: 120px;
             }
         }
 
-        @media (max-width: 1024px) {
-            /* Standard tablets and smaller laptops */
+        /* Mobile and Small Tablets (481px-768px) */
+        @media (max-width: 768px) and (min-width: 481px) {
             .app-layout {
                 grid-template-columns: 1fr;
                 gap: 0;
-                max-width: 900px;
+                max-width: 100vw;
                 padding: 16px;
+                margin: 0;
             }
 
-            .left-sidebar {
-                display: none;
-            }
-
+            .left-sidebar,
             .right-sidebar {
                 display: none;
             }
@@ -670,93 +931,195 @@
             .main-content {
                 max-width: none;
                 margin: 0;
+                width: 100%;
             }
         }
 
-        @media (max-width: 900px) {
+        /* Small Mobile (376px-480px) */
+        @media (max-width: 480px) and (min-width: 376px) {
             .app-layout {
                 grid-template-columns: 1fr;
                 gap: 0;
                 padding: 12px;
+                margin: 0;
+                max-width: 100vw;
             }
 
-            .main-content {
-                max-width: 600px;
-                margin: 0 auto;
-            }
-        }
-
-        /* Mobile specific improvements */
-        @media (max-width: 768px) {
-            .header {
-                padding: 8px 16px;
-            }
-
-            .nav {
-                max-width: none;
-            }
-
-            .logo {
-                font-size: 18px;
-            }
-
-            .user-info {
-                gap: 8px;
-            }
-
-            .user-name {
-                display: block; /* Show username on mobile screens */
-            }
-
-            /* Admin link moved to mobile menu */
-
-            .app-layout {
-                padding: 8px;
+            .left-sidebar,
+            .right-sidebar {
+                display: none;
             }
 
             .main-content {
                 max-width: none;
                 margin: 0;
+                width: 100%;
+            }
+        }
+
+        /* Extra Small Mobile (321px-375px) */
+        @media (max-width: 375px) and (min-width: 321px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+                gap: 0;
+                padding: 8px;
+                margin: 0;
+                max-width: 100vw;
             }
 
-            /* Improve post spacing on mobile */
-            .post {
-                margin-bottom: 8px;
-                border-radius: 12px;
+            .left-sidebar,
+            .right-sidebar {
+                display: none;
+            }
+
+            .main-content {
+                max-width: none;
+                margin: 0;
+                width: 100%;
+            }
+        }
+
+        /* iPhone SE and Very Small Phones (up to 320px) */
+        @media (max-width: 320px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+                gap: 0;
+                padding: 6px;
+                margin: 0;
+                max-width: 100vw;
+            }
+
+            .left-sidebar,
+            .right-sidebar {
+                display: none;
+            }
+
+            .main-content {
+                max-width: none;
+                margin: 0;
+                width: 100%;
+            }
+        }
+
+        /* Enhanced Mobile Responsiveness */
+
+        /* Large Mobile (481px-768px) */
+        @media (max-width: 768px) and (min-width: 481px) {
+            .header {
+                padding: 10px 16px;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            .nav {
+                max-width: none;
+                align-items: center;
+            }
+
+            .logo {
+                font-size: 20px;
+                font-weight: 700;
+            }
+
+            .user-info {
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .user-name {
+                font-size: 15px;
+                font-weight: 600;
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .mobile-menu-toggle {
+                width: 42px;
+                height: 42px;
+                font-size: 18px;
+            }
+
+            .app-layout {
                 padding: 12px;
+                margin: 0;
+            }
+
+            .main-content {
+                max-width: none;
+                margin: 0;
+                width: 100%;
+            }
+
+            /* Post improvements for large mobile */
+            .post {
+                margin-bottom: 12px;
+                border-radius: 16px;
+                padding: 16px;
+                border: 1px solid var(--border-color);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            }
+
+            .post:hover {
+                box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+                transform: translateY(-1px);
             }
 
             /* Better button sizing */
             .btn {
-                padding: 6px 12px;
-                font-size: 13px;
-                min-height: 32px;
+                padding: 10px 16px;
+                font-size: 14px;
+                min-height: 44px; /* iOS touch target */
+                font-weight: 600;
+                border-radius: 22px;
             }
 
-            /* Improve form inputs */
+            /* Form improvements */
             .form-group input,
             .form-group textarea {
-                padding: 10px 12px;
+                padding: 14px 16px;
                 font-size: 16px; /* Prevents zoom on iOS */
+                border-radius: 12px;
+                border: 2px solid var(--border-color);
             }
 
-            /* Better navigation on mobile */
+            .form-group textarea {
+                min-height: 80px;
+            }
+
+            /* Mobile navigation */
+            .nav-links {
+                min-width: 320px;
+                max-width: 400px;
+                padding: 24px 0;
+            }
+
+            .nav-links a {
+                padding: 14px 20px;
+                font-size: 16px;
+                font-weight: 500;
+            }
+
+            /* Bottom navigation for mobile */
             .nav-sidebar {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
                 top: auto;
-                background: white;
-                border-top: 1px solid var(--border-color);
-                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                background: var(--card-bg);
+                border-top: 2px solid var(--border-color);
+                box-shadow: 0 -4px 16px rgba(0,0,0,0.15);
                 z-index: 1000;
-                padding: 8px 0;
-                height: auto;
+                padding: 10px 0;
+                height: 70px;
                 display: flex;
                 flex-direction: row;
                 gap: 0;
                 justify-content: space-around;
+                backdrop-filter: blur(10px);
             }
 
             .nav-item {
@@ -764,138 +1127,21 @@
                 flex-direction: column;
                 gap: 4px;
                 padding: 8px 4px;
-                min-height: 60px;
-                font-size: 10px;
-                border-radius: 8px;
-                margin: 0 2px;
-            }
-
-            .nav-item span {
-                font-size: 10px;
-            }
-
-            .nav-item i {
-                font-size: 20px;
-            }
-
-            .compose-btn {
-                display: none; /* Hide compose button on mobile bottom nav */
-            }
-
-            .user-profile-card {
-                display: none; /* Hide user profile card on mobile */
-            }
-
-            /* Mobile post form improvements */
-            .post-form-container {
-                background: var(--twitter-light);
-                border: 1px solid var(--border-color);
+                min-height: 50px;
+                font-size: 11px;
                 border-radius: 12px;
-                padding: 12px;
-                margin-bottom: 16px;
-            }
-
-            .post-form-container .form-group textarea {
-                min-height: 60px;
-            }
-
-            /* Add bottom padding for mobile navigation */
-            .main-content {
-                padding-bottom: 80px; /* Space for bottom nav */
-            }
-
-
-
-            /* Mobile story improvements */
-            .stories-container {
-                padding: 8px 0;
-                gap: 8px;
-            }
-
-            .story-item {
-                width: 56px;
-            }
-
-            .story-avatar {
-                width: 56px;
-                height: 56px;
-            }
-
-            .story-preview {
-                width: 48px;
-                height: 48px;
-                top: 4px;
-                left: 4px;
-            }
-
-            /* Mobile navigation sidebar theme fixes */
-            .nav-sidebar {
-                background: var(--card-bg);
-                border-top: 1px solid var(--border-color);
-            }
-
-            .nav-item {
-                color: var(--twitter-dark);
+                margin: 0 3px;
+                transition: all 0.2s ease;
             }
 
             .nav-item:hover {
                 background-color: var(--hover-bg);
-                color: var(--twitter-blue);
+                transform: translateY(-2px);
             }
 
-            .user-profile-card {
-                background: var(--card-bg);
-                border: 1px solid var(--border-color);
-            }
-
-            .user-profile-card .user-info {
-                color: var(--twitter-dark);
-            }
-
-            .user-profile-card .user-handle {
-                color: var(--twitter-gray);
-            }
-        }
-
-        /* Very small mobile screens */
-        @media (max-width: 480px) {
-            .header {
-                padding: 6px 12px;
-            }
-
-            .logo {
-                font-size: 16px;
-            }
-
-            .user-avatar-small {
-                width: 28px;
-                height: 28px;
-            }
-
-            .mobile-menu-toggle {
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-            }
-
-            .app-layout {
-                padding: 4px;
-            }
-
-            .post {
-                padding: 8px;
-                margin-bottom: 6px;
-            }
-
-            .btn {
-                padding: 5px 10px;
-                font-size: 12px;
-                min-height: 30px;
-            }
-
-            .nav-item {
-                padding: 6px 2px;
-                min-height: 50px;
+            .nav-item.active {
+                background-color: var(--twitter-blue);
+                color: white;
             }
 
             .nav-item i {
@@ -904,6 +1150,458 @@
 
             .nav-item span {
                 font-size: 9px;
+                font-weight: 500;
+            }
+
+            .compose-btn {
+                display: none;
+            }
+
+            .user-profile-card {
+                display: none;
+            }
+
+            /* Content spacing for bottom nav */
+            .main-content {
+                padding-bottom: 90px;
+            }
+
+            /* Story improvements */
+            .stories-container {
+                padding: 12px 0;
+                gap: 12px;
+                overflow-x: auto;
+            }
+
+            .story-item {
+                width: 64px;
+                flex-shrink: 0;
+            }
+
+            .story-avatar {
+                width: 64px;
+                height: 64px;
+                border: 3px solid var(--twitter-blue);
+            }
+
+            .story-preview {
+                width: 56px;
+                height: 56px;
+                top: 4px;
+                left: 4px;
+            }
+
+            /* Theme fixes */
+            .nav-sidebar {
+                background: var(--card-bg);
+                border-top: 2px solid var(--border-color);
+            }
+
+            .nav-item {
+                color: var(--twitter-dark);
+            }
+        }
+
+        /* Standard Mobile (376px-480px) */
+        @media (max-width: 480px) and (min-width: 376px) {
+            .header {
+                padding: 8px 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+
+            .logo {
+                font-size: 18px;
+                font-weight: 700;
+            }
+
+            .user-name {
+                font-size: 14px;
+                max-width: 100px;
+            }
+
+            .mobile-menu-toggle {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .app-layout {
+                padding: 8px;
+                margin: 0;
+            }
+
+            .main-content {
+                max-width: none;
+                margin: 0;
+                width: 100%;
+            }
+
+            .post {
+                margin-bottom: 10px;
+                padding: 14px;
+                border-radius: 14px;
+            }
+
+            .btn {
+                padding: 8px 14px;
+                font-size: 13px;
+                min-height: 42px;
+                border-radius: 20px;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                padding: 12px 14px;
+                font-size: 16px;
+                border-radius: 10px;
+            }
+
+            .nav-links {
+                min-width: 300px;
+                max-width: 360px;
+                padding: 20px 0;
+            }
+
+            .nav-links a {
+                padding: 12px 18px;
+                font-size: 15px;
+            }
+
+            .nav-sidebar {
+                height: 65px;
+                padding: 8px 0;
+            }
+
+            .nav-item {
+                padding: 6px 3px;
+                min-height: 45px;
+                font-size: 10px;
+            }
+
+            .nav-item i {
+                font-size: 16px;
+            }
+
+            .nav-item span {
+                font-size: 8px;
+            }
+
+            .main-content {
+                padding-bottom: 80px;
+            }
+
+            .stories-container {
+                padding: 10px 0;
+                gap: 10px;
+            }
+
+            .story-item {
+                width: 58px;
+            }
+
+            .story-avatar {
+                width: 58px;
+                height: 58px;
+            }
+
+            .story-preview {
+                width: 50px;
+                height: 50px;
+                top: 4px;
+                left: 4px;
+            }
+        }
+
+        /* Small Mobile (321px-375px) */
+        @media (max-width: 375px) and (min-width: 321px) {
+            .header {
+                padding: 6px 10px;
+            }
+
+            .logo {
+                font-size: 16px;
+            }
+
+            .user-name {
+                font-size: 13px;
+                max-width: 80px;
+            }
+
+            .mobile-menu-toggle {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+
+            .app-layout {
+                padding: 6px;
+                margin: 0;
+            }
+
+            .post {
+                margin-bottom: 8px;
+                padding: 12px;
+                border-radius: 12px;
+            }
+
+            .btn {
+                padding: 7px 12px;
+                font-size: 12px;
+                min-height: 40px;
+                border-radius: 18px;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                padding: 10px 12px;
+                font-size: 16px;
+                border-radius: 8px;
+            }
+
+            .nav-links {
+                min-width: 280px;
+                max-width: 340px;
+                padding: 18px 0;
+            }
+
+            .nav-links a {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+
+            .nav-sidebar {
+                height: 60px;
+                padding: 6px 0;
+            }
+
+            .nav-item {
+                padding: 5px 2px;
+                min-height: 40px;
+                font-size: 9px;
+            }
+
+            .nav-item i {
+                font-size: 15px;
+            }
+
+            .nav-item span {
+                font-size: 7px;
+            }
+
+            .main-content {
+                padding-bottom: 75px;
+            }
+
+            .stories-container {
+                padding: 8px 0;
+                gap: 8px;
+            }
+
+            .story-item {
+                width: 52px;
+            }
+
+            .story-avatar {
+                width: 52px;
+                height: 52px;
+            }
+
+            .story-preview {
+                width: 44px;
+                height: 44px;
+                top: 4px;
+                left: 4px;
+            }
+        }
+
+        /* Very Small Mobile (up to 320px) */
+        @media (max-width: 320px) {
+            .header {
+                padding: 4px 8px;
+            }
+
+            .logo {
+                font-size: 14px;
+            }
+
+            .user-name {
+                font-size: 12px;
+                max-width: 70px;
+            }
+
+            .mobile-menu-toggle {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .app-layout {
+                padding: 4px;
+                margin: 0;
+            }
+
+            .post {
+                margin-bottom: 6px;
+                padding: 10px;
+                border-radius: 10px;
+            }
+
+            .btn {
+                padding: 6px 10px;
+                font-size: 11px;
+                min-height: 38px;
+                border-radius: 16px;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                padding: 8px 10px;
+                font-size: 16px;
+                border-radius: 6px;
+            }
+
+            .nav-links {
+                min-width: 260px;
+                max-width: 320px;
+                padding: 16px 0;
+            }
+
+            .nav-links a {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+
+            .nav-sidebar {
+                height: 55px;
+                padding: 4px 0;
+            }
+
+            .nav-item {
+                padding: 4px 2px;
+                min-height: 35px;
+                font-size: 8px;
+            }
+
+            .nav-item i {
+                font-size: 14px;
+            }
+
+            .nav-item span {
+                font-size: 6px;
+            }
+
+            .main-content {
+                padding-bottom: 70px;
+            }
+
+            .stories-container {
+                padding: 6px 0;
+                gap: 6px;
+            }
+
+            .story-item {
+                width: 48px;
+            }
+
+            .story-avatar {
+                width: 48px;
+                height: 48px;
+            }
+
+            .story-preview {
+                width: 40px;
+                height: 40px;
+                top: 4px;
+                left: 4px;
+            }
+        }
+
+        /* Landscape orientation fixes */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .header {
+                padding: 4px 8px;
+            }
+
+            .nav-sidebar {
+                height: 50px;
+                padding: 3px 0;
+            }
+
+            .nav-item {
+                min-height: 30px;
+                padding: 3px 1px;
+            }
+
+            .nav-item i {
+                font-size: 12px;
+            }
+
+            .nav-item span {
+                font-size: 6px;
+            }
+
+            .main-content {
+                padding-bottom: 60px;
+            }
+
+            .post {
+                padding: 8px;
+                margin-bottom: 4px;
+            }
+
+            .btn {
+                padding: 4px 8px;
+                min-height: 32px;
+                font-size: 11px;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .btn {
+                min-height: 44px; /* iOS Human Interface Guidelines */
+                min-width: 44px;
+            }
+
+            .nav-item {
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            .mobile-menu-toggle {
+                min-width: 44px;
+                min-height: 44px;
+            }
+
+            .header-theme-btn,
+            .header-notification-btn {
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .btn {
+                border: 2px solid currentColor;
+            }
+
+            .nav-links a:hover {
+                outline: 2px solid currentColor;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .btn:hover,
+            .nav-item:hover,
+            .header-theme-btn:hover,
+            .header-notification-btn:hover {
+                transform: none;
+            }
+
+            .post:hover {
+                transform: none;
             }
         }
 
@@ -3181,20 +3879,15 @@
                     <span>Admin</span>
                 </a>
                 @endif
-                <span class="user-name">{{ auth()->user()->name }}</span>
-                @if(auth()->user()->profile && auth()->user()->profile->avatar)
-                    <img src="{{ asset('storage/' . auth()->user()->profile->avatar) }}" alt="Your avatar" class="user-avatar-small" loading="lazy">
-                @else
-                    <div class="user-avatar-small user-avatar-placeholder">
-                        <i class="fas fa-user"></i>
-                    </div>
-                @endif
                 <button type="button" class="header-theme-btn" onclick="toggleTheme()" title="Toggle Theme">
                     <i class="fas fa-moon" id="theme-icon"></i>
                 </button>
                 <button type="button" class="header-notification-btn" onclick="toggleNotificationsDropdown()" title="Notifications">
                     <i class="fas fa-bell"></i>
                     <span class="notification-badge" id="header-notification-badge" style="display: none;">0</span>
+                </button>
+                <button class="header-username-btn" onclick="toggleMobileMenu()" title="Menu">
+                    <span class="header-username">{{ auth()->user()->name }}</span>
                 </button>
             </div>
             @endauth
@@ -3219,30 +3912,16 @@
                 @endauth
             </div>
 
-            @guest
-            <button type="button" class="guest-header-theme-btn" onclick="toggleTheme()" title="Toggle Theme" style="
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 44px;
-                height: 44px;
-                background: none;
-                border: none;
-                font-size: 18px;
-                color: var(--twitter-gray);
-                cursor: pointer;
-                border-radius: 50%;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                margin: 0 8px;
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-            " onmouseover="this.style.background='rgba(127, 179, 213, 0.1)'; this.style.color='var(--twitter-dark)'; this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(127, 179, 213, 0.2)'" onmouseout="this.style.background='none'; this.style.color='var(--twitter-gray)'; this.style.transform='scale(1)'; this.style.boxShadow='none'">
+        @guest
+        <div class="user-info">
+            <button type="button" class="header-theme-btn guest-header-theme-btn" onclick="toggleTheme()" title="Toggle Theme">
                 <i class="fas fa-moon" id="guest-header-theme-icon"></i>
             </button>
-            @endguest
             <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
                 <i class="fas fa-bars"></i>
             </button>
+        </div>
+        @endguest
         </nav>
     </header>
     <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>

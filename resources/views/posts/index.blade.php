@@ -3593,6 +3593,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         .notification-success {
             border-color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
         }
 
         .notification-success i {
@@ -3601,6 +3602,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         .notification-error {
             border-color: var(--error-color);
+            background: rgba(220, 53, 69, 0.1);
         }
 
         .notification-error i {
@@ -3609,6 +3611,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         .notification-info {
             border-color: var(--twitter-blue);
+            background: rgba(29, 161, 242, 0.1);
         }
 
         .notification-info i {

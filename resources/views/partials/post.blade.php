@@ -1,4 +1,4 @@
-<div class="post" data-post-id="{{ $post->id }}">
+<div class="post" id="post-{{ $post->id }}" data-post-id="{{ $post->id }}">
 <style>
 .post-header {
     display: flex;
