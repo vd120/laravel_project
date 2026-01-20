@@ -72,8 +72,8 @@
 
         <div class="chat-main">
             <div class="chat-header-main">
-                <button class="sidebar-toggle-main" onclick="toggleSidebar()" title="Toggle conversations">
-                    <i class="fas fa-bars"></i>
+                <button class="sidebar-toggle-main" onclick="window.location.href='{{ route('chat.index') }}'" title="Back to conversations">
+                    <i class="fas fa-arrow-left"></i>
                 </button>
                 <div class="chat-user-info">
                     <div class="chat-avatar">
@@ -446,15 +446,16 @@ header {
     color: var(--success-color);
 }
 
-.chat-messages {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background: var(--twitter-light);
-}
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: var(--twitter-light);
+        min-height: 0; /* Allow flex shrinking */
+    }
 
 .message {
     display: flex;
@@ -741,30 +742,7 @@ header {
         will-change: transform !important;
     }
 
-    .chat-header-main::before {
-        content: '☰';
-        position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 32px;
-        height: 32px;
-        background: var(--hover-bg);
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        color: var(--twitter-gray);
-        transition: all 0.2s ease;
-        border: none;
-    }
-
-    .chat-header-main::before:hover {
-        background: var(--border-color);
-        color: var(--twitter-dark);
-    }
+    /* Removed the hamburger menu pseudo-element since we now use the actual button for back navigation */
 
     .chat-user-info {
         margin-left: 48px;
@@ -796,6 +774,11 @@ header {
         padding: 12px 16px;
         overflow-y: auto;
         background: var(--twitter-light);
+        /* Position below the fixed chat header on mobile */
+        margin-top: 72px; /* Chat header height + extra space */
+        /* Ensure messages take full available height on mobile */
+        height: calc(100vh - 232px); /* Account for main header (80px) + chat header (56px) + input (24px) + margin-top (72px) */
+        min-height: 200px; /* Minimum height for usability */
     }
 
     .message {
@@ -1096,28 +1079,42 @@ document.addEventListener('DOMContentLoaded', function() {
         scrollToBottom(false); // Immediate scroll on load for mobile
     }, 100);
 
-    // Focus on input
+    // Focus on input only on desktop (avoid auto-zoom on mobile)
     const messageInput = document.getElementById('messageInput');
-    if (messageInput) {
+    const isMobile = window.innerWidth <= 768;
+    if (messageInput && !isMobile) {
         messageInput.focus();
     }
 
-    // Add mobile menu toggle functionality
-    const menuButton = document.querySelector('.chat-header-main::before');
-    if (menuButton) {
-        menuButton.addEventListener('click', toggleMobileSidebar);
+    // Add mobile menu toggle functionality to the header (pseudo-element can't be selected directly)
+    const chatHeader = document.querySelector('.chat-header-main');
+    if (chatHeader) {
+        // Check if click is within the menu button area (left side)
+        chatHeader.addEventListener('click', function(event) {
+            const rect = chatHeader.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+
+            // Menu button area is approximately the left 48px
+            if (clickX <= 48 && window.innerWidth <= 768) {
+                event.preventDefault();
+                toggleMobileSidebar();
+                return;
+            }
+
+            // Let other clicks pass through normally
+        });
     }
 
     // Close sidebar when clicking outside on mobile
     document.addEventListener('click', function(event) {
         const sidebar = document.querySelector('.chat-sidebar');
-        const menuButton = document.querySelector('.chat-header-main::before');
+        const chatHeader = document.querySelector('.chat-header-main');
 
         if (window.innerWidth <= 768 &&
             sidebar &&
             sidebar.classList.contains('mobile-open') &&
             !sidebar.contains(event.target) &&
-            !menuButton.contains(event.target)) {
+            !chatHeader.contains(event.target)) {
             toggleMobileSidebar();
         }
     });
@@ -1175,7 +1172,11 @@ function sendMessage(event) {
     .finally(() => {
         input.disabled = false;
         document.getElementById('sendButton').disabled = false;
-        input.focus();
+        // Focus input only on desktop after sending (avoid mobile keyboard)
+        const isMobile = window.innerWidth <= 768;
+        if (!isMobile) {
+            input.focus();
+        }
     });
 }
 
