@@ -3112,7 +3112,64 @@
 
     </style>
 </head>
-<body class="{{ request()->routeIs(['login', 'register']) ? 'auth-page dark-theme' : (!auth()->check() ? 'dark-theme' : '') }}">
+<body class="{{ request()->routeIs(['login', 'register']) ? 'auth-page dark-theme' : (!auth()->check() ? 'dark-theme' : '') }}" id="app-body">
+<script>
+    // Immediate theme application to prevent flash
+    (function() {
+        try {
+            console.log('Theme script running...');
+            const savedTheme = localStorage.getItem('theme');
+            const isAuthPage = {{ request()->routeIs(['login', 'register']) ? 'true' : 'false' }};
+            const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+
+            console.log('Current state:', { savedTheme, isAuthPage, isLoggedIn });
+
+            // Determine the correct theme class
+            let themeClass = '';
+
+            if (isAuthPage) {
+                // Auth pages are always dark
+                themeClass = 'auth-page dark-theme';
+            } else {
+                // Use saved preference or default based on auth status
+                if (savedTheme === 'dark') {
+                    themeClass = 'dark-theme';
+                } else if (savedTheme === 'light') {
+                    themeClass = '';
+                } else {
+                    // No saved preference - use auth status
+                    themeClass = isLoggedIn ? '' : 'dark-theme';
+                }
+            }
+
+            console.log('Applying theme class:', themeClass);
+
+            // Apply theme class immediately to both html and body
+            const html = document.documentElement;
+            const body = document.body;
+
+            html.className = themeClass;
+            body.className = themeClass;
+
+            // Force style recalculation
+            html.style.display = 'block';
+            body.style.display = 'block';
+
+            console.log('Theme applied successfully');
+
+        } catch (e) {
+            console.error('Theme initialization error:', e);
+            // Fallback in case of error
+            const isAuthPage = {{ request()->routeIs(['login', 'register']) ? 'true' : 'false' }};
+            const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+            const fallbackClass = isAuthPage ? 'auth-page dark-theme' : (isLoggedIn ? '' : 'dark-theme');
+
+            console.log('Using fallback theme:', fallbackClass);
+            document.documentElement.className = fallbackClass;
+            document.body.className = fallbackClass;
+        }
+    })();
+</script>
     <header class="header">
         <nav class="nav">
             <a href="{{ route('home') }}" class="logo">Laravel Social</a>
