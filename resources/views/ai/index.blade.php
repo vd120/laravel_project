@@ -90,6 +90,9 @@
                 <button type="button" id="sendButton" class="send-button" disabled>
                     <i class="fas fa-paper-plane"></i>
                 </button>
+                <button type="button" id="ai-stop-button" class="ai-stop-button" style="display: none;">
+                    <i class="fas fa-stop"></i>
+                </button>
             </div>
             <div class="input-footer">
                 <!-- Removed character counter and input hint -->
@@ -212,6 +215,47 @@
     border-bottom-left-radius: 4px;
     border: 2px solid rgba(59, 130, 246, 0.3);
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    position: relative;
+}
+
+.stop-typing-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: #3B82F6;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 10;
+    opacity: 0;
+    transform: scale(0.8);
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.stop-typing-btn:hover {
+    background: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.stop-typing-btn i {
+    font-size: 12px;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .user-bubble {
@@ -354,6 +398,47 @@
     font-size: 16px;
     position: relative;
     z-index: 1;
+}
+
+.ai-stop-button {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #3B82F6;
+    color: #3B82F6;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: scale(0.8);
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.ai-stop-button:hover {
+    background: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    border-color: #2563EB;
+}
+
+.ai-stop-button:active {
+    transform: scale(1);
+}
+
+.ai-stop-button i {
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+}
+
+.ai-stop-button[style*="display: flex"] {
+    opacity: 1;
+    transform: scale(1);
 }
 
 .input-footer {
@@ -701,66 +786,108 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function typeText(messageDiv, fullText) {
-        const textElement = messageDiv.querySelector('.typing-text');
-        const cursorElement = messageDiv.querySelector('.typing-cursor');
-        const contentElement = messageDiv.querySelector('.message-content');
+        function typeText(messageDiv, fullText) {
+            const textElement = messageDiv.querySelector('.typing-text');
+            const cursorElement = messageDiv.querySelector('.typing-cursor');
+            const contentElement = messageDiv.querySelector('.message-content');
 
-        let currentIndex = 0;
-        let currentText = '';
-        let isTyping = true;
+            let currentIndex = 0;
+            let currentText = '';
+            let isTyping = true;
+            let typingTimeout;
 
-        // Different typing speeds for different characters
-        function getTypingSpeed(char) {
-            if (char === ' ' || char === '\n' || char === '\t') {
-                return 30 + Math.random() * 20; // Faster for whitespace
-            } else if (char.match(/[a-z]/)) {
-                return 25 + Math.random() * 15; // Fast for lowercase
-            } else if (char.match(/[A-Z]/)) {
-                return 35 + Math.random() * 15; // Medium-fast for uppercase
-            } else if (char.match(/[0-9]/)) {
-                return 20 + Math.random() * 10; // Very fast for numbers
-            } else if (char.match(/[.,!?;:]/)) {
-                return 80 + Math.random() * 40; // Slower for punctuation
-            } else {
-                return 40 + Math.random() * 20; // Medium for symbols
-            }
-        }
-
-        // Cursor blink animation
-        const cursorInterval = setInterval(() => {
-            if (cursorElement) {
-                cursorElement.style.opacity = cursorElement.style.opacity === '0' ? '1' : '0';
-            }
-        }, 100);
-
-        function typeCharacter() {
-            if (currentIndex < fullText.length && isTyping) {
-                const char = fullText[currentIndex];
-                currentText += char;
-                textElement.innerHTML = formatAIResponse(currentText);
-
-                currentIndex++;
-
-                // Auto-scroll to keep typing visible
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                // Continue typing with realistic speed
-                const typingSpeed = getTypingSpeed(char);
-                setTimeout(typeCharacter, typingSpeed);
-            } else {
-                // Typing complete
-                clearInterval(cursorInterval);
-                if (cursorElement) {
-                    cursorElement.style.display = 'none';
+            // Different typing speeds for different characters
+            function getTypingSpeed(char) {
+                if (char === ' ' || char === '\n' || char === '\t') {
+                    return 30 + Math.random() * 20; // Faster for whitespace
+                } else if (char.match(/[a-z]/)) {
+                    return 25 + Math.random() * 15; // Fast for lowercase
+                } else if (char.match(/[A-Z]/)) {
+                    return 35 + Math.random() * 15; // Medium-fast for uppercase
+                } else if (char.match(/[0-9]/)) {
+                    return 20 + Math.random() * 10; // Very fast for numbers
+                } else if (char.match(/[.,!?;:]/)) {
+                    return 80 + Math.random() * 40; // Slower for punctuation
+                } else {
+                    return 40 + Math.random() * 20; // Medium for symbols
                 }
-                isTyping = false;
             }
+
+            // Cursor blink animation
+            const cursorInterval = setInterval(() => {
+                if (cursorElement) {
+                    cursorElement.style.opacity = cursorElement.style.opacity === '0' ? '1' : '0';
+                }
+            }, 100);
+
+            function typeCharacter() {
+                if (currentIndex < fullText.length && isTyping) {
+                    const char = fullText[currentIndex];
+                    currentText += char;
+                    textElement.innerHTML = formatAIResponse(currentText);
+
+                    currentIndex++;
+
+                    // Auto-scroll to keep typing visible
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                    // Continue typing with realistic speed
+                    const typingSpeed = getTypingSpeed(char);
+                    typingTimeout = setTimeout(typeCharacter, typingSpeed);
+                } else {
+                    // Typing complete
+                    clearInterval(cursorInterval);
+                    if (cursorElement) {
+                        cursorElement.style.display = 'none';
+                    }
+                    isTyping = false;
+                    // Remove stop button when typing is complete
+                    const stopButton = document.getElementById('ai-stop-button');
+                    if (stopButton) {
+                        stopButton.style.display = 'none';
+                    }
+                }
+            }
+
+            // Show stop button in input bar
+            const stopButton = document.getElementById('ai-stop-button');
+            if (stopButton) {
+                stopButton.style.display = 'flex';
+                stopButton.onclick = function() {
+                    stopTyping(messageDiv, textElement, cursorElement, cursorInterval, typingTimeout, fullText);
+                };
+            }
+
+            // Start typing
+            setTimeout(typeCharacter, 100);
+
+            return { stopButton, cursorInterval, typingTimeout };
         }
 
-        // Start typing
-        setTimeout(typeCharacter, 100);
-    }
+        function stopTyping(messageDiv, textElement, cursorElement, cursorInterval, typingTimeout, fullText) {
+            // Clear typing timeout
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+            }
+
+            // Stop cursor animation
+            clearInterval(cursorInterval);
+            if (cursorElement) {
+                cursorElement.style.display = 'none';
+            }
+
+            // Hide stop button
+            const stopButton = document.getElementById('ai-stop-button');
+            if (stopButton) {
+                stopButton.style.display = 'none';
+            }
+
+            // Show full text immediately
+            textElement.innerHTML = formatAIResponse(fullText);
+
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
 
     function formatAIResponse(text) {
         // Convert markdown-style formatting to HTML

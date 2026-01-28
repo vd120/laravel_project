@@ -364,12 +364,13 @@
         /* Force mobile menu toggle to be visible on very small screens */
         @media (max-width: 480px) {
             .mobile-menu-toggle {
-                position: absolute;
-                right: 8px;
-                top: 50%;
-                transform: translateY(-50%);
-                margin-left: 0;
-                order: unset;
+                position: relative;
+                right: auto;
+                top: auto;
+                transform: none;
+                margin-left: 8px;
+                order: 999;
+                align-self: center;
             }
 
             /* Username button specific styling - ensure it's always visible */
@@ -424,6 +425,93 @@
             /* Hide user avatar on small screens to free up space */
             .user-avatar-container {
                 display: none !important;
+            }
+
+            /* Fix visitor buttons positioning on mobile */
+            .user-info {
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-shrink: 0;
+            }
+
+            .header-login-btn,
+            .header-register-btn {
+                position: relative;
+                z-index: 1001;
+                background: linear-gradient(135deg, var(--twitter-blue) 0%, #1A91DA 100%);
+                color: white;
+                border: none;
+                padding: 10px 16px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 600;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 4px 12px rgba(29, 161, 242, 0.3);
+                min-height: 40px;
+                min-width: 90px;
+                justify-content: center;
+            }
+
+            .header-login-btn:hover,
+            .header-register-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(29, 161, 242, 0.4);
+                background: linear-gradient(135deg, #1A91DA 0%, #1884C7 100%);
+            }
+
+            .header-login-btn:active,
+            .header-register-btn:active {
+                transform: translateY(0);
+                box-shadow: 0 2px 8px rgba(29, 161, 242, 0.3);
+            }
+
+            .header-login-btn i,
+            .header-register-btn i {
+                font-size: 14px;
+                transition: transform 0.3s ease;
+            }
+
+            .header-login-btn:hover i,
+            .header-register-btn:hover i {
+                transform: scale(1.1);
+            }
+
+            .header-login-btn span,
+            .header-register-btn span {
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            /* Animation for visitor buttons */
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .header-login-btn,
+            .header-register-btn {
+                animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            /* Ensure buttons don't overlap with mobile menu toggle */
+            .header-login-btn {
+                margin-right: 8px;
+            }
+
+            .header-register-btn {
+                margin-right: 8px;
             }
         }
 
