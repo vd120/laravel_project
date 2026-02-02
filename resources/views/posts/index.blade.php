@@ -165,33 +165,86 @@
 
 @if(auth()->check())
 <div class="post-form-container">
-    <div class="form-group">
-        <textarea id="post-content" placeholder="What's happening?" maxlength="280"></textarea>
+    <!-- Form Frame -->
+    <div style="
+        border: 2px solid rgba(29, 161, 242, 0.3);
+        border-radius: 16px;
+        padding: 20px;
+        background: rgba(29, 161, 242, 0.05);
+        position: relative;
+        margin-bottom: 16px;
+        box-shadow: inset 0 0 0 1px rgba(29, 161, 242, 0.1);
+    ">
+        <!-- Decorative corner accents -->
+        <div style="
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            width: 12px;
+            height: 12px;
+            border-top: 2px solid var(--twitter-blue);
+            border-left: 2px solid var(--twitter-blue);
+            opacity: 0.6;
+        "></div>
+        <div style="
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            border-top: 2px solid var(--twitter-blue);
+            border-right: 2px solid var(--twitter-blue);
+            opacity: 0.6;
+        "></div>
+        <div style="
+            position: absolute;
+            bottom: -2px;
+            left: -2px;
+            width: 12px;
+            height: 12px;
+            border-bottom: 2px solid var(--twitter-blue);
+            border-left: 2px solid var(--twitter-blue);
+            opacity: 0.6;
+        "></div>
+        <div style="
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            border-bottom: 2px solid var(--twitter-blue);
+            border-right: 2px solid var(--twitter-blue);
+            opacity: 0.6;
+        "></div>
+
+        <div class="form-group">
+            <textarea id="post-content" placeholder="What's happening?" maxlength="280"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="media" class="simple-media-btn">
+                <i class="fas fa-camera"></i>
+                <span>Add Media</span>
+            </label>
+            <input type="file" name="media[]" id="media" accept="image/*,video/*" multiple style="display: none;" onchange="previewMedia(this)">
+            <span id="file-name" class="file-name-display"></span>
+        </div>
+        <div class="form-group">
+            <button type="button" id="privacy-toggle" class="privacy-toggle-btn" onclick="togglePrivacy()">
+                <i class="fas fa-globe" id="privacy-icon"></i>
+                <span id="privacy-text">Public</span>
+            </button>
+            <input type="hidden" id="is-private" name="is_private" value="0">
+            <small style="color: #666; font-size: 12px; display: block; margin-top: 8px;">
+                <i class="fas fa-info-circle"></i> Private posts are only visible to your followers
+            </small>
+        </div>
+        <div id="media-preview" style="margin: 10px 0; display: none;">
+            <div id="media-previews" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+            <button type="button" onclick="removeMedia()" style="margin-top: 10px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Remove All Media</button>
+        </div>
+        <button type="button" class="modern-post-btn" onclick="submitPost()">Post</button>
+        <div id="post-errors" style="color: red; margin-top: 5px; display: none;"></div>
     </div>
-    <div class="form-group">
-        <label for="media" style="cursor: pointer; display: inline-block; padding: 10px 16px; background: var(--card-bg); border-radius: 8px; border: 2px solid var(--border-color); transition: all 0.3s ease; color: var(--twitter-gray); font-weight: 500;" onmouseover="this.style.borderColor='var(--twitter-blue)'; this.style.background='var(--hover-bg)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='var(--card-bg)'; this.style.transform='translateY(0)';">
-            <i class="fas fa-image" style="margin-right: 8px;"></i> Add Image/Video
-        </label>
-        <input type="file" name="media[]" id="media" accept="image/*,video/*" multiple style="display: none;" onchange="previewMedia(this)">
-        <span id="file-name" style="margin-left: 12px; font-size: 14px; color: var(--twitter-gray);"></span>
-    </div>
-    <div class="form-group">
-        <button type="button" id="privacy-toggle" class="privacy-toggle-btn" onclick="togglePrivacy()">
-            <i class="fas fa-globe" id="privacy-icon"></i>
-            <span id="privacy-text">Public</span>
-        </button>
-        <input type="hidden" id="is-private" name="is_private" value="0">
-        <small style="color: #666; font-size: 12px; display: block; margin-top: 8px;">
-            <i class="fas fa-info-circle"></i> Private posts are only visible to your followers
-        </small>
-    </div>
-    <div id="media-preview" style="margin: 10px 0; display: none;">
-        <div id="media-previews" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
-        <button type="button" onclick="removeMedia()" style="margin-top: 10px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Remove All Media</button>
-    </div>
-    <button type="button" class="btn" onclick="submitPost()">Post</button>
-    <div id="post-errors" style="color: red; margin-top: 5px; display: none;"></div>
-</div>
 @endif
 
 <div id="posts-container">
@@ -689,6 +742,231 @@
     box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
     position: relative;
     overflow: hidden;
+}
+
+/* Modern Post Button Styling */
+.modern-post-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #1DA1F2 0%, #1A91DA 100%);
+    color: white;
+    border: none;
+    border-radius: 28px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(29, 161, 242, 0.4), 0 2px 8px rgba(29, 161, 242, 0.3);
+    position: relative;
+    overflow: hidden;
+    min-height: 44px;
+    min-width: 120px;
+    text-decoration: none;
+}
+
+/* Modern Media Button Styling */
+.modern-media-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #6C757D 0%, #5A6268 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+    position: relative;
+    overflow: hidden;
+    min-height: 36px;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.modern-media-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s;
+}
+
+.modern-media-btn:hover::before {
+    left: 100%;
+}
+
+.modern-media-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+    background: linear-gradient(135deg, #5A6268 0%, #4E555B 100%);
+}
+
+.modern-media-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(108, 117, 125, 0.3);
+    background: linear-gradient(135deg, #4E555B 0%, #43494E 100%);
+}
+
+.modern-media-btn i {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+    opacity: 0.9;
+}
+
+.modern-media-btn:hover i {
+    transform: scale(1.1) translateY(-1px);
+    opacity: 1;
+}
+
+.modern-media-btn span {
+    position: relative;
+    z-index: 2;
+}
+
+.modern-media-btn i {
+    position: relative;
+    z-index: 2;
+}
+
+/* File Name Display Styling */
+.file-name-display {
+    font-size: 14px;
+    color: var(--twitter-gray);
+    font-weight: 500;
+    display: inline-block;
+    margin-left: 8px;
+    padding: 6px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.file-name-display::before {
+    content: '📁';
+    margin-right: 6px;
+    font-size: 14px;
+}
+
+/* Modern Text Area Styling */
+#post-content {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    font-family: inherit;
+    font-size: 16px;
+    resize: vertical;
+    min-height: 120px;
+    background: var(--input-bg);
+    color: var(--twitter-dark);
+    transition: all 0.3s ease;
+    box-shadow: inset 0 0 0 1px rgba(29, 161, 242, 0.05);
+}
+
+#post-content::placeholder {
+    color: var(--twitter-gray);
+    opacity: 0.7;
+    font-weight: 400;
+}
+
+#post-content:focus {
+    outline: none;
+    border-color: var(--twitter-blue);
+    box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1), inset 0 0 0 1px rgba(29, 161, 242, 0.2);
+    transform: translateY(-1px);
+    background: var(--input-bg);
+}
+
+#post-content:hover {
+    border-color: var(--hover-bg);
+    box-shadow: inset 0 0 0 1px rgba(29, 161, 242, 0.1);
+}
+
+/* Form Group Styling */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.modern-post-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s;
+}
+
+.modern-post-btn:hover::before {
+    left: 100%;
+}
+
+.modern-post-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(29, 161, 242, 0.5), 0 4px 12px rgba(29, 161, 242, 0.4);
+    background: linear-gradient(135deg, #1A91DA 0%, #1884C7 100%);
+}
+
+.modern-post-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(29, 161, 242, 0.3);
+    background: linear-gradient(135deg, #1884C7 0%, #1677B5 100%);
+}
+
+.modern-post-btn i {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+    opacity: 0.9;
+}
+
+.modern-post-btn:hover i {
+    transform: scale(1.1) translateY(-1px);
+    opacity: 1;
+}
+
+.modern-post-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    background: linear-gradient(135deg, #9CC9F0 0%, #8BB8E6 100%);
+}
+
+.modern-post-btn:disabled i {
+    opacity: 0.5;
+    transform: none;
+}
+
+/* Post button with icon */
+.modern-post-btn span {
+    position: relative;
+    z-index: 2;
+}
+
+.modern-post-btn i {
+    position: relative;
+    z-index: 2;
 }
 
 .privacy-toggle-btn::before {
@@ -2287,7 +2565,8 @@ function submitPost() {
         method: 'POST',
         body: formData,
         headers: {
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
         }
     })
     .then(response => response.json())
@@ -3261,6 +3540,8 @@ function deletePost(postId, button) {
             // Remove the post from UI
             postElement.remove();
             console.log('Post deleted successfully');
+            // Show small success notification
+            showNotification('Post deleted successfully', 'success');
         } else {
             console.error('Post deletion failed');
             alert(data.message || 'Failed to delete post.');
@@ -3353,6 +3634,52 @@ function fallbackCopyTextToClipboard(text) {
     }
 
     textArea.remove();
+}
+
+// Enhanced notification system with modern styling
+function showNotification(message, type = 'info') {
+    // Remove any existing notifications
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(notification => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    });
+
+    // Create notification element with modern styling
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-icon">
+            <i class="fas ${getNotificationIcon(type)}"></i>
+        </div>
+        <div class="notification-content">
+            <span class="notification-message">${message}</span>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()" aria-label="Close notification">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    // Add to page
+    document.body.appendChild(notification);
+
+    // Show with animation
+    setTimeout(() => notification.classList.add('show'), 10);
+
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+function getNotificationIcon(type) {
+    switch(type) {
+        case 'success': return 'fa-check-circle';
+        case 'error': return 'fa-exclamation-circle';
+        case 'warning': return 'fa-exclamation-triangle';
+        default: return 'fa-info-circle';
+    }
 }
 
 // Toggle comments visibility functionality
@@ -3564,26 +3891,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Add notification styles
+    // Add enhanced notification styles with modern design
     const style = document.createElement('style');
     style.textContent = `
         .notification {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: var(--card-bg);
+            background: linear-gradient(135deg, var(--card-bg), rgba(255,255,255,0.05));
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.05);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             z-index: 10000;
             transform: translateX(100%);
             opacity: 0;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             color: var(--twitter-dark);
+            min-width: 280px;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .notification.show {
@@ -3591,31 +3922,132 @@ document.addEventListener('DOMContentLoaded', function() {
             opacity: 1;
         }
 
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            line-height: 1.4;
+            color: var(--twitter-dark);
+            display: block;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: var(--twitter-gray);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.8;
+        }
+
+        .notification-close:hover {
+            background: rgba(0,0,0,0.1);
+            color: var(--twitter-dark);
+            opacity: 1;
+        }
+
+        .notification-close i {
+            font-size: 14px;
+        }
+
+        /* Success notification styling */
         .notification-success {
-            border-color: #28a745;
-            background: rgba(40, 167, 69, 0.1);
+            border-color: rgba(40, 167, 69, 0.3);
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
         }
 
-        .notification-success i {
+        .notification-success .notification-icon {
+            background: rgba(40, 167, 69, 0.15);
             color: #28a745;
+            border-color: rgba(40, 167, 69, 0.4);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
         }
 
+        .notification-success .notification-message {
+            color: #155724;
+        }
+
+        /* Error notification styling */
         .notification-error {
-            border-color: var(--error-color);
-            background: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.3);
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
         }
 
-        .notification-error i {
-            color: var(--error-color);
+        .notification-error .notification-icon {
+            background: rgba(220, 53, 69, 0.15);
+            color: #dc3545;
+            border-color: rgba(220, 53, 69, 0.4);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
         }
 
+        .notification-error .notification-message {
+            color: #721c24;
+        }
+
+        /* Warning notification styling */
+        .notification-warning {
+            border-color: rgba(255, 193, 7, 0.3);
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+        }
+
+        .notification-warning .notification-icon {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+            border-color: rgba(255, 193, 7, 0.4);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+        }
+
+        .notification-warning .notification-message {
+            color: #856404;
+        }
+
+        /* Info notification styling */
         .notification-info {
-            border-color: var(--twitter-blue);
-            background: rgba(29, 161, 242, 0.1);
+            border-color: rgba(29, 161, 242, 0.3);
+            background: linear-gradient(135deg, rgba(29, 161, 242, 0.1), rgba(29, 161, 242, 0.05));
         }
 
-        .notification-info i {
-            color: var(--twitter-blue);
+        .notification-info .notification-icon {
+            background: rgba(29, 161, 242, 0.15);
+            color: #1DA1F2;
+            border-color: rgba(29, 161, 242, 0.4);
+            box-shadow: 0 4px 12px rgba(29, 161, 242, 0.2);
+        }
+
+        .notification-info .notification-message {
+            color: #0c5460;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .notification {
+                right: 10px;
+                left: 10px;
+                min-width: auto;
+                max-width: none;
+            }
         }
     `;
     document.head.appendChild(style);

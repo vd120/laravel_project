@@ -135,27 +135,57 @@ class PostController extends Controller
 
                 if (str_contains($mimeType, 'image/')) {
                     // Handle image upload with compression
-                    $manager = new \Intervention\Image\ImageManager(
-                        new \Intervention\Image\Drivers\Gd\Driver()
-                    );
-                    $compressedImage = $manager->read($file);
+                    try {
+                        // Try to use GD driver first
+                        $manager = new \Intervention\Image\ImageManager(
+                            new \Intervention\Image\Drivers\Gd\Driver()
+                        );
+                    } catch (\Exception $e) {
+                        // Fallback to Imagick driver if GD is not available
+                        try {
+                            $manager = new \Intervention\Image\ImageManager(
+                                new \Intervention\Image\Drivers\Imagick\Driver()
+                            );
+                        } catch (\Exception $e2) {
+                            // If neither GD nor Imagick is available, save the original file
+                            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                            $path = 'posts/images/' . $filename;
+                            $file->move(storage_path('app/public/posts/images'), $filename);
 
-                    // Compress image based on quality and size
-                    $maxWidth = 1200;
-                    $maxHeight = 1200;
-                    $quality = 85; // Good balance of quality vs size
-
-                    // Resize if too large
-                    if ($compressedImage->width() > $maxWidth || $compressedImage->height() > $maxHeight) {
-                        $compressedImage->scale(width: $maxWidth, height: $maxHeight);
+                            $post->media()->create([
+                                'media_type' => 'image',
+                                'media_path' => $path,
+                                'sort_order' => $sortOrder++
+                            ]);
+                            continue;
+                        }
                     }
 
-                    // Generate unique filename
-                    $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $path = 'posts/images/' . $filename;
+                    try {
+                        $compressedImage = $manager->read($file);
 
-                    // Save compressed image
-                    $compressedImage->toJpeg($quality)->save(storage_path('app/public/' . $path));
+                        // Compress image based on quality and size
+                        $maxWidth = 1200;
+                        $maxHeight = 1200;
+                        $quality = 85; // Good balance of quality vs size
+
+                        // Resize if too large
+                        if ($compressedImage->width() > $maxWidth || $compressedImage->height() > $maxHeight) {
+                            $compressedImage->scale(width: $maxWidth, height: $maxHeight);
+                        }
+
+                        // Generate unique filename
+                        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $path = 'posts/images/' . $filename;
+
+                        // Save compressed image
+                        $compressedImage->toJpeg($quality)->save(storage_path('app/public/' . $path));
+                    } catch (\Exception $e) {
+                        // If compression fails, save the original file
+                        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $path = 'posts/images/' . $filename;
+                        $file->move(storage_path('app/public/posts/images'), $filename);
+                    }
 
                     $post->media()->create([
                         'media_type' => 'image',
