@@ -213,18 +213,34 @@
 .avatar-placeholder {
     width: 120px;
     height: 120px;
+    min-width: 120px;
+    min-height: 120px;
+    max-width: 120px;
+    max-height: 120px;
     border-radius: 50%;
     border: 4px solid white;
-    box-shadow: var(--shadow);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     flex-shrink: 0;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    overflow: hidden;
 }
 
 .avatar {
     object-fit: cover;
+    object-position: center;
+    display: block;
+    width: 120px !important;
+    height: 120px !important;
+    min-width: 120px !important;
+    min-height: 120px !important;
+    max-width: 120px !important;
+    max-height: 120px !important;
 }
 
 .avatar-placeholder {
-    background: var(--twitter-blue);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     display: flex;
     align-items: center;
