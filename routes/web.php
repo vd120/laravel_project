@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\AiController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
@@ -29,9 +30,13 @@ Route::middleware('guest')->group(function () {
     })->name('register');
 
     Route::post('register', [RegisterController::class, 'store'])->name('register');
+
+    // Google OAuth Routes
+    Route::get('/auth/google', [SocialAuthController::class, 'redirectToGoogle'])->name('login.google');
+    Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'suspended'])->group(function () {
     Route::post('logout', function () {
         auth()->logout();
         return redirect('/');
@@ -73,6 +78,14 @@ Route::post('/email/verification-notification', function (Request $request) {
         }
     }
 
+    // Check if user is already verified
+    if ($user && $user->hasVerifiedEmail()) {
+        if ($request->expectsJson()) {
+            return response()->json(['error' => 'Your account is already verified!'], 400);
+        }
+        return back()->with('error', 'Your account is already verified!');
+    }
+
     if ($user && !$user->hasVerifiedEmail()) {
         // Generate and send new verification code
         $verificationCode = $user->generateVerificationCode();
@@ -88,11 +101,21 @@ Route::post('/email/verification-notification', function (Request $request) {
             }
         );
 
+        // Return JSON response for AJAX
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Verification code sent!']);
+        }
+
         return back()->with('message', 'New verification code sent!');
     }
 
+    // Return JSON response for AJAX
+    if ($request->expectsJson()) {
+        return response()->json(['error' => 'Unable to send verification email.'], 422);
+    }
+
     return back()->with('error', 'Unable to send verification email.');
-})->middleware(['throttle:6,1'])->name('verification.send');
+})->name('verification.send');
 
 Route::post('/email/verify-code', function (Request $request) {
     $request->validate([
@@ -117,10 +140,13 @@ Route::post('/email/verify-code', function (Request $request) {
         // Clear pending verification session
         session()->forget('pending_verification_user_id');
 
-        // Log the user in
+        // Ensure user is logged in
         if (!auth()->check()) {
             auth()->login($user);
         }
+
+        // Regenerate session for security
+        request()->session()->regenerate();
 
         return redirect('/')->with('message', 'Email verified successfully! Welcome to the platform.');
     }
@@ -128,9 +154,20 @@ Route::post('/email/verify-code', function (Request $request) {
     return back()->withErrors(['code' => 'Invalid or expired verification code.']);
 })->name('verification.verify-code');
 
-Route::get('/', [PostController::class, 'index'])->name('home');
+Route::get('/', function () {
+    // If user is not authenticated, show the landing page
+    if (!auth()->check()) {
+        return view('home');
+    }
+    // If authenticated and verified, show the posts feed
+    if (!auth()->user()->hasVerifiedEmail()) {
+        return redirect()->route('verification.notice');
+    }
+    // Show posts feed
+    return app(\App\Http\Controllers\PostController::class)->index(request());
+})->name('home');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'suspended'])->group(function () {
     Route::resource('posts', PostController::class)->parameters([
         'posts' => 'post:slug'
     ]);
@@ -149,20 +186,20 @@ Route::middleware('auth')->group(function () {
     Route::delete('/stories/{story}/react', [App\Http\Controllers\StoryController::class, 'unreact'])->name('stories.unreact');
     Route::delete('/stories/{story}', [App\Http\Controllers\StoryController::class, 'destroy'])->name('stories.destroy');
     Route::get('/profile', function () { return redirect()->route('users.show', auth()->user()); })->name('profile');
-    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show')->where('user', '[a-zA-Z0-9_-]+');
-    Route::get('/users/{user}/followers', [UserController::class, 'followers'])->name('users.followers')->where('user', '[a-zA-Z0-9_-]+');
-    Route::get('/users/{user}/following', [UserController::class, 'following'])->name('users.following')->where('user', '[a-zA-Z0-9_-]+');
-    Route::get('/users/{user}/blocked', [UserController::class, 'blocked'])->name('users.blocked')->where('user', '[a-zA-Z0-9_-]+');
+    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+    Route::get('/users/{user}/followers', [UserController::class, 'followers'])->name('users.followers');
+    Route::get('/users/{user}/following', [UserController::class, 'following'])->name('users.following');
+    Route::get('/users/{user}/blocked', [UserController::class, 'blocked'])->name('users.blocked');
     Route::get('/saved-posts', [UserController::class, 'savedPosts'])->name('users.saved-posts');
-    Route::post('/users/{user}/follow', [UserController::class, 'follow'])->name('users.follow')->where('user', '[a-zA-Z0-9_-]+');
-    Route::post('/users/{user}/block', [UserController::class, 'block'])->name('users.block')->where('user', '[a-zA-Z0-9_-]+');
+    Route::post('/users/{user}/follow', [UserController::class, 'follow'])->name('users.follow');
+    Route::post('/users/{user}/block', [UserController::class, 'block'])->name('users.block');
     Route::get('/users/{user}/block', function () {
         abort(404);
-    })->where('user', '[a-zA-Z0-9_-]+');
+    });
     Route::get('/explore', [UserController::class, 'explore'])->name('explore');
     Route::get('/search', [UserController::class, 'searchPage'])->name('search');
     Route::get('/users/{user}/edit', [UserController::class, 'editProfile'])->name('profile.edit')->where('user', '[a-zA-Z0-9_-]+');
-    Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/profile/{user}/update', [UserController::class, 'updateProfile'])->name('profile.update')->where('user', '[a-zA-Z0-9_-]+');
     Route::delete('/profile/delete-avatar', [UserController::class, 'deleteAvatar'])->name('profile.delete-avatar');
     Route::delete('/profile/delete-cover', [UserController::class, 'deleteCoverImage'])->name('profile.delete-cover');
     Route::delete('/profile/delete-account', [UserController::class, 'deleteAccount'])->name('profile.delete-account');
@@ -185,6 +222,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat/start/{userId}', [App\Http\Controllers\ChatController::class, 'startConversation'])->name('chat.start');
     Route::get('/chat/{conversation}/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/{conversation}/read', [App\Http\Controllers\ChatController::class, 'markAsRead'])->name('chat.mark-read');
+
+    // User online status routes
+    Route::post('/user/update-online-status', [App\Http\Controllers\UserController::class, 'updateOnlineStatus'])->name('user.update-online-status');
+    Route::get('/user/{user}/online-status', [App\Http\Controllers\UserController::class, 'getOnlineStatus'])->name('user.online-status')->where('user', '[a-zA-Z0-9_-]+');
 
 
 

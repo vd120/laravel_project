@@ -102,7 +102,7 @@ class PostController extends Controller
     {
         $request->validate([
             'content' => 'nullable|string|max:280',
-            'media' => 'nullable|array|max:10', // Allow up to 10 files
+            'media' => 'nullable|array|max:30', // Allow up to 30 files
             'media.*' => 'file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:51200', // 50MB max, added webm
         ]);
 
@@ -369,10 +369,19 @@ class PostController extends Controller
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {
+            // Get recent likers (up to 10)
+            $recentLikers = $post->likes()->with('user:id,name')->latest()->limit(10)->get()->map(function($like) {
+                return [
+                    'id' => $like->user->id,
+                    'name' => $like->user->name
+                ];
+            });
+            
             return response()->json([
                 'success' => true,
                 'liked' => !$like,
-                'likes_count' => $post->likes()->count()
+                'likes_count' => $post->likes()->count(),
+                'likers' => $recentLikers
             ]);
         }
 

@@ -4,348 +4,374 @@
 
 @section('content')
 <div class="admin-page">
-    <div class="page-header">
-        <h1>Manage Posts</h1>
-        <div class="header-actions">
-            <a href="{{ route('admin.dashboard') }}" class="btn-secondary">
+    {{-- Header --}}
+    <div class="admin-header">
+        <div class="header-left">
+            <a href="{{ route('admin.dashboard') }}" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
-                Back to Dashboard
             </a>
-        </div>
-    </div>
-
-    
-    <div class="filters-section">
-        <form method="GET" class="filters-form">
-            <div class="search-group">
-                <i class="fas fa-search"></i>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search posts by content..." class="search-input">
+            <div>
+                <h1>Posts</h1>
+                <p>Manage and moderate user posts</p>
             </div>
-            <button type="submit" class="btn-primary">Search</button>
-            @if(request('search'))
-            <a href="{{ route('admin.posts') }}" class="btn-secondary">Clear</a>
-            @endif
-        </form>
+        </div>
+        <div class="header-stats">
+            <span class="total-badge">{{ $posts->total() }} Total</span>
+        </div>
     </div>
 
-    
-    <div class="data-table-container">
-        <div class="table-header">
-            <h2>Posts ({{ $posts->total() }})</h2>
+    {{-- Search --}}
+    <div class="search-section">
+        <div class="search-form">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" value="{{ request('search') }}" placeholder="Search posts..." autocomplete="off">
+            </div>
+            @if(request('search'))
+            <a href="{{ route('admin.posts') }}" class="clear-btn">
+                <i class="fas fa-times"></i> Clear
+            </a>
+            @endif
         </div>
+    </div>
 
-        @if($posts->count() > 0)
-        <div class="posts-list">
-            @foreach($posts as $post)
-            <div class="post-item">
-                <div class="post-header">
-                    <div class="post-user">
+    {{-- Posts List --}}
+    @if($posts->count() > 0)
+    <div class="posts-section">
+        @foreach($posts as $post)
+        <div class="post-card">
+            <div class="post-main">
+                <div class="post-user">
+                    <div class="user-avatar">
                         @if($post->user->profile && $post->user->profile->avatar)
-                            <img src="{{ asset('storage/' . $post->user->profile->avatar) }}" alt="Avatar" class="user-avatar-small">
+                            <img src="{{ asset('storage/' . $post->user->profile->avatar) }}" alt="">
                         @else
-                            <div class="user-avatar-placeholder-small">
-                                <i class="fas fa-user"></i>
-                            </div>
+                            <div class="avatar-placeholder">{{ substr($post->user->name, 0, 1) }}</div>
                         @endif
-                        <div class="user-info">
-                            <span class="username">{{ $post->user->name }}</span>
-                            <span class="post-date">{{ $post->created_at->diffForHumans() }}</span>
-                        </div>
                     </div>
-                    <div class="post-actions">
-                        <a href="{{ route('posts.show', $post) }}" class="btn-action view-btn" title="View Post" target="_blank">
-                            <i class="fas fa-external-link-alt"></i>
-                        </a>
-                        <form method="POST" action="{{ route('admin.posts.delete', $post) }}" class="inline-form" onsubmit="return confirmDelete()">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn-action delete-btn" title="Delete Post">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
+                    <div class="user-details">
+                        <span class="user-name">{{ $post->user->name }}</span>
+                        <span class="post-time">{{ $post->created_at->diffForHumans() }}</span>
                     </div>
+                    @if($post->is_private)
+                    <span class="private-badge"><i class="fas fa-lock"></i></span>
+                    @endif
                 </div>
-
+                
                 <div class="post-content">
                     @if($post->content)
-                        <p>{{ Str::limit($post->content, 200) }}</p>
+                        <p>{{ Str::limit($post->content, 250) }}</p>
                     @endif
+                </div>
 
-                    @if($post->media->count() > 0)
-                        <div class="post-media-preview">
-                            @if($post->media->count() === 1)
-                                @php $media = $post->media->first(); @endphp
+                @if($post->media->count() > 0)
+                <div class="post-media">
+                    @if($post->media->count() === 1)
+                        @php $media = $post->media->first(); @endphp
+                        @if($media->media_type === 'image')
+                            <img src="{{ asset('storage/' . $media->media_path) }}" alt="Post media" class="single-media">
+                        @elseif($media->media_type === 'video')
+                            <video class="single-media" controls muted>
+                                <source src="{{ asset('storage/' . $media->media_path) }}" type="video/mp4">
+                            </video>
+                        @endif
+                    @else
+                        <div class="media-grid">
+                            @foreach($post->media->take(4) as $media)
                                 @if($media->media_type === 'image')
-                                    <img src="{{ asset('storage/' . $media->media_path) }}" alt="Post media" class="media-preview">
-                                @elseif($media->media_type === 'video')
-                                    <video class="media-preview" muted>
-                                        <source src="{{ asset('storage/' . $media->media_path) }}" type="video/mp4">
-                                    </video>
+                                    <img src="{{ asset('storage/' . $media->media_path) }}" alt="" class="media-thumb">
                                 @endif
-                            @else
-                                <div class="media-grid">
-                                    @foreach($post->media->take(4) as $media)
-                                        @if($media->media_type === 'image')
-                                            <img src="{{ asset('storage/' . $media->media_path) }}" alt="Post media" class="media-item">
-                                        @endif
-                                    @endforeach
-                                    @if($post->media->count() > 4)
-                                        <div class="media-more">+{{ $post->media->count() - 4 }}</div>
-                                    @endif
-                                </div>
+                            @endforeach
+                            @if($post->media->count() > 4)
+                                <div class="media-more">+{{ $post->media->count() - 4 }}</div>
                             @endif
                         </div>
                     @endif
                 </div>
+                @endif
 
                 <div class="post-stats">
-                    <span><i class="fas fa-heart"></i> {{ $post->likes->count() }}</span>
-                    <span><i class="fas fa-comment"></i> {{ $post->comments->count() }}</span>
-                    @if($post->is_private)
-                        <span class="private-indicator"><i class="fas fa-lock"></i> Private</span>
-                    @endif
+                    <div class="stat-item">
+                        <i class="fas fa-heart"></i>
+                        <span>{{ $post->likes->count() }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-comment"></i>
+                        <span>{{ $post->comments->count() }}</span>
+                    </div>
+                    <a href="/posts/{{ $post->slug }}" target="_blank" class="view-link">
+                        <i class="fas fa-external-link-alt"></i> View
+                    </a>
                 </div>
             </div>
-            @endforeach
-        </div>
 
-        
-        <div class="pagination-container">
-            {{ $posts->appends(request()->query())->links() }}
+            <div class="post-actions">
+                <form method="POST" action="{{ route('admin.posts.delete', $post) }}" onsubmit="return confirm('Delete this post?')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="delete-btn" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
         </div>
-        @else
-        <div class="empty-state">
-            <i class="fas fa-image"></i>
-            <h3>No posts found</h3>
-            <p>No posts match your current search.</p>
-        </div>
-        @endif
+        @endforeach
     </div>
+
+    {{-- Pagination --}}
+    <div class="pagination-wrapper">
+        {{ $posts->appends(request()->query())->links() }}
+    </div>
+    @else
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-images"></i>
+        </div>
+        <h3>No posts found</h3>
+        <p>No posts match your search criteria.</p>
+    </div>
+    @endif
 </div>
 
 <style>
 .admin-page {
-    max-width: 1200px;
+    max-width: 900px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 0 16px 40px;
 }
 
-.page-header {
+.admin-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
+    justify-content: space-between;
+    margin: -16px -16px 24px;
+    padding: 24px 16px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    border-radius: 0 0 20px 20px;
 }
 
-.page-header h1 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--twitter-dark);
-}
-
-.header-actions {
+.header-left {
     display: flex;
-    gap: 12px;
+    align-items: center;
+    gap: 16px;
 }
 
-/* Filters Section */
-.filters-section {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
+.back-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.admin-header h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+}
+
+.admin-header p {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+}
+
+.total-badge {
+    background: rgba(255,255,255,0.25);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.search-section {
     margin-bottom: 24px;
 }
 
-.filters-form {
+.search-form {
     display: flex;
-    gap: 16px;
+    gap: 12px;
     align-items: center;
-    flex-wrap: wrap;
 }
 
-.search-group {
-    position: relative;
+.search-box {
     flex: 1;
-    min-width: 250px;
+    position: relative;
 }
 
-.search-group i {
+.search-box i {
     position: absolute;
-    left: 14px;
+    left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--twitter-gray);
+    color: var(--text-muted);
 }
 
-.search-input {
+.search-box input {
     width: 100%;
-    padding: 10px 16px 10px 40px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 14px;
-}
-
-/* Posts List */
-.data-table-container {
-    background: var(--card-bg);
+    padding: 14px 16px 14px 46px;
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    overflow: hidden;
+    font-size: 14px;
+    background: var(--card-bg);
+    color: var(--text);
+    transition: all 0.2s ease;
 }
 
-.table-header {
-    padding: 20px;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--twitter-light);
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
-.table-header h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--twitter-dark);
+.clear-btn {
+    padding: 14px 20px;
+    background: var(--bg);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
 
-.posts-list {
-    max-height: 70vh;
-    overflow-y: auto;
+.clear-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text);
 }
 
-.post-item {
-    border-bottom: 1px solid var(--border-color);
-    padding: 20px;
-    transition: background-color 0.2s ease;
-}
-
-.post-item:hover {
-    background: var(--twitter-light);
-}
-
-.post-item:last-child {
-    border-bottom: none;
-}
-
-.post-header {
+.posts-section {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.post-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+
+.post-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.post-main {
+    flex: 1;
+    min-width: 0;
 }
 
 .post-user {
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-bottom: 14px;
 }
 
-.user-avatar-small {
-    width: 40px;
-    height: 40px;
+.user-avatar {
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border: 2px solid var(--border-color);
 }
 
-.user-avatar-placeholder-small {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--twitter-light);
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--twitter-gray);
-    border: 2px solid var(--border-color);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
 }
 
-.username {
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 15px;
     font-weight: 600;
-    color: var(--twitter-dark);
-    display: block;
+    color: var(--text);
 }
 
-.post-date {
+.post-time {
     font-size: 12px;
-    color: var(--twitter-gray);
+    color: var(--text-muted);
 }
 
-.post-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-action {
-    padding: 8px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    font-size: 14px;
-}
-
-.view-btn {
-    background: var(--twitter-blue);
-    color: white;
-}
-
-.view-btn:hover {
-    background: #1991DB;
-}
-
-.delete-btn {
-    background: #dc3545;
-    color: white;
-}
-
-.delete-btn:hover {
-    background: #c82333;
-}
-
-.inline-form {
-    display: inline;
+.private-badge {
+    margin-left: auto;
+    padding: 4px 10px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-radius: 12px;
+    font-size: 12px;
 }
 
 .post-content {
-    margin-bottom: 12px;
+    background: var(--bg);
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 14px;
 }
 
 .post-content p {
-    margin: 0 0 12px 0;
-    line-height: 1.5;
-    color: var(--twitter-dark);
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
 }
 
-.post-media-preview {
-    margin-top: 8px;
+.post-media {
+    margin-bottom: 14px;
 }
 
-.media-preview {
-    max-width: 100%;
+.single-media {
+    width: 100%;
     max-height: 300px;
-    border-radius: 8px;
     object-fit: cover;
+    border-radius: 10px;
 }
 
 .media-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 4px;
-    margin-top: 8px;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.media-item {
+.media-thumb {
     width: 100%;
-    height: 120px;
+    height: 80px;
     object-fit: cover;
-    border-radius: 4px;
 }
 
 .media-more {
@@ -355,126 +381,143 @@
     background: rgba(0,0,0,0.6);
     color: white;
     font-weight: 600;
-    border-radius: 4px;
+    font-size: 14px;
 }
 
 .post-stats {
     display: flex;
-    gap: 16px;
-    font-size: 14px;
-    color: var(--twitter-gray);
+    align-items: center;
+    gap: 20px;
 }
 
-.post-stats span {
+.stat-item {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
 }
 
-.private-indicator {
-    color: #6c757d !important;
+.stat-item i {
+    font-size: 12px;
 }
 
-/* Pagination */
-.pagination-container {
-    padding: 20px;
-    background: var(--twitter-light);
-    border-top: 1px solid var(--border-color);
+.view-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #8b5cf6;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: auto;
+    transition: all 0.2s ease;
 }
 
-/* Empty State */
+.view-link:hover {
+    opacity: 0.8;
+}
+
+.post-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.delete-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: #ef4444;
+    color: white;
+}
+
+.pagination-wrapper {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+}
+
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: var(--twitter-gray);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
 }
 
-.empty-state i {
-    font-size: 48px;
-    margin-bottom: 16px;
-    display: block;
-    opacity: 0.5;
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-icon i {
+    font-size: 32px;
+    color: #8b5cf6;
 }
 
 .empty-state h3 {
-    margin: 0 0 8px 0;
-    color: var(--twitter-dark);
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
 }
 
 .empty-state p {
     margin: 0;
-}
-
-/* Button Styles */
-.btn-primary {
-    background: var(--twitter-blue);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    text-decoration: none;
+    color: var(--text-muted);
     font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
 }
 
-.btn-primary:hover {
-    background: #1991DB;
-    transform: translateY(-1px);
-}
-
-.btn-secondary {
-    background: var(--card-bg);
-    color: var(--twitter-gray);
-    border: 2px solid var(--border-color);
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-    background: var(--hover-bg);
-    border-color: var(--twitter-blue);
-}
-
-/* Responsive Design */
 @media (max-width: 768px) {
-    .admin-page {
-        padding: 16px;
-    }
-
-    .page-header {
+    .admin-header {
         flex-direction: column;
         gap: 16px;
         text-align: center;
     }
 
-    .filters-form {
+    .header-left {
         flex-direction: column;
-        align-items: stretch;
     }
 
-    .search-group {
-        min-width: auto;
-    }
-
-    .post-item {
-        padding: 16px;
-    }
-
-    .post-header {
+    .search-form {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+    }
+
+    .search-box input {
+        width: 100%;
+    }
+
+    .clear-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .post-card {
+        flex-direction: column;
     }
 
     .post-actions {
-        align-self: flex-end;
+        flex-direction: row;
+        justify-content: flex-end;
     }
 
     .post-stats {
@@ -483,14 +526,33 @@
     }
 
     .media-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 </style>
 
 <script>
-function confirmDelete() {
-    return confirm('Are you sure you want to delete this post? This action cannot be undone.');
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    let searchTimeout;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            
+            if (query.length < 2) {
+                if (query.length === 0) {
+                    window.location.href = '{{ route("admin.posts") }}';
+                }
+                return;
+            }
+
+            searchTimeout = setTimeout(function() {
+                window.location.href = '{{ route("admin.posts") }}?search=' + encodeURIComponent(query);
+            }, 500);
+        });
+    }
+});
 </script>
 @endsection

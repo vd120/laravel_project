@@ -4,436 +4,505 @@
 
 @section('content')
 <div class="admin-page">
-    <div class="page-header">
-        <h1>Manage Comments</h1>
-        <div class="header-actions">
-            <a href="{{ route('admin.dashboard') }}" class="btn-secondary">
+    {{-- Header --}}
+    <div class="admin-header">
+        <div class="header-left">
+            <a href="{{ route('admin.dashboard') }}" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
-                Back to Dashboard
             </a>
-        </div>
-    </div>
-
-    
-    <div class="filters-section">
-        <form method="GET" class="filters-form">
-            <div class="search-group">
-                <i class="fas fa-search"></i>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search comments by content..." class="search-input">
+            <div>
+                <h1>Comments</h1>
+                <p>Manage and moderate user comments</p>
             </div>
-            <button type="submit" class="btn-primary">Search</button>
-            @if(request('search'))
-            <a href="{{ route('admin.comments') }}" class="btn-secondary">Clear</a>
-            @endif
-        </form>
+        </div>
+        <div class="header-stats">
+            <span class="total-badge">{{ $comments->total() }} Total</span>
+        </div>
     </div>
 
-    
-    <div class="data-table-container">
-        <div class="table-header">
-            <h2>Comments ({{ $comments->total() }})</h2>
+    {{-- Search --}}
+    <div class="search-section">
+        <div class="search-form">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" value="{{ request('search') }}" placeholder="Search comments..." autocomplete="off">
+            </div>
+            @if(request('search'))
+            <a href="{{ route('admin.comments') }}" class="clear-btn">
+                <i class="fas fa-times"></i> Clear
+            </a>
+            @endif
         </div>
+        <div id="search-results" class="search-results"></div>
+    </div>
 
-        @if($comments->count() > 0)
-        <div class="comments-list">
-            @foreach($comments as $comment)
-            <div class="comment-item">
-                <div class="comment-header">
-                    <div class="comment-user">
+    {{-- Comments List --}}
+    @if($comments->count() > 0)
+    <div class="comments-section">
+        @foreach($comments as $comment)
+        <div class="comment-card">
+            <div class="comment-main">
+                <div class="comment-user">
+                    <div class="user-avatar">
                         @if($comment->user->profile && $comment->user->profile->avatar)
-                            <img src="{{ asset('storage/' . $comment->user->profile->avatar) }}" alt="Avatar" class="user-avatar-small">
+                            <img src="{{ asset('storage/' . $comment->user->profile->avatar) }}" alt="">
                         @else
-                            <div class="user-avatar-placeholder-small">
-                                <i class="fas fa-user"></i>
-                            </div>
+                            <div class="avatar-placeholder">{{ substr($comment->user->name, 0, 1) }}</div>
                         @endif
-                        <div class="user-info">
-                            <span class="username">{{ $comment->user->name }}</span>
-                            <span class="comment-date">{{ $comment->created_at->diffForHumans() }}</span>
-                        </div>
                     </div>
-                    <div class="comment-actions">
-                        <form method="POST" action="{{ route('admin.comments.delete', $comment) }}" class="inline-form" onsubmit="return confirmDelete()">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn-action delete-btn" title="Delete Comment">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
+                    <div class="user-details">
+                        <span class="user-name">{{ $comment->user->name }}</span>
+                        <span class="comment-time">{{ $comment->created_at->diffForHumans() }}</span>
                     </div>
                 </div>
-
-                <div class="comment-content">
+                
+                <div class="comment-body">
                     <p>{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content) !!}</p>
                 </div>
 
-                <div class="comment-post-info">
-                    <span>On post by {{ $comment->post->user->name }}</span>
-                    <a href="{{ route('posts.show', $comment->post) }}" class="post-link" target="_blank">
-                        View Post <i class="fas fa-external-link-alt"></i>
+                <div class="comment-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-heart"></i>
+                        <span>{{ $comment->likes->count() }} likes</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-user"></i>
+                        <span>Post by {{ $comment->post->user->name }}</span>
+                    </div>
+                    <a href="/posts/{{ $comment->post->slug }}" target="_blank" class="view-post-link">
+                        <i class="fas fa-external-link-alt"></i> View Post
                     </a>
                 </div>
-
-                <div class="comment-stats">
-                    <span><i class="fas fa-heart"></i> {{ $comment->likes->count() }}</span>
-                </div>
             </div>
-            @endforeach
-        </div>
 
-        
-        <div class="pagination-container">
-            {{ $comments->appends(request()->query())->links() }}
+            <div class="comment-actions">
+                <form method="POST" action="{{ route('admin.comments.delete', $comment) }}" onsubmit="return confirm('Delete this comment?')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="delete-btn" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
         </div>
-        @else
-        <div class="empty-state">
-            <i class="fas fa-comments"></i>
-            <h3>No comments found</h3>
-            <p>No comments match your current search.</p>
-        </div>
-        @endif
+        @endforeach
     </div>
+
+    {{-- Pagination --}}
+    <div class="pagination-wrapper">
+        {{ $comments->appends(request()->query())->links() }}
+    </div>
+    @else
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-comments"></i>
+        </div>
+        <h3>No comments found</h3>
+        <p>No comments match your search criteria.</p>
+    </div>
+    @endif
 </div>
 
 <style>
 .admin-page {
-    max-width: 1200px;
+    max-width: 900px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 0 16px 40px;
 }
 
-.page-header {
+.admin-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
+    justify-content: space-between;
+    margin: -16px -16px 24px;
+    padding: 24px 16px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 0 0 20px 20px;
 }
 
-.page-header h1 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--twitter-dark);
-}
-
-.header-actions {
+.header-left {
     display: flex;
-    gap: 12px;
+    align-items: center;
+    gap: 16px;
 }
 
-/* Filters Section */
-.filters-section {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
+.back-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.admin-header h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+}
+
+.admin-header p {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+}
+
+.total-badge {
+    background: rgba(255,255,255,0.25);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.search-section {
     margin-bottom: 24px;
 }
 
-.filters-form {
+.search-form {
     display: flex;
-    gap: 16px;
+    gap: 12px;
     align-items: center;
-    flex-wrap: wrap;
 }
 
-.search-group {
-    position: relative;
+.search-box {
     flex: 1;
-    min-width: 250px;
+    position: relative;
 }
 
-.search-group i {
+.search-box i {
     position: absolute;
-    left: 14px;
+    left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--twitter-gray);
+    color: var(--text-muted);
 }
 
-.search-input {
+.search-box input {
     width: 100%;
-    padding: 10px 16px 10px 40px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 14px;
-}
-
-/* Comments List */
-.data-table-container {
-    background: var(--card-bg);
+    padding: 14px 16px 14px 46px;
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    overflow: hidden;
+    font-size: 14px;
+    background: var(--card-bg);
+    color: var(--text);
+    transition: all 0.2s ease;
 }
 
-.table-header {
-    padding: 20px;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--twitter-light);
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
-.table-header h2 {
-    margin: 0;
-    font-size: 20px;
+.search-btn {
+    padding: 14px 24px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
     font-weight: 600;
-    color: var(--twitter-dark);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
-.comments-list {
-    max-height: 70vh;
-    overflow-y: auto;
+.search-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
-.comment-item {
-    border-bottom: 1px solid var(--border-color);
-    padding: 20px;
-    transition: background-color 0.2s ease;
+.clear-btn {
+    padding: 14px 20px;
+    background: var(--bg);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
 
-.comment-item:hover {
-    background: var(--twitter-light);
+.clear-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text);
 }
 
-.comment-item:last-child {
-    border-bottom: none;
-}
-
-.comment-header {
+.comments-section {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.comment-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+
+.comment-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.comment-main {
+    flex: 1;
+    min-width: 0;
 }
 
 .comment-user {
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-bottom: 14px;
 }
 
-.user-avatar-small {
-    width: 40px;
-    height: 40px;
+.user-avatar {
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    border: 2px solid var(--border-color);
 }
 
-.user-avatar-placeholder-small {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--twitter-light);
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--twitter-gray);
-    border: 2px solid var(--border-color);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
 }
 
-.username {
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 15px;
     font-weight: 600;
-    color: var(--twitter-dark);
-    display: block;
+    color: var(--text);
 }
 
-.comment-date {
+.comment-time {
     font-size: 12px;
-    color: var(--twitter-gray);
+    color: var(--text-muted);
+}
+
+.comment-body {
+    background: var(--bg);
+    padding: 14px 16px;
+    border-radius: 10px;
+    border-left: 3px solid var(--primary);
+    margin-bottom: 14px;
+}
+
+.comment-body p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+}
+
+.comment-body a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.comment-body a:hover {
+    text-decoration: underline;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.meta-item i {
+    font-size: 12px;
+}
+
+.view-post-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.view-post-link:hover {
+    opacity: 0.8;
 }
 
 .comment-actions {
     display: flex;
+    flex-direction: column;
     gap: 8px;
 }
 
-.btn-action {
-    padding: 8px;
+.delete-btn {
+    width: 40px;
+    height: 40px;
     border: none;
-    border-radius: 6px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
     cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
     font-size: 14px;
-}
-
-.delete-btn {
-    background: #dc3545;
-    color: white;
+    transition: all 0.2s ease;
 }
 
 .delete-btn:hover {
-    background: #c82333;
+    background: #ef4444;
+    color: white;
 }
 
-.inline-form {
-    display: inline;
-}
-
-.comment-content {
-    margin-bottom: 12px;
-}
-
-.comment-content p {
-    margin: 0;
-    line-height: 1.5;
-    color: var(--twitter-dark);
-    background: var(--twitter-light);
-    padding: 12px;
-    border-radius: 8px;
-    border-left: 4px solid var(--twitter-blue);
-}
-
-.comment-post-info {
+.pagination-wrapper {
+    margin-top: 24px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    color: var(--twitter-gray);
-    margin-bottom: 8px;
+    justify-content: center;
 }
 
-.post-link {
-    color: var(--twitter-blue);
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.post-link:hover {
-    color: #1991DB;
-}
-
-.comment-stats {
-    font-size: 14px;
-    color: var(--twitter-gray);
-}
-
-.comment-stats span {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* Pagination */
-.pagination-container {
-    padding: 20px;
-    background: var(--twitter-light);
-    border-top: 1px solid var(--border-color);
-}
-
-/* Empty State */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: var(--twitter-gray);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
 }
 
-.empty-state i {
-    font-size: 48px;
-    margin-bottom: 16px;
-    display: block;
-    opacity: 0.5;
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-icon i {
+    font-size: 32px;
+    color: var(--primary);
 }
 
 .empty-state h3 {
-    margin: 0 0 8px 0;
-    color: var(--twitter-dark);
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
 }
 
 .empty-state p {
     margin: 0;
-}
-
-/* Button Styles */
-.btn-primary {
-    background: var(--twitter-blue);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    text-decoration: none;
+    color: var(--text-muted);
     font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
 }
 
-.btn-primary:hover {
-    background: #1991DB;
-    transform: translateY(-1px);
-}
-
-.btn-secondary {
-    background: var(--card-bg);
-    color: var(--twitter-gray);
-    border: 2px solid var(--border-color);
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-    background: var(--hover-bg);
-    border-color: var(--twitter-blue);
-}
-
-/* Responsive Design */
 @media (max-width: 768px) {
-    .admin-page {
-        padding: 16px;
-    }
-
-    .page-header {
+    .admin-header {
         flex-direction: column;
         gap: 16px;
         text-align: center;
     }
 
-    .filters-form {
+    .header-left {
         flex-direction: column;
-        align-items: stretch;
     }
 
-    .search-group {
-        min-width: auto;
-    }
-
-    .comment-item {
-        padding: 16px;
-    }
-
-    .comment-header {
+    .search-form {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+    }
+
+    .search-box input {
+        width: 100%;
+    }
+
+    .search-btn, .clear-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .comment-card {
+        flex-direction: column;
     }
 
     .comment-actions {
-        align-self: flex-end;
+        flex-direction: row;
+        justify-content: flex-end;
     }
 
-    .comment-post-info {
-        flex-direction: column;
-        gap: 8px;
-        align-items: flex-start;
+    .comment-meta {
+        gap: 12px;
     }
 }
 </style>
 
 <script>
-function confirmDelete() {
-    return confirm('Are you sure you want to delete this comment? This action cannot be undone.');
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    let searchTimeout;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            
+            if (query.length < 2) {
+                if (query.length === 0) {
+                    window.location.href = '{{ route("admin.comments") }}';
+                }
+                return;
+            }
+
+            searchTimeout = setTimeout(function() {
+                window.location.href = '{{ route("admin.comments") }}?search=' + encodeURIComponent(query);
+            }, 500);
+        });
+    }
+});
 </script>
 @endsection

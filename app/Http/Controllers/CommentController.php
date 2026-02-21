@@ -50,7 +50,7 @@ class CommentController extends Controller
 
         // Check if it's an AJAX request
         if ($request->expectsJson()) {
-            $commentData = $comment->load('user');
+            $commentData = $comment->load(['user.profile']);
             $commentData->content = app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content);
 
             return response()->json([

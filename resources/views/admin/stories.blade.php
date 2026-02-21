@@ -4,432 +4,491 @@
 
 @section('content')
 <div class="admin-page">
-    <div class="page-header">
-        <h1>Manage Stories</h1>
-        <div class="header-actions">
-            <a href="{{ route('admin.dashboard') }}" class="btn-secondary">
+    {{-- Header --}}
+    <div class="admin-header">
+        <div class="header-left">
+            <a href="{{ route('admin.dashboard') }}" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
-                Back to Dashboard
             </a>
-        </div>
-    </div>
-
-    
-    <div class="filters-section">
-        <form method="GET" class="filters-form">
-            <div class="search-group">
-                <i class="fas fa-search"></i>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search stories by username..." class="search-input">
+            <div>
+                <h1>Stories</h1>
+                <p>Manage and moderate user stories</p>
             </div>
-            <button type="submit" class="btn-primary">Search</button>
-            @if(request('search'))
-            <a href="{{ route('admin.stories') }}" class="btn-secondary">Clear</a>
-            @endif
-        </form>
+        </div>
+        <div class="header-stats">
+            <span class="total-badge">{{ $stories->total() }} Total</span>
+        </div>
     </div>
 
-    
-    <div class="data-table-container">
-        <div class="table-header">
-            <h2>Stories ({{ $stories->total() }})</h2>
+    {{-- Search --}}
+    <div class="search-section">
+        <div class="search-form">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" value="{{ request('search') }}" placeholder="Search stories by username..." autocomplete="off">
+            </div>
+            @if(request('search'))
+            <a href="{{ route('admin.stories') }}" class="clear-btn">
+                <i class="fas fa-times"></i> Clear
+            </a>
+            @endif
         </div>
+    </div>
 
-        @if($stories->count() > 0)
-        <div class="stories-grid">
-            @foreach($stories as $story)
-            <div class="story-item">
-                <div class="story-header">
-                    <div class="story-user">
+    {{-- Stories Grid --}}
+    @if($stories->count() > 0)
+    <div class="stories-grid">
+        @foreach($stories as $story)
+        <div class="story-card">
+            <div class="story-media">
+                @if($story->media_type === 'image')
+                    <img src="{{ asset('storage/' . $story->media_path) }}" alt="Story" class="story-img">
+                @elseif($story->media_type === 'video')
+                    <video class="story-video" muted>
+                        <source src="{{ asset('storage/' . $story->media_path) }}" type="video/mp4">
+                    </video>
+                @endif
+                <div class="story-overlay">
+                    <form method="POST" action="{{ route('admin.stories.delete', $story) }}" onsubmit="return confirm('Delete this story?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="delete-btn" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="story-info">
+                <div class="story-user">
+                    <div class="user-avatar">
                         @if($story->user->profile && $story->user->profile->avatar)
-                            <img src="{{ asset('storage/' . $story->user->profile->avatar) }}" alt="Avatar" class="user-avatar-small">
+                            <img src="{{ asset('storage/' . $story->user->profile->avatar) }}" alt="">
                         @else
-                            <div class="user-avatar-placeholder-small">
-                                <i class="fas fa-user"></i>
-                            </div>
+                            <div class="avatar-placeholder">{{ substr($story->user->name, 0, 1) }}</div>
                         @endif
-                        <div class="user-info">
-                            <span class="username">{{ $story->user->name }}</span>
-                            <span class="story-date">{{ $story->created_at->diffForHumans() }}</span>
-                        </div>
                     </div>
-                    <div class="story-actions">
-                        <form method="POST" action="{{ route('admin.stories.delete', $story) }}" class="inline-form" onsubmit="return confirmDelete()">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn-action delete-btn" title="Delete Story">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
+                    <div class="user-details">
+                        <span class="user-name">{{ $story->user->name }}</span>
+                        <span class="story-time">{{ $story->created_at->diffForHumans() }}</span>
                     </div>
                 </div>
-
-                <div class="story-media">
-                    @if($story->media_type === 'image')
-                        <img src="{{ asset('storage/' . $story->media_path) }}" alt="Story" class="story-preview">
-                    @elseif($story->media_type === 'video')
-                        <video class="story-preview" muted>
-                            <source src="{{ asset('storage/' . $story->media_path) }}" type="video/mp4">
-                        </video>
-                    @endif
-                </div>
-
+                
+                @if($story->content)
                 <div class="story-content">
-                    @if($story->content)
-                        <p>{{ Str::limit($story->content, 100) }}</p>
-                    @endif
+                    <p>{{ Str::limit($story->content, 80) }}</p>
                 </div>
+                @endif
 
                 <div class="story-stats">
-                    <span><i class="fas fa-eye"></i> {{ $story->storyViews->count() }}</span>
-                    <span><i class="fas fa-heart"></i> {{ $story->reactions->count() }}</span>
+                    <div class="stat-item">
+                        <i class="fas fa-eye"></i>
+                        <span>{{ $story->storyViews->count() }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-heart"></i>
+                        <span>{{ $story->reactions->count() }}</span>
+                    </div>
                 </div>
             </div>
-            @endforeach
         </div>
-
-        
-        <div class="pagination-container">
-            {{ $stories->appends(request()->query())->links() }}
-        </div>
-        @else
-        <div class="empty-state">
-            <i class="fas fa-camera"></i>
-            <h3>No stories found</h3>
-            <p>No stories match your current search.</p>
-        </div>
-        @endif
+        @endforeach
     </div>
+
+    {{-- Pagination --}}
+    <div class="pagination-wrapper">
+        {{ $stories->appends(request()->query())->links() }}
+    </div>
+    @else
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-circle-notch"></i>
+        </div>
+        <h3>No stories found</h3>
+        <p>No stories match your search criteria.</p>
+    </div>
+    @endif
 </div>
 
 <style>
 .admin-page {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 0 16px 40px;
 }
 
-.page-header {
+.admin-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
+    justify-content: space-between;
+    margin: -16px -16px 24px;
+    padding: 24px 16px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border-radius: 0 0 20px 20px;
 }
 
-.page-header h1 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--twitter-dark);
-}
-
-.header-actions {
+.header-left {
     display: flex;
-    gap: 12px;
+    align-items: center;
+    gap: 16px;
 }
 
-/* Filters Section */
-.filters-section {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
+.back-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.admin-header h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+}
+
+.admin-header p {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+}
+
+.total-badge {
+    background: rgba(255,255,255,0.25);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.search-section {
     margin-bottom: 24px;
 }
 
-.filters-form {
+.search-form {
     display: flex;
-    gap: 16px;
+    gap: 12px;
     align-items: center;
-    flex-wrap: wrap;
 }
 
-.search-group {
-    position: relative;
+.search-box {
     flex: 1;
-    min-width: 250px;
+    position: relative;
 }
 
-.search-group i {
+.search-box i {
     position: absolute;
-    left: 14px;
+    left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--twitter-gray);
+    color: var(--text-muted);
 }
 
-.search-input {
+.search-box input {
     width: 100%;
-    padding: 10px 16px 10px 40px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 14px;
-}
-
-/* Stories Grid */
-.data-table-container {
-    background: var(--card-bg);
+    padding: 14px 16px 14px 46px;
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    overflow: hidden;
+    font-size: 14px;
+    background: var(--card-bg);
+    color: var(--text);
+    transition: all 0.2s ease;
 }
 
-.table-header {
-    padding: 20px;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--twitter-light);
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
 }
 
-.table-header h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--twitter-dark);
+.clear-btn {
+    padding: 14px 20px;
+    background: var(--bg);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text);
 }
 
 .stories-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 20px;
-    padding: 20px;
 }
 
-.story-item {
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    overflow: hidden;
+.story-card {
     background: var(--card-bg);
-    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    overflow: hidden;
     transition: all 0.2s ease;
 }
 
-.story-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.story-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
-.story-header {
+.story-media {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+    background: #000;
+}
+
+.story-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.story-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.story-overlay {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.story-card:hover .story-overlay {
+    opacity: 1;
+}
+
+.delete-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    cursor: pointer;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: #ef4444;
+    transform: scale(1.1);
+}
+
+.story-info {
     padding: 16px;
-    border-bottom: 1px solid var(--border-color);
 }
 
 .story-user {
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-bottom: 12px;
 }
 
-.user-avatar-small {
+.user-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--border-color);
-}
-
-.user-avatar-placeholder-small {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--twitter-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--twitter-gray);
-    border: 2px solid var(--border-color);
-}
-
-.username {
-    font-weight: 600;
-    color: var(--twitter-dark);
-    display: block;
-}
-
-.story-date {
-    font-size: 12px;
-    color: var(--twitter-gray);
-}
-
-.story-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-action {
-    padding: 8px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    font-size: 14px;
-}
-
-.delete-btn {
-    background: #dc3545;
-    color: white;
-}
-
-.delete-btn:hover {
-    background: #c82333;
-}
-
-.inline-form {
-    display: inline;
-}
-
-.story-media {
-    position: relative;
-    height: 200px;
     overflow: hidden;
-    background: #000;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
 }
 
-.story-preview {
+.user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.story-time {
+    font-size: 12px;
+    color: var(--text-muted);
 }
 
 .story-content {
-    padding: 16px;
+    background: var(--bg);
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
 }
 
 .story-content p {
     margin: 0;
+    font-size: 13px;
     line-height: 1.5;
-    color: var(--twitter-dark);
-    font-size: 14px;
+    color: var(--text);
 }
 
 .story-stats {
-    padding: 12px 16px;
-    background: var(--twitter-light);
-    border-top: 1px solid var(--border-color);
     display: flex;
     gap: 16px;
-    font-size: 14px;
-    color: var(--twitter-gray);
 }
 
-.story-stats span {
+.stat-item {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
 }
 
-/* Pagination */
-.pagination-container {
-    padding: 20px;
-    background: var(--twitter-light);
-    border-top: 1px solid var(--border-color);
-    grid-column: 1 / -1;
+.stat-item i {
+    font-size: 12px;
 }
 
-/* Empty State */
+.pagination-wrapper {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+}
+
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: var(--twitter-gray);
-    grid-column: 1 / -1;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
 }
 
-.empty-state i {
-    font-size: 48px;
-    margin-bottom: 16px;
-    display: block;
-    opacity: 0.5;
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-icon i {
+    font-size: 32px;
+    color: #f59e0b;
 }
 
 .empty-state h3 {
-    margin: 0 0 8px 0;
-    color: var(--twitter-dark);
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
 }
 
 .empty-state p {
     margin: 0;
-}
-
-/* Button Styles */
-.btn-primary {
-    background: var(--twitter-blue);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    text-decoration: none;
+    color: var(--text-muted);
     font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
 }
 
-.btn-primary:hover {
-    background: #1991DB;
-    transform: translateY(-1px);
-}
-
-.btn-secondary {
-    background: var(--card-bg);
-    color: var(--twitter-gray);
-    border: 2px solid var(--border-color);
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-    background: var(--hover-bg);
-    border-color: var(--twitter-blue);
-}
-
-/* Responsive Design */
 @media (max-width: 768px) {
-    .admin-page {
-        padding: 16px;
-    }
-
-    .page-header {
+    .admin-header {
         flex-direction: column;
         gap: 16px;
         text-align: center;
     }
 
-    .filters-form {
+    .header-left {
         flex-direction: column;
-        align-items: stretch;
     }
 
-    .search-group {
-        min-width: auto;
+    .search-form {
+        flex-direction: column;
+    }
+
+    .search-box input {
+        width: 100%;
+    }
+
+    .clear-btn {
+        width: 100%;
+        text-align: center;
     }
 
     .stories-grid {
-        grid-template-columns: 1fr;
-        padding: 16px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
 
-    .story-item {
-        margin-bottom: 16px;
+    .story-media {
+        height: 140px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stories-grid {
+        grid-template-columns: 1fr;
     }
 }
 </style>
 
 <script>
-function confirmDelete() {
-    return confirm('Are you sure you want to delete this story? This action cannot be undone.');
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    let searchTimeout;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            
+            if (query.length < 2) {
+                if (query.length === 0) {
+                    window.location.href = '{{ route("admin.stories") }}';
+                }
+                return;
+            }
+
+            searchTimeout = setTimeout(function() {
+                window.location.href = '{{ route("admin.stories") }}?search=' + encodeURIComponent(query);
+            }, 500);
+        });
+    }
+});
 </script>
 @endsection

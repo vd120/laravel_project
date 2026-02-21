@@ -90,9 +90,11 @@ class UserController extends Controller
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {
+            $isBlocking = auth()->user()->isBlocking($user);
             return response()->json([
                 'success' => true,
-                'blocking' => auth()->user()->isBlocking($user)
+                'blocking' => $isBlocking,
+                'message' => $isBlocking ? 'User blocked successfully' : 'User unblocked successfully'
             ]);
         }
 
@@ -146,7 +148,7 @@ class UserController extends Controller
         $currentUser = auth()->user();
 
         if (!$currentUser) {
-            return redirect()->route('login');
+            return redirect()->route('home');
         }
 
         // Get all users except current user with their relationships
@@ -173,6 +175,9 @@ class UserController extends Controller
 
     public function searchPage()
     {
+        if (!auth()->check()) {
+            return redirect()->route('home');
+        }
         return view('users.search');
     }
 
@@ -509,6 +514,49 @@ class UserController extends Controller
             if ($story->media_path && file_exists(storage_path('app/public/' . $story->media_path))) {
                 unlink(storage_path('app/public/' . $story->media_path));
             }
+        }
+    }
+
+    /**
+     * Update user's online status
+     */
+    public function updateOnlineStatus()
+    {
+        $user = auth()->user();
+        
+        if ($user) {
+            $user->updateOnlineStatus();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Online status updated'
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'User not authenticated'
+        ], 401);
+    }
+
+    /**
+     * Get user's online status by username
+     */
+    public function getOnlineStatus($username)
+    {
+        try {
+            $user = User::where('name', $username)->firstOrFail();
+            $isOnline = $user->isUserOnline();
+            
+            return response()->json([
+                'success' => true,
+                'is_online' => $isOnline
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
         }
     }
 }

@@ -4,235 +4,192 @@
 
 @section('content')
 <div class="admin-page">
-    <div class="page-header">
-        <h1>Edit User</h1>
-        <div class="header-actions">
-            <a href="{{ route('admin.users.show', $user) }}" class="btn-secondary">
+    {{-- Header --}}
+    <div class="admin-header">
+        <div class="header-left">
+            <a href="{{ route('admin.users.show', $user) }}" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
-                Back to User Details
             </a>
+            <div>
+                <h1>Edit User</h1>
+                <p>Update user information and settings</p>
+            </div>
         </div>
     </div>
 
-    <div class="edit-form-container">
+    <div class="edit-form">
         <form method="POST" action="{{ route('admin.users.update', $user) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
-            <div class="form-section">
-                <h2>Basic Information</h2>
+            {{-- Basic Info Section --}}
+            <div class="form-card">
+                <h2><i class="fas fa-user"></i> Basic Information</h2>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="username">Username *</label>
-                        <input type="text" id="username" name="username" value="{{ old('username', $user->name) }}" required minlength="3" maxlength="50">
+                        <label>Username *</label>
+                        <input type="text" name="username" value="{{ old('username', $user->name) }}" required minlength="3" maxlength="50" autocomplete="username">
                         @error('username')
-                            <span class="error-message">{{ $message }}</span>
+                            <span class="error">{{ $message }}</span>
                         @enderror
                     </div>
 
                     <div class="form-group">
-                        <label for="email">Email Address *</label>
-                        <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" required>
+                        <label>Email Address *</label>
+                        <input type="email" name="email" value="{{ old('email', $user->email) }}" required autocomplete="email">
                         @error('email')
-                            <span class="error-message">{{ $message }}</span>
+                            <span class="error">{{ $message }}</span>
                         @enderror
                     </div>
 
                     <div class="form-group">
-                        <label for="password">New Password (leave blank to keep current)</label>
-                        <input type="password" id="password" name="password" minlength="8">
+                        <label>New Password <small>(leave blank to keep current)</small></label>
+                        <input type="password" name="password" minlength="8" autocomplete="new-password">
                         @error('password')
-                            <span class="error-message">{{ $message }}</span>
+                            <span class="error">{{ $message }}</span>
                         @enderror
                     </div>
 
                     <div class="form-group">
-                        <label for="is_admin">Admin Privileges</label>
+                        <label>Account Status</label>
                         <div class="checkbox-group">
-                            <input type="checkbox" id="is_admin" name="is_admin" value="1" {{ old('is_admin', $user->is_admin) ? 'checked' : '' }}>
-                            <label for="is_admin" class="checkbox-label">Grant admin privileges</label>
+                            <input type="checkbox" name="is_admin" id="is_admin" value="1" {{ old('is_admin', $user->is_admin) ? 'checked' : '' }}>
+                            <label for="is_admin">Grant admin privileges</label>
                         </div>
-                        @error('is_admin')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
                     </div>
 
-                    <div class="form-group">
-                        <label for="is_suspended">Account Suspension</label>
+                    <div class="form-group full">
                         <div class="checkbox-group">
-                            <input type="checkbox" id="is_suspended" name="is_suspended" value="1" {{ old('is_suspended', $user->is_suspended) ? 'checked' : '' }}>
-                            <label for="is_suspended" class="checkbox-label">Suspend this account</label>
+                            <input type="checkbox" name="is_suspended" id="is_suspended" value="1" {{ old('is_suspended', $user->is_suspended) ? 'checked' : '' }}>
+                            <label for="is_suspended">Suspend this account</label>
                         </div>
-                        @error('is_suspended')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
-                        <small class="form-help">Suspended users cannot log in and will see a suspension message.</small>
+                        <small class="help-text">Suspended users cannot log in and will see a suspension message.</small>
                     </div>
                 </div>
             </div>
 
-            <div class="form-section">
-                <h2>Profile Information</h2>
+            {{-- Profile Section --}}
+            <div class="form-card">
+                <h2><i class="fas fa-id-card"></i> Profile Information</h2>
                 <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label for="bio">Bio</label>
-                        <textarea id="bio" name="bio" rows="3" maxlength="500" placeholder="Tell us about yourself...">{{ old('bio', $user->profile->bio ?? '') }}</textarea>
-                        @error('bio')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
+                    <div class="form-group full">
+                        <label>Bio</label>
+                        <textarea name="bio" rows="3" maxlength="500" placeholder="Tell us about yourself...">{{ old('bio', $user->profile->bio ?? '') }}</textarea>
+                    </div>
+
+                    <div class="form-group full">
+                        <label>About</label>
+                        <textarea name="about" rows="3" maxlength="1000" placeholder="More detailed information...">{{ old('about', $user->profile->about ?? '') }}</textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="about">About</label>
-                        <textarea id="about" name="about" rows="4" maxlength="1000" placeholder="More detailed information...">{{ old('about', $user->profile->about ?? '') }}</textarea>
-                        @error('about')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
+                        <label>Website</label>
+                        <input type="url" name="website" value="{{ old('website', $user->profile->website ?? '') }}" placeholder="https://example.com">
                     </div>
 
                     <div class="form-group">
-                        <label for="website">Website</label>
-                        <input type="url" id="website" name="website" value="{{ old('website', $user->profile->website ?? '') }}" placeholder="https://example.com">
-                        @error('website')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
+                        <label>Location</label>
+                        <input type="text" name="location" value="{{ old('location', $user->profile->location ?? '') }}" placeholder="City, Country">
                     </div>
 
                     <div class="form-group">
-                        <label for="location">Location</label>
-                        <input type="text" id="location" name="location" value="{{ old('location', $user->profile->location ?? '') }}" placeholder="City, Country">
-                        @error('location')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
+                        <label>Occupation</label>
+                        <input type="text" name="occupation" value="{{ old('occupation', $user->profile->occupation ?? '') }}" placeholder="Your job title">
                     </div>
 
                     <div class="form-group">
-                        <label for="occupation">Occupation</label>
-                        <input type="text" id="occupation" name="occupation" value="{{ old('occupation', $user->profile->occupation ?? '') }}" placeholder="Your job title">
-                        @error('occupation')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
+                        <label>Phone Number</label>
+                        <input type="tel" name="phone" value="{{ old('phone', $user->profile->phone ?? '') }}" placeholder="+1 (555) 123-4567">
                     </div>
 
                     <div class="form-group">
-                        <label for="phone">Phone Number</label>
-                        <input type="tel" id="phone" name="phone" value="{{ old('phone', $user->profile->phone ?? '') }}" placeholder="+1 (555) 123-4567">
-                        @error('phone')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="gender">Gender</label>
-                        <select id="gender" name="gender">
+                        <label>Gender</label>
+                        <select name="gender">
                             <option value="">Not specified</option>
                             <option value="male" {{ old('gender', $user->profile->gender ?? '') === 'male' ? 'selected' : '' }}>Male</option>
                             <option value="female" {{ old('gender', $user->profile->gender ?? '') === 'female' ? 'selected' : '' }}>Female</option>
                             <option value="other" {{ old('gender', $user->profile->gender ?? '') === 'other' ? 'selected' : '' }}>Other</option>
                         </select>
-                        @error('gender')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
                     </div>
 
                     <div class="form-group">
-                        <label for="birth_date">Birth Date</label>
-                        <input type="date" id="birth_date" name="birth_date" value="{{ old('birth_date', $user->profile->birth_date ?? '') }}">
-                        @error('birth_date')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
+                        <label>Birth Date</label>
+                        <input type="date" name="birth_date" value="{{ old('birth_date', $user->profile->birth_date ?? '') }}">
                     </div>
 
-                    <div class="form-group">
-                        <label for="is_private">Privacy Settings</label>
+                    <div class="form-group full">
                         <div class="checkbox-group">
-                            <input type="checkbox" id="is_private" name="is_private" value="1" {{ old('is_private', $user->profile->is_private ?? false) ? 'checked' : '' }}>
-                            <label for="is_private" class="checkbox-label">Make profile private</label>
+                            <input type="checkbox" name="is_private" id="is_private" value="1" {{ old('is_private', $user->profile->is_private ?? false) ? 'checked' : '' }}>
+                            <label for="is_private">Make profile private</label>
                         </div>
-                        @error('is_private')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
                     </div>
                 </div>
             </div>
 
-            <div class="form-section">
-                <h2>Profile Images</h2>
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label>Current Avatar</label>
-                        <div class="current-image">
+            {{-- Images Section --}}
+            <div class="form-card">
+                <h2><i class="fas fa-images"></i> Profile Images</h2>
+                <div class="images-grid">
+                    <div class="image-upload">
+                        <label>Avatar</label>
+                        <div class="image-preview">
                             @if($user->profile && $user->profile->avatar)
-                                <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="Current Avatar" class="current-avatar">
-                                <div class="image-actions">
-                                    <label for="avatar" class="btn-secondary btn-small">
-                                        <i class="fas fa-upload"></i>
-                                        Change Avatar
-                                    </label>
-                                    <button type="button" onclick="removeCurrentAvatar()" class="btn-danger btn-small">
-                                        <i class="fas fa-trash"></i>
-                                        Remove
-                                    </button>
-                                </div>
+                                <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="Avatar" id="avatar-preview">
                             @else
-                                <div class="no-image">
+                                <div class="no-image" id="avatar-preview">
                                     <i class="fas fa-user"></i>
-                                    <span>No avatar set</span>
-                                    <label for="avatar" class="btn-primary btn-small">
-                                        <i class="fas fa-upload"></i>
-                                        Upload Avatar
-                                    </label>
                                 </div>
                             @endif
                         </div>
-                        <input type="file" id="avatar" name="avatar" accept="image/*" style="display: none;">
-                        <input type="hidden" id="remove_avatar" name="remove_avatar" value="0">
-                        @error('avatar')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
+                        <div class="image-actions">
+                            <label for="avatar" class="btn-upload">
+                                <i class="fas fa-upload"></i> Upload
+                            </label>
+                            @if($user->profile && $user->profile->avatar)
+                            <button type="button" onclick="removeImage('avatar')" class="btn-remove">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                            @endif
+                        </div>
+                        <input type="file" id="avatar" name="avatar" accept="image/*" style="display: none;" onchange="previewImage(this, 'avatar-preview')">
+                        <input type="hidden" name="remove_avatar" id="remove-avatar" value="0">
                     </div>
 
-                    <div class="form-group full-width">
-                        <label>Current Cover Image</label>
-                        <div class="current-image">
+                    <div class="image-upload">
+                        <label>Cover Image</label>
+                        <div class="image-preview cover">
                             @if($user->profile && $user->profile->cover_image)
-                                <img src="{{ asset('storage/' . $user->profile->cover_image) }}" alt="Current Cover" class="current-cover">
-                                <div class="image-actions">
-                                    <label for="cover_image" class="btn-secondary btn-small">
-                                        <i class="fas fa-upload"></i>
-                                        Change Cover
-                                    </label>
-                                    <button type="button" onclick="removeCurrentCover()" class="btn-danger btn-small">
-                                        <i class="fas fa-trash"></i>
-                                        Remove
-                                    </button>
-                                </div>
+                                <img src="{{ asset('storage/' . $user->profile->cover_image) }}" alt="Cover" id="cover-preview">
                             @else
-                                <div class="no-image">
+                                <div class="no-image" id="cover-preview">
                                     <i class="fas fa-image"></i>
-                                    <span>No cover image set</span>
-                                    <label for="cover_image" class="btn-primary btn-small">
-                                        <i class="fas fa-upload"></i>
-                                        Upload Cover
-                                    </label>
                                 </div>
                             @endif
                         </div>
-                        <input type="file" id="cover_image" name="cover_image" accept="image/*" style="display: none;">
-                        <input type="hidden" id="remove_cover" name="remove_cover" value="0">
-                        @error('cover_image')
-                            <span class="error-message">{{ $message }}</span>
-                        @enderror
+                        <div class="image-actions">
+                            <label for="cover_image" class="btn-upload">
+                                <i class="fas fa-upload"></i> Upload
+                            </label>
+                            @if($user->profile && $user->profile->cover_image)
+                            <button type="button" onclick="removeImage('cover')" class="btn-remove">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                            @endif
+                        </div>
+                        <input type="file" id="cover_image" name="cover_image" accept="image/*" style="display: none;" onchange="previewImage(this, 'cover-preview')">
+                        <input type="hidden" name="remove_cover" id="remove-cover" value="0">
                     </div>
                 </div>
             </div>
 
+            {{-- Actions --}}
             <div class="form-actions">
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-save"></i>
-                    Update User
+                <a href="{{ route('admin.users.show', $user) }}" class="btn-cancel">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save"></i> Save Changes
                 </button>
-                <a href="{{ route('admin.users.show', $user) }}" class="btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
@@ -242,408 +199,398 @@
 .admin-page {
     max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 0 16px 40px;
 }
 
-.page-header {
+.admin-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
+    margin: -16px -16px 24px;
+    padding: 24px 16px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border-radius: 0 0 20px 20px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.back-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.admin-header h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+}
+
+.admin-header p {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 24px;
+}
+
+.form-card h2 {
+    margin: 0 0 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--border-color);
 }
 
-.page-header h1 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--twitter-dark);
-}
-
-.header-actions {
-    display: flex;
-    gap: 12px;
-}
-
-.edit-form-container {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 30px;
-    box-shadow: var(--shadow);
-}
-
-.form-section {
-    margin-bottom: 30px;
-}
-
-.form-section h2 {
-    margin: 0 0 20px 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--twitter-dark);
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--twitter-blue);
+.form-card h2 i {
+    color: #6366f1;
 }
 
 .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
+    gap: 6px;
 }
 
-.form-group.full-width {
+.form-group.full {
     grid-column: 1 / -1;
 }
 
 .form-group label {
+    font-size: 13px;
     font-weight: 600;
-    color: var(--twitter-dark);
-    margin-bottom: 8px;
-    font-size: 14px;
+    color: var(--text);
+}
+
+.form-group label small {
+    font-weight: 400;
+    color: var(--text-muted);
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
-    padding: 12px 16px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 16px;
-    font-family: inherit;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 14px;
     background: var(--input-bg);
-    color: var(--twitter-dark);
-    transition: border-color 0.2s ease;
+    color: var(--text);
+    transition: all 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
     outline: none;
-    border-color: var(--twitter-blue);
-    box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .form-group textarea {
     resize: vertical;
     min-height: 80px;
-    line-height: 1.4;
+}
+
+.error {
+    color: #ef4444;
+    font-size: 12px;
+}
+
+.help-text {
+    font-size: 12px;
+    color: var(--text-muted);
 }
 
 .checkbox-group {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 0;
+    padding: 8px 0;
 }
 
 .checkbox-group input[type="checkbox"] {
     width: 18px;
     height: 18px;
-    accent-color: var(--twitter-blue);
-}
-
-.checkbox-label {
-    font-weight: 500;
-    color: var(--twitter-dark);
+    accent-color: #6366f1;
     cursor: pointer;
-    user-select: none;
 }
 
-.error-message {
-    color: #dc3545;
-    font-size: 12px;
-    margin-top: 4px;
+.checkbox-group label {
     font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    margin: 0;
+}
+
+.toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.toggle-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.toggle-item input {
+    display: none;
+}
+
+.toggle-switch {
+    width: 44px;
+    height: 24px;
+    background: var(--border-color);
+    border-radius: 12px;
+    position: relative;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: all 0.2s ease;
+}
+
+.toggle-item input:checked + .toggle-switch {
+    background: #6366f1;
+}
+
+.toggle-item input:checked + .toggle-switch.admin {
+    background: #f43f5e;
+}
+
+.toggle-item input:checked + .toggle-switch.suspend {
+    background: #f59e0b;
+}
+
+.toggle-item input:checked + .toggle-switch.private {
+    background: #10b981;
+}
+
+.toggle-item input:checked + .toggle-switch::after {
+    left: 23px;
+}
+
+.toggle-label {
+    font-size: 14px;
+    color: var(--text);
+}
+
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.image-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.image-upload label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.image-preview {
+    width: 100%;
+    height: 150px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg);
+    border: 2px dashed var(--border-color);
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-preview.cover {
+    height: 120px;
+}
+
+.image-preview .no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 32px;
+}
+
+.image-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-upload, .btn-remove {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-upload {
+    background: #6366f1;
+    color: white;
+}
+
+.btn-upload:hover {
+    background: #4f46e5;
+}
+
+.btn-remove {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.btn-remove:hover {
+    background: #ef4444;
+    color: white;
 }
 
 .form-actions {
     display: flex;
     gap: 12px;
-    justify-content: center;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-color);
+    justify-content: flex-end;
 }
 
-.btn-primary {
-    background: var(--twitter-blue);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 16px;
+.btn-cancel, .btn-submit {
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: 600;
-    display: inline-flex;
+    cursor: pointer;
+    display: flex;
     align-items: center;
     gap: 8px;
     transition: all 0.2s ease;
     text-decoration: none;
 }
 
-.btn-primary:hover {
-    background: #1991DB;
-    transform: translateY(-1px);
+.btn-cancel {
+    background: var(--bg);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
 }
 
-.btn-secondary {
-    background: var(--card-bg);
-    color: var(--twitter-gray);
-    border: 2px solid var(--border-color);
-    padding: 12px 24px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-
-.btn-secondary:hover {
+.btn-cancel:hover {
     background: var(--hover-bg);
-    border-color: var(--twitter-blue);
+    color: var(--text);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .admin-page {
-        padding: 16px;
-    }
-
-    .page-header {
-        flex-direction: column;
-        gap: 16px;
-        text-align: center;
-    }
-
-    .edit-form-container {
-        padding: 20px;
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .form-actions {
-        flex-direction: column;
-    }
-
-    .btn-primary,
-    .btn-secondary {
-        justify-content: center;
-    }
-}
-
-/* Profile Images Section */
-.current-image {
-    position: relative;
-    margin-top: 8px;
-}
-
-.current-avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--border-color);
-    box-shadow: var(--shadow);
-}
-
-.current-cover {
-    width: 100%;
-    max-width: 400px;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 2px solid var(--border-color);
-    box-shadow: var(--shadow);
-}
-
-.image-actions {
-    margin-top: 12px;
-    display: flex;
-    gap: 8px;
-}
-
-.btn-small {
-    padding: 8px 12px;
-    border-radius: 16px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-
-.btn-danger {
-    background: #dc3545;
+.btn-submit {
+    background: #6366f1;
     color: white;
     border: none;
 }
 
-.btn-danger:hover {
-    background: #c82333;
+.btn-submit:hover {
+    background: #4f46e5;
     transform: translateY(-1px);
 }
 
-.no-image {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 40px;
-    border: 2px dashed var(--border-color);
-    border-radius: 8px;
-    background: var(--twitter-light);
-}
-
-.no-image i {
-    font-size: 32px;
-    color: var(--twitter-gray);
-}
-
-.no-image span {
-    color: var(--twitter-gray);
-    font-weight: 500;
-}
-
-/* Responsive Design */
 @media (max-width: 768px) {
-    .admin-page {
-        padding: 16px;
-    }
-
-    .page-header {
-        flex-direction: column;
-        gap: 16px;
-        text-align: center;
-    }
-
-    .edit-form-container {
-        padding: 20px;
-    }
-
     .form-grid {
         grid-template-columns: 1fr;
-        gap: 16px;
+    }
+
+    .images-grid {
+        grid-template-columns: 1fr;
     }
 
     .form-actions {
         flex-direction: column;
     }
 
-    .btn-primary,
-    .btn-secondary {
+    .btn-cancel, .btn-submit {
+        width: 100%;
         justify-content: center;
-    }
-
-    .image-actions {
-        flex-direction: column;
-    }
-
-    .current-avatar {
-        width: 100px;
-        height: 100px;
-    }
-
-    .current-cover {
-        height: 120px;
-    }
-}
-
-@media (max-width: 480px) {
-    .page-header h1 {
-        font-size: 24px;
-    }
-
-    .form-section h2 {
-        font-size: 18px;
-    }
-
-    .edit-form-container {
-        padding: 16px;
-    }
-
-    .current-avatar {
-        width: 80px;
-        height: 80px;
-    }
-
-    .current-cover {
-        height: 100px;
-    }
-
-    .no-image {
-        padding: 20px;
-    }
-
-    .no-image i {
-        font-size: 24px;
     }
 }
 </style>
 
 <script>
-function confirmDelete() {
-    return confirm('Are you sure you want to delete this user? This action cannot be undone.');
-}
-
-function removeCurrentAvatar() {
-    if (confirm('Are you sure you want to remove the current avatar?')) {
-        // Set the hidden input value to indicate avatar should be removed
-        document.getElementById('remove_avatar').value = '1';
-
-        // Reset the file input
-        document.getElementById('avatar').value = '';
-
-        // Hide the current avatar display and show the upload placeholder
-        document.querySelector('.current-image').innerHTML = `
-            <div class="no-image">
-                <i class="fas fa-user"></i>
-                <span>No avatar set</span>
-                <label for="avatar" class="btn-primary btn-small">
-                    <i class="fas fa-upload"></i>
-                    Upload Avatar
-                </label>
-            </div>
-        `;
+function previewImage(input, previewId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById(previewId);
+            if (preview.tagName === 'IMG') {
+                preview.src = e.target.result;
+            } else {
+                preview.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">';
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
     }
 }
 
-function removeCurrentCover() {
-    if (confirm('Are you sure you want to remove the current cover image?')) {
-        // Set the hidden input value to indicate cover should be removed
-        document.getElementById('remove_cover').value = '1';
-
-        // Reset the file input
-        document.getElementById('cover_image').value = '';
-
-        // Hide the current cover display and show the upload placeholder
-        const coverContainer = document.querySelectorAll('.current-image')[1];
-        coverContainer.innerHTML = `
-            <div class="no-image">
-                <i class="fas fa-image"></i>
-                <span>No cover image set</span>
-                <label for="cover_image" class="btn-primary btn-small">
-                    <i class="fas fa-upload"></i>
-                    Upload Cover
-                </label>
-            </div>
-        `;
+function removeImage(type) {
+    if (confirm('Remove this ' + type + ' image?')) {
+        document.getElementById('remove-' + type).value = '1';
+        const preview = document.getElementById(type + '-preview');
+        preview.innerHTML = '<i class="fas fa-' + (type === 'avatar' ? 'user' : 'image') + '"></i>';
     }
 }
 </script>

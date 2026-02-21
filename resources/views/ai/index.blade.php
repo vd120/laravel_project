@@ -1,160 +1,221 @@
 @extends('layouts.app')
 
-@section('title', 'AI Assistant - Laravel Social')
+@section('title', 'AI Assistant - Nexus')
 
 @section('content')
-<div class="w-full px-4 py-6">
-    <div class="max-w-full mx-auto">
-        <!-- Page Header - Ultra Minimized -->
-        <div class="ai-header mb-2">
-            <h1 class="text-lg font-medium text-gray-600 mb-0">
-                <i class="fas fa-robot text-blue-400 text-sm mr-1"></i>
-                AI Assistant
-            </h1>
-            <button class="clear-chat-header-btn" onclick="clearChat()" title="Clear all messages">
-                <i class="fas fa-trash-alt"></i>
-                Clear Chat
-            </button>
-        </div>
+<div class="ai-page">
+    <div class="ai-header">
+        <h1>
+            <i class="fas fa-robot"></i>
+            AI Assistant
+        </h1>
+        <button class="clear-chat-btn" onclick="clearChat()" title="Clear all messages">
+            <i class="fas fa-trash-alt"></i>
+            Clear Chat
+        </button>
+    </div>
 
-        <!-- Chat Interface - Full Width -->
-        <div class="chat-container bg-white rounded-xl shadow-lg border border-gray-200 relative" style="padding-bottom: 120px;">
-            <!-- Chat Messages Area - Full Width -->
-            <div class="chat-messages" id="chatMessages" style="height: calc(100vh - 200px); padding: 20px; overflow-y: auto;">
-                <div class="welcome-message">
-                    <div class="message ai">
-                        <div class="ai-avatar-small">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <div class="message-bubble ai-bubble">
-                            <div class="message-content">
-                                <p>🤖 <strong>Laravel Social AI Assistant</strong></p>
-                                <p>Welcome! Choose an option by typing the number:</p>
-                                <div class="menu-options">
-                                    <div class="menu-item">
-                                        <span class="menu-icon">1️⃣</span>
-                                        <span class="menu-text">Help & Menu</span>
-                                    </div>
-                                    <div class="menu-item">
-                                        <span class="menu-icon">2️⃣</span>
-                                        <span class="menu-text">Writing Posts</span>
-                                    </div>
-                                    <div class="menu-item">
-                                        <span class="menu-icon">3️⃣</span>
-                                        <span class="menu-text">Follow Suggestions</span>
-                                    </div>
-                                    <div class="menu-item">
-                                        <span class="menu-icon">4️⃣</span>
-                                        <span class="menu-text">Trending Topics</span>
-                                    </div>
-                                    <div class="menu-item">
-                                        <span class="menu-icon">5️⃣</span>
-                                        <span class="menu-text">Privacy Guide</span>
-                                    </div>
-                                    <div class="menu-item">
-                                        <span class="menu-icon">6️⃣</span>
-                                        <span class="menu-text">Engagement Tips</span>
-                                    </div>
-                                    <div class="menu-item">
-                                        <span class="menu-icon">7️⃣</span>
-                                        <span class="menu-text">Stories Guide</span>
-                                    </div>
-                                    <div class="menu-item">
-                                        <span class="menu-icon">8️⃣</span>
-                                        <span class="menu-text">Profile Setup</span>
-                                    </div>
-                                    <div class="menu-item">
-                                        <span class="menu-icon">9️⃣</span>
-                                        <span class="menu-text">Search & Discover</span>
-                                    </div>
+    <!-- Chat Interface -->
+    <div class="chat-container">
+        <!-- Chat Messages Area -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <div class="message ai">
+                    <div class="ai-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-bubble ai-bubble">
+                        <div class="message-content">
+                            <p>🤖 <strong>Nexus AI Assistant</strong></p>
+                            <p>Welcome! Choose an option by typing the number:</p>
+                            <div class="menu-options">
+                                <div class="menu-item">
+                                    <span class="menu-icon">1️⃣</span>
+                                    <span class="menu-text">Help & Menu</span>
                                 </div>
-                                <p><em>What would you like help with? Just type a number!</em></p>
+                                <div class="menu-item">
+                                    <span class="menu-icon">2️⃣</span>
+                                    <span class="menu-text">Writing Posts</span>
+                                </div>
+                                <div class="menu-item">
+                                    <span class="menu-icon">3️⃣</span>
+                                    <span class="menu-text">Follow Suggestions</span>
+                                </div>
+                                <div class="menu-item">
+                                    <span class="menu-icon">4️⃣</span>
+                                    <span class="menu-text">Trending Topics</span>
+                                </div>
+                                <div class="menu-item">
+                                    <span class="menu-icon">5️⃣</span>
+                                    <span class="menu-text">Privacy Guide</span>
+                                </div>
+                                <div class="menu-item">
+                                    <span class="menu-icon">6️⃣</span>
+                                    <span class="menu-text">Engagement Tips</span>
+                                </div>
+                                <div class="menu-item">
+                                    <span class="menu-icon">7️⃣</span>
+                                    <span class="menu-text">Stories Guide</span>
+                                </div>
+                                <div class="menu-item">
+                                    <span class="menu-icon">8️⃣</span>
+                                    <span class="menu-text">Profile Setup</span>
+                                </div>
+                                <div class="menu-item">
+                                    <span class="menu-icon">9️⃣</span>
+                                    <span class="menu-text">Search & Discover</span>
+                                </div>
                             </div>
-                            <div class="message-time">{{ now()->format('H:i') }}</div>
+                            <p><em>What would you like help with? Just type a number!</em></p>
                         </div>
+                        <div class="message-time">{{ now()->format('H:i') }}</div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Fixed Chat Input - Bottom of Page -->
-        <div class="chat-input-fixed">
-            <div class="input-container">
-                <input
-                    type="text"
-                    id="chatInput"
-                    placeholder="Type a number (1-9) or ask me anything..."
-                    maxlength="200"
-                    autocomplete="off"
-                >
-                <button type="button" id="sendButton" class="send-button" disabled>
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-                <button type="button" id="ai-stop-button" class="ai-stop-button" style="display: none;">
-                    <i class="fas fa-stop"></i>
-                </button>
-            </div>
-            <div class="input-footer">
-                <!-- Removed character counter and input hint -->
-            </div>
+    <!-- Chat Input - Static for mobile, above mobile nav -->
+    <div class="chat-input-container">
+        <div class="input-container">
+            <input
+                type="text"
+                id="chatInput"
+                placeholder="Type a number (1-9)..."
+                maxlength="1"
+                autocomplete="off"
+                inputmode="numeric"
+                pattern="[1-9]"
+            >
+            <button type="button" id="sendButton" class="send-button" disabled>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+            <button type="button" id="ai-stop-button" class="ai-stop-button" style="display: none;">
+                <i class="fas fa-stop"></i>
+            </button>
         </div>
     </div>
 </div>
 
 <style>
-/* AI Header Layout */
+.ai-page {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    padding-bottom: 100px;
+    width: 100%;
+}
+
+/* Laptop view - expand chat area to fill available space */
+@media (min-width: 1024px) {
+    .ai-page {
+        max-width: 100%;
+        padding: 24px 40px;
+    }
+
+    .chat-container {
+        max-width: 100%;
+        border-radius: 20px;
+    }
+
+    .chat-messages {
+        padding: 32px 48px;
+    }
+
+    .message-bubble {
+        max-width: 70%;
+    }
+
+    .input-container {
+        max-width: 1200px;
+    }
+}
+
+@media (min-width: 1440px) {
+    .ai-page {
+        padding: 32px 80px;
+    }
+
+    .chat-messages {
+        padding: 40px 64px;
+    }
+
+    .message-bubble {
+        max-width: 65%;
+    }
+}
+
 .ai-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    background: var(--card-bg);
+    z-index: 100;
 }
 
-.clear-chat-header-btn {
+.ai-header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--twitter-dark);
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
+    gap: 12px;
+}
+
+.ai-header h1 i {
+    color: var(--twitter-blue);
+}
+
+.clear-chat-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
     background: var(--error-color);
     color: white;
     border: none;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(244, 33, 46, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
-.clear-chat-header-btn:hover {
+.clear-chat-btn:hover {
     background: #c82333;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(244, 33, 46, 0.4);
 }
 
-.clear-chat-header-btn:active {
-    transform: translateY(0);
-}
-
-.clear-chat-header-btn i {
-    font-size: 11px;
+.clear-chat-btn i {
+    font-size: 12px;
 }
 
 /* Chat Container */
 .chat-container {
-    background: var(--bg-primary);
-    border-color: var(--border-primary);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
 }
 
-/* Chat Interface Styles */
+/* Chat Messages */
 .chat-messages {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    padding: 24px;
+    height: calc(100vh - 280px);
+    min-height: 400px;
+    overflow-y: auto;
     scroll-behavior: smooth;
 }
 
@@ -166,8 +227,9 @@
 .message {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 12px;
     width: 100%;
+    animation: messageSlideIn 0.3s ease-out;
 }
 
 .message.user {
@@ -179,11 +241,22 @@
     align-self: flex-start;
 }
 
-.ai-avatar-small {
-    width: 32px;
-    height: 32px;
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ai-avatar {
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+    background: linear-gradient(135deg, var(--twitter-blue) 0%, #8B5CF6 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -194,115 +267,80 @@
 }
 
 .message-bubble {
-    padding: 12px 16px;
+    padding: 14px 18px;
     border-radius: 18px;
     font-size: 14px;
     line-height: 1.5;
     word-wrap: break-word;
     position: relative;
-    max-width: 100%;
-    box-shadow: var(--shadow-primary);
-}
-
-.message-bubble:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-hover);
+    max-width: 80%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .ai-bubble {
-    background: var(--bg-message-ai);
-    color: var(--text-ai);
+    background: var(--twitter-light);
+    color: var(--twitter-dark);
     border-bottom-left-radius: 4px;
-    border: 2px solid rgba(59, 130, 246, 0.3);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-    position: relative;
-}
-
-.stop-typing-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255, 255, 255, 0.9);
-    color: #3B82F6;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    z-index: 10;
-    opacity: 0;
-    transform: scale(0.8);
-    animation: fadeIn 0.3s ease forwards;
-}
-
-.stop-typing-btn:hover {
-    background: white;
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-.stop-typing-btn i {
-    font-size: 12px;
-}
-
-@keyframes fadeIn {
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+    border: 1px solid var(--border-color);
 }
 
 .user-bubble {
-    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-    color: var(--text-user);
+    background: var(--twitter-blue);
+    color: white;
     border-bottom-right-radius: 4px;
 }
 
-.message-content {
-    position: relative;
-    z-index: 1;
+.message-content p {
+    margin: 0 0 8px 0;
+}
+
+.message-content p:last-child {
+    margin-bottom: 0;
 }
 
 .message-time {
-    font-size: 10px;
-    color: var(--text-tertiary);
-    margin-top: 4px;
+    font-size: 11px;
+    color: var(--twitter-gray);
+    margin-top: 6px;
     text-align: right;
-    opacity: 0.8;
+}
+
+.user-bubble .message-time {
+    color: rgba(255,255,255,0.8);
 }
 
 .menu-options {
-    margin-top: 12px;
+    margin: 16px 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .menu-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: var(--bg-tertiary);
-    border-radius: 12px;
-    font-size: 13px;
-    color: var(--text-accent);
-    line-height: 1.4;
-    border: 1px solid var(--border-secondary);
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--twitter-dark);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.menu-item:hover {
+    background: var(--hover-bg);
+    transform: translateX(4px);
 }
 
 .menu-icon {
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .menu-text {
     flex: 1;
+    font-weight: 500;
 }
 
 .typing-text {
@@ -311,8 +349,7 @@
 
 .typing-cursor {
     display: inline-block;
-    color: var(--text-accent);
-    font-family: 'Courier New', monospace;
+    color: var(--twitter-blue);
     font-weight: bold;
     animation: cursorBlink 0.8s infinite;
 }
@@ -322,17 +359,39 @@
     51%, 100% { opacity: 0; }
 }
 
-/* Chat Input */
-.chat-input {
-    background: var(--bg-primary);
+/* Chat Input Container - Fixed above mobile nav for mobile */
+.chat-input-container {
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
     padding: 16px 20px;
-    border-top: 1px solid var(--border-primary);
+    margin-top: 16px;
+    position: fixed;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    z-index: 1001;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+}
+
+/* Chat Input Fixed - Desktop only */
+@media (min-width: 901px) {
+    .chat-input-container {
+        position: fixed;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        margin-top: 0;
+    }
 }
 
 .input-container {
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     align-items: center;
-    background: var(--bg-secondary);
+    background: var(--twitter-light);
     border-radius: 24px;
     padding: 0 16px;
     border: 2px solid transparent;
@@ -340,9 +399,9 @@
 }
 
 .input-container:focus-within {
-    border-color: var(--border-focus);
-    background: var(--bg-primary);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--twitter-blue);
+    background: var(--card-bg);
+    box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1);
 }
 
 .input-container input {
@@ -350,23 +409,21 @@
     background: transparent;
     border: none;
     outline: none;
-    padding: 12px 8px;
+    padding: 14px 12px;
     font-size: 16px;
-    color: var(--text-primary);
+    color: var(--twitter-dark);
     font-family: inherit;
-    min-height: 20px;
 }
 
 .input-container input::placeholder {
-    color: var(--text-tertiary);
-    font-style: italic;
+    color: var(--twitter-gray);
 }
 
 .send-button {
-    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    background: var(--twitter-blue);
     border: none;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -375,37 +432,29 @@
     cursor: pointer;
     margin-left: 8px;
     transition: all 0.3s ease;
-    box-shadow: var(--shadow-button);
+    box-shadow: 0 2px 8px rgba(29, 161, 242, 0.3);
 }
 
-.send-button:hover {
+.send-button:hover:not(:disabled) {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
-}
-
-.send-button:active {
-    transform: scale(0.95);
+    box-shadow: 0 4px 12px rgba(29, 161, 242, 0.4);
 }
 
 .send-button:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 
 .send-button i {
     font-size: 16px;
-    position: relative;
-    z-index: 1;
 }
 
 .ai-stop-button {
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid #3B82F6;
-    color: #3B82F6;
-    width: 36px;
-    height: 36px;
+    background: var(--card-bg);
+    border: 2px solid var(--twitter-blue);
+    color: var(--twitter-blue);
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -413,52 +462,17 @@
     cursor: pointer;
     margin-left: 8px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: scale(0.8);
-    animation: fadeIn 0.3s ease forwards;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .ai-stop-button:hover {
-    background: white;
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    border-color: #2563EB;
-}
-
-.ai-stop-button:active {
-    transform: scale(1);
+    background: var(--twitter-blue);
+    color: white;
+    transform: scale(1.05);
 }
 
 .ai-stop-button i {
     font-size: 14px;
-    position: relative;
-    z-index: 1;
-}
-
-.ai-stop-button[style*="display: flex"] {
-    opacity: 1;
-    transform: scale(1);
-}
-
-.input-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-    padding: 0 4px;
-}
-
-.char-count {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    font-weight: 500;
-}
-
-.input-hint {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    font-style: italic;
 }
 
 /* Enhanced Scrollbar */
@@ -467,18 +481,16 @@
 }
 
 .chat-messages::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 3px;
+    background: transparent;
 }
 
 .chat-messages::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--border-color);
     border-radius: 3px;
-    transition: background-color 0.2s ease;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--twitter-gray);
 }
 
 /* Typing indicator */
@@ -495,10 +507,10 @@
 }
 
 .typing-dots span {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: var(--text-tertiary);
+    background: var(--twitter-gray);
     animation: typingBounce 1.4s infinite ease-in-out;
 }
 
@@ -517,160 +529,156 @@
     }
 }
 
-/* Fixed Chat Input at Bottom */
-.chat-input-fixed {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--card-bg);
-    border-top: 1px solid var(--border-color);
-    padding: 16px 20px;
-    z-index: 1000;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-}
-
-.chat-input-fixed .input-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: var(--bg-secondary);
-    border-radius: 24px;
-    padding: 0 16px;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-}
-
-.chat-input-fixed .input-container:focus-within {
-    border-color: var(--border-focus);
-    background: var(--card-bg);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.chat-input-fixed .input-container input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    padding: 12px 8px;
-    font-size: 16px;
-    color: var(--text-primary);
-    font-family: inherit;
-    min-height: 20px;
-}
-
-.chat-input-fixed .input-container input::placeholder {
-    color: var(--text-tertiary);
-    font-style: italic;
-}
-
-.chat-input-fixed .send-button {
-    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    cursor: pointer;
-    margin-left: 8px;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow-button);
-}
-
-.chat-input-fixed .send-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
-}
-
-.chat-input-fixed .send-button:active {
-    transform: scale(0.95);
-}
-
-.chat-input-fixed .send-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
-}
-
-.chat-input-fixed .send-button i {
-    font-size: 16px;
-    position: relative;
-    z-index: 1;
-}
-
-.chat-input-fixed .input-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-    padding: 0 4px;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.chat-input-fixed .char-count {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    font-weight: 500;
-}
-
-.chat-input-fixed .input-hint {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    font-style: italic;
-}
-
 /* Mobile Responsive */
-@media (max-width: 768px) {
-    .chat-messages {
-        padding: 16px;
-        gap: 12px;
-        height: calc(100vh - 160px) !important;
+@media (max-width: 900px) {
+    .ai-page {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .ai-header {
+        flex-direction: row;
+        gap: 8px;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+    }
+
+    .ai-header h1 {
+        font-size: 16px;
+    }
+
+    .clear-chat-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .clear-chat-btn i {
+        display: none;
     }
 
     .chat-container {
-        padding-bottom: 100px !important;
+        border-radius: 0;
+        margin: 0;
+        height: calc(100vh - 240px);
     }
 
-    .chat-input-fixed {
+    .chat-messages {
+        padding: 12px;
+        height: calc(100vh - 300px);
+        min-height: auto;
+        gap: 12px;
+    }
+
+    .message {
+        gap: 8px;
+    }
+
+    .ai-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
+    }
+
+    .message-bubble {
+        max-width: 85%;
+        padding: 10px 12px;
+        font-size: 13px;
+        border-radius: 14px;
+    }
+
+    .menu-options {
+        gap: 6px;
+    }
+
+    .menu-item {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .menu-icon {
+        font-size: 14px;
+    }
+
+    .chat-input-container {
         padding: 12px 16px;
     }
 
-    .chat-input-fixed .input-container {
+    .input-container {
         padding: 0 12px;
+        border-radius: 20px;
     }
 
-    .chat-input-fixed .input-container input {
-        padding: 10px 6px;
-        font-size: 16px; /* Prevents zoom on iOS */
+    .input-container input {
+        padding: 10px 8px;
+        font-size: 14px;
     }
 
-    .chat-input-fixed .send-button {
+    .input-container input::placeholder {
+        font-size: 13px;
+    }
+
+    .send-button,
+    .ai-stop-button {
         width: 32px;
         height: 32px;
     }
 
-    .chat-input-fixed .send-button i {
-        font-size: 14px;
+    .send-button i,
+    .ai-stop-button i {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ai-page {
+        padding-bottom: 70px;
     }
 
-    .message {
-        width: 100%;
+    .ai-header h1 {
+        font-size: 16px;
+    }
+
+    .ai-header h1 i {
+        font-size: 18px;
+    }
+
+    .clear-chat-btn {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    .chat-messages {
+        padding: 10px;
+        height: calc(100vh - 280px);
     }
 
     .message-bubble {
-        font-size: 14px;
-        padding: 10px 14px;
+        max-width: 90%;
+        padding: 8px 10px;
+        font-size: 12px;
     }
 
-    .ai-avatar-small {
-        width: 28px;
-        height: 28px;
+    .message-time {
+        font-size: 10px;
+    }
+
+    .menu-item {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    .welcome-message .message-content p {
         font-size: 12px;
+    }
+
+    .welcome-message strong {
+        font-size: 13px;
+    }
+
+    .input-container input {
+        padding: 8px 6px;
     }
 }
 </style>
@@ -679,14 +687,22 @@
 document.addEventListener('DOMContentLoaded', function() {
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
-    const charCount = document.getElementById('charCount');
     const chatMessages = document.getElementById('chatMessages');
 
     // Enable/disable send button based on input
     chatInput.addEventListener('input', function() {
+        // Only allow numbers 1-9
+        this.value = this.value.replace(/[^1-9]/g, '');
+        
         const hasText = this.value.trim().length > 0;
         sendButton.disabled = !hasText;
-        sendButton.style.opacity = hasText ? '1' : '0.6';
+    });
+
+    // Prevent non-numeric characters
+    chatInput.addEventListener('keypress', function(e) {
+        if (!/^[1-9]$/.test(e.key)) {
+            e.preventDefault();
+        }
     });
 
     // Handle Enter key
@@ -707,6 +723,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add user message
         addMessage(message, 'user');
         chatInput.value = '';
+        sendButton.disabled = true;
 
         // Show typing indicator
         const typingIndicator = showTypingIndicator();
@@ -732,8 +749,8 @@ document.addEventListener('DOMContentLoaded', function() {
             hideTypingIndicator(typingIndicator);
 
             if (data.success && data.response) {
-                // Add AI response
-                addMessage(data.response, 'ai');
+                // Add AI response with typing effect
+                addMessageWithTyping(data.response, 'ai');
             } else {
                 addMessage('Sorry, I encountered an error. Please try again.', 'ai');
             }
@@ -758,152 +775,126 @@ document.addEventListener('DOMContentLoaded', function() {
         if (type === 'user') {
             messageDiv.innerHTML = `
                 <div class="message-bubble user-bubble">
-                    <p>${escapeHtml(text)}</p>
+                    <div class="message-content">
+                        <p>${escapeHtml(text)}</p>
+                    </div>
+                    <div class="message-time">${timestamp}</div>
                 </div>
-                <div class="message-time">${timestamp}</div>
             `;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
         } else {
-            // AI messages with typing effect
             messageDiv.innerHTML = `
-                <div class="ai-avatar-small">
+                <div class="ai-avatar">
                     <i class="fas fa-robot"></i>
                 </div>
                 <div class="message-bubble ai-bubble">
                     <div class="message-content">
-                        <span class="typing-text"></span>
-                        <span class="typing-cursor">|</span>
+                        <p>${formatAIResponse(text)}</p>
                     </div>
+                    <div class="message-time">${timestamp}</div>
                 </div>
-                <div class="message-time">${timestamp}</div>
             `;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            // Start typing animation
-            typeText(messageDiv, text);
         }
+
+        chatMessages.appendChild(messageDiv);
+        scrollToBottom();
     }
 
-        function typeText(messageDiv, fullText) {
-            const textElement = messageDiv.querySelector('.typing-text');
-            const cursorElement = messageDiv.querySelector('.typing-cursor');
-            const contentElement = messageDiv.querySelector('.message-content');
+    function addMessageWithTyping(fullText, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ' + type;
 
-            let currentIndex = 0;
-            let currentText = '';
-            let isTyping = true;
-            let typingTimeout;
+        const timestamp = new Date().toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
 
-            // Different typing speeds for different characters
-            function getTypingSpeed(char) {
-                if (char === ' ' || char === '\n' || char === '\t') {
-                    return 30 + Math.random() * 20; // Faster for whitespace
-                } else if (char.match(/[a-z]/)) {
-                    return 25 + Math.random() * 15; // Fast for lowercase
-                } else if (char.match(/[A-Z]/)) {
-                    return 35 + Math.random() * 15; // Medium-fast for uppercase
-                } else if (char.match(/[0-9]/)) {
-                    return 20 + Math.random() * 10; // Very fast for numbers
-                } else if (char.match(/[.,!?;:]/)) {
-                    return 80 + Math.random() * 40; // Slower for punctuation
-                } else {
-                    return 40 + Math.random() * 20; // Medium for symbols
-                }
-            }
+        messageDiv.innerHTML = `
+            <div class="ai-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-bubble ai-bubble">
+                <div class="message-content">
+                    <span class="typing-text"></span>
+                    <span class="typing-cursor">|</span>
+                </div>
+                <div class="message-time">${timestamp}</div>
+            </div>
+        `;
 
-            // Cursor blink animation
-            const cursorInterval = setInterval(() => {
-                if (cursorElement) {
-                    cursorElement.style.opacity = cursorElement.style.opacity === '0' ? '1' : '0';
-                }
-            }, 100);
+        chatMessages.appendChild(messageDiv);
+        scrollToBottom();
 
-            function typeCharacter() {
-                if (currentIndex < fullText.length && isTyping) {
-                    const char = fullText[currentIndex];
-                    currentText += char;
-                    textElement.innerHTML = formatAIResponse(currentText);
+        // Start typing animation
+        typeText(messageDiv, fullText);
+    }
 
-                    currentIndex++;
+    function typeText(messageDiv, fullText) {
+        const textElement = messageDiv.querySelector('.typing-text');
+        const cursorElement = messageDiv.querySelector('.typing-cursor');
+        let currentIndex = 0;
+        let isTyping = true;
+        let typingTimeout;
 
-                    // Auto-scroll to keep typing visible
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                    // Continue typing with realistic speed
-                    const typingSpeed = getTypingSpeed(char);
-                    typingTimeout = setTimeout(typeCharacter, typingSpeed);
-                } else {
-                    // Typing complete
-                    clearInterval(cursorInterval);
-                    if (cursorElement) {
-                        cursorElement.style.display = 'none';
-                    }
-                    isTyping = false;
-                    // Remove stop button when typing is complete
-                    const stopButton = document.getElementById('ai-stop-button');
-                    if (stopButton) {
-                        stopButton.style.display = 'none';
-                    }
-                }
-            }
-
-            // Show stop button in input bar
-            const stopButton = document.getElementById('ai-stop-button');
-            if (stopButton) {
-                stopButton.style.display = 'flex';
-                stopButton.onclick = function() {
-                    stopTyping(messageDiv, textElement, cursorElement, cursorInterval, typingTimeout, fullText);
-                };
-            }
-
-            // Start typing
-            setTimeout(typeCharacter, 100);
-
-            return { stopButton, cursorInterval, typingTimeout };
-        }
-
-        function stopTyping(messageDiv, textElement, cursorElement, cursorInterval, typingTimeout, fullText) {
-            // Clear typing timeout
-            if (typingTimeout) {
-                clearTimeout(typingTimeout);
-            }
-
-            // Stop cursor animation
-            clearInterval(cursorInterval);
+        // Show stop button
+        const stopButton = document.getElementById('ai-stop-button');
+        stopButton.style.display = 'flex';
+        stopButton.onclick = function() {
+            isTyping = false;
+            clearTimeout(typingTimeout);
+            stopButton.style.display = 'none';
             if (cursorElement) {
                 cursorElement.style.display = 'none';
             }
+            textElement.innerHTML = formatAIResponse(fullText);
+            // Scroll to bottom after stopping
+            setTimeout(scrollToBottom, 50);
+        };
 
-            // Hide stop button
-            const stopButton = document.getElementById('ai-stop-button');
-            if (stopButton) {
+        function typeCharacter() {
+            if (currentIndex < fullText.length && isTyping) {
+                const char = fullText[currentIndex];
+                textElement.innerHTML = formatAIResponse(fullText.substring(0, currentIndex + 1));
+                currentIndex++;
+                scrollToBottom();
+
+                // Variable typing speed
+                const typingSpeed = getTypingSpeed(char);
+                typingTimeout = setTimeout(typeCharacter, typingSpeed);
+            } else {
+                // Typing complete
+                if (cursorElement) {
+                    cursorElement.style.display = 'none';
+                }
                 stopButton.style.display = 'none';
             }
-
-            // Show full text immediately
-            textElement.innerHTML = formatAIResponse(fullText);
-
-            // Scroll to bottom
-            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
+        typeCharacter();
+    }
+
+    function getTypingSpeed(char) {
+        if (char === ' ' || char === '\n') return 30;
+        if (char.match(/[a-z]/)) return 25;
+        if (char.match(/[A-Z]/)) return 35;
+        if (char.match(/[0-9]/)) return 20;
+        if (char.match(/[.,!?;:]/)) return 80;
+        return 40;
+    }
+
     function formatAIResponse(text) {
-        // Convert markdown-style formatting to HTML
         return text
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/•/g, '<br>•')
-            .replace(/\n/g, '<br>')
-            .replace(/<br><br>•/g, '<br>•'); // Fix bullet points
+            .replace(/\n/g, '<br>');
     }
 
     function showTypingIndicator() {
         const indicator = document.createElement('div');
         indicator.className = 'message ai typing-indicator';
         indicator.innerHTML = `
-            <div class="ai-avatar-small">
+            <div class="ai-avatar">
                 <i class="fas fa-robot"></i>
             </div>
             <div class="message-bubble ai-bubble">
@@ -916,7 +907,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         chatMessages.appendChild(indicator);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        scrollToBottom();
         return indicator;
     }
 
@@ -924,6 +915,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (indicator && indicator.parentNode) {
             indicator.parentNode.removeChild(indicator);
         }
+    }
+
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     function escapeHtml(text) {
@@ -934,25 +929,59 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Clear chat functionality
     window.clearChat = function() {
-        if (!confirm('Are you sure you want to clear all messages in this chat? This action cannot be undone.')) {
+        if (!confirm('Are you sure you want to clear all messages? This action cannot be undone.')) {
             return;
         }
 
-        // Clear all messages except the welcome message
-        const messages = chatMessages.querySelectorAll('.message:not(.welcome-message)');
+        // Keep only welcome message
+        const messages = chatMessages.querySelectorAll('.message:not(.welcome-message .message)');
         messages.forEach(message => message.remove());
 
         // Reset input
         chatInput.value = '';
         sendButton.disabled = true;
-        sendButton.style.opacity = '0.6';
 
         // Scroll to top
         chatMessages.scrollTop = 0;
 
-        // Show confirmation
-        showToast('Chat cleared successfully!', 'info', 2000);
+        // Show toast notification
+        showToast('Chat cleared successfully!', 'success');
     };
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        
+        // Use a solid dark background that works in both themes
+        const isLight = document.body.classList.contains('light-theme');
+        const bgColor = isLight ? '#ffffff' : '#1a1a2e';
+        const textColor = isLight ? '#1e293b' : '#ffffff';
+        
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${bgColor};
+            color: ${textColor};
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            z-index: 10000;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease-out;
+            border: 1px solid rgba(255,255,255,0.1);
+        `;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'slideDown 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
 });
 </script>
 @endsection

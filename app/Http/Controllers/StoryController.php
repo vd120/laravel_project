@@ -85,7 +85,18 @@ class StoryController extends Controller
                 return back()->withErrors(['media' => 'Video file too large.']);
             }
 
-            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            // Get trim values if provided (max 60 seconds)
+            $trimStart = $request->input('trim_start', 0);
+            $trimEnd = $request->input('trim_end', 60);
+            
+            // Ensure trim values are valid
+            $trimStart = max(0, floatval($trimStart));
+            $trimEnd = min(60, max($trimStart + 1, floatval($trimEnd)));
+            
+            // Determine if trimming is needed
+            $needsTrimming = ($trimEnd - $trimStart) < 60 || $trimStart > 0 || $trimEnd < 60;
+            
+            $filename = time() . '_' . uniqid() . '.mp4';
             $path = 'stories/videos/' . $filename;
 
             // Ensure directory exists
@@ -94,7 +105,38 @@ class StoryController extends Controller
                 mkdir($directory, 0755, true);
             }
 
-            $file->move($directory, $filename);
+            if ($needsTrimming && $trimEnd - $trimStart > 0) {
+                // Use ffmpeg to trim the video
+                $tempPath = $file->storeAs('temp', 'temp_' . time() . '.' . $file->getClientOriginalExtension());
+                $tempFullPath = storage_path('app/' . $tempPath);
+                $outputPath = storage_path('app/public/' . $path);
+                
+                // Build ffmpeg command to trim video
+                $duration = $trimEnd - $trimStart;
+                $command = sprintf(
+                    'ffmpeg -i "%s" -ss %.3f -t %.3f -c:v libx264 -c:a aac -strict experimental -movflags +faststart "%s" 2>&1',
+                    $tempFullPath,
+                    $trimStart,
+                    $duration,
+                    $outputPath
+                );
+                
+                exec($command, $output, $returnVar);
+                
+                // Clean up temp file
+                if (file_exists($tempFullPath)) {
+                    unlink($tempFullPath);
+                }
+                
+                if ($returnVar !== 0 || !file_exists($outputPath)) {
+                    // If ffmpeg fails, fall back to original file
+                    $file->move($directory, $filename);
+                }
+            } else {
+                // No trimming needed, just move the file
+                $file->move($directory, $filename);
+            }
+            
             $mediaType = 'video';
         } else {
             return back()->withErrors(['media' => 'Invalid file type.']);
@@ -109,7 +151,7 @@ class StoryController extends Controller
             'expires_at' => now()->addHours(24),
         ]);
 
-        return redirect()->route('stories.index');
+        return redirect()->route('stories.index')->with('success', 'Story posted successfully!');
     }
 
     public function show(User $user, Request $request)
@@ -121,31 +163,38 @@ class StoryController extends Controller
             abort(403, 'You can only view stories from users you follow.');
         }
 
+        // Get all active stories from this user
         $stories = $user->activeStories()->get();
 
-        // If a specific story is requested, reorder the collection so it comes first
+        // If a specific story is requested, prioritize it but show all stories
         if ($request->has('story')) {
             $requestedStoryId = $request->get('story');
-            $stories = $stories->sortBy(function ($story) use ($requestedStoryId) {
-                return $story->id == $requestedStoryId ? 0 : 1;
-            })->values();
+            
+            // Find the requested story and mark it as viewed
+            $requestedStory = $stories->firstWhere('id', $requestedStoryId);
+            
+            if ($requestedStory) {
+                // Increment view count for the requested story (only if it's not the author's own story and user hasn't viewed it before)
+                if ($requestedStory->user_id !== $currentUser->id) {
+                    // Check if this user has already viewed this story
+                    $existingView = \App\Models\StoryView::where('user_id', $currentUser->id)
+                        ->where('story_id', $requestedStory->id)
+                        ->exists();
 
-            // Increment view count for the requested story (only if it's not the author's own story and user hasn't viewed it before)
-            $requestedStory = $stories->first();
-            if ($requestedStory && $requestedStory->user_id !== $currentUser->id) {
-                // Check if this user has already viewed this story
-                $existingView = \App\Models\StoryView::where('user_id', $currentUser->id)
-                    ->where('story_id', $requestedStory->id)
-                    ->exists();
-
-                if (!$existingView) {
-                    // Record the view and increment the count
-                    \App\Models\StoryView::create([
-                        'user_id' => $currentUser->id,
-                        'story_id' => $requestedStory->id
-                    ]);
-                    $requestedStory->increment('views');
+                    if (!$existingView) {
+                        // Record the view and increment the count
+                        \App\Models\StoryView::create([
+                            'user_id' => $currentUser->id,
+                            'story_id' => $requestedStory->id
+                        ]);
+                        $requestedStory->increment('views');
+                    }
                 }
+
+                // Sort stories to show the requested one first
+                $stories = $stories->sortBy(function ($story) use ($requestedStoryId) {
+                    return $story->id == $requestedStoryId ? 0 : 1;
+                })->values();
             }
         }
 

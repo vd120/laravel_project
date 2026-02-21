@@ -1,37 +1,59 @@
 @extends('layouts.app')
 
+@section('title', 'Stories')
+
 @section('content')
+@if(session('success'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showToast('{{ session('success') }}', 'success');
+        });
+    </script>
+@endif
+
 <div class="stories-page">
-    <div class="stories-header">
-        <h1 class="stories-title">Stories</h1>
-        <a href="{{ route('stories.create') }}" class="btn">Create Story</a>
+    <div class="page-header">
+        <h1>Stories</h1>
+        <a href="{{ route('stories.create') }}" class="btn-primary">
+            <i class="fas fa-plus"></i>
+            Create Story
+        </a>
     </div>
 
     @if($myStories->count() > 0)
     <div class="story-section">
         <h3>Your Stories</h3>
         <div class="stories-grid">
-            @foreach($myStories as $story)
-            <div class="story-item" data-story-id="{{ $story->id }}" onclick="viewStory('{{ $story->user->name }}', {{ $story->id }})">
-                <div class="story-avatar">
-                    @if($story->user->profile && $story->user->profile->avatar)
-                        <img src="{{ asset('storage/' . $story->user->profile->avatar) }}" alt="{{ $story->user->name }}">
-                    @else
-                        <div class="avatar-placeholder">{{ substr($story->user->name, 0, 1) }}</div>
-                    @endif
-                </div>
+            @php
+            // Group stories by user and get the latest one
+            $myStoriesGrouped = $myStories->groupBy('user_id');
+            @endphp
+            @foreach($myStoriesGrouped as $userId => $userStories)
+            @php
+            $latestStory = $userStories->sortByDesc('created_at')->first();
+            @endphp
+            <div class="story-card" onclick="viewStory('{{ $latestStory->user->name }}', {{ $latestStory->id }})">
                 <div class="story-preview">
-                    @if($story->media_type === 'image')
-                        <img src="{{ asset('storage/' . $story->media_path) }}" alt="Story">
+                    @if($latestStory->media_type === 'image')
+                        <img src="{{ asset('storage/' . $latestStory->media_path) }}" alt="Story">
                     @else
                         <video muted>
-                            <source src="{{ asset('storage/' . $story->media_path) }}" type="video/mp4">
+                            <source src="{{ asset('storage/' . $latestStory->media_path) }}" type="video/mp4">
                         </video>
                     @endif
                 </div>
-                <div class="story-info">
-                    <span class="story-user">{{ $story->user->name }}</span>
-                    <span class="story-time">{{ $story->created_at->diffForHumans() }}</span>
+                <div class="story-overlay">
+                    <div class="story-avatar">
+                        @if($latestStory->user->profile && $latestStory->user->profile->avatar)
+                            <img src="{{ asset('storage/' . $latestStory->user->profile->avatar) }}" alt="Avatar">
+                        @else
+                            <div class="avatar-placeholder">{{ substr($latestStory->user->name, 0, 1) }}</div>
+                        @endif
+                    </div>
+                    <div class="story-meta">
+                        <span class="story-user">{{ $latestStory->user->name }}</span>
+                        <span class="story-time">{{ $latestStory->created_at->diffForHumans() }}</span>
+                    </div>
                 </div>
             </div>
             @endforeach
@@ -44,30 +66,35 @@
         <h3>Friends' Stories</h3>
         <div class="stories-grid">
             @foreach($followedUsersWithStories as $user)
-            @foreach($user->activeStories as $story)
-            <div class="story-item" data-story-id="{{ $story->id }}" onclick="viewStory('{{ $user->name }}', {{ $story->id }})">
-                <div class="story-avatar">
-                    @if($user->profile && $user->profile->avatar)
-                        <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="{{ "@" . $user->name }}">
-                    @else
-                        <div class="avatar-placeholder">{{ substr($user->name, 0, 1) }}</div>
-                    @endif
-                </div>
+            @php
+            $latestStory = $user->activeStories->sortByDesc('created_at')->first();
+            @endphp
+            @if($latestStory)
+            <div class="story-card" onclick="viewStory('{{ $user->name }}', {{ $latestStory->id }})">
                 <div class="story-preview">
-                    @if($story->media_type === 'image')
-                        <img src="{{ asset('storage/' . $story->media_path) }}" alt="Story">
+                    @if($latestStory->media_type === 'image')
+                        <img src="{{ asset('storage/' . $latestStory->media_path) }}" alt="Story">
                     @else
                         <video muted>
-                            <source src="{{ asset('storage/' . $story->media_path) }}" type="video/mp4">
+                            <source src="{{ asset('storage/' . $latestStory->media_path) }}" type="video/mp4">
                         </video>
                     @endif
                 </div>
-                <div class="story-info">
-                    <span class="story-user">{{ "@" . $user->name }}</span>
-                    <span class="story-time">{{ $story->created_at->diffForHumans() }}</span>
+                <div class="story-overlay">
+                    <div class="story-avatar">
+                        @if($user->profile && $user->profile->avatar)
+                            <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="Avatar">
+                        @else
+                            <div class="avatar-placeholder">{{ substr($user->name, 0, 1) }}</div>
+                        @endif
+                    </div>
+                    <div class="story-meta">
+                        <span class="story-user">{{ $user->name }}</span>
+                        <span class="story-time">{{ $latestStory->created_at->diffForHumans() }}</span>
+                    </div>
                 </div>
             </div>
-            @endforeach
+            @endif
             @endforeach
         </div>
     </div>
@@ -78,17 +105,19 @@
         <i class="fas fa-camera"></i>
         <h3>No Stories Yet</h3>
         <p>Be the first to share a story with your friends!</p>
-        <a href="{{ route('stories.create') }}" class="btn">Create Your First Story</a>
+        <a href="{{ route('stories.create') }}" class="btn-primary">Create Your First Story</a>
     </div>
     @endif
 </div>
 
 <style>
 .stories-page {
-    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
-.stories-header {
+.page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -97,33 +126,11 @@
     border-bottom: 1px solid var(--border-color);
 }
 
-/* Clean Stories Title */
-.stories-title {
+.page-header h1 {
     margin: 0;
+    font-size: 28px;
+    font-weight: 700;
     color: var(--twitter-dark);
-    font-weight: 300;
-    font-size: 48px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    position: relative;
-    z-index: 10;
-}
-
-/* Removed neon pseudo-elements */
-
-/* Clean responsive title */
-@media (max-width: 768px) {
-    .stories-title {
-        font-size: 32px;
-        letter-spacing: 2px;
-    }
-}
-
-@media (max-width: 480px) {
-    .stories-title {
-        font-size: 24px;
-        letter-spacing: 1px;
-    }
 }
 
 .story-section {
@@ -131,40 +138,63 @@
 }
 
 .story-section h3 {
-    margin-bottom: 20px;
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    font-weight: 600;
     color: var(--twitter-dark);
-    font-size: 18px;
 }
 
 .stories-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
 }
 
-.story-item {
-    cursor: pointer;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    transition: transform 0.2s ease;
+.story-card {
     position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 9/16;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease;
 }
 
-.story-item:hover {
-    transform: scale(1.05);
+.story-card:hover {
+    transform: scale(1.02);
+}
+
+.story-preview {
+    width: 100%;
+    height: 100%;
+}
+
+.story-preview img,
+.story-preview video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.story-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(transparent 50%, rgba(0,0,0,0.8));
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .story-avatar {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    border: 3px solid white;
+    border: 3px solid var(--twitter-blue);
     overflow: hidden;
-    z-index: 2;
 }
 
 .story-avatar img {
@@ -176,35 +206,16 @@
 .avatar-placeholder {
     width: 100%;
     height: 100%;
-    background: var(--twitter-blue);
+    background: linear-gradient(135deg, var(--twitter-blue), #8B5CF6);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    font-size: 18px;
+    font-weight: 700;
+    font-size: 20px;
 }
 
-.story-preview {
-    width: 100%;
-    height: 200px;
-    position: relative;
-}
-
-.story-preview img,
-.story-preview video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.story-info {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(transparent, rgba(0,0,0,0.7));
-    padding: 40px 10px 10px 10px;
+.story-meta {
     color: white;
 }
 
@@ -237,19 +248,64 @@
     color: var(--twitter-dark);
 }
 
+.btn-primary {
+    background: var(--twitter-blue);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 24px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background: #1991DB;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .stories-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stories-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
 </style>
 
 <script>
-// Initialize real-time manager for story updates
+function viewStory(username, storyId) {
+    window.location.href = '/stories/' + username + '?story=' + storyId;
+}
+
+// Listen for story deletion events
+if (typeof Echo !== 'undefined') {
+    Echo.private('users.{{ auth()->id() }}')
+        .listen('StoryDeleted', (e) => {
+            console.log('Story deleted:', e.storyId);
+            // Reload the page to update stories list
+            window.location.reload();
+        });
+}
+
+// Check for story deleted toast
 document.addEventListener('DOMContentLoaded', function() {
-    if (window.realTimeManager) {
-        window.realTimeManager.init();
+    if (localStorage.getItem('story_deleted') === 'true') {
+        localStorage.removeItem('story_deleted');
+        if (typeof showToast === 'function') {
+            showToast('Story deleted successfully', 'success');
+        }
     }
 });
-
-function viewStory(username, storyId) {
-    // Username is now passed directly, construct the URL
-    window.location.href = '{{ url("/stories") }}/' + username + '?story=' + storyId;
-}
 </script>
 @endsection

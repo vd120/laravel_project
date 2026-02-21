@@ -26,6 +26,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_suspended',
         'verification_code',
         'verification_code_expires_at',
+        'last_active',
+        'is_online',
     ];
 
     /**
@@ -204,5 +206,46 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isVerificationCodeExpired()
     {
         return $this->verification_code_expires_at && now()->isAfter($this->verification_code_expires_at);
+    }
+
+    /**
+     * Check if user is currently online
+     * User is considered online if:
+     * - is_online is true AND last_active was within the last 5 minutes
+     */
+    public function isUserOnline(): bool
+    {
+        if (!$this->is_online) {
+            return false;
+        }
+        
+        // Check if last_active was within 5 minutes
+        if ($this->last_active && now()->diffInMinutes($this->last_active) < 5) {
+            return true;
+        }
+        
+        // If is_online is true but last_active is old, update it
+        return false;
+    }
+
+    /**
+     * Update user's online status
+     */
+    public function updateOnlineStatus(): void
+    {
+        $this->update([
+            'is_online' => true,
+            'last_active' => now(),
+        ]);
+    }
+
+    /**
+     * Mark user as offline (called when they logout or close browser)
+     */
+    public function markAsOffline(): void
+    {
+        $this->update([
+            'is_online' => false,
+        ]);
     }
 }

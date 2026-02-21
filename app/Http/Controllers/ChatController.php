@@ -119,15 +119,57 @@ class ChatController extends Controller
         }
 
         $request->validate([
-            'content' => 'required|string|max:1000',
+            'content' => 'nullable|string|max:1000',
+            'media' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,mp4,mov,avi,webm|max:51200', // 50MB max
         ]);
 
-        $message = Message::create([
+        // Check if either content or media is provided
+        if (!$request->filled('content') && !$request->hasFile('media')) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Message must contain text or media.'
+            ], 422);
+        }
+
+        $messageData = [
             'conversation_id' => $conversation->id,
             'sender_id' => auth()->id(),
-            'content' => $request->content,
+            'content' => $request->content ?? '',
             'type' => 'text',
-        ]);
+        ];
+
+        // Handle media upload
+        if ($request->hasFile('media')) {
+            $file = $request->file('media');
+            $mimeType = $file->getMimeType();
+            $originalFilename = $file->getClientOriginalName();
+            $fileSize = $file->getSize();
+
+            // Determine media type
+            if (str_starts_with($mimeType, 'image/')) {
+                $messageData['type'] = 'image';
+            } elseif (str_starts_with($mimeType, 'video/')) {
+                $messageData['type'] = 'video';
+            } else {
+                $messageData['type'] = 'file';
+            }
+
+            // Store the file
+            $path = $file->store('chat/media', 'public');
+            $messageData['media_path'] = $path;
+            $messageData['original_filename'] = $originalFilename;
+            $messageData['media_size'] = $fileSize;
+
+            // Generate thumbnail for images and videos
+            if ($messageData['type'] === 'image') {
+                $messageData['media_thumbnail'] = $path; // For images, thumbnail is the same
+            } elseif ($messageData['type'] === 'video') {
+                // For videos, we'll use the path for now (thumbnail generation would require ffmpeg)
+                $messageData['media_thumbnail'] = null;
+            }
+        }
+
+        $message = Message::create($messageData);
 
         // Update conversation last message timestamp
         $conversation->update(['last_message_at' => now()]);
@@ -159,6 +201,9 @@ class ChatController extends Controller
 
         // Can't start conversation with yourself
         if ($user->id === auth()->id()) {
+            if (request()->expectsJson()) {
+                return response()->json(['error' => 'You cannot start a conversation with yourself.'], 400);
+            }
             return redirect()->back()->with('error', 'You cannot start a conversation with yourself.');
         }
 
@@ -167,6 +212,14 @@ class ChatController extends Controller
 
         if (!$conversation) {
             $conversation = Conversation::createConversation(auth()->id(), $user->id);
+        }
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'url' => route('chat.show', $conversation),
+                'conversation_id' => $conversation->id
+            ]);
         }
 
         return redirect()->route('chat.show', $conversation);
@@ -185,7 +238,21 @@ class ChatController extends Controller
             ->where('sender_id', '!=', auth()->id())
             ->where('read_at', null)
             ->orderBy('created_at', 'asc')
-            ->get();
+            ->get()
+            ->map(function ($message) {
+                return [
+                    'id' => $message->id,
+                    'content' => $message->content,
+                    'created_at' => $message->created_at,
+                    'type' => $message->type,
+                    'media_path' => $message->media_path,
+                    'sender' => [
+                        'id' => $message->sender->id,
+                        'name' => $message->sender->name,
+                        'avatar' => $message->sender->profile?->avatar,
+                    ],
+                ];
+            });
 
         // Get all messages in conversation with their current status (including soft-deleted ones)
         $allMessages = $conversation->messages()

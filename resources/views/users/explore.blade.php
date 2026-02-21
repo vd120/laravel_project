@@ -93,10 +93,10 @@
                         </div>
                     </div>
 
-                    <div class="user-actions">
+                    <div class="user-card-actions">
                         @if(in_array($user->id, $blockedByCurrentUser))
                             <div class="action-buttons">
-                                <button type="button" class="btn unblock-btn" data-user-id="{{ $user->id }}" data-username="{{ $user->name }}" onclick="toggleBlock(this)">Unblock</button>
+                                <button type="button" class="btn unblock-btn" data-username="{{ $user->name }}" onclick="toggleBlock(this, '{{ $user->name }}')">Unblock</button>
                             </div>
                         @elseif(in_array($user->id, $blockedCurrentUser))
                             <div class="cannot-interact">
@@ -107,12 +107,11 @@
                             <div class="action-buttons">
                                 <button type="button"
                                         class="btn follow-btn {{ auth()->user()->isFollowing($user) ? 'following' : '' }}"
-                                        data-user-id="{{ $user->id }}"
                                         data-username="{{ $user->name }}"
-                                        onclick="toggleFollow(this, {{ $user->id }})">
+                                        onclick="toggleFollow(this, '{{ $user->name }}')">
                                     {{ auth()->user()->isFollowing($user) ? 'Following' : 'Follow' }}
                                 </button>
-                                <button type="button" class="btn block-btn" data-user-id="{{ $user->id }}" data-username="{{ $user->name }}" onclick="toggleBlock(this)">Block</button>
+                                <button type="button" class="btn block-btn" data-username="{{ $user->name }}" onclick="toggleBlock(this, '{{ $user->name }}')">Block</button>
                             </div>
                         @endif
                     </div>
@@ -149,7 +148,12 @@
     border-bottom: 1px solid var(--border-color);
 }
 
-
+.page-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--twitter-dark);
+}
 
 .back-link {
     display: inline-flex;
@@ -251,7 +255,7 @@
     box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 4px 16px rgba(29, 161, 242, 0.1);
     max-height: 320px;
     overflow-y: auto;
-    z-index: 10;
+    z-index: 100;
     backdrop-filter: blur(8px);
 }
 
@@ -367,8 +371,6 @@
 }
 
 .user-card:hover {
-    box-shadow: 0 4px 16px rgba(29, 161, 242, 0.1), 0 8px 32px rgba(0,0,0,0.3);
-    transform: translateY(-2px);
     border-color: var(--focus-border);
 }
 
@@ -377,16 +379,16 @@
 }
 
 .user-avatar {
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--border-color);
 }
 
 .user-avatar-placeholder {
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: var(--twitter-light);
     border: 2px solid var(--border-color);
@@ -510,7 +512,7 @@
     color: var(--twitter-dark);
 }
 
-.user-actions {
+.user-card-actions {
     flex-shrink: 0;
     min-width: 120px;
 }
@@ -625,14 +627,13 @@
         padding-bottom: 12px;
     }
 
-.page-header h1 {
-    margin: 0 0 8px 0;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--twitter-dark);
+    .page-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--twitter-dark);
+    }
 }
-
-
 
 @media (max-width: 360px) {
     .user-card {
@@ -645,7 +646,7 @@
         margin-bottom: 8px;
     }
 
-    .user-actions {
+    .user-card-actions {
         margin-top: 12px;
         min-width: unset;
     }
@@ -668,6 +669,77 @@
 </style>
 
 <script>
+function toggleFollow(btn, username) {
+    const isFollowing = btn.getAttribute('data-following') === 'true';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+    
+    fetch(`/users/${username}/follow`, {
+        method: 'POST',
+        headers: { 
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.following) {
+            btn.innerHTML = 'Following';
+            btn.setAttribute('data-following', 'true');
+            btn.classList.remove('btn-primary');
+        } else {
+            btn.innerHTML = 'Follow';
+            btn.setAttribute('data-following', 'false');
+            btn.classList.add('btn-primary');
+        }
+        if (typeof showToast === 'function') {
+            showToast(data.following ? 'You are now following this user' : 'You unfollowed this user', 'success');
+        }
+    })
+    .catch(() => {
+        if (typeof showToast === 'function') {
+            showToast('Error updating follow status', 'error');
+        }
+    })
+    .finally(() => btn.disabled = false);
+}
+
+function toggleBlock(btn, username) {
+    const action = btn.classList.contains('block-btn') ? 'block' : 'unblock';
+    const confirmed = confirm(`Are you sure you want to ${action} ${username}?`);
+    
+    if (!confirmed) return;
+    
+    btn.disabled = true;
+    
+    fetch(`/users/${username}/block`, {
+        method: 'POST',
+        headers: { 
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            if (typeof showToast === 'function') {
+                showToast(data.message, 'success');
+            }
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            if (typeof showToast === 'function') {
+                showToast(data.message || 'Error', 'error');
+            }
+        }
+    })
+    .catch(() => {
+        if (typeof showToast === 'function') {
+            showToast('Error updating block status', 'error');
+        }
+    })
+    .finally(() => btn.disabled = false);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('user-search');
     const searchResults = document.getElementById('search-results');

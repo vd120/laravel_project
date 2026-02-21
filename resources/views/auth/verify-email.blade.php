@@ -1,239 +1,325 @@
 @extends('layouts.app')
 
+@section('title', 'Verify Email')
+
 @section('content')
-<div class="auth-container">
-    <div class="auth-card">
-        <h2 class="login-title">Verify Your Email Address</h2>
-
-        <div class="verification-content" style="text-align: center; padding: 20px;">
-            <div style="margin-bottom: 20px;">
-                <i class="fas fa-envelope-open-text" style="font-size: 64px; color: var(--twitter-blue); margin-bottom: 20px;"></i>
-            </div>
-
-            <h3 style="margin-bottom: 15px; color: var(--twitter-dark);">Enter Verification Code</h3>
-
-            <p style="color: var(--twitter-gray); margin-bottom: 20px; line-height: 1.6;">
-                We've sent a 6-digit verification code to <strong>{{ auth()->user()->email }}</strong>.
-                Please enter the code below to verify your account.
-            </p>
-
-            <form method="POST" action="{{ route('verification.verify-code') }}" style="max-width: 300px; margin: 0 auto;">
-                @csrf
-
-                <div style="margin-bottom: 20px;">
-                    <label for="code" style="display: block; margin-bottom: 8px; color: var(--twitter-dark); font-weight: 600;">Verification Code</label>
-                    <input type="text" id="code" name="code" maxlength="6"
-                           style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 18px; text-align: center; letter-spacing: 2px; font-weight: bold; transition: border-color 0.3s ease;"
-                           placeholder="000000" required
-                           onfocus="this.style.borderColor='var(--twitter-blue)';"
-                           onblur="this.style.borderColor='var(--border-color)';">
-                    @error('code') <div style="color: var(--error-color); font-size: 14px; margin-top: 5px;">{{ $message }}</div> @enderror
-                </div>
-            </form>
-
-            <div style="text-align: center; margin-top: 20px;">
-                <form method="POST" action="{{ route('verification.send') }}" style="display: inline-block;">
-                    @csrf
-                    <button type="submit" style="
-                        background: rgba(29, 161, 242, 0.1);
-                        color: var(--twitter-blue);
-                        border: 1px solid rgba(29, 161, 242, 0.3);
-                        padding: 10px 20px;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        font-size: 14px;
-                        font-weight: 500;
-                        transition: all 0.2s ease;
-                    " onmouseover="this.style.background='rgba(29, 161, 242, 0.2)'; this.style.borderColor='var(--twitter-blue)';" onmouseout="this.style.background='rgba(29, 161, 242, 0.1)'; this.style.borderColor='rgba(29, 161, 242, 0.3)';">
-                        <i class="fas fa-envelope" style="margin-right: 6px;"></i>
-                        Resend Code
-                    </button>
-                </form>
-            </div>
-
-            <div style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.2); border-radius: 8px; padding: 15px; margin-top: 20px;">
-                <p style="margin: 0; color: var(--twitter-dark); font-size: 14px;">
-                    <i class="fas fa-exclamation-triangle" style="margin-right: 8px; color: #ffc107;"></i>
-                    <strong>Important:</strong> This code expires in 10 minutes. If you don't verify, you can register again with the same email.
-                </p>
-            </div>
-
-            @if (session('message'))
-                <div style="
-                    margin-top: 15px;
-                    padding: 12px 16px;
-                    background: rgba(40, 167, 69, 0.1);
-                    border: 1px solid rgba(40, 167, 69, 0.2);
-                    border-radius: 6px;
-                    color: #28a745;
-                    font-weight: 500;
-                ">
-                    <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
-                    {{ session('message') }}
-                </div>
-            @endif
-
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color);">
-                <p style="color: var(--twitter-gray); font-size: 14px; margin-bottom: 10px;">
-                    Wrong email address?
-                </p>
-                <form method="POST" action="{{ route('logout') }}" style="display: inline;">
-                    @csrf
-                    <button type="submit" style="
-                        background: transparent;
-                        color: var(--error-color);
-                        border: 1px solid var(--error-color);
-                        padding: 8px 16px;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        font-size: 14px;
-                        font-weight: 500;
-                        transition: all 0.2s ease;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 6px;
-                    " onmouseover="this.style.background='var(--error-color)'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='var(--error-color)';">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Logout & Try Again
-                    </button>
-                </form>
-            </div>
+<div class="login-page">
+    <div class="login-card">
+        <div class="auth-icon">
+            <i class="fas fa-envelope-open-text"></i>
         </div>
+
+        <h1 class="title">Verify Your Email</h1>
+        <p class="subtitle" id="instruction-text">Please enter the verification code sent to your email address to verify your account.</p>
+
+        <!-- Send Code Section -->
+        <div class="send-code-section" id="sendCodeSection" @if(session('message') && (str_contains(session('message'), 'sent') || str_contains(session('message'), 'code'))) style="display:none" @endif>
+            <form method="POST" action="{{ route('verification.send') }}" id="sendCodeForm">
+                @csrf
+                <button type="submit" class="submit" id="sendCodeBtn">
+                    <i class="fas fa-paper-plane"></i> Send Verification Code
+                </button>
+            </form>
+        </div>
+
+        <!-- Verification Code Form -->
+        <form class="verification-code-form @if(session('message') && (str_contains(session('message'), 'sent') || str_contains(session('message'), 'code'))) active @endif" method="POST" action="{{ route('verification.verify-code') }}" id="verifyForm">
+            @csrf
+            <div class="code-inputs">
+                <input type="text" name="code[]" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" required autofocus>
+                <input type="text" name="code[]" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" required>
+                <input type="text" name="code[]" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" required>
+                <input type="text" name="code[]" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" required>
+                <input type="text" name="code[]" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" required>
+                <input type="text" name="code[]" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" required>
+            </div>
+
+            <input type="hidden" name="code" id="fullCode">
+
+            <button type="submit" class="submit">
+                <i class="fas fa-check-circle"></i> Verify Email
+            </button>
+        </form>
+
+        <div class="resend-section @if(session('message') && (str_contains(session('message'), 'sent') || str_contains(session('message'), 'code'))) active @endif" id="resendSection">
+            <p>Didn't receive the code?</p>
+            <form method="POST" action="{{ route('verification.send') }}" style="display: inline;">
+                @csrf
+                <button type="submit" class="resend-btn" id="resendBtn">Resend Code</button>
+            </form>
+            <div class="timer">Resend available in <span id="countdown">60</span>s</div>
+        </div>
+
+        <p class="footer">
+            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+            </a>
+        </p>
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">@csrf</form>
     </div>
 </div>
 
-<style>
-.auth-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 60px);
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-.auth-card {
-    background: var(--card-bg);
-    padding: 40px;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    border: 2px solid var(--border-color);
-    width: 100%;
-    max-width: 500px;
-    box-sizing: border-box;
-    position: relative;
-    overflow: hidden;
-}
-
-.login-title {
-    text-align: center;
-    margin-bottom: 30px;
-    color: var(--twitter-dark);
-    font-weight: 300;
-    font-size: 32px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    position: relative;
-    z-index: 10;
-}
-
-.verification-content h3 {
-    color: var(--twitter-dark);
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 15px;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-    .auth-container {
-        padding: 15px;
-        min-height: calc(100vh - 40px);
+<script>
+    // Toast notification functions
+    function showToast(message, type = 'info') {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            left: 20px;
+            z-index: 9999;
+            padding: 16px 20px;
+            border-radius: 10px;
+            background: ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#8b5cf6'};
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease-out;
+            font-family: 'Courier New', Courier, monospace;
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 
-    .auth-card {
-        padding: 25px;
+    // Show toast on page load if there's a session message
+    @if(session('message'))
+        showToast('{{ session('message') }}', 'success');
+    @endif
+    
+    @if(session('error'))
+        showToast('{{ session('error') }}', 'error');
+    @endif
+
+    @if($errors->has('code'))
+        showToast('{{ $errors->first('code') }}', 'error');
+    @endif
+
+    // Check if user is already verified (passed from backend)
+    const userAlreadyVerified = @if(auth()->check() && auth()->user()->hasVerifiedEmail()) true @else false @endif;
+
+    // Handle send code form submission
+    document.getElementById('sendCodeForm')?.addEventListener('submit', (e) => {
+        if (userAlreadyVerified) {
+            e.preventDefault();
+            showToast('Your account is already verified!', 'info');
+            return false;
+        }
+    });
+
+    // Auto-focus for code inputs
+    const inputs = document.querySelectorAll('.code-input');
+    const fullCodeInput = document.getElementById('fullCode');
+
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            if (e.target.value.length === 1) {
+                if (index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+    });
+
+    // Submit form with combined code - validate empty inputs
+    document.getElementById('verifyForm').addEventListener('submit', (e) => {
+        // Get all input values
+        const inputValues = Array.from(inputs).map(input => input.value);
+        const code = inputValues.join('');
+        
+        // Check if any input is empty
+        const hasEmptyInput = inputValues.some(val => val === '' || val === undefined || val === null);
+        
+        // Check if code is empty or incomplete
+        if (hasEmptyInput || code.length < 6) {
+            e.preventDefault();
+            showToast('Please enter the complete 6-digit verification code', 'error');
+            return false;
+        }
+        
+        // Check if all characters are digits
+        if (!/^\d{6}$/.test(code)) {
+            e.preventDefault();
+            showToast('Verification code must contain only numbers', 'error');
+            return false;
+        }
+        
+        fullCodeInput.value = code;
+    });
+
+    // Start countdown if resend section is visible
+    @if(session('message') && (str_contains(session('message'), 'sent') || str_contains(session('message'), 'code')))
+        startCountdown();
+    @endif
+
+    // Countdown timer for resend
+    function startCountdown() {
+        let seconds = 60;
+        const countdownEl = document.getElementById('countdown');
+        const resendBtn = document.getElementById('resendBtn');
+        
+        countdownEl.textContent = seconds;
+        resendBtn.disabled = true;
+
+        const interval = setInterval(() => {
+            seconds--;
+            countdownEl.textContent = seconds;
+
+            if (seconds <= 0) {
+                clearInterval(interval);
+                resendBtn.disabled = false;
+            }
+        }, 1000);
+    }
+</script>
+
+<style>
+.login-page {min-height: calc(100vh - 64px);display: flex;align-items: center;justify-content: center;padding: 20px;background: var(--bg);font-family: 'Courier New', Courier, monospace;}
+.login-card {width: 100%;max-width: 400px;background: var(--surface);border: 1px solid var(--border);border-radius: 16px;padding: 32px 28px;font-family: 'Courier New', Courier, monospace;text-align: center;}
+.auth-icon {width: 80px;height: 80px;background: linear-gradient(135deg, var(--primary), var(--secondary));border-radius: 16px;display: flex;align-items: center;justify-content: center;margin: 0 auto 24px;font-size: 36px;color: white;}
+.title {font-size: 24px;font-weight: 700;color: var(--text);margin: 0 0 12px 0;text-align: center;font-family: 'Courier New', Courier, monospace;}
+.subtitle {font-size: 14px;color: var(--text-muted);margin: 0 0 24px 0;text-align: center;font-family: 'Courier New', Courier, monospace;line-height: 1.5;}
+.send-code-section {margin-bottom: 24px;}
+.code-inputs {display: flex;gap: 8px;justify-content: center;margin-bottom: 24px;flex-wrap: wrap;}
+.code-input {width: 48px;height: 56px;font-size: 24px;font-weight: 700;text-align: center;border: 2px solid var(--border);border-radius: 10px;background: var(--bg);color: var(--text);transition: all 0.2s;font-family: 'Courier New', Courier, monospace;}
+.code-input:focus {outline: none;border-color: var(--primary);box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);}
+.verification-code-form {display: none;}
+.verification-code-form.active {display: block;}
+.submit {width: 100%;padding: 14px;font-size: 15px;font-weight: 600;color: white;background: linear-gradient(135deg, var(--primary), var(--secondary));border: none;border-radius: 10px;cursor: pointer;transition: 0.2s;}
+.submit:hover {transform: translateY(-1px);box-shadow: 0 6px 20px rgba(139,92,246,0.3);}
+.resend-section {display: none;margin-top: 24px;padding-top: 20px;border-top: 1px solid var(--border);}
+.resend-section.active {display: block;}
+.resend-section p {color: var(--text-muted);font-size: 13px;margin: 0 0 12px 0;font-family: 'Courier New', Courier, monospace;}
+.resend-btn {background: none;border: none;color: var(--primary);font-size: 13px;font-weight: 600;cursor: pointer;text-decoration: underline;padding: 0;font-family: 'Courier New', Courier, monospace;}
+.resend-btn:disabled {color: var(--text-muted);cursor: not-allowed;text-decoration: none;}
+.timer {font-size: 12px;color: var(--text-muted);margin-top: 8px;}
+.timer span {font-weight: 600;color: var(--primary);}
+.footer {text-align: center;margin-top: 24px;padding-top: 20px;border-top: 1px solid var(--border);font-size: 14px;}
+.footer a {color: var(--primary);text-decoration: none;font-weight: 600;}
+.footer a:hover {text-decoration: underline;}
+
+/* Responsive styles for mobile devices */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 24px 20px;
+        margin: 10px;
         max-width: 100%;
     }
-
-    .login-title {
-        font-size: 24px;
-        margin-bottom: 25px;
+    
+    .auth-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 32px;
     }
-
-    .verification-content h3 {
+    
+    .title {
         font-size: 20px;
     }
-}
-
-@media (max-width: 480px) {
-    .auth-card {
-        padding: 20px;
+    
+    .subtitle {
+        font-size: 13px;
     }
-
-    .login-title {
+    
+    .code-inputs {
+        gap: 6px;
+    }
+    
+    .code-input {
+        width: 42px;
+        height: 50px;
         font-size: 20px;
-        letter-spacing: 1px;
+    }
+    
+    .submit {
+        padding: 12px;
+        font-size: 14px;
+    }
+    
+    .resend-section p {
+        font-size: 12px;
+    }
+    
+    .resend-btn {
+        font-size: 12px;
+    }
+    
+    .timer {
+        font-size: 11px;
+    }
+    
+    .footer {
+        font-size: 13px;
     }
 }
 
-#code {
-    font-family: 'Courier New', monospace;
+/* Extra small devices */
+@media (max-width: 360px) {
+    .login-card {
+        padding: 20px 16px;
+    }
+    
+    .code-inputs {
+        gap: 4px;
+    }
+    
+    .code-input {
+        width: 38px;
+        height: 46px;
+        font-size: 18px;
+        border-radius: 8px;
+    }
+    
+    .auth-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+    
+    .title {
+        font-size: 18px;
+    }
+    
+    .subtitle {
+        font-size: 12px;
+    }
 }
 
-/* Auto-fill animation for code input */
-@keyframes codeInput {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
+/* Slide animations for toast */
+@keyframes slideIn {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
 }
 </style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const codeInput = document.getElementById('code');
-
-    if (codeInput) {
-        // Auto-focus the input field
-        codeInput.focus();
-
-        // Only allow numeric input
-        codeInput.addEventListener('input', function(e) {
-            // Remove any non-numeric characters
-            this.value = this.value.replace(/[^0-9]/g, '');
-
-            // Auto-submit when 6 digits are entered
-            if (this.value.length === 6) {
-                // Add a small delay for better UX
-                setTimeout(() => {
-                    this.form.submit();
-                }, 500);
-            }
-        });
-
-        // Prevent pasting non-numeric content
-        codeInput.addEventListener('paste', function(e) {
-            const paste = (e.clipboardData || window.clipboardData).getData('text');
-            if (!/^\d+$/.test(paste)) {
-                e.preventDefault();
-            }
-        });
-
-        // Handle backspace and navigation keys properly
-        codeInput.addEventListener('keydown', function(e) {
-            // Allow backspace, delete, tab, escape, enter, and arrow keys
-            if ([8, 9, 13, 27, 37, 38, 39, 40, 46].includes(e.keyCode) ||
-                // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
-                (e.ctrlKey && [65, 67, 86, 88, 90].includes(e.keyCode))) {
-                return;
-            }
-
-            // Prevent input of non-numeric characters
-            if ((e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
-                e.preventDefault();
-            }
-        });
-    }
-});
-</script>
 @endsection

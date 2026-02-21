@@ -4,48 +4,50 @@
 
 @section('content')
 <div class="admin-page">
-    <div class="page-header">
-        <h1>User Details</h1>
-        <div class="header-actions">
-            <a href="{{ route('admin.users') }}" class="btn-secondary">
+    {{-- Header --}}
+    <div class="admin-header">
+        <div class="header-left">
+            <a href="{{ route('admin.users') }}" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
-                Back to Users
             </a>
-            <a href="{{ route('admin.users.edit', $user) }}" class="btn-primary">
-                <i class="fas fa-edit"></i>
-                Edit User
+            <div>
+                <h1>User Profile</h1>
+                <p>View and manage user details</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{{ route('admin.users.edit', $user) }}" class="action-btn edit">
+                <i class="fas fa-edit"></i> Edit
             </a>
         </div>
     </div>
 
-    
-    <div class="user-summary">
-        <div class="user-avatar-section">
-            @if($user->profile && $user->profile->avatar)
-                <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="Avatar" class="user-avatar-large">
-            @else
-                <div class="user-avatar-placeholder-large">
-                    <i class="fas fa-user"></i>
-                </div>
+    {{-- User Card --}}
+    <div class="user-card">
+        <div class="user-card-header">
+            <div class="user-avatar-large">
+                @if($user->profile && $user->profile->avatar)
+                    <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="">
+                @else
+                    <div class="avatar-placeholder">{{ substr($user->name, 0, 1) }}</div>
+                @endif
+            </div>
+            @if($user->is_suspended)
+            <div class="suspended-badge" style="right: 130px;"><i class="fas fa-ban"></i> Suspended</div>
             @endif
             @if($user->is_admin)
-                <div class="admin-badge-large">
-                    <i class="fas fa-crown"></i>
-                    <span>Admin</span>
-                </div>
+            <div class="admin-badge"><i class="fas fa-crown"></i> Admin</div>
             @endif
         </div>
-
-        <div class="user-info-section">
-            <div class="user-header">
-                <h2>{{ $user->name }}</h2>
-                <div class="user-status">
-                    @if($user->profile && $user->profile->is_private)
-                        <span class="status-badge private">Private Profile</span>
-                    @else
-                        <span class="status-badge public">Public Profile</span>
-                    @endif
-                </div>
+        
+        <div class="user-card-body">
+            <h2>{{ $user->name }}</h2>
+            <div class="user-status">
+                @if($user->profile && $user->profile->is_private)
+                <span class="status-badge private"><i class="fas fa-lock"></i> Private</span>
+                @else
+                <span class="status-badge public"><i class="fas fa-globe"></i> Public</span>
+                @endif
             </div>
 
             <div class="user-meta">
@@ -54,157 +56,155 @@
                     <span>{{ $user->email }}</span>
                 </div>
                 @if($user->profile && $user->profile->location)
-                    <div class="meta-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>{{ $user->profile->location }}</span>
-                    </div>
+                <div class="meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ $user->profile->location }}</span>
+                </div>
                 @endif
                 @if($user->profile && $user->profile->website)
-                    <div class="meta-item">
-                        <i class="fas fa-link"></i>
-                        <a href="{{ $user->profile->website }}" target="_blank">{{ $user->profile->website }}</a>
-                    </div>
+                <div class="meta-item">
+                    <i class="fas fa-link"></i>
+                    <a href="{{ $user->profile->website }}" target="_blank">{{ $user->profile->website }}</a>
+                </div>
                 @endif
                 <div class="meta-item">
-                    <i class="fas fa-calendar"></i>
+                    <i class="fas fa-calendar-alt"></i>
                     <span>Joined {{ $user->created_at->format('M j, Y') }}</span>
                 </div>
             </div>
 
             @if($user->profile && $user->profile->bio)
-                <div class="user-bio">
-                    <p>{{ $user->profile->bio }}</p>
-                </div>
+            <div class="user-bio">
+                <p>{{ $user->profile->bio }}</p>
+            </div>
             @endif
         </div>
     </div>
 
-    
-    <div class="stats-overview">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-image"></i>
+    {{-- Stats --}}
+    <div class="stats-row">
+        <div class="stat-box">
+            <div class="stat-icon-wrap posts">
+                <i class="fas fa-pen-square"></i>
             </div>
-            <div class="stat-number">{{ $user->posts->count() }}</div>
-            <div class="stat-label">Posts</div>
+            <div class="stat-info">
+                <span class="stat-value">{{ $user->posts->count() }}</span>
+                <span class="stat-label">Posts</span>
+            </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon">
+        <div class="stat-box">
+            <div class="stat-icon-wrap followers">
                 <i class="fas fa-user-friends"></i>
             </div>
-            <div class="stat-number">{{ $user->followers->count() }}</div>
-            <div class="stat-label">Followers</div>
+            <div class="stat-info">
+                <span class="stat-value">{{ $user->followers->count() }}</span>
+                <span class="stat-label">Followers</span>
+            </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon">
+        <div class="stat-box">
+            <div class="stat-icon-wrap following">
                 <i class="fas fa-user-plus"></i>
             </div>
-            <div class="stat-number">{{ $user->follows->count() }}</div>
-            <div class="stat-label">Following</div>
+            <div class="stat-info">
+                <span class="stat-value">{{ $user->follows->count() }}</span>
+                <span class="stat-label">Following</span>
+            </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-camera"></i>
+        <div class="stat-box">
+            <div class="stat-icon-wrap stories">
+                <i class="fas fa-circle-notch"></i>
             </div>
-            <div class="stat-number">{{ $user->stories->count() }}</div>
-            <div class="stat-label">Stories</div>
+            <div class="stat-info">
+                <span class="stat-value">{{ $user->stories->count() }}</span>
+                <span class="stat-label">Stories</span>
+            </div>
         </div>
     </div>
 
-    
-    <div class="activity-tabs">
+    {{-- Tabs --}}
+    <div class="content-tabs">
         <div class="tab-buttons">
-            <button class="tab-btn active" onclick="showTab('posts')">Recent Posts</button>
-            <button class="tab-btn" onclick="showTab('comments')">Recent Comments</button>
-            <button class="tab-btn" onclick="showTab('stories')">Recent Stories</button>
+            <button class="tab-btn active" data-tab="posts">Posts</button>
+            <button class="tab-btn" data-tab="comments">Comments</button>
+            <button class="tab-btn" data-tab="stories">Stories</button>
         </div>
 
         <div id="posts-tab" class="tab-content active">
             @if($user->posts->count() > 0)
-                <div class="posts-list">
-                    @foreach($user->posts->take(10) as $post)
-                    <div class="post-item">
-                        <div class="post-content">
-                            @if($post->content)
-                                <p>{{ Str::limit($post->content, 150) }}</p>
-                            @else
-                                <p><em>No text content</em></p>
-                            @endif
-                        </div>
-                        <div class="post-meta">
-                            <span>{{ $post->created_at->diffForHumans() }}</span>
-                            <span>{{ $post->likes->count() }} likes</span>
-                            <a href="{{ route('posts.show', $post) }}" target="_blank" class="view-link">View Post</a>
-                        </div>
+            <div class="items-list">
+                @foreach($user->posts->take(10) as $post)
+                <div class="item-card">
+                    <div class="item-content">
+                        <p>{{ Str::limit($post->content ?? 'Media post', 150) }}</p>
                     </div>
-                    @endforeach
+                    <div class="item-meta">
+                        <span><i class="fas fa-heart"></i> {{ $post->likes->count() }}</span>
+                        <span><i class="fas fa-comment"></i> {{ $post->comments->count() }}</span>
+                        <span>{{ $post->created_at->diffForHumans() }}</span>
+                        <a href="/posts/{{ $post->slug }}" target="_blank" class="view-link">View <i class="fas fa-external-link-alt"></i></a>
+                    </div>
                 </div>
+                @endforeach
+            </div>
             @else
-                <div class="empty-state">
-                    <i class="fas fa-image"></i>
-                    <h3>No posts yet</h3>
-                    <p>This user hasn't created any posts.</p>
-                </div>
+            <div class="empty-state">
+                <i class="fas fa-pen-square"></i>
+                <p>No posts yet</p>
+            </div>
             @endif
         </div>
 
         <div id="comments-tab" class="tab-content">
             @if($user->comments->count() > 0)
-                <div class="comments-list">
-                    @foreach($user->comments->take(10) as $comment)
-                    <div class="comment-item">
-                        <div class="comment-content">
-                            <p>{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content) !!}</p>
-                        </div>
-                        <div class="comment-meta">
-                            <span>On post by {{ $comment->post->user->name }}</span>
-                            <span>{{ $comment->created_at->diffForHumans() }}</span>
-                            <span>{{ $comment->likes->count() }} likes</span>
-                            <a href="{{ route('posts.show', $comment->post) }}" target="_blank" class="view-link">View Post</a>
-                        </div>
+            <div class="items-list">
+                @foreach($user->comments->take(10) as $comment)
+                <div class="item-card">
+                    <div class="item-content comment">
+                        <p>{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content) !!}</p>
                     </div>
-                    @endforeach
+                    <div class="item-meta">
+                        <span><i class="fas fa-heart"></i> {{ $comment->likes->count() }}</span>
+                        <span>On {{ $comment->post->user->name }}'s post</span>
+                        <span>{{ $comment->created_at->diffForHumans() }}</span>
+                        <a href="/posts/{{ $comment->post->slug }}" target="_blank" class="view-link">View <i class="fas fa-external-link-alt"></i></a>
+                    </div>
                 </div>
+                @endforeach
+            </div>
             @else
-                <div class="empty-state">
-                    <i class="fas fa-comments"></i>
-                    <h3>No comments yet</h3>
-                    <p>This user hasn't posted any comments.</p>
-                </div>
+            <div class="empty-state">
+                <i class="fas fa-comments"></i>
+                <p>No comments yet</p>
+            </div>
             @endif
         </div>
 
         <div id="stories-tab" class="tab-content">
             @if($user->stories->count() > 0)
-                <div class="stories-grid">
-                    @foreach($user->stories->take(12) as $story)
-                    <div class="story-item">
-                        @if($story->media_type === 'image')
-                            <img src="{{ asset('storage/' . $story->media_path) }}" alt="Story" class="story-preview">
-                        @elseif($story->media_type === 'video')
-                            <video class="story-preview" muted>
-                                <source src="{{ asset('storage/' . $story->media_path) }}" type="video/mp4">
-                            </video>
-                        @endif
-                        <div class="story-overlay">
-                            <div class="story-stats">
-                                <span><i class="fas fa-eye"></i> {{ $story->views->count() }}</span>
-                                <span><i class="fas fa-heart"></i> {{ $story->reactions->count() }}</span>
-                            </div>
-                            <div class="story-date">{{ $story->created_at->diffForHumans() }}</div>
-                        </div>
+            <div class="stories-grid">
+                @foreach($user->stories->take(12) as $story)
+                <div class="story-thumb">
+                    @if($story->media_type === 'image')
+                        <img src="{{ asset('storage/' . $story->media_path) }}" alt="">
+                    @else
+                        <video muted>
+                            <source src="{{ asset('storage/' . $story->media_path) }}" type="video/mp4">
+                        </video>
+                    @endif
+                    <div class="story-overlay">
+                        <span><i class="fas fa-eye"></i> {{ $story->views }}</span>
                     </div>
-                    @endforeach
                 </div>
+                @endforeach
+            </div>
             @else
-                <div class="empty-state">
-                    <i class="fas fa-camera"></i>
-                    <h3>No stories yet</h3>
-                    <p>This user hasn't created any stories.</p>
-                </div>
+            <div class="empty-state">
+                <i class="fas fa-circle-notch"></i>
+                <p>No stories yet</p>
+            </div>
             @endif
         </div>
     </div>
@@ -212,25 +212,55 @@
 
 <style>
 .admin-page {
-    max-width: 1000px;
+    max-width: 900px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 0 16px 40px;
 }
 
-.page-header {
+.admin-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
+    justify-content: space-between;
+    margin: -16px -16px 24px;
+    padding: 24px 16px;
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    border-radius: 0 0 20px 20px;
 }
 
-.page-header h1 {
-    margin: 0;
-    font-size: 28px;
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.back-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.admin-header h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
     font-weight: 700;
-    color: var(--twitter-dark);
+    color: white;
+}
+
+.admin-header p {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
 }
 
 .header-actions {
@@ -238,118 +268,158 @@
     gap: 12px;
 }
 
-/* User Summary */
-.user-summary {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 30px;
-    margin-bottom: 24px;
-    display: flex;
-    gap: 24px;
-    box-shadow: var(--shadow);
+.action-btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
 }
 
-.user-avatar-section {
+.action-btn.edit {
+    background: white;
+    color: #ec4899;
+}
+
+.action-btn.edit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.user-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.user-card-header {
     position: relative;
-    flex-shrink: 0;
+    height: 100px;
+    background: linear-gradient(135deg, #ec4899, #db2777);
 }
 
 .user-avatar-large {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid var(--border-color);
+    overflow: hidden;
+    position: absolute;
+    bottom: -50px;
+    left: 24px;
+    border: 4px solid var(--card-bg);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
 }
 
-.user-avatar-placeholder-large {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: var(--twitter-light);
+.user-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--twitter-gray);
-    font-size: 48px;
-    border: 4px solid var(--border-color);
+    color: white;
+    font-weight: 700;
+    font-size: 36px;
 }
 
-.admin-badge-large {
+.admin-badge {
     position: absolute;
-    bottom: -5px;
-    right: -5px;
-    background: linear-gradient(135deg, #dc3545, #c82333);
+    bottom: -50px;
+    right: 24px;
+    background: linear-gradient(135deg, #f43f5e, #e11d48);
     color: white;
-    padding: 6px 12px;
+    padding: 8px 16px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 4px;
-    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    gap: 6px;
 }
 
-.user-info-section {
-    flex: 1;
-}
-
-.user-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 16px;
-}
-
-.user-header h2 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--twitter-dark);
-}
-
-.status-badge {
-    padding: 6px 12px;
+.suspended-badge {
+    position: absolute;
+    bottom: -50px;
+    right: 24px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 8px 16px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
-    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.user-card-body {
+    padding: 60px 24px 24px;
+}
+
+.user-card-body h2 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.user-status {
+    margin-bottom: 20px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .status-badge.private {
-    background: #6c757d;
-    color: white;
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
 }
 
 .status-badge.public {
-    background: #28a745;
-    color: white;
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
 }
 
 .user-meta {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 20px;
 }
 
 .meta-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: var(--twitter-gray);
+    gap: 10px;
     font-size: 14px;
+    color: var(--text-muted);
 }
 
 .meta-item i {
-    width: 16px;
-    color: var(--twitter-blue);
+    width: 18px;
+    color: #ec4899;
 }
 
 .meta-item a {
-    color: var(--twitter-blue);
+    color: #ec4899;
     text-decoration: none;
 }
 
@@ -358,66 +428,72 @@
 }
 
 .user-bio {
-    margin-top: 16px;
+    background: var(--bg);
+    padding: 16px;
+    border-radius: 10px;
 }
 
 .user-bio p {
     margin: 0;
-    font-size: 16px;
-    line-height: 1.5;
-    color: var(--twitter-dark);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
 }
 
-/* Statistics */
-.stats-overview {
+.stats-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 30px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
-.stat-card {
+.stat-box {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: var(--shadow);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-.stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--twitter-blue);
-    color: white;
+.stat-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
-    margin: 0 auto 12px auto;
+    font-size: 18px;
+    flex-shrink: 0;
 }
 
-.stat-number {
-    font-size: 24px;
+.stat-icon-wrap.posts { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+.stat-icon-wrap.followers { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
+.stat-icon-wrap.following { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.stat-icon-wrap.stories { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 20px;
     font-weight: 700;
-    color: var(--twitter-dark);
-    margin-bottom: 4px;
+    color: var(--text);
 }
 
 .stat-label {
-    font-size: 14px;
-    color: var(--twitter-gray);
-    font-weight: 500;
+    font-size: 12px;
+    color: var(--text-muted);
 }
 
-/* Activity Tabs */
-.activity-tabs {
+.content-tabs {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 14px;
     overflow: hidden;
-    box-shadow: var(--shadow);
 }
 
 .tab-buttons {
@@ -427,129 +503,121 @@
 
 .tab-btn {
     flex: 1;
-    padding: 16px 20px;
+    padding: 16px;
     background: none;
     border: none;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
-    color: var(--twitter-gray);
+    color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
     border-bottom: 3px solid transparent;
 }
 
-.tab-btn.active {
-    color: var(--twitter-blue);
-    border-bottom-color: var(--twitter-blue);
-    background: var(--twitter-light);
+.tab-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text);
 }
 
-.tab-btn:hover:not(.active) {
-    background: var(--twitter-light);
-    color: var(--twitter-dark);
+.tab-btn.active {
+    color: #ec4899;
+    border-bottom-color: #ec4899;
+    background: var(--bg);
 }
 
 .tab-content {
     display: none;
     padding: 20px;
-    min-height: 200px;
 }
 
 .tab-content.active {
     display: block;
 }
 
-/* Posts List */
-.posts-list {
+.items-list {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
-.post-item {
+.item-card {
+    background: var(--bg);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 16px;
-    background: var(--twitter-light);
 }
 
-.post-content p {
-    margin: 0 0 12px 0;
-    color: var(--twitter-dark);
+.item-content {
+    margin-bottom: 12px;
 }
 
-.post-meta {
+.item-content p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.item-content.comment {
+    background: var(--card-bg);
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 3px solid #ec4899;
+}
+
+.item-content a {
+    color: #ec4899;
+    font-weight: 500;
+}
+
+.item-meta {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
     font-size: 12px;
-    color: var(--twitter-gray);
+    color: var(--text-muted);
+}
+
+.item-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .view-link {
-    color: var(--twitter-blue);
+    margin-left: auto;
+    color: #ec4899;
     text-decoration: none;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .view-link:hover {
     text-decoration: underline;
 }
 
-/* Comments List */
-.comments-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.comment-item {
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 16px;
-    background: var(--twitter-light);
-}
-
-.comment-content p {
-    margin: 0 0 12px 0;
-    color: var(--twitter-dark);
-    background: var(--card-bg);
-    padding: 12px;
-    border-radius: 8px;
-    border-left: 4px solid var(--twitter-blue);
-}
-
-.comment-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    color: var(--twitter-gray);
-    flex-wrap: wrap;
+.stories-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
 }
 
-/* Stories Grid */
-.stories-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 16px;
-}
-
-.story-item {
+.story-thumb {
     position: relative;
+    aspect-ratio: 9/16;
     border-radius: 8px;
     overflow: hidden;
-    aspect-ratio: 9/16;
     background: #000;
-    cursor: pointer;
 }
 
-.story-preview {
+.story-thumb img,
+.story-thumb video {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
 }
 
 .story-overlay {
@@ -557,113 +625,45 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(transparent, rgba(0,0,0,0.8));
-    padding: 12px;
+    padding: 8px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
     color: white;
-}
-
-.story-stats {
+    font-size: 11px;
     display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    margin-bottom: 4px;
+    align-items: center;
+    gap: 4px;
 }
 
-.story-date {
-    font-size: 10px;
-    opacity: 0.8;
-}
-
-/* Empty State */
 .empty-state {
     text-align: center;
     padding: 40px 20px;
-    color: var(--twitter-gray);
+    color: var(--text-muted);
 }
 
 .empty-state i {
-    font-size: 48px;
-    margin-bottom: 16px;
+    font-size: 40px;
+    margin-bottom: 12px;
     display: block;
     opacity: 0.5;
 }
 
-.empty-state h3 {
-    margin: 0 0 8px 0;
-    color: var(--twitter-dark);
-}
-
 .empty-state p {
     margin: 0;
-}
-
-/* Button Styles */
-.btn-primary {
-    background: var(--twitter-blue);
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    text-decoration: none;
     font-size: 14px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
 }
 
-.btn-primary:hover {
-    background: #1991DB;
-    transform: translateY(-1px);
-}
-
-.btn-secondary {
-    background: var(--card-bg);
-    color: var(--twitter-gray);
-    border: 2px solid var(--border-color);
-    padding: 10px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-    background: var(--hover-bg);
-    border-color: var(--twitter-blue);
-}
-
-/* Responsive Design */
 @media (max-width: 768px) {
-    .admin-page {
-        padding: 16px;
-    }
-
-    .page-header {
+    .admin-header {
         flex-direction: column;
         gap: 16px;
         text-align: center;
     }
 
-    .user-summary {
+    .header-left {
         flex-direction: column;
-        text-align: center;
-        gap: 20px;
     }
 
-    .user-header {
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .stats-overview {
+    .stats-row {
         grid-template-columns: repeat(2, 1fr);
     }
 
@@ -677,31 +677,33 @@
     }
 
     .tab-btn.active {
-        border-right-color: var(--twitter-blue);
+        border-right-color: #ec4899;
         border-bottom-color: transparent;
     }
 
     .stories-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 </style>
 
 <script>
-function showTab(tabName) {
-    // Hide all tab contents
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(content => content.classList.remove('active'));
-
-    // Remove active class from all tab buttons
+document.addEventListener('DOMContentLoaded', function() {
     const tabButtons = document.querySelectorAll('.tab-btn');
-    tabButtons.forEach(button => button.classList.remove('active'));
-
-    // Show selected tab content
-    document.getElementById(tabName + '-tab').classList.add('active');
-
-    // Add active class to clicked button
-    event.target.classList.add('active');
-}
+    
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.dataset.tab;
+            
+            // Remove active from all buttons and contents
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active to clicked button and corresponding content
+            this.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        });
+    });
+});
 </script>
 @endsection

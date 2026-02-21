@@ -2,5196 +2,900 @@
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
-    <meta name="theme-color" content="#1D9BF0">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Laravel Social">
-    <meta name="format-detection" content="telephone=no">
-    <title>@yield('title', 'Laravel Social')</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <meta name="theme-color" content="#111111">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="current-user-id" content="{{ auth()->id() }}">
-    <script>
-        window.currentUserId = {{ auth()->id() ?? 'null' }};
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>@yield('title', 'Nexus')</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <style>
-        /* Theme Variables */
+        /* ============================================
+           UNIFIED DESIGN SYSTEM - Nexus
+           ============================================ */
+        
         :root {
-            /* Light Theme (Winter Wonderland) */
-            --light-twitter-blue: #4A90E2;
-            --light-twitter-dark: #2C3E50;
-            --light-twitter-light: #F8F9FF;
-            --light-twitter-gray: #7F8C8D;
-            --light-twitter-light-gray: #ECF0F1;
-            --light-border-color: #BDC3C7;
-            --light-shadow: 0 2px 8px rgba(52, 73, 94, 0.1);
-            --light-hover-bg: #F5F7FA;
-            --light-divider: #BDC3C7;
-            --light-card-bg: #FFFFFF;
-            --light-input-bg: #F8F9FF;
-            --light-header-bg: #FFFFFF;
-            --light-focus-border: #4A90E2;
-            --light-success-color: #27AE60;
-            --light-error-color: #E74C3C;
-            --light-accent-green: #A8DADC;
-            --light-accent-purple: #D5DBE5;
-            --light-soft-blue: #A8DADC;
-            --light-mint-green: #BDC3C7;
-
-            /* Dark Theme */
-            --dark-twitter-blue: #1D9BF0;
-            --dark-twitter-dark: #FFFFFF;
-            --dark-twitter-light: #0F1419;
-            --dark-twitter-gray: #71767B;
-            --dark-twitter-light-gray: #16181C;
-            --dark-border-color: #2F3336;
-            --dark-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            --dark-hover-bg: #1C1F23;
-            --dark-divider: #2F3336;
-            --dark-card-bg: #16181C;
-            --dark-input-bg: #202327;
-            --dark-header-bg: #000000;
-            --dark-focus-border: #1D9BF0;
-            --dark-success-color: #00BA7C;
-            --dark-error-color: #F4212E;
-            --dark-accent-green: #A8DADC;
-            --dark-accent-purple: #E6E6FA;
-            --dark-soft-blue: #B8E6E6;
-            --dark-mint-green: #C7EFCF;
-            --dark-neon-accent: #FF0080;
-            --dark-neon-secondary: #00FF7F;
-
-            /* Default to light theme */
-            --twitter-blue: var(--light-twitter-blue);
-            --twitter-dark: var(--light-twitter-dark);
-            --twitter-light: var(--light-twitter-light);
-            --twitter-gray: var(--light-twitter-gray);
-            --twitter-light-gray: var(--light-twitter-light-gray);
-            --border-color: var(--light-border-color);
-            --shadow: var(--light-shadow);
-            --hover-bg: var(--light-hover-bg);
-            --divider: var(--light-divider);
-            --card-bg: var(--light-card-bg);
-            --input-bg: var(--light-input-bg);
-            --header-bg: var(--light-header-bg);
-            --focus-border: var(--light-focus-border);
-            --success-color: var(--light-success-color);
-            --error-color: var(--light-error-color);
-            --accent-green: var(--light-accent-green);
-            --accent-purple: var(--light-accent-purple);
-            --soft-blue: var(--light-soft-blue);
-            --mint-green: var(--light-mint-green);
+            /* Core Colors */
+            --bg: #111111;
+            --surface: #1a1a1a;
+            --surface-hover: #242424;
+            --border: #2a2a2a;
+            --text: #f5f5f5;
+            --text-muted: #888888;
+            
+            /* Brand Colors */
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-glow: rgba(59, 130, 246, 0.25);
+            --secondary: #8b5cf6;
+            --accent: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            
+            /* Spacing Scale (4px base) */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --space-6: 24px;
+            --space-8: 32px;
+            --space-10: 40px;
+            --space-12: 48px;
+            
+            /* Border Radius */
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+            
+            /* Shadows */
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 20px var(--primary-glow);
+            
+            /* Transitions - Simplified for performance */
+            --transition-fast: 50ms ease;
+            --transition: 100ms ease;
+            --transition-slow: 150ms ease;
+            
+            /* Z-Index Scale */
+            --z-dropdown: 100;
+            --z-sticky: 200;
+            --z-fixed: 300;
+            --z-modal-backdrop: 400;
+            --z-modal: 500;
+            --z-popover: 600;
+            --z-tooltip: 700;
+            --z-toast: 800;
+            
+            /* Legacy Compatibility (deprecated - use core variables above) */
+            --twitter-blue: var(--primary);
+            --twitter-dark: var(--text);
+            --twitter-gray: var(--text-muted);
+            --twitter-light: var(--surface);
+            --card-bg: var(--surface);
+            --border-color: var(--border);
+            --input-bg: var(--surface);
+            --hover-bg: var(--surface-hover);
+            --focus-border: var(--primary);
+            --error-color: var(--accent);
+            --success-color: var(--success);
         }
 
-        /* Dark theme overrides */
-        body.dark-theme {
-            --twitter-blue: var(--dark-twitter-blue);
-            --twitter-dark: var(--dark-twitter-dark);
-            --twitter-light: var(--dark-twitter-light);
-            --twitter-gray: var(--dark-twitter-gray);
-            --twitter-light-gray: var(--dark-twitter-light-gray);
-            --border-color: var(--dark-border-color);
-            --shadow: var(--dark-shadow);
-            --hover-bg: var(--dark-hover-bg);
-            --divider: var(--dark-divider);
-            --card-bg: var(--dark-card-bg);
-            --input-bg: var(--dark-input-bg);
-            --header-bg: var(--dark-header-bg);
-            --focus-border: var(--dark-focus-border);
-            --success-color: var(--dark-success-color);
-            --error-color: var(--dark-error-color);
-            --accent-green: var(--dark-accent-green);
-            --accent-purple: var(--dark-accent-purple);
-            --soft-blue: var(--dark-soft-blue);
-            --mint-green: var(--dark-mint-green);
+        [data-theme="light"] {
+            --bg: #ffffff;
+            --surface: #f9fafb;
+            --surface-hover: #f3f4f6;
+            --border: #e5e7eb;
+            --text: #111111;
+            --text-muted: #6b7280;
+            
+            --primary: #3b82f6;
+            --primary-hover: #1d4ed8;
+            --primary-glow: rgba(59, 130, 246, 0.2);
+            --secondary: #7c3aed;
+            --accent: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+            
+            /* Legacy Compatibility - Light */
+            --twitter-blue: var(--primary);
+            --twitter-dark: var(--text);
+            --twitter-gray: var(--text-muted);
+            --twitter-light: var(--surface);
+            --card-bg: #ffffff;
+            --border-color: var(--border);
+            --input-bg: #ffffff;
+            --hover-bg: var(--surface-hover);
+            --focus-border: var(--primary);
+            --error-color: var(--accent);
+            --success-color: var(--success);
         }
 
-        /* Theme transition */
-        * {
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-
-        /* Theme toggle button */
-        .header-theme-btn {
-            position: relative;
-            background: none;
-            border: none;
-            padding: 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--twitter-dark);
-            font-size: 18px;
-            width: 44px;
-            height: 44px;
-            margin: 0 4px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .header-theme-btn:hover {
-            background: rgba(127, 179, 213, 0.1);
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(127, 179, 213, 0.2);
-        }
-
-        .header-theme-btn:active {
-            transform: scale(0.95);
-        }
-
-        .header-theme-btn i {
-            transition: all 0.3s ease;
-        }
-
-        .header-theme-btn:hover i {
-            transform: rotate(15deg);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            min-height: 100vh;
-            overflow-x: hidden; /* Prevent horizontal scrolling */
-            width: 100%;
-            max-width: 100vw;
-        }
-
-        /* Prevent horizontal overflow on all elements */
-        * {
-            max-width: 100%;
-            box-sizing: border-box;
-        }
-
-        /* Ensure html and body don't exceed viewport */
-        html, body {
-            width: 100%;
-            max-width: 100vw;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* Force all content to fit within viewport */
-        .app-layout {
-            max-width: 100vw !important;
-            width: 100% !important;
-            overflow-x: hidden !important;
-        }
-
-        .main-content {
-            max-width: 100% !important;
-            width: 100% !important;
-            overflow-x: hidden !important;
-        }
-
-        /* Prevent any element from causing horizontal scroll */
-        * {
-            box-sizing: border-box;
-            max-width: 100%;
-        }
-
-        /* Specific fixes for common overflow causes */
-        .nav-links {
-            max-width: 90vw;
-            width: 90vw;
-        }
-
-        .notifications-dropdown-content {
-            max-width: 95vw;
-            width: 95vw;
-        }
-
-        .post {
-            max-width: 100%;
-            width: 100%;
-            overflow-x: hidden;
-        }
-
-        .media-grid {
-            max-width: 100%;
-            width: 100%;
-            overflow-x: hidden;
-        }
-
-        /* Ensure images never overflow */
-        img, video {
-            max-width: 100% !important;
-            height: auto !important;
-        }
-
-        /* Force word wrapping to prevent overflow */
-        .post .content {
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            hyphens: auto;
-        }
-
-        /* Ensure no element has negative margins or positioning that could cause overflow */
-        [style*="margin-left"], [style*="left"] {
-            max-width: 100% !important;
-        }
-
-        /* Light theme body styling - exclude auth pages */
-        body:not(.dark-theme):not(.auth-page) {
-            background: linear-gradient(135deg, var(--soft-blue) 0%, var(--mint-green) 100%);
-            color: var(--twitter-dark);
-        }
-
-        /* Dark theme body styling - exclude auth pages */
-        body.dark-theme:not(.auth-page) {
-            background: linear-gradient(135deg, var(--dark-twitter-light) 0%, #1a1a1a 100%);
-            color: var(--twitter-dark);
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        body { font-size: 14px; line-height: 1.6; color: var(--text); background: var(--bg); min-height: 100vh; overflow-x: hidden; }
 
         .header {
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 12px 16px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            width: 100%;
-            box-sizing: border-box;
+            position: sticky; top: 0; z-index: var(--z-sticky);
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
         }
 
-        .nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .mobile-menu-toggle {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: var(--twitter-gray);
-            cursor: pointer;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-            margin-left: 8px;
-            position: relative;
-            z-index: 1001;
-            /* Ensure it's always visible on mobile */
-            order: 999;
-        }
-
-        .mobile-menu-toggle:hover {
-            background-color: var(--twitter-light);
-            color: var(--twitter-dark);
-        }
-
-        .mobile-menu-toggle:active {
-            transform: scale(0.95);
-        }
-
-        /* Simple Header Username Button */
-        .header-username-btn {
-            background: none;
-            border: none;
-            padding: 8px 12px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--twitter-dark);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            transition: background-color 0.2s ease;
-        }
-
-        .header-username-btn:hover {
-            background: rgba(0,0,0,0.05);
-        }
-
-        .header-username {
-            font-weight: 500;
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100px;
-        }
-
-        /* Mobile styling */
-        @media (max-width: 768px) {
-            .admin-link {
-                margin-left: 8px !important;
-            }
-
-            .header-theme-btn {
-                margin-left: 16px !important;
-            }
-
-            .header-notification-btn {
-                margin-left: 12px !important;
-            }
-
-            .header-username-btn {
-                padding: 10px 16px;
-                font-size: 15px;
-            }
-
-            .header-username {
-                font-size: 15px;
-                max-width: 120px;
-            }
-        }
-
-        /* Force mobile menu toggle to be visible on very small screens */
-        @media (max-width: 480px) {
-            .mobile-menu-toggle {
-                position: relative;
-                right: auto;
-                top: auto;
-                transform: none;
-                margin-left: 8px;
-                order: 999;
-                align-self: center;
-            }
-
-            /* Username button specific styling - ensure it's always visible */
-            .mobile-username-btn {
-                background: var(--card-bg) !important;
-                border: 1px solid var(--border-color) !important;
-                border-radius: 20px !important;
-                padding: 8px 14px !important;
-                font-size: 14px !important;
-                font-weight: 600 !important;
-                color: var(--twitter-dark) !important;
-                display: flex !important;
-                align-items: center !important;
-                gap: 6px !important;
-                min-width: 90px !important;
-                max-width: 140px !important;
-                justify-content: center !important;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-                transition: all 0.2s ease !important;
-                cursor: pointer !important;
-                position: relative !important;
-                z-index: 1001 !important;
-            }
-
-            /* Static button - no hover effects */
-
-            .mobile-username {
-                white-space: nowrap !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-                max-width: 100px !important;
-                font-size: 13px !important;
-                font-weight: 600 !important;
-            }
-
-            .mobile-menu-arrow {
-                font-size: 12px !important;
-                transition: transform 0.2s ease !important;
-                flex-shrink: 0 !important;
-            }
-
-            .mobile-username-btn:hover .mobile-menu-arrow {
-                transform: rotate(180deg) !important;
-            }
-
-            /* Ensure header has enough height for the toggle */
-            .header {
-                min-height: 56px;
-                position: relative;
-            }
-
-            /* Hide user avatar on small screens to free up space */
-            .user-avatar-container {
-                display: none !important;
-            }
-
-            /* Fix visitor buttons positioning on mobile */
-            .user-info {
-                position: relative;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                flex-shrink: 0;
-            }
-
-            .header-login-btn,
-            .header-register-btn {
-                position: relative;
-                z-index: 1001;
-                background: linear-gradient(135deg, var(--twitter-blue) 0%, #1A91DA 100%);
-                color: white;
-                border: none;
-                padding: 10px 16px;
-                border-radius: 20px;
-                font-size: 14px;
-                font-weight: 600;
-                text-decoration: none;
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 0 4px 12px rgba(29, 161, 242, 0.3);
-                min-height: 40px;
-                min-width: 90px;
-                justify-content: center;
-            }
-
-            .header-login-btn:hover,
-            .header-register-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(29, 161, 242, 0.4);
-                background: linear-gradient(135deg, #1A91DA 0%, #1884C7 100%);
-            }
-
-            .header-login-btn:active,
-            .header-register-btn:active {
-                transform: translateY(0);
-                box-shadow: 0 2px 8px rgba(29, 161, 242, 0.3);
-            }
-
-            .header-login-btn i,
-            .header-register-btn i {
-                font-size: 14px;
-                transition: transform 0.3s ease;
-            }
-
-            .header-login-btn:hover i,
-            .header-register-btn:hover i {
-                transform: scale(1.1);
-            }
-
-            .header-login-btn span,
-            .header-register-btn span {
-                font-size: 13px;
-                font-weight: 600;
-            }
-
-            /* Animation for visitor buttons */
-            @keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(10px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-
-            .header-login-btn,
-            .header-register-btn {
-                animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-
-            /* Ensure buttons don't overlap with mobile menu toggle */
-            .header-login-btn {
-                margin-right: 8px;
-            }
-
-            .header-register-btn {
-                margin-right: 8px;
-            }
-        }
-
-        /* On very small screens, make sure nothing hides the toggle */
-        @media (max-width: 320px) {
-            .mobile-menu-toggle {
-                right: 4px;
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
-            }
-
-            .header {
-                min-height: 52px;
-            }
+        .header-inner {
+            max-width: 1200px; margin: 0 auto; padding: 0 24px;
+            height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
         }
 
         .logo {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--twitter-blue);
+            font-size: 1.5rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-decoration: none;
-            flex-shrink: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        .user-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--twitter-dark);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 120px;
-        }
-
-        .admin-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .admin-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
-            background: linear-gradient(135deg, #c82333, #bd2130);
-        }
-
-        .admin-link i {
-            font-size: 10px;
-        }
-
-        .admin-link span {
-            font-size: 11px;
-        }
-
-            .user-avatar-small {
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                border: 2px solid white;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-
-            /* Lazy loading for images */
-            img {
-                loading: lazy;
-            }
-
-        /* Navigation - always show as dropdown on all screen sizes */
-            .nav-links {
-                display: none;
-                flex-direction: column;
-                position: absolute;
-                top: 100%;
-                right: 0;
-                background: var(--card-bg);
-                border: 2px solid var(--border-color);
-                border-radius: 20px;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 4px 16px rgba(29, 161, 242, 0.1);
-                min-width: 280px;
-                z-index: 1000;
-                padding: 20px 0;
-                backdrop-filter: blur(10px);
-                animation: dropdownSlideIn 0.2s ease-out;
-                max-height: 80vh;
-                overflow-y: auto;
-                max-width: 90vw;
-            }
-
-            /* Optimized for wide laptops (1200px+) */
-            @media (min-width: 1200px) {
-                .nav-links {
-                    min-width: 420px;
-                    max-width: 500px;
-                    padding: 32px 0;
-                    right: 0;
-                    transform: translateX(0);
-                    box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 6px 20px rgba(29, 161, 242, 0.25);
-                    border-radius: 16px;
-                    position: absolute;
-                    top: 100%;
-                    left: auto;
-                    z-index: 1000;
-                }
-            }
-
-            /* Standard laptops (1025px-1199px) */
-            @media (min-width: 1025px) and (max-width: 1199px) {
-                .nav-links {
-                    min-width: 280px;
-                    max-width: 320px;
-                    padding: 20px 0;
-                    right: 0;
-                    box-shadow: 0 10px 35px rgba(0,0,0,0.65), 0 5px 18px rgba(29, 161, 242, 0.22);
-                    border-radius: 14px;
-                }
-            }
-
-            /* Compact laptops (769px-1024px) */
-            @media (min-width: 769px) and (max-width: 1024px) {
-                .nav-links {
-                    min-width: 260px;
-                    max-width: 300px;
-                    padding: 18px 0;
-                    right: 0;
-                    box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 4px 16px rgba(29, 161, 242, 0.2);
-                    border-radius: 12px;
-                }
-            }
-
-            .nav-links.mobile-show {
-                display: flex;
-            }
-
-        @keyframes dropdownSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .nav-links.mobile-show {
-            display: flex;
-        }
-
+        .nav-links { display: flex; align-items: center; gap: 8px; }
         .nav-links a {
-            padding: 16px 24px;
-            border-radius: 0;
-            text-align: left;
-            white-space: nowrap;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--twitter-dark);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 15px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 16px; color: var(--text-muted);
+            text-decoration: none; font-size: 14px; font-weight: 500;
+            border-radius: var(--radius); transition: all var(--transition);
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--text); background: var(--surface-hover); }
+
+        .user-actions { display: flex; align-items: center; gap: 12px; }
+
+        .icon-btn {
+            position: relative; width: 40px; height: 40px; border: none; border-radius: var(--radius);
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--text-muted); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; transition: all var(--transition);
+        }
+        .icon-btn:hover { color: var(--text); background: var(--surface-hover); border-color: var(--primary); }
+
+        .icon-btn .badge {
+            position: absolute; top: -4px; right: -4px;
+            min-width: 18px; height: 18px; padding: 0 5px;
+            background: var(--accent); color: white; font-size: 10px; font-weight: 700;
+            border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--bg);
         }
 
-        .nav-links a:last-child {
+        .user-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 12px; border: 1px solid var(--border);
+            border-radius: var(--radius); background: var(--surface);
+            color: var(--text); font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all var(--transition);
+        }
+        .user-btn:hover { border-color: var(--primary); background: var(--surface-hover); }
+
+        .user-avatar {
+            width: 24px; height: 24px; border-radius: var(--radius-full);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; color: white;
+            overflow: hidden;
+        }
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .dropdown-overlay {
+            display: none; position: fixed; inset: 0; z-index: 9998;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .dropdown-overlay.active { display: block; }
+
+        .dropdown-wrapper {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            display: none; position: fixed; 
+            min-width: 220px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); z-index: 9999;
+            padding: 8px;
+        }
+        .dropdown-menu.show { display: block; animation: dropdownIn 0.2s ease; }
+        @keyframes dropdownIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Notification Panel Styles */
+        .notif-panel {
+            width: 380px;
+            max-width: calc(100vw - 32px);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+        .notif-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notif-header h3 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .notif-header-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .notif-action-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: all var(--transition);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .notif-action-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+        .notif-action-btn.danger:hover {
+            color: var(--accent);
+            background: rgba(244, 63, 94, 0.1);
+        }
+        .notif-list {
+            max-height: 420px;
+            overflow-y: auto;
+        }
+        .notif-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .notif-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .notif-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+        .notif-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: all var(--transition);
+            position: relative;
+        }
+        .notif-item:last-child {
             border-bottom: none;
         }
-
-        .nav-links a::before {
+        .notif-item:hover {
+            background: var(--surface-hover);
+        }
+        .notif-item.unread {
+            background: rgba(59, 130, 246, 0.08);
+        }
+        .notif-item.unread::before {
             content: '';
             position: absolute;
             left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: var(--twitter-blue);
-            border-radius: 0 2px 2px 0;
-            transform: scaleY(0);
-            transition: transform 0.2s ease;
-            transform-origin: center;
-        }
-
-        .nav-links a:hover {
-            background: linear-gradient(135deg, var(--hover-bg) 0%, rgba(29, 161, 242, 0.05) 100%);
-            color: var(--twitter-blue);
-        }
-
-        .nav-links a:hover::before {
-            transform: scaleY(1);
-        }
-
-        .nav-links a i {
-            font-size: 16px;
-            width: 20px;
-            text-align: center;
-            opacity: 0.8;
-        }
-
-        .nav-links a:hover i {
-            opacity: 1;
-        }
-
-        /* Special styling for logout link */
-        .nav-links a[href*="logout"] {
-            color: var(--error-color);
-            font-weight: 600;
-        }
-
-        .nav-links a[href*="logout"]:hover {
-            background: linear-gradient(135deg, rgba(244, 33, 46, 0.1) 0%, rgba(244, 33, 46, 0.05) 100%);
-            color: var(--error-color);
-        }
-
-        /* Navigation menu toggle button - always visible */
-        .mobile-menu-toggle {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: var(--twitter-gray);
-            cursor: pointer;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-        }
-
-        .mobile-menu-toggle:hover {
-            background-color: var(--twitter-light);
-            color: var(--twitter-dark);
-        }
-
-        .mobile-menu-toggle:active {
-            transform: scale(0.95);
-        }
-
-        /* Basic layout */
-        .app-layout {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-        }
-
-        /* Auth pages - full width centering */
-        .auth-page .app-layout {
-            display: block;
-        }
-
-        .auth-page .main-content {
-            width: 100%;
-            max-width: none;
-            margin: 0;
-        }
-
-        .main-content {
-            min-width: 0; /* Prevent flex shrinking */
-        }
-
-        .right-sidebar {
-            position: sticky;
-            top: 80px;
-            height: fit-content;
-        }
-
-        /* Navigation sidebar */
-        .nav-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 12px 16px;
-            border-radius: 24px;
-            text-decoration: none;
-            color: var(--twitter-dark);
-            font-weight: 500;
-            font-size: 18px;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-
-        .nav-item:hover {
-            background-color: var(--hover-bg);
-            color: var(--twitter-blue);
-        }
-
-        .nav-item.active {
-            background-color: var(--twitter-blue);
-            color: white;
-        }
-
-        .nav-item i {
-            font-size: 24px;
-            width: 24px;
-            text-align: center;
-        }
-
-        .compose-btn {
-            background-color: var(--twitter-blue);
-            color: white;
-            border: none;
-            padding: 16px 24px;
-            border-radius: 24px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 16px;
-            transition: all 0.2s ease;
-        }
-
-        .compose-btn:hover {
-            background-color: #1A91DA;
-            transform: translateY(-1px);
-        }
-
-        .user-profile-card {
-            background-color: var(--twitter-light);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 16px;
-            margin-top: 16px;
-        }
-
-        .user-profile-card .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-profile-card .user-avatar-small {
-            width: 40px;
-            height: 40px;
-        }
-
-        .user-profile-card .user-name {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .user-profile-card .user-handle {
-            font-size: 14px;
-            color: var(--twitter-gray);
-        }
-
-        /* Enhanced Responsive Design - Perfect for all screen sizes */
-
-        /* Desktop and Large Screens (1025px+) */
-        @media (min-width: 1025px) {
-            .app-layout {
-                display: grid;
-                grid-template-columns: 260px 1fr 280px;
-                gap: 30px;
-                max-width: 1400px;
-                margin: 0 auto;
-                padding: 30px;
-                place-items: start;
-            }
-
-            .left-sidebar {
-                width: 260px;
-                grid-column: 1;
-            }
-
-            .main-content {
-                width: 100%;
-                max-width: none;
-                grid-column: 2;
-                min-width: 0; /* Allow flex shrinking */
-            }
-
-            .right-sidebar {
-                width: 280px;
-                grid-column: 3;
-            }
-        }
-
-        /* Ultra-wide monitors (1921px+) */
-        @media (min-width: 1921px) {
-            .app-layout {
-                gap: 40px;
-                padding: 40px;
-                max-width: 1600px;
-            }
-
-            .left-sidebar, .right-sidebar {
-                width: 320px;
-                max-width: 320px;
-                min-width: 260px;
-            }
-
-            .main-content {
-                max-width: 1000px;
-            }
-        }
-
-        /* Large monitors (1441px-1920px) */
-        @media (max-width: 1920px) and (min-width: 1441px) {
-            .app-layout {
-                gap: 30px;
-                padding: 30px;
-            }
-
-            .left-sidebar, .right-sidebar {
-                width: 280px;
-                max-width: 280px;
-                min-width: 240px;
-            }
-
-            .main-content {
-                max-width: 900px;
-            }
-        }
-
-        /* Standard large laptops (1281px-1440px) */
-        @media (max-width: 1440px) and (min-width: 1281px) {
-            .left-sidebar, .right-sidebar {
-                width: 250px;
-                max-width: 250px;
-                min-width: 220px;
-            }
-
-            .main-content {
-                max-width: 800px;
-            }
-        }
-
-        /* Standard laptops (1025px-1280px) */
-        @media (max-width: 1280px) and (min-width: 1025px) {
-            .left-sidebar, .right-sidebar {
-                width: 240px;
-                max-width: 240px;
-                min-width: 200px;
-            }
-
-            .main-content {
-                max-width: 750px;
-                min-width: 450px;
-            }
-        }
-
-        /* Tablets and Small Laptops (769px-1024px) */
-        @media (max-width: 1024px) and (min-width: 769px) {
-            .app-layout {
-                grid-template-columns: 60px 1fr 120px;
-                gap: 20px;
-                max-width: 95vw;
-                margin: 0 auto;
-                padding: 20px;
-            }
-
-            .left-sidebar {
-                width: 60px;
-            }
-
-            .right-sidebar {
-                width: 120px;
-            }
-        }
-
-        /* Mobile and Small Tablets (481px-768px) */
-        @media (max-width: 768px) and (min-width: 481px) {
-            .app-layout {
-                grid-template-columns: 1fr;
-                gap: 0;
-                max-width: 100vw;
-                padding: 16px;
-                margin: 0;
-            }
-
-            .left-sidebar,
-            .right-sidebar {
-                display: none;
-            }
-
-            .main-content {
-                max-width: none;
-                margin: 0;
-                width: 100%;
-            }
-        }
-
-        /* Small Mobile (376px-480px) */
-        @media (max-width: 480px) and (min-width: 376px) {
-            .app-layout {
-                grid-template-columns: 1fr;
-                gap: 0;
-                padding: 12px;
-                margin: 0;
-                max-width: 100vw;
-            }
-
-            .left-sidebar,
-            .right-sidebar {
-                display: none;
-            }
-
-            .main-content {
-                max-width: none;
-                margin: 0;
-                width: 100%;
-            }
-        }
-
-        /* Extra Small Mobile (321px-375px) */
-        @media (max-width: 375px) and (min-width: 321px) {
-            .app-layout {
-                grid-template-columns: 1fr;
-                gap: 0;
-                padding: 8px;
-                margin: 0;
-                max-width: 100vw;
-            }
-
-            .left-sidebar,
-            .right-sidebar {
-                display: none;
-            }
-
-            .main-content {
-                max-width: none;
-                margin: 0;
-                width: 100%;
-            }
-        }
-
-        /* iPhone SE and Very Small Phones (up to 320px) */
-        @media (max-width: 320px) {
-            .app-layout {
-                grid-template-columns: 1fr;
-                gap: 0;
-                padding: 6px;
-                margin: 0;
-                max-width: 100vw;
-            }
-
-            .left-sidebar,
-            .right-sidebar {
-                display: none;
-            }
-
-            .main-content {
-                max-width: none;
-                margin: 0;
-                width: 100%;
-            }
-        }
-
-        /* Enhanced Mobile Responsiveness */
-
-        /* Large Mobile (481px-768px) */
-        @media (max-width: 768px) and (min-width: 481px) {
-            .header {
-                padding: 10px 16px;
-                position: sticky;
-                top: 0;
-                z-index: 1000;
-            }
-
-            .nav {
-                max-width: none;
-                align-items: center;
-            }
-
-            .logo {
-                font-size: 20px;
-                font-weight: 700;
-            }
-
-            .user-info {
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-
-            .user-name {
-                font-size: 15px;
-                font-weight: 600;
-                max-width: 120px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            .mobile-menu-toggle {
-                width: 42px;
-                height: 42px;
-                font-size: 18px;
-            }
-
-            .app-layout {
-                padding: 12px;
-                margin: 0;
-            }
-
-            .main-content {
-                max-width: none;
-                margin: 0;
-                width: 100%;
-            }
-
-            /* Post improvements for large mobile */
-            .post {
-                margin-bottom: 12px;
-                border-radius: 16px;
-                padding: 16px;
-                border: 1px solid var(--border-color);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            }
-
-            .post:hover {
-                box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-                transform: translateY(-1px);
-            }
-
-            /* Better button sizing */
-            .btn {
-                padding: 10px 16px;
-                font-size: 14px;
-                min-height: 44px; /* iOS touch target */
-                font-weight: 600;
-                border-radius: 22px;
-            }
-
-            /* Form improvements */
-            .form-group input,
-            .form-group textarea {
-                padding: 14px 16px;
-                font-size: 16px; /* Prevents zoom on iOS */
-                border-radius: 12px;
-                border: 2px solid var(--border-color);
-            }
-
-            .form-group textarea {
-                min-height: 80px;
-            }
-
-            /* Mobile navigation */
-            .nav-links {
-                min-width: 320px;
-                max-width: 400px;
-                padding: 24px 0;
-            }
-
-            .nav-links a {
-                padding: 14px 20px;
-                font-size: 16px;
-                font-weight: 500;
-            }
-
-            /* Bottom navigation for mobile */
-            .nav-sidebar {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                top: auto;
-                background: var(--card-bg);
-                border-top: 2px solid var(--border-color);
-                box-shadow: 0 -4px 16px rgba(0,0,0,0.15);
-                z-index: 1000;
-                padding: 10px 0;
-                height: 70px;
-                display: flex;
-                flex-direction: row;
-                gap: 0;
-                justify-content: space-around;
-                backdrop-filter: blur(10px);
-            }
-
-            .nav-item {
-                flex: 1;
-                flex-direction: column;
-                gap: 4px;
-                padding: 8px 4px;
-                min-height: 50px;
-                font-size: 11px;
-                border-radius: 12px;
-                margin: 0 3px;
-                transition: all 0.2s ease;
-            }
-
-            .nav-item:hover {
-                background-color: var(--hover-bg);
-                transform: translateY(-2px);
-            }
-
-            .nav-item.active {
-                background-color: var(--twitter-blue);
-                color: white;
-            }
-
-            .nav-item i {
-                font-size: 18px;
-            }
-
-            .nav-item span {
-                font-size: 9px;
-                font-weight: 500;
-            }
-
-            .compose-btn {
-                display: none;
-            }
-
-            .user-profile-card {
-                display: none;
-            }
-
-            /* Content spacing for bottom nav */
-            .main-content {
-                padding-bottom: 90px;
-            }
-
-            /* Story improvements */
-            .stories-container {
-                padding: 12px 0;
-                gap: 12px;
-                overflow-x: auto;
-            }
-
-            .story-item {
-                width: 64px;
-                flex-shrink: 0;
-            }
-
-            .story-avatar {
-                width: 64px;
-                height: 64px;
-                border: 3px solid var(--twitter-blue);
-            }
-
-            .story-preview {
-                width: 56px;
-                height: 56px;
-                top: 4px;
-                left: 4px;
-            }
-
-            /* Theme fixes */
-            .nav-sidebar {
-                background: var(--card-bg);
-                border-top: 2px solid var(--border-color);
-            }
-
-            .nav-item {
-                color: var(--twitter-dark);
-            }
-        }
-
-        /* Standard Mobile (376px-480px) */
-        @media (max-width: 480px) and (min-width: 376px) {
-            .header {
-                padding: 8px 12px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            }
-
-            .logo {
-                font-size: 18px;
-                font-weight: 700;
-            }
-
-            .user-name {
-                font-size: 14px;
-                max-width: 100px;
-            }
-
-            .mobile-menu-toggle {
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
-            }
-
-            .app-layout {
-                padding: 8px;
-                margin: 0;
-            }
-
-            .main-content {
-                max-width: none;
-                margin: 0;
-                width: 100%;
-            }
-
-            .post {
-                margin-bottom: 10px;
-                padding: 14px;
-                border-radius: 14px;
-            }
-
-            .btn {
-                padding: 8px 14px;
-                font-size: 13px;
-                min-height: 42px;
-                border-radius: 20px;
-            }
-
-            .form-group input,
-            .form-group textarea {
-                padding: 12px 14px;
-                font-size: 16px;
-                border-radius: 10px;
-            }
-
-            .nav-links {
-                min-width: 300px;
-                max-width: 360px;
-                padding: 20px 0;
-            }
-
-            .nav-links a {
-                padding: 12px 18px;
-                font-size: 15px;
-            }
-
-            .nav-sidebar {
-                height: 65px;
-                padding: 8px 0;
-            }
-
-            .nav-item {
-                padding: 6px 3px;
-                min-height: 45px;
-                font-size: 10px;
-            }
-
-            .nav-item i {
-                font-size: 16px;
-            }
-
-            .nav-item span {
-                font-size: 8px;
-            }
-
-            .main-content {
-                padding-bottom: 80px;
-            }
-
-            .stories-container {
-                padding: 10px 0;
-                gap: 10px;
-            }
-
-            .story-item {
-                width: 58px;
-            }
-
-            .story-avatar {
-                width: 58px;
-                height: 58px;
-            }
-
-            .story-preview {
-                width: 50px;
-                height: 50px;
-                top: 4px;
-                left: 4px;
-            }
-        }
-
-        /* Small Mobile (321px-375px) */
-        @media (max-width: 375px) and (min-width: 321px) {
-            .header {
-                padding: 6px 10px;
-            }
-
-            .logo {
-                font-size: 16px;
-            }
-
-            .user-name {
-                font-size: 13px;
-                max-width: 80px;
-            }
-
-            .mobile-menu-toggle {
-                width: 36px;
-                height: 36px;
-                font-size: 14px;
-            }
-
-            .app-layout {
-                padding: 6px;
-                margin: 0;
-            }
-
-            .post {
-                margin-bottom: 8px;
-                padding: 12px;
-                border-radius: 12px;
-            }
-
-            .btn {
-                padding: 7px 12px;
-                font-size: 12px;
-                min-height: 40px;
-                border-radius: 18px;
-            }
-
-            .form-group input,
-            .form-group textarea {
-                padding: 10px 12px;
-                font-size: 16px;
-                border-radius: 8px;
-            }
-
-            .nav-links {
-                min-width: 280px;
-                max-width: 340px;
-                padding: 18px 0;
-            }
-
-            .nav-links a {
-                padding: 10px 16px;
-                font-size: 14px;
-            }
-
-            .nav-sidebar {
-                height: 60px;
-                padding: 6px 0;
-            }
-
-            .nav-item {
-                padding: 5px 2px;
-                min-height: 40px;
-                font-size: 9px;
-            }
-
-            .nav-item i {
-                font-size: 15px;
-            }
-
-            .nav-item span {
-                font-size: 7px;
-            }
-
-            .main-content {
-                padding-bottom: 75px;
-            }
-
-            .stories-container {
-                padding: 8px 0;
-                gap: 8px;
-            }
-
-            .story-item {
-                width: 52px;
-            }
-
-            .story-avatar {
-                width: 52px;
-                height: 52px;
-            }
-
-            .story-preview {
-                width: 44px;
-                height: 44px;
-                top: 4px;
-                left: 4px;
-            }
-        }
-
-        /* Very Small Mobile (up to 320px) */
-        @media (max-width: 320px) {
-            .header {
-                padding: 4px 8px;
-            }
-
-            .logo {
-                font-size: 14px;
-            }
-
-            .user-name {
-                font-size: 12px;
-                max-width: 70px;
-            }
-
-            .mobile-menu-toggle {
-                width: 32px;
-                height: 32px;
-                font-size: 12px;
-            }
-
-            .app-layout {
-                padding: 4px;
-                margin: 0;
-            }
-
-            .post {
-                margin-bottom: 6px;
-                padding: 10px;
-                border-radius: 10px;
-            }
-
-            .btn {
-                padding: 6px 10px;
-                font-size: 11px;
-                min-height: 38px;
-                border-radius: 16px;
-            }
-
-            .form-group input,
-            .form-group textarea {
-                padding: 8px 10px;
-                font-size: 16px;
-                border-radius: 6px;
-            }
-
-            .nav-links {
-                min-width: 260px;
-                max-width: 320px;
-                padding: 16px 0;
-            }
-
-            .nav-links a {
-                padding: 8px 14px;
-                font-size: 13px;
-            }
-
-            .nav-sidebar {
-                height: 55px;
-                padding: 4px 0;
-            }
-
-            .nav-item {
-                padding: 4px 2px;
-                min-height: 35px;
-                font-size: 8px;
-            }
-
-            .nav-item i {
-                font-size: 14px;
-            }
-
-            .nav-item span {
-                font-size: 6px;
-            }
-
-            .main-content {
-                padding-bottom: 70px;
-            }
-
-            .stories-container {
-                padding: 6px 0;
-                gap: 6px;
-            }
-
-            .story-item {
-                width: 48px;
-            }
-
-            .story-avatar {
-                width: 48px;
-                height: 48px;
-            }
-
-            .story-preview {
-                width: 40px;
-                height: 40px;
-                top: 4px;
-                left: 4px;
-            }
-        }
-
-        /* Landscape orientation fixes */
-        @media (orientation: landscape) and (max-height: 500px) {
-            .header {
-                padding: 4px 8px;
-            }
-
-            .nav-sidebar {
-                height: 50px;
-                padding: 3px 0;
-            }
-
-            .nav-item {
-                min-height: 30px;
-                padding: 3px 1px;
-            }
-
-            .nav-item i {
-                font-size: 12px;
-            }
-
-            .nav-item span {
-                font-size: 6px;
-            }
-
-            .main-content {
-                padding-bottom: 60px;
-            }
-
-            .post {
-                padding: 8px;
-                margin-bottom: 4px;
-            }
-
-            .btn {
-                padding: 4px 8px;
-                min-height: 32px;
-                font-size: 11px;
-            }
-        }
-
-        /* Touch-friendly improvements */
-        @media (hover: none) and (pointer: coarse) {
-            .btn {
-                min-height: 44px; /* iOS Human Interface Guidelines */
-                min-width: 44px;
-            }
-
-            .nav-item {
-                min-height: 44px;
-                min-width: 44px;
-            }
-
-            .mobile-menu-toggle {
-                min-width: 44px;
-                min-height: 44px;
-            }
-
-            .header-theme-btn,
-            .header-notification-btn {
-                min-width: 44px;
-                min-height: 44px;
-            }
-        }
-
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-            .btn {
-                border: 2px solid currentColor;
-            }
-
-            .nav-links a:hover {
-                outline: 2px solid currentColor;
-            }
-        }
-
-        /* Reduced motion support */
-        @media (prefers-reduced-motion: reduce) {
-            .btn:hover,
-            .nav-item:hover,
-            .header-theme-btn:hover,
-            .header-notification-btn:hover {
-                transform: none;
-            }
-
-            .post:hover {
-                transform: none;
-            }
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 16px;
-            min-height: calc(100vh - 60px);
-        }
-        .post {
-            background-color: white;
-            border: 1px solid #E1E8ED;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-        .post .user {
-            font-weight: bold;
-            color: var(--twitter-dark);
-        }
-        .post .content {
-            margin: 10px 0;
-        }
-
-        .avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
-
-        .user-profile {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .user-profile .bio {
-            font-style: italic;
-            color: #666;
-            margin: 10px 0;
-        }
-
-        .users-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .user-card {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border: 1px solid #E1E8ED;
-            border-radius: 10px;
-            background-color: white;
-        }
-
-        .user-avatar, .user-avatar-placeholder {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-
-        .user-avatar-placeholder {
-            background-color: #E1E8ED;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #657786;
-            font-size: 24px;
-        }
-
-        .user-info h3 {
-            margin: 0 0 5px 0;
-            font-size: 16px;
-        }
-
-        .user-info h3 a {
-            color: var(--twitter-dark);
-            text-decoration: none;
-        }
-
-        .user-info h3 a:hover {
-            color: var(--twitter-blue);
-        }
-
-        .user-bio {
-            margin: 5px 0;
-            color: #657786;
-            font-size: 14px;
-        }
-
-        .user-stats {
-            display: flex;
-            gap: 15px;
-            font-size: 12px;
-            color: #657786;
-            margin-top: 5px;
-        }
-
-        .following-btn {
-            background-color: #28a745 !important;
-        }
-
-        .follow-btn {
-            background-color: var(--twitter-blue) !important;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            color: #657786;
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 20px;
-            display: block;
-        }
-
-        .empty-state h3 {
-            margin: 0 0 10px 0;
-            color: var(--twitter-dark);
-        }
-
-        .back-link {
-            margin-bottom: 20px;
-        }
-
-        .back-link a {
-            color: var(--twitter-blue);
-            text-decoration: none;
-        }
-
-        .back-link a:hover {
-            text-decoration: underline;
-        }
-
-        .privacy-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-            margin-left: 8px;
-            vertical-align: middle;
-        }
-
-        .privacy-badge.private {
-            background-color: #dc3545;
-            color: white;
-            border: 1px solid #dc3545;
-        }
-
-        .privacy-badge.public {
-            background-color: var(--twitter-blue);
-            color: white;
-            border: 1px solid var(--twitter-blue);
-        }
-
-        .privacy-badge i {
-            font-size: 10px;
-        }
-
-        .block-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 10px;
-            border-radius: 15px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 8px;
-            vertical-align: middle;
-            border: 1px solid;
-        }
-
-        .block-indicator.blocked-by-you {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-color: #f5c6cb;
-        }
-
-        .block-indicator.blocked-you {
-            background-color: #fff3cd;
-            color: #856404;
-            border-color: #ffeaa7;
-        }
-
-        .block-indicator i {
-            font-size: 9px;
-        }
-
-        .unblock-btn {
-            background-color: #6c757d !important;
-        }
-
-        .text-muted {
-            color: #6c757d;
-        }
-
-        .block-info {
-            margin-top: 5px;
-        }
-        .btn {
-            background-color: var(--twitter-blue);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn:hover {
-            background-color: #1991DB;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #E1E8ED;
-            border-radius: 5px;
-        }
-        /* Mobile Navigation Menu */
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: var(--twitter-gray);
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            position: relative;
-            z-index: 1001;
-        }
-
-        .mobile-menu-toggle:hover {
-            background-color: var(--twitter-light);
-            color: var(--twitter-dark);
-        }
-
-        .mobile-menu-toggle:active {
-            background-color: rgba(29, 161, 242, 0.1);
-            transform: scale(0.95);
-        }
-
-        .nav-links.mobile-hidden {
-            display: none;
-        }
-
-        /* Mobile menu overlay */
-        .mobile-menu-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 999;
-        }
-
-        /* Light theme mobile menu overlay */
-        body:not(.dark-theme) .mobile-menu-overlay {
-            background-color: rgba(127, 179, 213, 0.3);
-        }
-
-        /* Dark theme mobile menu overlay */
-        body.dark-theme .mobile-menu-overlay {
-            background-color: rgba(0, 0, 0, 0.6);
-        }
-
-        .mobile-menu-overlay.active {
-            display: block;
-        }
-
-        /* Post Styles */
-        .post {
-            background-color: white;
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: var(--shadow);
-            transition: all 0.2s ease;
-        }
-
-        .post:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
-        .post .user {
-            font-weight: 600;
-            color: var(--twitter-dark);
-            margin-bottom: 8px;
-            font-size: 15px;
-        }
-
-        .post .content {
-            margin: 12px 0;
-            line-height: 1.6;
-            font-size: 15px;
-        }
-
-        .post .user small {
-            color: var(--twitter-gray);
-            font-weight: 400;
-            margin-left: 8px;
-        }
-
-        /* Button Styles */
-        .btn {
-            background-color: var(--twitter-blue);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            min-height: 36px; /* Touch target */
-        }
-
-        .btn:hover {
-            background-color: #1991DB;
-            transform: translateY(-1px);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn i {
-            margin-right: 6px;
-        }
-
-        /* Form Styles */
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--twitter-dark);
-            font-size: 14px;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 14px 18px;
-            border: 2px solid var(--border-color);
-            border-radius: 16px;
-            font-size: 16px; /* Prevents zoom on iOS */
-            font-family: inherit;
-            background-color: var(--input-bg);
-            color: var(--twitter-dark);
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--focus-border);
-            background-color: var(--card-bg);
-            box-shadow: 0 0 0 4px rgba(29, 161, 242, 0.15), 0 4px 16px rgba(29, 161, 242, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: var(--twitter-gray);
-            opacity: 0.7;
-        }
-
-        .form-group textarea {
-            min-height: 80px;
-            resize: vertical;
-            line-height: 1.4;
-        }
-
-        /* Grid Layouts */
-        .users-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-            margin-top: 20px;
-        }
-
-        .user-card {
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 0 3px 3px 0;
+        }
+        .notif-item-content {
             display: flex;
             align-items: flex-start;
-            padding: 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            background-color: white;
-            box-shadow: var(--shadow);
-            transition: all 0.2s ease;
+            gap: 12px;
         }
-
-        .user-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateY(-2px);
-        }
-
-        /* Media Display */
-        .post-media {
-            margin: 12px 0;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #000;
-            position: relative;
-        }
-
-        .post-media img {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 12px;
-        }
-
-        /* Video Styling - Full Coverage */
-        .post-media video {
-            width: 100% !important;
-            height: auto;
-            max-width: 100%;
-            display: block;
-            border-radius: 12px;
-            background: #000;
-            object-fit: cover;
-        }
-
-        /* Video container responsive - Full Coverage */
-        .video-container {
-            width: 100%;
-            position: relative;
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .video-container video {
-            width: 100% !important;
-            height: auto !important;
-            max-width: 100% !important;
-            display: block;
-            border-radius: 12px;
-            background: #000;
-            object-fit: cover;
-        }
-
-        /* Custom Video Controls */
-        .video-container {
-            position: relative;
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .video-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+        .notif-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 0, 0, 0.3);
-            opacity: 1;
-            transition: opacity 0.3s ease;
-            cursor: pointer;
-            z-index: 2;
+            flex-shrink: 0;
+            font-size: 14px;
         }
-
-        .video-container:hover .video-overlay {
-            opacity: 0;
+        .notif-icon.follow { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+        .notif-icon.like { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .notif-icon.comment { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        .notif-icon.mention { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+        .notif-icon.message { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+        .notif-icon.default { background: rgba(156, 163, 175, 0.15); color: #9ca3af; }
+        .notif-text {
+            flex: 1;
+            min-width: 0;
         }
-
-        .play-button {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .play-button:hover {
-            transform: scale(1.1);
-            background: rgba(255, 255, 255, 1);
-        }
-
-        .play-button i {
-            color: #000;
-            font-size: 20px;
-            margin-left: 3px; /* Center the play icon */
-        }
-
-        .video-container video:focus + .video-overlay,
-        .video-container.playing .video-overlay {
-            opacity: 0;
-        }
-
-
-
-        /* Loading State */
-        .media-loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 16px;
-            z-index: 3;
-        }
-
-        .media-loading i {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Media Grids */
-        .media-grid {
-            display: grid;
-            gap: 4px;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .media-item {
-            position: relative;
-            background: #000;
-            overflow: hidden;
-        }
-
-        .media-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: transform 0.3s ease;
-        }
-
-        .media-item:hover img {
-            transform: scale(1.05);
-        }
-
-        .media-item video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        /* Video controls styling */
-        .media-item video::-webkit-media-controls-panel {
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .media-item video::-webkit-media-controls {
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        /* Profile Styles */
-        .user-profile {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        .avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin-bottom: 16px;
-            border: 4px solid white;
-            box-shadow: var(--shadow);
-        }
-
-        .cover-image {
-            position: relative;
-            height: 200px;
-            overflow: hidden;
-            border-radius: 0 0 16px 16px;
-            margin-bottom: 20px;
-        }
-
-        .cover-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .profile-info h2 {
-            font-size: 24px;
-            margin-bottom: 8px;
-            word-break: break-word;
-        }
-
-        .bio {
-            font-style: normal;
-            color: var(--twitter-gray);
-            margin: 12px 0;
-            font-size: 15px;
+        .notif-text p {
+            margin: 0 0 3px 0;
+            font-size: 13px;
+            color: var(--text);
             line-height: 1.5;
         }
-
-        /* Stats */
-        .stats {
-            margin: 16px 0;
-            padding: 16px;
-            background-color: var(--twitter-light);
-            border-radius: 12px;
-        }
-
-        .stats a {
-            color: var(--twitter-gray);
-            text-decoration: none;
-            margin-right: 16px;
-            font-size: 14px;
-        }
-
-        .stats a:hover {
-            color: var(--twitter-blue);
-        }
-
-        /* Ultra-Responsive Design System */
-
-        /* Extra Large Screens (1440px+) */
-        @media (min-width: 1440px) {
-            .container {
-                max-width: 800px;
-            }
-
-            .users-grid {
-                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            }
-
-            .logo {
-                font-size: 24px;
-            }
-
-            .nav-links a {
-                font-size: 16px;
-                padding: 10px 16px;
-            }
-        }
-
-        /* Large Screens (1200px - 1439px) */
-        @media (min-width: 1200px) and (max-width: 1439px) {
-            .container {
-                max-width: 700px;
-            }
-
-            .users-grid {
-                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            }
-        }
-
-        /* Medium-Large Screens (992px - 1199px) */
-        @media (min-width: 992px) and (max-width: 1199px) {
-            .container {
-                max-width: 650px;
-            }
-
-            .users-grid {
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            }
-
-            .logo {
-                font-size: 22px;
-            }
-        }
-
-        /* Medium Screens (768px - 991px) */
-        @media (min-width: 768px) and (max-width: 991px) {
-            .container {
-                max-width: 90%;
-                padding: 20px 16px;
-            }
-
-            .users-grid {
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                gap: 14px;
-            }
-
-            .post {
-                padding: 18px;
-            }
-
-            .user-card {
-                padding: 18px;
-            }
-
-            .avatar {
-                width: 110px;
-                height: 110px;
-            }
-
-            .cover-image {
-                height: 180px;
-            }
-
-            .profile-info h2 {
-                font-size: 22px;
-            }
-
-            .media-grid {
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            }
-        }
-
-        /* Small-Medium Screens (600px - 767px) */
-        @media (min-width: 600px) and (max-width: 767px) {
-            .container {
-                padding: 16px 12px;
-            }
-
-            .users-grid {
-                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            }
-
-            .post {
-                padding: 16px;
-                margin-bottom: 12px;
-            }
-
-            .user-card {
-                padding: 16px;
-            }
-
-            .avatar {
-                width: 100px;
-                height: 100px;
-            }
-
-            .cover-image {
-                height: 160px;
-            }
-
-            .profile-info h2 {
-                font-size: 20px;
-            }
-
-            .media-grid {
-                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            }
-        }
-
-        /* Mobile Large (480px - 599px) */
-        @media (min-width: 480px) and (max-width: 599px) {
-            .container {
-                padding: 12px 10px;
-            }
-
-            .header {
-                padding: 10px 14px;
-            }
-
-            .logo {
-                font-size: 16px;
-            }
-
-            .nav-links.mobile-show {
-                padding: 14px;
-            }
-
-            .users-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-
-            .post {
-                padding: 14px;
-                margin-bottom: 10px;
-                border-radius: 12px;
-            }
-
-            .user-card {
-                padding: 14px;
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .user-avatar,
-            .user-avatar-placeholder {
-                margin-right: 0;
-                margin-bottom: 10px;
-                width: 55px;
-                height: 55px;
-                align-self: center;
-            }
-
-            .avatar {
-                width: 90px;
-                height: 90px;
-            }
-
-            .cover-image {
-                height: 140px;
-            }
-
-            .profile-info h2 {
-                font-size: 19px;
-            }
-
-            .stats {
-                padding: 14px;
-            }
-
-            .media-grid {
-                grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-            }
-
-            .btn {
-                padding: 9px 14px;
-                font-size: 13px;
-                min-height: 38px;
-            }
-        }
-
-        /* Mobile Small (360px - 479px) */
-        @media (min-width: 360px) and (max-width: 479px) {
-            .container {
-                padding: 8px 6px;
-            }
-
-            .header {
-                padding: 8px 10px;
-            }
-
-            .logo {
-                font-size: 15px;
-            }
-
-            .nav-links.mobile-show {
-                padding: 12px;
-                gap: 10px;
-            }
-
-            .nav-links.mobile-show a {
-                padding: 10px 8px;
-                font-size: 14px;
-            }
-
-            .users-grid {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
-
-            .post {
-                padding: 12px;
-                margin-bottom: 8px;
-                border-radius: 10px;
-            }
-
-            .user-card {
-                padding: 12px;
-            }
-
-            .user-avatar,
-            .user-avatar-placeholder {
-                width: 50px;
-                height: 50px;
-                margin-bottom: 8px;
-            }
-
-            .avatar {
-                width: 80px;
-                height: 80px;
-            }
-
-            .cover-image {
-                height: 120px;
-            }
-
-            .profile-info h2 {
-                font-size: 17px;
-            }
-
-            .stats {
-                padding: 12px;
-            }
-
-            .stats a {
-                margin-bottom: 6px;
-            }
-
-            .media-grid {
-                grid-template-columns: repeat(auto-fit, minmax(95px, 1fr));
-            }
-
-            .btn {
-                padding: 8px 12px;
-                font-size: 13px;
-                min-height: 36px;
-            }
-
-            .form-group input,
-            .form-group textarea {
-                padding: 12px 14px;
-            }
-        }
-
-        /* Mobile Extra Small (320px - 359px) */
-        @media (max-width: 359px) {
-            .container {
-                padding: 6px 4px;
-            }
-
-            .header {
-                padding: 6px 8px;
-            }
-
-            .logo {
-                font-size: 14px;
-            }
-
-            .nav-links.mobile-show {
-                padding: 10px;
-            }
-
-            .nav-links.mobile-show a {
-                padding: 8px 6px;
-                font-size: 13px;
-            }
-
-            .users-grid {
-                gap: 6px;
-            }
-
-            .post {
-                padding: 10px;
-                margin-bottom: 6px;
-            }
-
-            .user-card {
-                padding: 10px;
-            }
-
-            .user-avatar,
-            .user-avatar-placeholder {
-                width: 45px;
-                height: 45px;
-            }
-
-            .avatar {
-                width: 70px;
-                height: 70px;
-            }
-
-            .cover-image {
-                height: 100px;
-            }
-
-            .profile-info h2 {
-                font-size: 16px;
-            }
-
-            .stats {
-                padding: 10px;
-            }
-
-            .media-grid {
-                grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
-            }
-
-            .btn {
-                padding: 7px 10px;
-                font-size: 12px;
-                min-height: 34px;
-            }
-
-            .form-group input,
-            .form-group textarea {
-                padding: 10px 12px;
-                font-size: 16px;
-            }
-
-            .form-group label {
-                font-size: 13px;
-                margin-bottom: 6px;
-            }
-        }
-
-        /* Landscape Orientation Adjustments */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .header {
-                padding: 6px 12px;
-            }
-
-            .logo {
-                font-size: 16px;
-            }
-
-            .nav-links.mobile-show {
-                padding: 8px 12px;
-                max-height: 40vh;
-                overflow-y: auto;
-            }
-
-            .container {
-                padding: 8px 6px;
-            }
-
-            .post {
-                padding: 10px;
-            }
-
-            .user-card {
-                padding: 10px;
-            }
-
-            .avatar {
-                width: 60px;
-                height: 60px;
-            }
-
-            .cover-image {
-                height: 80px;
-            }
-        }
-
-        /* Ultra-wide aspect ratios */
-        @media (min-aspect-ratio: 21/9) {
-            .container {
-                max-width: 900px;
-            }
-
-            .users-grid {
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            }
-        }
-
-        /* Square screens (like some tablets) */
-        @media (aspect-ratio: 1/1) {
-            .avatar {
-                width: 100px;
-                height: 100px;
-            }
-
-            .cover-image {
-                height: 150px;
-            }
-
-            .users-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* Touch-friendly interactions */
-        @media (hover: none) and (pointer: coarse) {
-            .btn:hover {
-                transform: none;
-            }
-
-            .user-card:hover,
-            .post:hover {
-                transform: none;
-                box-shadow: var(--shadow);
-            }
-        }
-
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-            :root {
-                --border-color: #000;
-                --twitter-gray: #333;
-            }
-        }
-
-
-        /* Reduced motion support */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                transition: none !important;
-                animation: none !important;
-            }
-        }
-
-        /* Ultra-Responsive Comment System for All Mobile Devices */
-
-        /* Base mobile comment styles */
-        .comment {
-            margin-bottom: 12px;
-            padding: 10px;
-            border-radius: 8px;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-
-        .comment-avatar {
-            width: 32px;
-            height: 32px;
-            flex-shrink: 0;
-        }
-
-        .comment-user-avatar,
-        .comment-user-avatar-placeholder {
-            width: 32px;
-            height: 32px;
-            font-size: 14px;
-            border-radius: 50%;
-        }
-
-        .comment-user-avatar-placeholder {
-            background-color: #E1E8ED;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #657786;
-        }
-
-        .comment-content-wrapper {
-            margin-left: 10px;
-            flex: 1;
-            min-width: 0; /* Allow flex shrinking */
-        }
-
-        .comment-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            flex-wrap: wrap;
-            gap: 4px;
-        }
-
-        .comment-user-info {
-            display: flex;
-            align-items: center;
-            flex: 1;
-            min-width: 0;
-            overflow: hidden;
-        }
-
-        .comment-user-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--twitter-dark);
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: calc(100vw - 120px);
-            flex-shrink: 1;
-        }
-
-        .comment-time {
-            display: inline;
+        .notif-time {
             font-size: 11px;
-            color: var(--twitter-gray);
-            margin-left: 4px;
-            opacity: 0.8;
-            white-space: nowrap;
-            flex-shrink: 0;
+            color: var(--text-muted);
         }
-
-        .comment-actions {
-            flex-shrink: 0;
-            margin-left: 8px;
-        }
-
-        .comment-text {
-            font-size: 14px;
-            line-height: 1.4;
-            margin-top: 4px;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            hyphens: auto;
-        }
-
-        .comment-interactions {
+        .notif-item-actions {
             display: flex;
-            gap: 12px;
-            margin-top: 8px;
-            flex-wrap: wrap;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity var(--transition);
         }
-
-        .comment-like-btn,
-        .comment-reply-btn {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 16px;
+        .notif-item:hover .notif-item-actions {
+            opacity: 1;
+        }
+        .notif-item-btn {
+            background: transparent;
             border: none;
-            background: none;
-            color: var(--twitter-gray);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            min-height: 28px;
-        }
-
-        .comment-like-btn:hover,
-        .comment-reply-btn:hover {
-            background: var(--hover-bg);
-        }
-
-        .comment-like-btn.liked {
-            color: var(--error-color);
-            background: rgba(244, 33, 46, 0.1);
-        }
-
-        .comment-like-btn .comment-like-count {
-            font-weight: 600;
-            min-width: 8px;
-        }
-
-        /* Nested comments with progressive indentation */
-        .nested-comment {
-            margin-left: 16px;
-            border-left: 2px solid var(--border-color);
-            padding-left: 10px;
-            margin-bottom: 10px;
-            position: relative;
-        }
-
-        /* Level 3 nested comments - minimal indentation */
-        .level-3,
-        .nested-comment .nested-comment {
-            margin-left: 12px;
-            border-left-width: 1px;
-            padding-left: 8px;
-            opacity: 0.9;
-        }
-
-        /* Reply forms optimized for mobile */
-        .comment-reply-form {
-            margin-top: 10px;
-            padding: 10px;
-            background: var(--hover-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .reply-form-container {
-            display: flex;
-            gap: 8px;
-            align-items: flex-start;
-        }
-
-        .reply-avatar {
-            width: 28px;
-            height: 28px;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .reply-avatar img,
-        .reply-avatar-placeholder {
-            width: 28px;
-            height: 28px;
-            font-size: 12px;
-            border-radius: 50%;
-        }
-
-        .reply-input-container {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .reply-textarea {
-            width: 100%;
-            min-height: 60px;
-            padding: 8px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: inherit;
-            resize: vertical;
-            box-sizing: border-box;
-        }
-
-        .reply-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-            justify-content: flex-end;
-            flex-wrap: wrap;
-        }
-
-        .reply-submit-btn,
-        .reply-cancel-btn {
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s ease;
-            min-height: 32px;
-        }
-
-        .reply-submit-btn {
-            background: var(--twitter-blue);
-            color: white;
-        }
-
-        .reply-submit-btn:hover {
-            background: #1991DB;
-            transform: translateY(-1px);
-        }
-
-        .reply-cancel-btn {
-            background: var(--hover-bg);
-            color: var(--twitter-gray);
-            border: 1px solid var(--border-color);
-        }
-
-        .reply-cancel-btn:hover {
-            background: var(--border-color);
-            color: var(--twitter-dark);
-        }
-
-        /* Nested replies management */
-        .comment-replies {
-            margin-top: 8px;
-        }
-
-        .show-more-nested-replies-btn,
-        .hide-nested-replies-btn {
-            background: none;
-            border: none;
-            color: var(--twitter-blue);
-            font-size: 12px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 12px;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .show-more-nested-replies-btn:hover,
-        .hide-nested-replies-btn:hover {
-            background: rgba(29, 161, 242, 0.1);
-            transform: translateY(-1px);
-        }
-
-        /* Comment delete button */
-        .comment-delete-btn {
-            background: none;
-            border: none;
-            color: var(--twitter-gray);
-            font-size: 12px;
+            color: var(--text-muted);
             cursor: pointer;
             padding: 4px;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-            min-width: 24px;
-            min-height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .comment-delete-btn:hover {
-            background: rgba(244, 33, 46, 0.1);
-            color: var(--error-color);
-            transform: scale(1.1);
-        }
-
-        /* Mobile-optimized notification system */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--success-color);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 10000;
-            font-size: 14px;
-            max-width: 300px;
-            word-wrap: break-word;
-            animation: notificationSlideIn 0.3s ease-out;
-        }
-
-        @keyframes notificationSlideIn {
-            from {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .notification.show {
-            animation: notificationFadeIn 0.3s ease-out;
-        }
-
-        @keyframes notificationFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Improved mobile and small laptop notification system */
-        @media (max-width: 1024px) {
-            .notification {
-                top: 10px;
-                left: 10px;
-                right: 10px;
-                width: calc(100vw - 20px);
-                max-width: none;
-                padding: 14px 16px;
-                border-radius: 8px;
-                font-size: 15px;
-                font-weight: 600;
-                text-align: center;
-                line-height: 1.4;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-                z-index: 10001;
-            }
-
-            /* Make mobile notifications more prominent but not overwhelming */
-            .notification.show {
-                animation: mobileNotificationSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-
-            @keyframes mobileNotificationSlideIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(-20px) scale(0.95);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                }
-            }
-
-            /* Adjust icon size for mobile */
-            .notification i {
-                font-size: 18px !important;
-            }
-        }
-
-        /* Extra small mobile devices */
-        @media (max-width: 480px) {
-            .notification {
-                top: 8px;
-                left: 8px;
-                right: 8px;
-                width: calc(100vw - 16px);
-                padding: 12px 14px;
-                font-size: 14px;
-                border-radius: 6px;
-            }
-
-            .notification i {
-                font-size: 16px !important;
-            }
-        }
-
-        /* Extra large tablets (769px - 1200px) */
-        @media (min-width: 769px) and (max-width: 1200px) {
-            .notification {
-                padding: 14px 18px;
-                font-size: 15px;
-            }
-        }
-
-        /* Standard tablets (601px - 768px) */
-        @media (min-width: 601px) and (max-width: 768px) {
-            .notification {
-                padding: 12px 16px;
-                font-size: 14px;
-            }
-        }
-
-        /* Large phones (481px - 600px) */
-        @media (min-width: 481px) and (max-width: 600px) {
-            .notification {
-                padding: 11px 15px;
-                font-size: 13px;
-            }
-        }
-
-        /* Medium phones (414px - 480px) */
-        @media (min-width: 414px) and (max-width: 480px) {
-            .notification {
-                padding: 10px 14px;
-                font-size: 13px;
-            }
-        }
-
-        /* Small phones (376px - 413px) */
-        @media (min-width: 376px) and (max-width: 413px) {
-            .notification {
-                padding: 9px 13px;
-                font-size: 12px;
-            }
-        }
-
-        /* Extra small phones (361px - 375px) */
-        @media (min-width: 361px) and (max-width: 375px) {
-            .notification {
-                padding: 9px 12px;
-                font-size: 12px;
-            }
-        }
-
-        /* iPhone SE and similar (321px - 360px) */
-        @media (min-width: 321px) and (max-width: 360px) {
-            .notification {
-                padding: 8px 11px;
-                font-size: 11px;
-                line-height: 1.3;
-            }
-        }
-
-        /* Very small phones (up to 320px) */
-        @media (max-width: 320px) {
-            .notification {
-                padding: 7px 10px;
-                font-size: 10px;
-                line-height: 1.3;
-            }
-        }
-
-        /* Ultra-wide aspect ratios - cinema screens */
-        @media (min-aspect-ratio: 21/9) {
-            .notification {
-                bottom: 35px;
-                max-width: calc(100vw - 80px);
-                padding: 16px 20px;
-                font-size: 15px;
-            }
-        }
-
-        /* Square screens - some tablets */
-        @media (aspect-ratio: 1/1) and (max-width: 768px) {
-            .notification {
-                bottom: 25px;
-                max-width: calc(100vw - 50px);
-                padding: 12px 16px;
-            }
-        }
-
-        /* Very tall screens - phones in portrait */
-        @media (max-aspect-ratio: 9/16) and (max-width: 480px) {
-            .notification {
-                bottom: 18px;
-            }
-        }
-
-        /* Landscape orientation - phones and small tablets */
-        @media (orientation: landscape) and (max-height: 500px) {
-            .notification {
-                bottom: 8px;
-                max-width: calc(100vw - 60px);
-                padding: 6px 10px;
-                font-size: 11px;
-                border-radius: 8px;
-                line-height: 1.2;
-            }
-        }
-
-        /* Landscape orientation - tablets */
-        @media (orientation: landscape) and (min-height: 501px) and (max-width: 1024px) {
-            .notification {
-                bottom: 15px;
-                max-width: calc(100vw - 70px);
-                padding: 10px 14px;
-                font-size: 13px;
-            }
-        }
-
-        /* Touch-friendly interaction areas - all mobile devices */
-        @media (hover: none) and (pointer: coarse) {
-            .notification {
-                min-height: 44px; /* iOS Human Interface Guidelines */
-                padding: 12px 16px;
-                font-size: max(12px, 3.5vw); /* Fluid font sizing */
-            }
-        }
-
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-            .notification {
-                border: 2px solid white;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.9);
-                font-weight: 600;
-            }
-        }
-
-        /* Reduced motion support */
-        @media (prefers-reduced-motion: reduce) {
-            .notification {
-                animation: none !important;
-            }
-        }
-
-        /* Dark mode adjustments */
-        @media (prefers-color-scheme: dark) {
-            .notification {
-                background: var(--success-color);
-                color: white;
-            }
-        }
-
-        /* Print styles - hide notifications */
-        @media print {
-            .notification {
-                display: none !important;
-            }
-        }
-
-        /* Enhanced mobile breakpoints */
-
-        /* Very small phones (320px - 360px) */
-        @media (max-width: 360px) {
-            .comment {
-                padding: 8px;
-                margin-bottom: 10px;
-            }
-
-            .comment-avatar {
-                width: 28px;
-                height: 28px;
-            }
-
-            .comment-user-avatar,
-            .comment-user-avatar-placeholder {
-                width: 28px;
-                height: 28px;
-                font-size: 12px;
-            }
-
-            .comment-content-wrapper {
-                margin-left: 8px;
-            }
-
-            .comment-user-name {
-                font-size: 12px;
-                max-width: calc(100vw - 140px); /* Increased space for delete button */
-            }
-
-            .comment-time {
-                font-size: 10px;
-                margin-left: 2px;
-            }
-
-            .comment-actions {
-                margin-left: 4px; /* Ensure delete button has space */
-            }
-
-            .comment-delete-btn {
-                width: 20px; /* Smaller but still visible */
-                height: 20px;
-                font-size: 10px;
-                min-width: 20px;
-                min-height: 20px;
-            }
-
-            .comment-text {
-                font-size: 13px;
-            }
-
-            .comment-interactions {
-                gap: 8px;
-                margin-top: 6px;
-            }
-
-            .comment-like-btn,
-            .comment-reply-btn {
-                font-size: 11px;
-                padding: 3px 6px;
-                min-height: 24px;
-            }
-
-            .nested-comment {
-                margin-left: 12px;
-                padding-left: 8px;
-            }
-
-            .level-3,
-            .nested-comment .nested-comment {
-                margin-left: 8px;
-                padding-left: 6px;
-            }
-
-            .reply-avatar {
-                width: 24px;
-                height: 24px;
-            }
-
-            .reply-avatar img,
-            .reply-avatar-placeholder {
-                width: 24px;
-                height: 24px;
-                font-size: 10px;
-            }
-
-            .reply-textarea {
-                font-size: 13px;
-                min-height: 50px;
-            }
-
-            .reply-submit-btn,
-            .reply-cancel-btn {
-                font-size: 11px;
-                padding: 5px 10px;
-                min-height: 28px;
-            }
-        }
-
-        /* Small phones (361px - 480px) */
-        @media (min-width: 361px) and (max-width: 480px) {
-            .comment-user-name {
-                max-width: calc(100vw - 140px);
-            }
-
-            .comment-text {
-                font-size: 13px;
-            }
-        }
-
-        /* Larger mobile devices (481px - 768px) */
-        @media (min-width: 481px) and (max-width: 768px) {
-            .comment {
-                padding: 12px;
-                margin-bottom: 14px;
-            }
-
-            .comment-avatar {
-                width: 36px;
-                height: 36px;
-            }
-
-            .comment-user-avatar,
-            .comment-user-avatar-placeholder {
-                width: 36px;
-                height: 36px;
-                font-size: 16px;
-            }
-
-            .comment-user-name {
-                font-size: 14px;
-                max-width: calc(100vw - 180px);
-            }
-
-            .comment-time {
-                font-size: 12px;
-            }
-
-            .comment-text {
-                font-size: 15px;
-            }
-
-            .nested-comment {
-                margin-left: 20px;
-                padding-left: 12px;
-            }
-
-            .level-3,
-            .nested-comment .nested-comment {
-                margin-left: 16px;
-                padding-left: 10px;
-            }
-        }
-
-        /* Header notification button */
-        .header-notification-btn {
-            position: relative;
-            background: none;
-            border: none;
-            padding: 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--twitter-dark);
-            font-size: 18px;
-            width: 44px;
-            height: 44px;
-            margin: 0 4px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .header-notification-btn:hover {
-            background: rgba(29, 161, 242, 0.1);
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(29, 161, 242, 0.2);
-        }
-
-        .header-notification-btn:active {
-            transform: scale(0.95);
-        }
-
-        .header-notification-btn i {
-            transition: all 0.3s ease;
-        }
-
-        .header-notification-btn:hover i {
-            transform: rotate(15deg);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);
-            color: white;
-            border-radius: 50%;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 3px 7px;
-            min-width: 18px;
-            height: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid var(--card-bg);
-            box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
-            animation: badgePulse 2s ease-in-out infinite;
-            z-index: 10;
-            letter-spacing: -0.5px;
-        }
-
-        @keyframes badgePulse {
-            0%, 100% {
-                transform: scale(1);
-                box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
-            }
-            50% {
-                transform: scale(1.1);
-                box-shadow: 0 4px 12px rgba(255, 71, 87, 0.6);
-            }
-        }
-
-        .notification-badge.pulse {
-            animation: badgePulse 0.6s ease-in-out;
-        }
-
-        /* Dark mode adjustments */
-        @media (prefers-color-scheme: dark) {
-            .header-notification-btn {
-                color: #e0e0e0;
-            }
-
-            .header-notification-btn:hover {
-                background: rgba(29, 161, 242, 0.15);
-            }
-        }
-
-        /* Mobile responsive adjustments */
-        @media (max-width: 768px) {
-            .header-notification-btn {
-                padding: 8px;
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
-            }
-
-            .notification-badge {
-                top: 1px;
-                right: 1px;
-                font-size: 9px;
-                padding: 2px 6px;
-                min-width: 16px;
-                height: 16px;
-                border-width: 2px;
-            }
-        }
-
-        /* Lightweight Notifications dropdown - optimized for performance */
-        .notifications-dropdown-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 10000;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            padding-top: 60px;
-        }
-
-        .notifications-dropdown-content {
-            background: rgba(30, 30, 30, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 380px;
-            max-height: 70vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            animation: quickFadeIn 0.15s ease-out;
-            position: relative;
-        }
-
-        @keyframes quickFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-5px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .notifications-dropdown-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            background: linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(25, 25, 25, 0.95) 100%);
-        }
-
-        .notifications-dropdown-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            color: #ffffff;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-        }
-
-        .notifications-dropdown-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .notifications-dropdown-delete-all {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(244, 33, 46, 0.2);
-            border: 1px solid rgba(244, 33, 46, 0.3);
-            color: #ff6b6b;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .notifications-dropdown-delete-all:hover {
-            background: rgba(244, 33, 46, 0.4);
-            border-color: rgba(244, 33, 46, 0.6);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(244, 33, 46, 0.3);
-        }
-
-        .notifications-dropdown-delete-all i {
+            border-radius: 4px;
+            transition: all var(--transition);
             font-size: 11px;
         }
-
-        .notifications-dropdown-close {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 16px;
-            color: #cccccc;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .notif-item-btn:hover {
+            background: var(--surface-hover);
         }
-
-        .notifications-dropdown-close:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.4);
-            color: #ffffff;
-            transform: scale(1.05);
+        .notif-item-btn.read:hover {
+            color: var(--success);
         }
-
-        .notifications-dropdown-body {
-            flex: 1;
-            overflow-y: auto;
-            max-height: calc(70vh - 80px);
+        .notif-item-btn.delete:hover {
+            color: var(--accent);
         }
-
-        .notifications-loading,
-        .notifications-empty,
-        .notifications-error {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
+        .notif-empty {
+            padding: 50px 20px;
             text-align: center;
-            color: var(--twitter-gray);
+            color: var(--text-muted);
+        }
+        .notif-empty i {
+            font-size: 40px;
+            margin-bottom: 12px;
+            display: block;
+            opacity: 0.25;
+        }
+        .notif-empty p {
+            margin: 0;
+            font-size: 13px;
         }
 
-        .notifications-loading p,
-        .notifications-empty p,
-        .notifications-error p {
-            margin: 16px 0 0 0;
-            font-size: 14px;
+        .dropdown-menu a, .dropdown-menu button {
+            display: flex; align-items: center; gap: 12px; width: 100%;
+            padding: 12px 14px; border: none; background: none;
+            color: var(--text); font-size: 14px; font-weight: 500;
+            text-decoration: none; border-radius: 8px; cursor: pointer;
+            transition: all var(--transition);
+        }
+        .dropdown-menu a:hover, .dropdown-menu button:hover { background: var(--surface-hover); }
+        .dropdown-menu a i, .dropdown-menu button i { width: 18px; text-align: center; color: var(--text-muted); font-size: 16px; }
+        .dropdown-menu .divider { height: 1px; margin: 8px 0; background: var(--border); }
+        .dropdown-menu .danger { color: var(--accent); }
+        .dropdown-menu .danger:hover { background: rgba(244, 63, 94, 0.1); }
+
+        .app-layout { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+        .main-content { max-width: 800px; margin: 0 auto; }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px 20px; font-size: 14px; font-weight: 600;
+            border-radius: var(--radius); border: 1px solid var(--border);
+            background: var(--surface); color: var(--text);
+            cursor: pointer; text-decoration: none; transition: all var(--transition);
+        }
+        .btn:hover { background: var(--surface-hover); border-color: var(--primary); }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #ffffff; border: none;
+            font-weight: 700;
+        }
+        .btn-primary:hover { 
+            background: var(--primary-hover);
+        }
+        
+        body.light-theme .btn-primary {
+            color: #ffffff;
+        }
+        body.light-theme .btn-primary:hover {
+            background: var(--primary-hover);
         }
 
-        .notifications-empty small {
-            font-size: 12px;
-            color: var(--twitter-gray);
-            opacity: 0.8;
-            margin-top: 4px;
+        .btn-ghost { border-color: transparent; background: transparent; }
+        .btn-ghost:hover { background: var(--surface); border-color: var(--border); }
+
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 20px; backdrop-filter: blur(10px);
         }
 
-        .notifications-list {
-            display: flex;
-            flex-direction: column;
+        .form-input {
+            width: 100%; padding: 12px 16px; font-size: 14px;
+            border: 1px solid var(--border); border-radius: var(--radius);
+            background: var(--surface); color: var(--text); transition: all var(--transition);
         }
+        .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+        .form-input::placeholder { color: var(--text-muted); }
 
-        .notification-dropdown-item {
-            border-bottom: 1px solid var(--border-color);
-            transition: all 0.2s ease;
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); font-size: 14px; }
+
+        #toast-container {
+            position: fixed; top: 80px; right: 20px; left: 20px;
+            max-width: 400px; margin: 0 auto; z-index: 10000;
+            display: flex; flex-direction: column; gap: 12px; pointer-events: none;
         }
-
-        .notification-dropdown-item:hover {
-            background: var(--hover-bg);
+        .toast {
+            padding: 16px 24px;
+            background: rgba(17, 17, 17, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 14px; font-weight: 500;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            display: flex; align-items: center; gap: 14px; pointer-events: auto;
+            position: relative;
+            overflow: hidden;
         }
-
-        .notification-dropdown-item:last-child {
-            border-bottom: none;
+        .toast::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
         }
-
-        .notification-dropdown-item.unread {
-            background: linear-gradient(135deg, rgba(29, 161, 242, 0.03) 0%, rgba(29, 161, 242, 0.01) 100%);
-            border-left: 3px solid var(--twitter-blue);
-        }
-
-        .notification-dropdown-content {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 14px 16px;
-        }
-
-        .notification-dropdown-icon {
-            width: 36px;
-            height: 36px;
+        .toast i:first-child {
+            font-size: 18px;
+            width: 28px; height: 28px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
-            margin-top: 2px;
+        }
+        .toast.success { 
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.3);
+            box-shadow: 0 8px 32px rgba(34, 197, 94, 0.3), 0 0 0 1px rgba(34, 197, 94, 0.1) inset;
+        }
+        .toast.success i:first-child {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        .toast.error { 
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3), 0 0 0 1px rgba(239, 68, 68, 0.1) inset;
+        }
+        .toast.error i:first-child {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .toast.info {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.1) inset;
+        }
+        .toast.info i:first-child {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+        body.light-theme .toast {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: #1e293b;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+        }
+        body.light-theme .toast::before {
+            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.05), transparent);
+        }
+        body.light-theme .toast.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+        body.light-theme .toast.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        body.light-theme .toast.info {
+            background: rgba(59, 130, 246, 0.08);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+        @keyframes toastIn { 
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
+        @keyframes toastOut { 
+            from { opacity: 1; transform: translateY(0) scale(1); } 
+            to { opacity: 0; transform: translateY(-10px) scale(0.95); } 
         }
 
-        .notification-dropdown-text {
-            flex: 1;
-            min-width: 0;
+        .mobile-nav {
+            display: none; position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--surface); backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding: 8px 0 calc(12px + env(safe-area-inset-bottom)); z-index: var(--z-fixed);
         }
-
-        .notification-dropdown-message {
-            font-size: 14px;
-            line-height: 1.4;
-            color: #e0e0e0;
-            margin-bottom: 2px;
-            word-wrap: break-word;
+        .mobile-nav-inner { display: flex; justify-content: space-around; align-items: center; }
+        .mobile-nav a {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 8px 12px; color: var(--text-muted);
+            text-decoration: none; font-size: 11px; font-weight: 500;
+            border-radius: var(--radius); transition: all var(--transition);
+            min-width: 60px;
         }
+        .mobile-nav a i { font-size: 22px; margin-bottom: 4px; }
+        .mobile-nav a.active, .mobile-nav a:hover { color: var(--primary); }
 
-        .notification-dropdown-time {
-            font-size: 11px;
-            color: #a0a0a0;
+        @media (max-width: 900px) {
+            .nav-links { display: none; }
+            .mobile-nav { display: block; }
+            .app-layout { padding: 20px 16px 100px; }
         }
-
-        .notification-dropdown-actions {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .btn-mark-read,
-        .btn-delete {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            transition: all 0.2s ease;
-        }
-
-        .btn-mark-read {
-            background: var(--twitter-blue);
-            color: white;
-        }
-
-        .btn-mark-read:hover {
-            background: #1991DB;
-            transform: scale(1.1);
-        }
-
-        .btn-delete {
-            background: rgba(244, 33, 46, 0.1);
-            color: var(--error-color);
-        }
-
-        .btn-delete:hover {
-            background: var(--error-color);
-            color: white;
-            transform: scale(1.1);
-        }
-
-        /* Mobile responsiveness for notifications dropdown */
         @media (max-width: 480px) {
-            .notifications-dropdown-overlay {
-                padding-top: 50px;
-            }
-
-            .notifications-dropdown-content {
-                width: 95%;
-                max-height: 75vh;
-            }
-
-            .notifications-dropdown-header {
-                padding: 14px 16px;
-            }
-
-            .notifications-dropdown-header h3 {
-                font-size: 16px;
-            }
-
-            .notification-dropdown-content {
-                padding: 12px 14px;
-                gap: 10px;
-            }
-
-            .notification-dropdown-icon {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
-            }
-
-            .notification-dropdown-message {
-                font-size: 13px;
-            }
-
-            .notification-dropdown-time {
-                font-size: 10px;
-            }
+            .header-inner { padding: 0 12px; height: 56px; }
+            .logo { font-size: 1.1rem; }
+            .user-btn span { display: none; }
         }
-
     </style>
 </head>
-<body class="{{ request()->routeIs(['login', 'register']) ? 'auth-page dark-theme' : (!auth()->check() ? 'dark-theme' : '') }}" id="app-body">
-<script>
-    // Immediate theme application to prevent flash
-    (function() {
-        try {
-            console.log('Theme script running...');
-            const savedTheme = localStorage.getItem('theme');
-            const isAuthPage = {{ request()->routeIs(['login', 'register']) ? 'true' : 'false' }};
-            const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+<body id="app-body">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 
-            console.log('Current state:', { savedTheme, isAuthPage, isLoggedIn });
-
-            // Determine the correct theme class
-            let themeClass = '';
-
-            if (isAuthPage) {
-                // Auth pages are always dark
-                themeClass = 'auth-page dark-theme';
-            } else {
-                // Use saved preference or default based on auth status
-                if (savedTheme === 'dark') {
-                    themeClass = 'dark-theme';
-                } else if (savedTheme === 'light') {
-                    themeClass = '';
-                } else {
-                    // No saved preference - use auth status
-                    themeClass = isLoggedIn ? '' : 'dark-theme';
-                }
-            }
-
-            console.log('Applying theme class:', themeClass);
-
-            // Apply theme class immediately to both html and body
-            const html = document.documentElement;
-            const body = document.body;
-
-            html.className = themeClass;
-            body.className = themeClass;
-
-            // Force style recalculation
-            html.style.display = 'block';
-            body.style.display = 'block';
-
-            console.log('Theme applied successfully');
-
-        } catch (e) {
-            console.error('Theme initialization error:', e);
-            // Fallback in case of error
-            const isAuthPage = {{ request()->routeIs(['login', 'register']) ? 'true' : 'false' }};
-            const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
-            const fallbackClass = isAuthPage ? 'auth-page dark-theme' : (isLoggedIn ? '' : 'dark-theme');
-
-            console.log('Using fallback theme:', fallbackClass);
-            document.documentElement.className = fallbackClass;
-            document.body.className = fallbackClass;
-        }
-    })();
-</script>
     <header class="header">
-        <nav class="nav">
-            <a href="{{ route('home') }}" class="logo">Laravel Social</a>
+        <div class="header-inner">
+            <a href="{{ route('home') }}" class="logo">Nexus</a>
+
             @auth
-            <div class="user-info">
-                @if(auth()->user()->is_admin)
-                <a href="{{ route('admin.dashboard') }}" class="admin-link" title="Admin Panel">
-                    <i class="fas fa-crown"></i>
-                    <span>Admin</span>
-                </a>
-                @endif
-                <button type="button" class="header-theme-btn" onclick="toggleTheme()" title="Toggle Theme">
-                    <i class="fas fa-moon" id="theme-icon"></i>
-                </button>
-                <button type="button" class="header-notification-btn" onclick="toggleNotificationsDropdown()" title="Notifications">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge" id="header-notification-badge" style="display: none;">0</span>
-                </button>
-                <button class="header-username-btn" onclick="toggleMobileMenu()" title="Menu">
-                    <span class="header-username">{{ auth()->user()->name }}</span>
-                </button>
-            </div>
+            <nav class="nav-links">
+                <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
+                <a href="{{ route('explore') }}" class="{{ request()->routeIs('explore') ? 'active' : '' }}"><i class="fas fa-compass"></i> Explore</a>
+                <a href="{{ route('chat.index') }}" class="{{ request()->routeIs('chat.*') ? 'active' : '' }}"><i class="fas fa-message"></i> Messages</a>
+                <a href="{{ route('ai.index') }}" class="{{ request()->routeIs('ai.*') ? 'active' : '' }}"><i class="fas fa-sparkles"></i> AI</a>
+            </nav>
             @endauth
-            <div class="nav-links">
+
+            <div class="user-actions">
+                <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">
+                    <i class="fas fa-sun" id="theme-icon"></i>
+                </button>
+
                 @auth
-                <a href="{{ route('home') }}"><i class="fas fa-home"></i>Home</a>
-                <a href="{{ route('stories.index') }}"><i class="fas fa-circle-play"></i>Stories</a>
-                <a href="{{ route('chat.index') }}"><i class="fas fa-envelope"></i>Messages</a>
-                <a href="{{ route('ai.index') }}"><i class="fas fa-robot"></i>AI Assistant</a>
-                <a href="{{ route('explore') }}"><i class="fas fa-hashtag"></i>Explore</a>
-                <a href="{{ route('search') }}"><i class="fas fa-search"></i>Search</a>
-                <a href="{{ route('users.saved-posts') }}"><i class="fas fa-bookmark"></i>Saved Posts</a>
-                <a href="{{ route('users.show', auth()->user()) }}"><i class="fas fa-user"></i>Profile</a>
-                <a href="{{ route('password.change') }}"><i class="fas fa-key"></i>Change Password</a>
-                <a href="{{ route('logout') }}" onclick="confirmLogout(event)"><i class="fas fa-sign-out-alt"></i>Logout</a>
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                    @csrf
-                </form>
+                <div style="position: relative;">
+                    <button class="icon-btn" id="notifBtn" onclick="toggleNotifications(event)">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge" id="notif-badge" style="display: none;">0</span>
+                    </button>
+                </div>
+
+                <div style="position: relative;">
+                    <button class="user-btn" id="userBtn" onclick="toggleUserMenu(event)">
+                        <div class="user-avatar">
+                            @if(auth()->user()->profile && auth()->user()->profile->avatar)
+                                <img src="{{ asset('storage/' . auth()->user()->profile->avatar) }}" alt="{{ auth()->user()->name }}">
+                            @else
+                                {{ substr(auth()->user()->name, 0, 1) }}
+                            @endif
+                        </div>
+                        <span>{{ auth()->user()->name }}</span>
+                        <i class="fas fa-chevron-down" style="font-size: 10px; color: var(--text-muted);"></i>
+                    </button>
+                </div>
+
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">@csrf</form>
                 @else
-                <a href="{{ route('login') }}"><i class="fas fa-sign-in-alt"></i>Login</a>
-                <a href="{{ route('register') }}"><i class="fas fa-user-plus"></i>Register</a>
+                <a href="{{ route('login') }}" class="btn">Sign In</a>
+                <a href="{{ route('register') }}" class="btn btn-primary">Sign Up</a>
                 @endauth
             </div>
-
-        @guest
-        <div class="user-info">
-            <button type="button" class="header-theme-btn guest-header-theme-btn" onclick="toggleTheme()" title="Toggle Theme">
-                <i class="fas fa-moon" id="guest-header-theme-icon"></i>
-            </button>
-            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
-                <i class="fas fa-bars"></i>
-            </button>
         </div>
-        @endguest
-        </nav>
     </header>
-    <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
+
+    <div class="dropdown-overlay" id="dropdownOverlay" onclick="closeAllDropdowns()"></div>
+
+    @auth
+    <!-- Notification Dropdown - Simple Modern Design -->
+    <div class="dropdown-menu notif-panel" id="notifMenu">
+        <div class="notif-header">
+            <h3>Notifications</h3>
+            <div class="notif-header-actions">
+                <button class="notif-action-btn" onclick="markAllRead()" title="Mark all read">
+                    <i class="fas fa-check"></i>
+                </button>
+                <button class="notif-action-btn danger" onclick="clearAllNotifications()" title="Clear all">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+        <div class="notif-list" id="notif-list">
+            <div class="notif-empty">
+                <i class="fas fa-bell-slash"></i>
+                <p>No notifications</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Menu Dropdown - outside header for proper z-index -->
+    <div class="dropdown-menu" id="userMenu">
+        <a href="{{ route('users.show', auth()->user()) }}"><i class="fas fa-user"></i> Profile</a>
+        <a href="{{ route('users.saved-posts') }}"><i class="fas fa-bookmark"></i> Saved</a>
+        <a href="{{ route('stories.index') }}"><i class="fas fa-circle-play"></i> Stories</a>
+        <a href="{{ route('ai.index') }}"><i class="fas fa-sparkles"></i> AI Assistant</a>
+        @if(auth()->user()->is_admin)
+        <a href="{{ route('admin.dashboard') }}"><i class="fas fa-shield-alt"></i> Admin</a>
+        @endif
+        <div class="divider"></div>
+        <a href="{{ route('password.change') }}"><i class="fas fa-key"></i> Password</a>
+        <button onclick="logout()" class="danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+    @endauth
+
     <main class="app-layout">
         <div class="main-content">
             @yield('content')
         </div>
     </main>
 
+    @auth
+            <nav class="mobile-nav">
+                <div class="mobile-nav-inner">
+                    <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
+                    <a href="{{ route('explore') }}" class="{{ request()->routeIs('explore') ? 'active' : '' }}"><i class="fas fa-compass"></i> Explore</a>
+                    <a href="{{ route('chat.index') }}" class="{{ request()->routeIs('chat.*') ? 'active' : '' }}"><i class="fas fa-message"></i> Chat</a>
+                    <a href="{{ route('users.show', auth()->user()) }}" class="{{ request()->routeIs('users.show') ? 'active' : '' }}"><i class="fas fa-user"></i> Profile</a>
+                </div>
+            </nav>
+    @endauth
 
+    <div id="toast-container"></div>
 
     <script>
-        function toggleMobileMenu() {
-            const navLinks = document.querySelector('.nav-links');
-            const overlay = document.querySelector('.mobile-menu-overlay');
-            const toggleBtn = document.querySelector('.mobile-menu-toggle i');
-
-            if (navLinks.classList.contains('mobile-show')) {
-                closeMobileMenu();
-            } else {
-                navLinks.classList.add('mobile-show');
-                overlay.classList.add('active');
-                toggleBtn.classList.remove('fa-bars');
-                toggleBtn.classList.add('fa-times');
-
-                // Prevent body scroll when menu is open
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closeMobileMenu() {
-            const navLinks = document.querySelector('.nav-links');
-            const overlay = document.querySelector('.mobile-menu-overlay');
-            const toggleBtn = document.querySelector('.mobile-menu-toggle i');
-
-            navLinks.classList.remove('mobile-show');
-            overlay.classList.remove('active');
-            toggleBtn.classList.remove('fa-times');
-            toggleBtn.classList.add('fa-bars');
-
-            // Restore body scroll
-            document.body.style.overflow = '';
-        }
-
-        // Close mobile menu when clicking outside or on overlay
-        document.addEventListener('click', function(event) {
-            const nav = document.querySelector('.nav');
-            const navLinks = document.querySelector('.nav-links');
-            const overlay = document.querySelector('.mobile-menu-overlay');
-
-            if ((overlay.contains(event.target) || (!nav.contains(event.target) && navLinks.classList.contains('mobile-show')))) {
-                closeMobileMenu();
-            }
-        });
-
-        // Close mobile menu when clicking on menu links
-        document.addEventListener('click', function(event) {
-            if (event.target.matches('.nav-links a')) {
-                closeMobileMenu();
-            }
-        });
-
-        // Close mobile menu on window resize if desktop size
-        window.addEventListener('resize', function() {
-            const navLinks = document.querySelector('.nav-links');
-            if (window.innerWidth > 768 && navLinks.classList.contains('mobile-show')) {
-                closeMobileMenu();
-            }
-        });
-
-        // Handle escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeMobileMenu();
-            }
-        });
-
-        // Copy post link to clipboard
-        function copyPostLink(postId) {
-            const postUrl = window.location.origin + '/posts/' + postId;
-
-            if (navigator.clipboard && window.isSecureContext) {
-                // Use the Clipboard API when available
-                navigator.clipboard.writeText(postUrl).then(function() {
-                    showNotification('Post link copied to clipboard!');
-                }).catch(function(err) {
-                    console.error('Failed to copy: ', err);
-                    fallbackCopyTextToClipboard(postUrl);
-                });
-            } else {
-                // Fallback for older browsers
-                fallbackCopyTextToClipboard(postUrl);
-            }
-        }
-
-        function fallbackCopyTextToClipboard(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-
-            try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    showNotification('Post link copied to clipboard!');
-                } else {
-                    showNotification('Failed to copy link. Please copy manually: ' + text, true);
-                }
-            } catch (err) {
-                showNotification('Failed to copy link. Please copy manually: ' + text, true);
-            }
-
-            document.body.removeChild(textArea);
-        }
-
-        function showNotification(message, isError = false) {
-            // Remove any existing notifications
-            const existingNotifications = document.querySelectorAll('.notification');
-            existingNotifications.forEach(notification => notification.remove());
-
-            // Check if mobile device
-            const isMobile = window.innerWidth <= 1024;
-
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-
-            // Responsive styling based on device type
-            if (isMobile) {
-                // Mobile/tablet styling
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 10px;
-                    left: 10px;
-                    right: 10px;
-                    width: calc(100vw - 20px);
-                    background: ${isError ? '#dc3545' : '#28a745'};
-                    color: white;
-                    padding: 14px 16px;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-                    z-index: 10001;
-                    font-size: 15px;
-                    font-weight: 600;
-                    word-wrap: break-word;
-                    line-height: 1.4;
-                    text-align: center;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    letter-spacing: 0.3px;
-                    max-height: 120px;
-                    overflow-y: auto;
-                `;
-            } else {
-                // Desktop styling
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: ${isError ? '#dc3545' : '#28a745'};
-                    color: white;
-                    padding: 14px 18px;
-                    border-radius: 8px;
-                    box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.1);
-                    z-index: 10000;
-                    font-size: 15px;
-                    font-weight: 600;
-                    max-width: 340px;
-                    word-wrap: break-word;
-                    line-height: 1.5;
-                    text-align: center;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    letter-spacing: 0.3px;
-                    backdrop-filter: blur(8px);
-                    -webkit-backdrop-filter: blur(8px);
-                `;
-            }
-
-            // Create notification content with better structure
-            notification.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <i class="${isError ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle'}" style="font-size: ${isMobile ? '18px' : '16px'}; opacity: 0.9;"></i>
-                    <span style="flex: 1; font-weight: 600;">${message}</span>
-                </div>
-            `;
-
-            // Add to page
-            document.body.appendChild(notification);
-
-            // Enhanced animation and auto removal
-            if (isMobile) {
-                // Mobile slide-in animation
-                notification.style.transform = 'translateY(-20px)';
-                notification.style.opacity = '0';
-                setTimeout(() => {
-                    notification.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-                    notification.style.transform = 'translateY(0)';
-                    notification.style.opacity = '1';
-                }, 50);
-            }
-
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.style.transform = isMobile ? 'translateY(-20px)' : 'translateY(-10px) scale(0.95)';
-                    notification.style.opacity = '0';
-                    notification.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-                    setTimeout(() => {
-                        if (notification.parentNode) notification.remove();
-                    }, 400);
-                }
-            }, isMobile ? 4000 : 3500);
-        }
-
-        // Logout confirmation function
-        function confirmLogout(event) {
-            event.preventDefault();
-
-            // Create custom confirmation dialog
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.6);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 10000;
-                backdrop-filter: blur(2px);
-            `;
-
-            const dialog = document.createElement('div');
-            dialog.style.cssText = `
-                background: var(--card-bg);
-                border: 1px solid var(--border-color);
-                border-radius: 16px;
-                padding: 24px;
-                max-width: 400px;
-                width: 90%;
-                box-shadow: var(--shadow);
-                text-align: center;
-                animation: dialogFadeIn 0.2s ease-out;
-            `;
-
-            const title = document.createElement('h3');
-            title.textContent = 'Confirm Logout';
-            title.style.cssText = `
-                margin: 0 0 12px 0;
-                color: var(--twitter-dark);
-                font-size: 20px;
-                font-weight: 600;
-            `;
-
-            const message = document.createElement('p');
-            message.textContent = 'Are you sure you want to log out of your account?';
-            message.style.cssText = `
-                margin: 0 0 20px 0;
-                color: var(--twitter-gray);
-                font-size: 16px;
-                line-height: 1.4;
-            `;
-
-            const buttonContainer = document.createElement('div');
-            buttonContainer.style.cssText = `
-                display: flex;
-                gap: 12px;
-                justify-content: center;
-            `;
-
-            const cancelButton = document.createElement('button');
-            cancelButton.textContent = 'Cancel';
-            cancelButton.style.cssText = `
-                padding: 10px 20px;
-                border: 2px solid var(--border-color);
-                background: var(--card-bg);
-                color: var(--twitter-gray);
-                border-radius: 20px;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                min-width: 80px;
-            `;
-
-            const logoutButton = document.createElement('button');
-            logoutButton.textContent = 'Logout';
-            logoutButton.style.cssText = `
-                padding: 10px 20px;
-                border: none;
-                background: var(--error-color);
-                color: white;
-                border-radius: 20px;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                min-width: 80px;
-            `;
-
-            // Add hover effects
-            cancelButton.onmouseover = () => {
-                cancelButton.style.background = 'var(--hover-bg)';
-                cancelButton.style.borderColor = 'var(--twitter-gray)';
-            };
-            cancelButton.onmouseout = () => {
-                cancelButton.style.background = 'var(--card-bg)';
-                cancelButton.style.borderColor = 'var(--border-color)';
-            };
-
-            logoutButton.onmouseover = () => {
-                logoutButton.style.background = '#c82333';
-                logoutButton.style.transform = 'translateY(-1px)';
-            };
-            logoutButton.onmouseout = () => {
-                logoutButton.style.background = '#dc3545';
-                logoutButton.style.transform = 'translateY(0)';
-            };
-
-            // Event handlers
-            cancelButton.onclick = () => {
-                document.body.removeChild(overlay);
-            };
-
-            logoutButton.onclick = () => {
-                document.getElementById('logout-form').submit();
-            };
-
-            // Close on overlay click
-            overlay.onclick = (e) => {
-                if (e.target === overlay) {
-                    document.body.removeChild(overlay);
-                }
-            };
-
-            // Close on escape key
-            const handleEscape = (e) => {
-                if (e.key === 'Escape') {
-                    document.body.removeChild(overlay);
-                    document.removeEventListener('keydown', handleEscape);
-                }
-            };
-            document.addEventListener('keydown', handleEscape);
-
-            // Assemble dialog
-            buttonContainer.appendChild(cancelButton);
-            buttonContainer.appendChild(logoutButton);
-            dialog.appendChild(title);
-            dialog.appendChild(message);
-            dialog.appendChild(buttonContainer);
-            overlay.appendChild(dialog);
-            document.body.appendChild(overlay);
-
-            // Focus management
-            setTimeout(() => cancelButton.focus(), 100);
-        }
-
-        // Powerful login modal for unlogged users
-        function showLoginModal(action, message) {
-            // Remove any existing modals
-            const existingModal = document.getElementById('login-modal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-
-            // Create modal overlay
-            const modalOverlay = document.createElement('div');
-            modalOverlay.id = 'login-modal';
-            modalOverlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.8);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 10000;
-                animation: modalFadeIn 0.3s ease-out;
-            `;
-
-            // Create modal content
-            modalOverlay.innerHTML = `
-                <div style="
-                    background: var(--card-bg);
-                    border: 2px solid var(--border-color);
-                    border-radius: 20px;
-                    padding: 0;
-                    max-width: 450px;
-                    width: 90%;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
-                    position: relative;
-                    overflow: hidden;
-                    animation: modalSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                ">
-                    <!-- Header with gradient -->
-                    <div style="
-                        background: linear-gradient(135deg, var(--twitter-blue) 0%, #1A91DA 100%);
-                        padding: 24px 24px 20px 24px;
-                        text-align: center;
-                        position: relative;
-                    ">
-                        <div style="
-                            position: absolute;
-                            top: 0;
-                            left: 0;
-                            right: 0;
-                            bottom: 0;
-                            background: linear-gradient(45deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 50%, rgba(255,255,255,0.08) 100%);
-                            opacity: 0.6;
-                        "></div>
-                        <i class="fas ${action === 'like' ? 'fa-heart' : action === 'save' ? 'fa-bookmark' : 'fa-star'}" style="
-                            font-size: 48px;
-                            color: white;
-                            margin-bottom: 12px;
-                            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                            animation: iconBounce 0.6s ease-out;
-                        "></i>
-                        <h2 style="
-                            color: white;
-                            margin: 0;
-                            font-size: 24px;
-                            font-weight: 700;
-                            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                        ">Join the Community</h2>
-                        <p style="
-                            color: rgba(255,255,255,0.9);
-                            margin: 8px 0 0 0;
-                            font-size: 16px;
-                            font-weight: 500;
-                        ">${message}</p>
-                    </div>
-
-                    <!-- Content -->
-                    <div style="padding: 24px;">
-                        <!-- Action buttons -->
-                        <div style="
-                            display: grid;
-                            grid-template-columns: 1fr 1fr;
-                            gap: 12px;
-                        ">
-                            <a href="{{ route('login') }}" style="
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                gap: 8px;
-                                padding: 14px 20px;
-                                background: var(--twitter-blue);
-                                color: white;
-                                text-decoration: none;
-                                border-radius: 12px;
-                                font-weight: 600;
-                                font-size: 15px;
-                                transition: all 0.2s ease;
-                                box-shadow: 0 4px 12px rgba(29, 161, 242, 0.3);
-                            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(29, 161, 242, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(29, 161, 242, 0.3)';">
-                                <i class="fas fa-sign-in-alt"></i>
-                                Login
-                            </a>
-
-                            <a href="{{ route('register') }}" style="
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                gap: 8px;
-                                padding: 14px 20px;
-                                background: transparent;
-                                color: var(--twitter-blue);
-                                text-decoration: none;
-                                border: 2px solid var(--twitter-blue);
-                                border-radius: 12px;
-                                font-weight: 600;
-                                font-size: 15px;
-                                transition: all 0.2s ease;
-                            " onmouseover="this.style.background='var(--twitter-blue)'; this.style.color='white'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='transparent'; this.style.color='var(--twitter-blue)'; this.style.transform='translateY(0)';">
-                                <i class="fas fa-user-plus"></i>
-                                Register
-                            </a>
-                        </div>
-
-                        <!-- Close button -->
-                        <button onclick="closeLoginModal()" style="
-                            position: absolute;
-                            top: 12px;
-                            right: 12px;
-                            width: 32px;
-                            height: 32px;
-                            border: none;
-                            border-radius: 50%;
-                            background: rgba(255,255,255,0.2);
-                            color: white;
-                            cursor: pointer;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 14px;
-                            transition: all 0.2s ease;
-                        " onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='scale(1.1)';" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)';">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            // Add modal to page
-            document.body.appendChild(modalOverlay);
-
-            // Close on overlay click
-            modalOverlay.addEventListener('click', function(e) {
-                if (e.target === modalOverlay) {
-                    closeLoginModal();
-                }
-            });
-
-            // Close on escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeLoginModal();
-                }
-            });
-        }
-
-        function closeLoginModal() {
-            const modal = document.getElementById('login-modal');
-            if (modal) {
-                modal.style.animation = 'modalFadeOut 0.3s ease-out';
-                setTimeout(() => {
-                    if (modal.parentNode) {
-                        modal.remove();
-                    }
-                }, 300);
-            }
-        }
-
-        // Add fade-in animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes modalFadeIn {
-                from {
-                    opacity: 0;
-                }
-                to {
-                    opacity: 1;
-                }
-            }
-
-            @keyframes modalSlideUp {
-                from {
-                    opacity: 0;
-                    transform: scale(0.9) translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: scale(1) translateY(0);
-                }
-            }
-
-            @keyframes modalFadeOut {
-                from {
-                    opacity: 1;
-                }
-                to {
-                    opacity: 0;
-                }
-            }
-
-            @keyframes iconBounce {
-                0%, 100% {
-                    transform: scale(1);
-                }
-                50% {
-                    transform: scale(1.1);
-                }
-            }
-
-            @keyframes dialogFadeIn {
-                from {
-                    opacity: 0;
-                    transform: scale(0.9) translateY(-20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: scale(1) translateY(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
-
-    
-    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; pointer-events: none; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"></div>
-
-    
-    @vite(['resources/js/bootstrap.js'])
-    <script src="{{ asset('js/realtime.js') }}"></script>
-
-    <script>
-        // Ultra-simple toast notification system
-        function showToast(message, type = 'info', duration = 3000) {
-            // Remove any existing toasts
-            const existingToasts = document.querySelectorAll('.toast-notification');
-            existingToasts.forEach(toast => toast.remove());
-
-            const toastContainer = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast-notification';
-
-            // Simple solid colors
-            const colors = {
-                success: '#28a745',
-                error: '#dc3545',
-                warning: '#ffc107',
-                info: '#17a2b8',
-                message: '#007bff'
-            };
-
-            toast.style.cssText = `
-                background: ${colors[type] || colors.info};
-                color: white;
-                padding: 12px 16px;
-                border-radius: 4px;
-                margin-bottom: 8px;
-                font-size: 14px;
-                font-weight: 500;
-                max-width: 350px;
-                word-wrap: break-word;
-                position: relative;
-                opacity: 1;
-                transition: opacity 0.3s ease;
-            `;
-
-            toast.textContent = message;
-
-            // Close button removed as requested
-
-            toastContainer.appendChild(toast);
-
-            // Auto remove after duration
-            if (duration > 0) {
-                setTimeout(() => {
-                    if (toast.parentElement) {
-                        toast.style.opacity = '0';
-                        setTimeout(() => toast.remove(), 300);
-                    }
-                }, duration);
-            }
-
-            return toast;
-        }
-
-        // Optimized real-time message notifications for mobile performance
-        document.addEventListener('DOMContentLoaded', function() {
-            // Only run if user is authenticated
-            const currentUserId = {{ auth()->id() ?? 'null' }};
-            if (!currentUserId) {
-                console.log('User not authenticated, skipping message notifications');
-                return;
-            }
-
-            console.log('Initializing optimized message notifications for user:', currentUserId);
-
-            // Initialize notification badge
-            initializeNotificationBadge();
-
-            // Use different polling intervals based on device type for better mobile performance
-            const isMobile = window.innerWidth <= 768;
-            const notificationPollInterval = isMobile ? 30000 : 15000; // 30s mobile, 15s desktop
-            const messagePollInterval = isMobile ? 15000 : 8000; // 15s mobile, 8s desktop
-
-            // Poll for notification updates
-            setInterval(updateNotificationBadgeFromServer, notificationPollInterval);
-
-            // Check for new messages with optimized frequency
-            setInterval(checkForNewMessages, messagePollInterval);
-
-            // Initial check after 2 seconds (delayed for better page load)
-            setTimeout(checkForNewMessages, 2000);
-        });
-
-        // Optimized function to update notification badge
-        function updateNotificationBadgeFromServer() {
-            const currentUserId = {{ auth()->id() ?? 'null' }};
-            if (!currentUserId) return;
-
-            // Use AbortController for better performance
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-
-            fetch('/api/notifications/unread-count', {
-                signal: controller.signal,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                clearTimeout(timeoutId);
-                return response.json();
-            })
-            .then(data => {
-                if (data.unread_count !== undefined) {
-                    updateNotificationBadge(data.unread_count);
-                }
-            })
-            .catch(error => {
-                clearTimeout(timeoutId);
-                if (error.name === 'AbortError') {
-                    console.log('Notification polling timed out');
-                } else {
-                    console.log('Notification polling failed:', error.message);
-                }
-            });
-        }
-
-        function checkForNewMessages() {
-            const currentUserId = {{ auth()->id() ?? 'null' }};
-            if (!currentUserId) return;
-
-            // Skip if user is currently in a chat to reduce unnecessary polling
-            const currentPath = window.location.pathname;
-            if (currentPath.includes('/chat/')) {
-                return; // Don't poll when user is actively chatting
-            }
-
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
-
-            fetch('/api/user/new-messages', {
-                signal: controller.signal,
-                method: 'GET',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                clearTimeout(timeoutId);
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && data.messages && data.messages.length > 0) {
-                    // Process messages more efficiently
-                    data.messages.forEach(message => {
-                        // Use requestAnimationFrame for smoother UI updates
-                        requestAnimationFrame(() => showMessageNotification(message));
-                    });
-                }
-            })
-            .catch(error => {
-                clearTimeout(timeoutId);
-                if (error.name !== 'AbortError') {
-                    console.error('Error checking messages:', error.message);
-                }
-            });
-        }
-
-        function showMessageNotification(message) {
-            const messageText = message.content.length > 35
-                ? message.content.substring(0, 35) + '...'
-                : message.content;
-
-            const notificationMessage = `${message.sender.name}: ${messageText}`;
-
-            // Just use the simple toast notification
-            showToast(notificationMessage, 'message', 4000);
-        }
-
-        // Toast notifications are ready - no browser permissions needed
-
-        // Initialize notification badge on page load
-        function initializeNotificationBadge() {
-            const currentUserId = {{ auth()->id() ?? 'null' }};
-            if (!currentUserId) return;
-
-            fetch('/api/notifications/unread-count', {
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.unread_count !== undefined) {
-                    updateNotificationBadge(data.unread_count);
-                }
-            })
-            .catch(error => console.error('Error loading notification count:', error));
-        }
-
-        // Update notification badge function
-        function updateNotificationBadge(count) {
-            const headerBadge = document.getElementById('header-notification-badge');
-            if (headerBadge) {
-                headerBadge.textContent = count > 99 ? '99+' : count;
-                headerBadge.style.display = count > 0 ? 'inline-flex' : 'none';
-
-                if (count > 0) {
-                    headerBadge.classList.add('pulse');
-                    setTimeout(() => headerBadge.classList.remove('pulse'), 1000);
-                }
-            }
-        }
-
-        // Theme toggle functionality
         function toggleTheme() {
-            const body = document.body;
-            const themeIcon = document.getElementById('theme-icon');
-            const guestHeaderIcon = document.getElementById('guest-header-theme-icon');
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+            localStorage.setItem('theme', newTheme);
+        }
 
-            if (body.classList.contains('dark-theme')) {
-                // Switch to light theme
-                body.classList.remove('dark-theme');
-                if (themeIcon) themeIcon.className = 'fas fa-moon';
-                if (guestHeaderIcon) guestHeaderIcon.className = 'fas fa-moon';
-                localStorage.setItem('theme', 'light');
-                showToast('Switched to Light Theme', 'info', 2000);
-            } else {
-                // Switch to dark theme
-                body.classList.add('dark-theme');
-                if (themeIcon) themeIcon.className = 'fas fa-sun';
-                if (guestHeaderIcon) guestHeaderIcon.className = 'fas fa-sun';
-                localStorage.setItem('theme', 'dark');
-                showToast('Switched to Dark Theme', 'info', 2000);
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            const menu = document.getElementById('userMenu');
+            const btn = event.currentTarget;
+            const isOpen = menu.classList.contains('show');
+            closeAllDropdowns();
+            if (!isOpen) {
+                const rect = btn.getBoundingClientRect();
+                menu.style.top = (rect.bottom + 8) + 'px';
+                menu.style.right = (window.innerWidth - rect.right) + 'px';
+                menu.classList.add('show');
+                document.getElementById('dropdownOverlay').classList.add('active');
             }
         }
 
-        // Initialize theme on page load
-        function initializeTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const body = document.body;
-            const themeIcon = document.getElementById('theme-icon');
-            const guestHeaderIcon = document.getElementById('guest-header-theme-icon');
-
-            // Check if we're on auth pages (login/register) - force dark theme
-            const isAuthPage = window.location.pathname.includes('/login') || window.location.pathname.includes('/register');
-
-            if (isAuthPage) {
-                // Always force dark theme on auth pages
-                body.classList.add('dark-theme');
-                if (themeIcon) themeIcon.className = 'fas fa-sun';
-                if (guestHeaderIcon) guestHeaderIcon.className = 'fas fa-sun';
-            } else {
-                // Use saved theme preference for other pages
-                if (savedTheme === 'dark') {
-                    body.classList.add('dark-theme');
-                    if (themeIcon) themeIcon.className = 'fas fa-sun';
-                    if (guestHeaderIcon) guestHeaderIcon.className = 'fas fa-sun';
-                } else {
-                    body.classList.remove('dark-theme');
-                    if (themeIcon) themeIcon.className = 'fas fa-moon';
-                    if (guestHeaderIcon) guestHeaderIcon.className = 'fas fa-moon';
+        function toggleNotifications(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            const menu = document.getElementById('notifMenu');
+            const btn = document.getElementById('notifBtn');
+            const isOpen = menu.classList.contains('show');
+            closeAllDropdowns();
+            if (!isOpen) {
+                const rect = btn.getBoundingClientRect();
+                const menuWidth = 380; // Width of notification panel
+                const padding = 16;
+                
+                // Calculate position - align right edge with button
+                let top = rect.bottom + 8;
+                let right = window.innerWidth - rect.right;
+                
+                // Make sure it doesn't go off-screen on mobile
+                if (right + menuWidth > window.innerWidth - padding) {
+                    right = padding;
                 }
+                
+                menu.style.top = top + 'px';
+                menu.style.right = right + 'px';
+                menu.style.left = 'auto';
+                menu.classList.add('show');
+                document.getElementById('dropdownOverlay').classList.add('active');
+                loadNotifications();
             }
         }
 
-        // Initialize theme when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeTheme();
-        });
+        function closeAllDropdowns() {
+            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+            document.getElementById('dropdownOverlay').classList.remove('active');
+        }
 
-        // Header notifications dropdown functionality
-        let notificationsDropdown = null;
-        let isLoadingNotifications = false;
+        function logout() { if (confirm('Sign out?')) document.getElementById('logout-form').submit(); }
 
-        // Helper functions for notifications
-        function getNotificationIcon(type) {
-            const iconMap = {
-                'like': 'like',
-                'comment': 'comment',
-                'follow': 'follow',
-                'message': 'message',
-                'mention': 'mention'
-            };
-            return iconMap[type] || 'default';
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { 
+                toast.style.animation = 'toastOut 0.3s ease forwards'; 
+                setTimeout(() => toast.remove(), 300); 
+            }, 3000);
+        }
+
+        function loadNotifications() {
+            fetch('/api/notifications', { headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }})
+            .then(r => r.json())
+            .then(data => {
+                const list = document.getElementById('notif-list');
+                const badge = document.getElementById('notif-badge');
+                if (data.unread_count > 0) { badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count; badge.style.display = 'flex'; }
+                else { badge.style.display = 'none'; }
+                if (!data.notifications || data.notifications.length === 0) {
+                    list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications</p></div>`;
+                    return;
+                }
+                list.innerHTML = data.notifications.map(n => {
+                    const iconClass = getNotificationIconClass(n.type);
+                    const notifIcon = getNotificationIcon(n.type);
+                    const timeAgo = getTimeAgo(n.created_at);
+                    return `
+                    <div class="notif-item ${n.read_at ? '' : 'unread'}" id="notif-${n.id}">
+                        <div class="notif-item-content" onclick="handleNotifClick(${n.id}, '${n.link || ''}')">
+                            <div class="notif-icon ${iconClass}">
+                                <i class="fas ${notifIcon}"></i>
+                            </div>
+                            <div class="notif-text">
+                                <p>${n.message}</p>
+                                <span class="notif-time">${timeAgo}</span>
+                            </div>
+                        </div>
+                        <div class="notif-item-actions">
+                            ${!n.read_at ? `<button class="notif-item-btn read" onclick="event.stopPropagation(); markAsRead(${n.id})" title="Mark read"><i class="fas fa-check"></i></button>` : ''}
+                            <button class="notif-item-btn delete" onclick="event.stopPropagation(); dismissNotification(${n.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `}).join('');
+            }).catch(() => {});
+        }
+
+        function markAsRead(id) {
+            fetch('/api/notifications/' + id + '/read', { 
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
+            })
+            .then(() => loadNotifications());
+        }
+
+        function markAllRead() {
+            fetch('/api/notifications/mark-all-read', { 
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
+            })
+            .then(() => {
+                document.getElementById('notif-badge').style.display = 'none';
+                loadNotifications();
+            });
         }
 
         function getNotificationIconClass(type) {
-            const iconMap = {
-                'like': 'fas fa-heart',
-                'comment': 'fas fa-comment',
-                'follow': 'fas fa-user-plus',
-                'message': 'fas fa-envelope',
-                'mention': 'fas fa-at'
+            const classes = {
+                'follow': 'follow',
+                'like': 'like',
+                'comment': 'comment',
+                'mention': 'mention',
+                'message': 'message'
             };
-            return iconMap[type] || 'fas fa-bell';
+            return classes[type] || 'default';
         }
 
-        function getTimeAgo(dateString) {
+        function getNotificationIcon(type) {
+            const icons = {
+                'follow': 'fa-user-plus',
+                'like': 'fa-heart',
+                'comment': 'fa-comment',
+                'mention': 'fa-at',
+                'message': 'fa-envelope',
+                'post': 'fa-newspaper',
+                'story': 'fa-circle-play'
+            };
+            return icons[type] || 'fa-bell';
+        }
+
+        function getTimeAgo(dateStr) {
+            const date = new Date(dateStr);
             const now = new Date();
-            const date = new Date(dateString);
-            const diffInSeconds = Math.floor((now - date) / 1000);
-
-            if (diffInSeconds < 60) return 'Just now';
-            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-            if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-
+            const seconds = Math.floor((now - date) / 1000);
+            if (seconds < 60) return 'Just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return minutes + 'm ago';
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return hours + 'h ago';
+            const days = Math.floor(hours / 24);
+            if (days < 7) return days + 'd ago';
             return date.toLocaleDateString();
         }
 
-        function toggleNotificationsDropdown() {
-            if (notificationsDropdown) {
-                closeNotificationsDropdown();
-                return;
+        function handleNotifClick(id, link) {
+            // Mark as read
+            fetch('/api/notifications/' + id + '/read', { 
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
+            });
+            // Navigate if link exists
+            if (link) {
+                window.location.href = link;
             }
-
-            showNotificationsDropdown();
+            closeAllDropdowns();
+            loadNotifications();
         }
 
-        function showNotificationsDropdown() {
-            // Create dropdown container
-            notificationsDropdown = document.createElement('div');
-            notificationsDropdown.className = 'notifications-dropdown-overlay';
-            notificationsDropdown.onclick = (e) => {
-                if (e.target === notificationsDropdown) {
-                    closeNotificationsDropdown();
-                }
-            };
-
-            // Create dropdown content
-            const dropdownContent = document.createElement('div');
-            dropdownContent.className = 'notifications-dropdown-content';
-
-            dropdownContent.innerHTML = `
-                <div class="notifications-dropdown-header">
-                    <h3>Notifications</h3>
-                    <div class="notifications-dropdown-actions">
-                        <button class="notifications-dropdown-delete-all" onclick="deleteAllNotifications()" title="Delete All Notifications">
-                            <i class="fas fa-trash-alt"></i>
-                            <span>Delete All</span>
-                        </button>
-                        <button class="notifications-dropdown-close" onclick="closeNotificationsDropdown()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="notifications-dropdown-body">
-                    <div class="notifications-loading">
-                        <div class="loading-spinner"></div>
-                        <p>Loading notifications...</p>
-                    </div>
-                </div>
-            `;
-
-            notificationsDropdown.appendChild(dropdownContent);
-            document.body.appendChild(notificationsDropdown);
-
-            // Prevent body scroll
-            document.body.style.overflow = 'hidden';
-
-            // Load notifications
-            loadNotificationsForDropdown();
-
-            // Handle escape key
-            document.addEventListener('keydown', handleDropdownEscape);
-        }
-
-        function closeNotificationsDropdown() {
-            if (notificationsDropdown) {
-                notificationsDropdown.remove();
-                notificationsDropdown = null;
-                document.body.style.overflow = '';
-                document.removeEventListener('keydown', handleDropdownEscape);
-            }
-        }
-
-        function handleDropdownEscape(e) {
-            if (e.key === 'Escape') {
-                closeNotificationsDropdown();
-            }
-        }
-
-        function loadNotificationsForDropdown() {
-            if (isLoadingNotifications) return;
-            isLoadingNotifications = true;
-
-            fetch("/api/notifications", {
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                }
+        function dismissNotification(id) {
+            fetch('/api/notifications/' + id, { 
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
             })
-            .then(response => response.json())
-            .then(data => {
-                const body = notificationsDropdown.querySelector('.notifications-dropdown-body');
-                body.innerHTML = '';
-
-                if (!data.notifications || data.notifications.length === 0) {
-                    body.innerHTML = `
-                        <div class="notifications-empty">
-                            <div class="empty-icon">
-                                <i class="fas fa-bell-slash"></i>
-                            </div>
-                            <p>No notifications yet</p>
-                            <small>When someone interacts with your posts, you'll see them here.</small>
-                        </div>
-                    `;
-                } else {
-                    const notificationsList = document.createElement('div');
-                    notificationsList.className = 'notifications-list';
-
-                    data.notifications.forEach(notification => {
-                        const notificationElement = createDropdownNotificationElement(notification);
-                        notificationsList.appendChild(notificationElement);
-                    });
-
-                    body.appendChild(notificationsList);
+            .then(() => {
+                const notif = document.getElementById('notif-' + id);
+                if (notif) {
+                    notif.style.opacity = '0';
+                    notif.style.transform = 'translateX(20px)';
+                    setTimeout(() => {
+                        notif.remove();
+                        loadNotifications();
+                    }, 200);
                 }
-            })
-            .catch(error => {
-                console.error('Error loading notifications:', error);
-                console.error('Error details:', error.message, error.status, error.response);
-
-                const body = notificationsDropdown.querySelector('.notifications-dropdown-body');
-                body.innerHTML = `
-                    <div class="notifications-error">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Failed to load notifications</p>
-                        <small style="color: #666; font-size: 11px;">${error.message || 'Unknown error'}</small>
-                    </div>
-                `;
-            })
-            .finally(() => {
-                isLoadingNotifications = false;
             });
         }
 
-        function createDropdownNotificationElement(notification) {
-            const item = document.createElement('div');
-            item.className = `notification-dropdown-item ${!notification.read_at ? 'unread' : ''}`;
-
-            // Get notification type icon
-            const iconClass = getNotificationIcon(notification.type);
-            const timeAgo = getTimeAgo(notification.created_at);
-
-            item.innerHTML = `
-                <div class="notification-dropdown-content">
-                    <div class="notification-dropdown-icon ${iconClass}">
-                        <i class="${getNotificationIconClass(notification.type)}"></i>
-                    </div>
-                    <div class="notification-dropdown-text">
-                        <div class="notification-dropdown-message">${notification.message}</div>
-                        <div class="notification-dropdown-time">${timeAgo}</div>
-                    </div>
-                    <div class="notification-dropdown-actions">
-                        ${!notification.read_at ? `<button onclick="markNotificationAsRead(${notification.id}, this)" class="btn-mark-read" title="Mark as read"><i class="fas fa-check"></i></button>` : ''}
-                        <button onclick="deleteNotificationFromDropdown(${notification.id}, this)" class="btn-delete" title="Delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            `;
-
-            return item;
-        }
-
-        function markNotificationAsRead(notificationId, buttonElement) {
-            fetch(`/api/notifications/${notificationId}/read`, {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]").getAttribute("content"),
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(() => {
-                // Update UI
-                const item = buttonElement.closest('.notification-dropdown-item');
-                item.classList.remove('unread');
-                buttonElement.remove();
-
-                // Update badge - fetch current count
-                fetch('/api/notifications/unread-count', {
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.unread_count !== undefined) {
-                        updateNotificationBadge(data.unread_count);
-                    }
-                })
-                .catch(error => console.error('Error updating badge:', error));
-            })
-            .catch(error => console.error("Error marking notification as read:", error));
-        }
-
-        function deleteNotificationFromDropdown(notificationId, buttonElement) {
-            if (!confirm("Are you sure you want to delete this notification?")) return;
-
-            fetch(`/api/notifications/${notificationId}`, {
-                method: "DELETE",
-                headers: {
-                    "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]").getAttribute("content"),
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(() => {
-                // Remove from UI
-                const item = buttonElement.closest('.notification-dropdown-item');
-                item.remove();
-
-                // Check if empty
-                const body = notificationsDropdown.querySelector('.notifications-dropdown-body');
-                if (body.querySelectorAll('.notification-dropdown-item').length === 0) {
-                    body.innerHTML = `
-                        <div class="notifications-empty">
-                            <div class="empty-icon">
-                                <i class="fas fa-bell-slash"></i>
-                            </div>
-                            <p>No notifications yet</p>
-                            <small>When someone interacts with your posts, you'll see them here.</small>
-                        </div>
-                    `;
-                }
-
-                // Update badge - fetch current count
-                fetch('/api/notifications/unread-count', {
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.unread_count !== undefined) {
-                        updateNotificationBadge(data.unread_count);
-                    }
-                })
-                .catch(error => console.error('Error updating badge:', error));
-            })
-            .catch(error => console.error("Error deleting notification:", error));
-        }
-
-        function deleteAllNotifications() {
-            if (!confirm("Are you sure you want to delete ALL notifications? This action cannot be undone.")) return;
-
-            fetch('/api/notifications', {
-                method: "DELETE",
-                headers: {
-                    "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]").getAttribute("content"),
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(() => {
-                // Update UI - show empty state
-                const body = notificationsDropdown.querySelector('.notifications-dropdown-body');
-                body.innerHTML = `
-                    <div class="notifications-empty">
-                        <div class="empty-icon">
-                            <i class="fas fa-bell-slash"></i>
-                        </div>
-                        <p>No notifications yet</p>
-                        <small>When someone interacts with your posts, you'll see them here.</small>
-                    </div>
-                `;
-
-                // Update badge - should be 0 after deleting all
-                updateNotificationBadge(0);
-            })
-            .catch(error => console.error("Error deleting all notifications:", error));
-        }
-
-        function updateNotificationBadge(count) {
-            const headerBadge = document.getElementById('header-notification-badge');
-            if (headerBadge) {
-                headerBadge.textContent = count > 99 ? '99+' : count;
-                headerBadge.style.display = count > 0 ? 'inline-flex' : 'none';
-
-                if (count > 0) {
-                    headerBadge.classList.add('pulse');
-                    setTimeout(() => headerBadge.classList.remove('pulse'), 1000);
-                }
+        function clearAllNotifications() {
+            const list = document.getElementById('notif-list');
+            const hasNotifications = list.querySelector('.notif-item');
+            
+            if (!hasNotifications) {
+                showToast('No notifications to clear', 'info');
+                return;
             }
+            
+            fetch('/api/notifications', { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }})
+            .then(() => { 
+                document.getElementById('notif-badge').style.display = 'none'; 
+                list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications</p></div>`;
+            });
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if ({{ auth()->check() ? 'true' : 'false' }}) { loadNotifications(); setInterval(loadNotifications, 30000); }
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllDropdowns(); });
+        });
     </script>
 </body>
-</html>
 </html>

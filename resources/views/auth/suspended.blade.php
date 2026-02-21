@@ -3,199 +3,41 @@
 @section('title', 'Account Suspended')
 
 @section('content')
-<div class="suspended-page">
-    <div class="suspended-container">
-        <div class="suspended-header">
-            <div class="warning-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <h1>Account Suspended</h1>
-            <p class="suspended-subtitle">Your account has been suspended by an administrator</p>
+<div class="login-page">
+    <div class="login-card">
+        <div class="suspended-icon">
+            <i class="fas fa-ban"></i>
         </div>
 
-        <div class="suspended-content">
-            <div class="suspended-actions">
-                <div class="action-buttons">
-                    <a href="{{ route('login') }}" class="btn-secondary">
-                        <i class="fas fa-arrow-left"></i>
-                        Back to Login
-                    </a>
-                </div>
-            </div>
+        <h1 class="title">Account Suspended</h1>
+        <p class="subtitle">Your account has been temporarily suspended due to a violation of our community guidelines. During this suspension, you cannot access most features of the platform.</p>
+
+        <div class="contact-section">
+            <h3><i class="fas fa-envelope"></i> Need Help?</h3>
+            <p>If you believe this is a mistake or would like to appeal this decision, please contact our support team for assistance.</p>
         </div>
+
+        <p class="footer">
+            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+            </a>
+        </p>
+
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">@csrf</form>
     </div>
 </div>
 
 <style>
-.suspended-page {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
-}
-
-.suspended-container {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    max-width: 500px;
-    width: 100%;
-    overflow: hidden;
-}
-
-.suspended-header {
-    text-align: center;
-    padding: 40px 30px 30px;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-    color: white;
-}
-
-.warning-icon {
-    font-size: 64px;
-    margin-bottom: 20px;
-    opacity: 0.9;
-}
-
-.suspended-header h1 {
-    margin: 0 0 10px 0;
-    font-size: 28px;
-    font-weight: 700;
-}
-
-.suspended-subtitle {
-    margin: 0;
-    font-size: 16px;
-    opacity: 0.9;
-    font-weight: 300;
-}
-
-.suspended-content {
-    padding: 30px;
-}
-
-.suspended-message {
-    margin-bottom: 30px;
-}
-
-.suspended-message h3 {
-    margin: 0 0 15px 0;
-    color: #333;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.suspended-message ul {
-    margin: 0;
-    padding-left: 20px;
-}
-
-.suspended-message li {
-    margin-bottom: 8px;
-    color: #666;
-    line-height: 1.5;
-}
-
-.suspended-actions {
-    text-align: center;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-}
-
-.suspended-actions p {
-    margin: 0 0 20px 0;
-    color: #666;
-    font-size: 14px;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.btn-primary {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 25px;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-}
-
-.btn-primary:hover {
-    background: #c82333;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
-}
-
-.btn-secondary {
-    background: white;
-    color: #666;
-    border: 2px solid #ddd;
-    padding: 12px 20px;
-    border-radius: 25px;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-}
-
-.btn-secondary:hover {
-    background: #f8f9fa;
-    border-color: #bbb;
-    transform: translateY(-1px);
-}
-
-/* Responsive Design */
-@media (max-width: 480px) {
-    .suspended-page {
-        padding: 10px;
-    }
-
-    .suspended-container {
-        border-radius: 15px;
-    }
-
-    .suspended-header {
-        padding: 30px 20px 20px;
-    }
-
-    .warning-icon {
-        font-size: 48px;
-        margin-bottom: 15px;
-    }
-
-    .suspended-header h1 {
-        font-size: 24px;
-    }
-
-    .suspended-content {
-        padding: 20px;
-    }
-
-    .action-buttons {
-        flex-direction: column;
-    }
-
-    .btn-primary,
-    .btn-secondary {
-        justify-content: center;
-    }
-}
+.login-page {min-height: calc(100vh - 64px);display: flex;align-items: center;justify-content: center;padding: 20px;background: var(--bg);font-family: 'Courier New', Courier, monospace;}
+.login-card {width: 100%;max-width: 400px;background: var(--surface);border: 1px solid var(--border);border-radius: 16px;padding: 32px 28px;font-family: 'Courier New', Courier, monospace;text-align: center;}
+.suspended-icon {width: 80px;height: 80px;background: linear-gradient(135deg, var(--accent), #f97316);border-radius: 16px;display: flex;align-items: center;justify-content: center;margin: 0 auto 24px;font-size: 36px;color: white;}
+.title {font-size: 24px;font-weight: 700;color: var(--text);margin: 0 0 12px 0;text-align: center;font-family: 'Courier New', Courier, monospace;}
+.subtitle {font-size: 14px;color: var(--text-muted);margin: 0 0 24px 0;text-align: center;font-family: 'Courier New', Courier, monospace;line-height: 1.6;}
+.contact-section {padding: 20px;background: var(--bg);border: 1px solid var(--border);border-radius: 12px;margin-bottom: 24px;}
+.contact-section h3 {font-size: 15px;font-weight: 600;margin: 0 0 8px 0;color: var(--text);font-family: 'Courier New', Courier, monospace;}
+.contact-section p {font-size: 13px;color: var(--text-muted);margin: 0;line-height: 1.5;}
+.footer {text-align: center;padding-top: 20px;border-top: 1px solid var(--border);font-size: 14px;}
+.footer a {color: var(--primary);text-decoration: none;font-weight: 600;}
+.footer a:hover {text-decoration: underline;}
 </style>
 @endsection

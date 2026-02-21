@@ -112,8 +112,10 @@
 
 <style>
 .chat-page {
-    height: calc(100vh - 80px);
+    height: 100vh;
     background: var(--twitter-light);
+    padding-top: 64px;
+    box-sizing: border-box;
 }
 
 .chat-container {
@@ -497,11 +499,22 @@
 
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+    .chat-page {
+        height: calc(100vh - 56px);
+        margin-top: 0;
+        padding-bottom: 70px; /* Space for mobile nav */
+    }
+
+    .chat-container {
+        height: 100%;
+    }
+
     .chat-sidebar {
         width: 100%;
-        position: absolute;
-        z-index: 10;
+        position: relative;
+        height: 100%;
+        border-right: none;
     }
 
     .chat-main {
@@ -511,8 +524,37 @@
     .modal-content {
         width: 95%;
         margin: 20px;
+        max-height: 80vh;
+    }
+
+    .chat-header {
+        padding: 12px 16px;
+    }
+
+    .chat-header h2 {
+        font-size: 18px;
+    }
+
+    .new-chat-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .conversation-item {
+        padding: 12px 16px;
+    }
+
+    .conversation-avatar img,
+    .avatar-placeholder {
+        width: 44px;
+        height: 44px;
+    }
+
+    .followers-section {
+        padding: 12px 16px;
     }
 }
+
 </style>
 
 <script>

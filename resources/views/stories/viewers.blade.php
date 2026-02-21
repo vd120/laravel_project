@@ -1,140 +1,184 @@
 @extends('layouts.app')
 
-@section('title', 'Story Viewers - @' . $user->name)
+@section('title', 'Story Viewers - ' . $user->name)
 
 @section('content')
 <div class="story-viewers-page">
-    <div class="container">
-        <div class="viewers-header">
-            <button onclick="history.back()" class="back-btn">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-            <h1>Story Viewers</h1>
-            <span class="viewers-count">{{ $viewerData->count() }} viewers</span>
-        </div>
+    <div class="page-header">
+        <a href="{{ route('stories.show', $user) }}" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Back to Story
+        </a>
+        <h1>Story Viewers</h1>
+    </div>
 
-        <div class="story-preview">
-            @if($story->media_type === 'image')
-                <img src="{{ asset('storage/' . $story->media_path) }}" alt="Story" class="preview-media">
-            @else
-                <video controls class="preview-media">
-                    <source src="{{ asset('storage/' . $story->media_path) }}" type="video/mp4">
-                </video>
-            @endif
+    <div class="story-preview-section">
+        @if($story->media_type === 'image')
+            <img src="{{ asset('storage/' . $story->media_path) }}" alt="Story" class="story-preview">
+        @elseif($story->media_type === 'video')
+            <video class="story-preview" muted>
+                <source src="{{ asset('storage/' . $story->media_path) }}" type="video/mp4">
+            </video>
+        @endif
+        <div class="story-info">
+            <span class="story-date">Posted {{ $story->created_at->diffForHumans() }}</span>
+            <span class="view-count"><i class="fas fa-eye"></i> {{ $story->storyViews->count() }} views</span>
         </div>
+    </div>
 
-        
-        <div class="viewers-section">
-            <h3>Views & Reactions ({{ $viewerData->count() }})</h3>
-            <div class="viewers-list">
-                @if($viewerData->count() > 0)
-                    @foreach($viewerData as $viewer)
-                    <div class="viewer-item">
-                        <div class="viewer-avatar">
-                            @if($viewer['user']->profile && $viewer['user']->profile->avatar)
-                                <img src="{{ asset('storage/' . $viewer['user']->profile->avatar) }}" alt="{{ $viewer['user']->name }}">
-                            @else
-                                <div class="avatar-placeholder">{{ substr($viewer['user']->name, 0, 1) }}</div>
-                            @endif
-                        </div>
-                        <div class="viewer-info">
-                            <div class="viewer-name">
-                                {{ $viewer['user']->name }}
-                                @if($viewer['reaction'])
-                                    <span class="viewer-reaction">{{ $viewer['reaction'] }}</span>
-                                @endif
+    <div class="viewers-list">
+        <h2>Viewers</h2>
+        @php
+            $viewers = $story->viewers ?? collect([]);
+        @endphp
+        @if($viewers->count() > 0)
+            <div class="viewers-grid">
+                @foreach($viewers as $viewer)
+                <div class="viewer-item">
+                    <div class="viewer-avatar">
+                        @if($viewer->profile && $viewer->profile->avatar)
+                            <img src="{{ asset('storage/' . $viewer->profile->avatar) }}" alt="Avatar">
+                        @else
+                            <div class="avatar-placeholder">
+                                <i class="fas fa-user"></i>
                             </div>
-                            <div class="viewer-time">{{ $viewer['viewed_at']->diffForHumans() }}</div>
-                        </div>
-                        <a href="{{ route('users.show', $viewer['user']) }}" class="view-profile-btn">
-                            <i class="fas fa-user"></i>
-                        </a>
+                        @endif
                     </div>
-                    @endforeach
-                @else
-                    <div class="empty-viewers">
-                        <i class="fas fa-eye-slash"></i>
-                        <p>No one has viewed this story yet</p>
+                    <div class="viewer-info">
+                        <a href="{{ route('users.show', $viewer) }}" class="viewer-name">{{ $viewer->name }}</a>
+                        @if($viewer->profile && $viewer->profile->bio)
+                            <span class="viewer-bio">{{ Str::limit($viewer->profile->bio, 40) }}</span>
+                        @endif
                     </div>
-                @endif
+                    <div class="viewer-meta">
+                        <span class="viewed-time">{{ $viewer->pivot->created_at->diffForHumans() }}</span>
+                    </div>
+                </div>
+                @endforeach
             </div>
-        </div>
+        @else
+            <div class="empty-state">
+                <i class="fas fa-eye-slash"></i>
+                <h3>No viewers yet</h3>
+                <p>This story hasn't been viewed by anyone.</p>
+            </div>
+        @endif
     </div>
 </div>
 
 <style>
 .story-viewers-page {
-    min-height: 100vh;
-    background: var(--twitter-white);
-}
-
-.container {
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
 }
 
-.viewers-header {
+.page-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
     border-bottom: 1px solid var(--border-color);
 }
 
-.back-btn {
-    background: none;
-    border: none;
+.page-header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
     color: var(--twitter-dark);
-    font-size: 18px;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
+}
+
+.back-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--twitter-blue);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 20px;
     transition: background-color 0.2s ease;
 }
 
-.back-btn:hover {
-    background: var(--border-color);
+.back-link:hover {
+    background: var(--twitter-light);
 }
 
-.viewers-header h1 {
-    margin: 0;
-    font-size: 20px;
-    color: var(--twitter-dark);
-}
-
-.viewers-count {
-    font-size: 14px;
-    color: var(--twitter-gray);
+.story-preview-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .story-preview {
-    margin-bottom: 20px;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-}
-
-.preview-media {
     width: 100%;
-    max-height: 300px;
+    max-height: 400px;
     object-fit: cover;
     display: block;
 }
 
+.story-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: var(--twitter-light);
+    border-top: 1px solid var(--border-color);
+}
+
+.story-date {
+    font-size: 14px;
+    color: var(--twitter-gray);
+}
+
+.view-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--twitter-blue);
+}
+
+.view-count i {
+    font-size: 16px;
+}
+
 .viewers-list {
-    background: var(--twitter-white);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.viewers-list h2 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--twitter-dark);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.viewers-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .viewer-item {
     display: flex;
     align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--twitter-light);
     transition: background-color 0.2s ease;
 }
 
@@ -142,17 +186,13 @@
     background: var(--hover-bg);
 }
 
-.viewer-item:last-child {
-    border-bottom: none;
-}
-
 .viewer-avatar {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     overflow: hidden;
-    margin-right: 15px;
     flex-shrink: 0;
+    border: 2px solid var(--border-color);
 }
 
 .viewer-avatar img {
@@ -164,154 +204,110 @@
 .avatar-placeholder {
     width: 100%;
     height: 100%;
-    background: var(--twitter-blue);
-    color: white;
+    background: var(--twitter-light);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
+    color: var(--twitter-gray);
     font-size: 20px;
 }
 
 .viewer-info {
     flex: 1;
+    min-width: 0;
 }
 
 .viewer-name {
-    font-weight: 600;
-    color: var(--twitter-dark);
-    margin-bottom: 2px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.viewer-reaction {
-    font-size: 16px;
-    opacity: 0.8;
-}
-
-.viewer-time {
-    font-size: 12px;
-    color: var(--twitter-gray);
-}
-
-.view-profile-btn {
-    color: var(--twitter-blue);
-    text-decoration: none;
-    padding: 8px;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
-}
-
-.view-profile-btn:hover {
-    background: var(--hover-bg);
-    color: var(--twitter-dark);
-}
-
-.empty-viewers {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--twitter-gray);
-}
-
-.empty-viewers i {
-    font-size: 48px;
-    margin-bottom: 15px;
     display: block;
-}
-
-.viewers-section,
-.reactions-section {
-    margin-bottom: 20px;
-}
-
-.viewers-section h3,
-.reactions-section h3 {
-    margin: 0 0 15px 0;
-    color: var(--twitter-dark);
-    font-size: 16px;
     font-weight: 600;
+    color: var(--twitter-dark);
+    text-decoration: none;
+    font-size: 15px;
+    margin-bottom: 2px;
 }
 
-.reactions-list {
-    background: var(--twitter-white);
-    border-radius: 12px;
+.viewer-name:hover {
+    color: var(--twitter-blue);
+}
+
+.viewer-bio {
+    display: block;
+    font-size: 13px;
+    color: var(--twitter-gray);
     overflow: hidden;
-    box-shadow: var(--shadow);
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.reaction-item {
-    display: flex;
-    align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-    transition: background-color 0.2s ease;
-}
-
-.reaction-item:hover {
-    background: var(--hover-bg);
-}
-
-.reaction-item:last-child {
-    border-bottom: none;
-}
-
-.reaction-emoji {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    margin-right: 15px;
+.viewer-meta {
     flex-shrink: 0;
 }
 
-.reaction-info {
-    flex: 1;
-}
-
-.reaction-user {
-    font-weight: 600;
-    color: var(--twitter-dark);
-    margin-bottom: 2px;
-}
-
-.reaction-time {
+.viewed-time {
     font-size: 12px;
     color: var(--twitter-gray);
 }
 
-.empty-reactions {
+.empty-state {
     text-align: center;
-    padding: 60px 20px;
+    padding: 48px 20px;
     color: var(--twitter-gray);
 }
 
-.empty-reactions i {
+.empty-state i {
     font-size: 48px;
-    margin-bottom: 15px;
+    margin-bottom: 16px;
     display: block;
+    opacity: 0.5;
 }
 
-@media (max-width: 480px) {
-    .container {
-        padding: 15px;
+.empty-state h3 {
+    margin: 0 0 8px 0;
+    color: var(--twitter-dark);
+    font-size: 18px;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .story-viewers-page {
+        padding: 16px;
     }
 
-    .viewers-header {
-        padding-bottom: 10px;
+    .page-header {
+        margin-bottom: 16px;
+        padding-bottom: 12px;
     }
 
-    .viewer-item {
-        padding: 12px;
+    .story-preview {
+        max-height: 300px;
+    }
+
+    .story-info {
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+
+    .viewers-list {
+        padding: 16px;
     }
 
     .viewer-avatar {
-        width: 45px;
-        height: 45px;
-        margin-right: 12px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .viewer-name {
+        font-size: 14px;
+    }
+
+    .viewer-bio {
+        font-size: 12px;
     }
 }
 </style>

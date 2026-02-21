@@ -1,1248 +1,395 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Sign In — Nexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        /* ============================================
+           UNIFIED DESIGN SYSTEM - Nexus
+           ============================================ */
+        
+        :root {
+            /* Core Colors */
+            --bg: #111111;
+            --surface: #1a1a1a;
+            --surface-hover: #242424;
+            --border: #2a2a2a;
+            --text: #f5f5f5;
+            --text-muted: #888888;
+            
+            /* Brand Colors */
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-glow: rgba(59, 130, 246, 0.25);
+            --secondary: #8b5cf6;
+            --accent: #ef4444;
+            --success: #22c55e;
+            
+            /* Spacing & Radius */
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            
+            /* Shadows */
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            
+            /* Transitions */
+            --transition: 200ms ease;
+        }
 
-@section('content')
-@if(session('suspended'))
-<script>
-    window.location.href = '{{ route("auth.suspended") }}';
-</script>
-@endif
+        [data-theme="light"] {
+            --bg: #ffffff;
+            --surface: #f9fafb;
+            --surface-hover: #f3f4f6;
+            --border: #e5e7eb;
+            --text: #111111;
+            --text-muted: #6b7280;
+            
+            --primary: #3b82f6;
+            --primary-hover: #1d4ed8;
+            --primary-glow: rgba(59, 130, 246, 0.2);
+            --secondary: #7c3aed;
+            
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
 
-<div class="auth-container">
-    <div class="auth-card">
-        <h2 class="login-title">Login</h2>
-        <form method="POST" action="{{ route('login') }}" class="login-form">
-            @csrf
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <div class="input-wrapper">
-                    <input type="email" name="email" id="email" value="{{ old('email') }}" required placeholder="Enter your email address">
-                    <div class="input-icon">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                </div>
-                @error('email') <div class="error-message">{{ $message }}</div> @enderror
-            </div>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        body {
+            font-size: 14px; line-height: 1.6;
+            color: var(--text); background: var(--bg);
+            min-height: 100vh; overflow-x: hidden;
+        }
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <div class="input-wrapper">
-                    <input type="password" name="password" id="password" required placeholder="Enter your password">
-                    <button type="button" class="password-toggle" onclick="togglePassword()">
-                        <i class="fas fa-eye" id="eye-icon"></i>
-                    </button>
-                </div>
-                @error('password') <div class="error-message">{{ $message }}</div> @enderror
-            </div>
+        /* Navigation */
+        .nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
 
-            <div class="form-options">
-                <label class="checkbox-label">
-                    <input type="checkbox" name="remember" value="1">
-                    <span class="checkmark"></span>
-                    <span class="checkbox-text">Keep me signed in</span>
-                </label>
-                <input type="hidden" name="remember" value="0">
-            </div>
+        .nav-logo {
+            font-size: 1.25rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
 
-            <button type="submit" class="login-btn">
-                <span class="btn-text">Sign In</span>
-                <div class="btn-loader" style="display: none;">
-                    <div class="spinner"></div>
-                </div>
+        .nav-actions { display: flex; align-items: center; gap: 12px; }
+
+        .theme-btn {
+            background: none; border: 1px solid var(--border);
+            color: var(--text-muted); padding: 8px 12px;
+            font-size: 12px; font-weight: 500; cursor: pointer;
+            border-radius: var(--radius); transition: all var(--transition);
+        }
+        .theme-btn:hover { color: var(--text); border-color: var(--primary); }
+
+        .back-link {
+            font-size: 13px; color: var(--text-muted);
+            text-decoration: none; transition: color var(--transition);
+        }
+        .back-link:hover { color: var(--text); }
+
+        /* Main Layout */
+        .page-wrap {
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 100px 24px 40px;
+        }
+
+        /* Login Card */
+        .login-card {
+            width: 100%; max-width: 400px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .card-label {
+            font-size: 11px; color: var(--text-muted);
+            letter-spacing: 0.1em; text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 28px; font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px; line-height: 1.1;
+        }
+
+        .card-subtitle {
+            font-size: 14px; color: var(--text-muted);
+            margin-bottom: 28px;
+        }
+
+        /* Form */
+        .field { margin-bottom: 20px; }
+
+        .field label {
+            display: block;
+            font-size: 13px; font-weight: 600;
+            color: var(--text); margin-bottom: 8px;
+        }
+
+        .field input {
+            width: 100%; padding: 12px 16px;
+            font-size: 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            outline: none; transition: all var(--transition);
+        }
+
+        .field input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .field input::placeholder { color: var(--text-muted); }
+
+        .password-wrap { position: relative; }
+
+        .password-wrap input { padding-right: 44px; }
+
+        .toggle-pw {
+            position: absolute; right: 12px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none;
+            color: var(--text-muted); cursor: pointer;
+            padding: 4px; font-size: 14px;
+            transition: color var(--transition);
+        }
+        .toggle-pw:hover { color: var(--text); }
+
+        .field-error {
+            font-size: 12px; color: var(--accent);
+            margin-top: 6px;
+        }
+
+        /* Remember / Forgot row */
+        .extras {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 24px;
+            font-size: 13px; color: var(--text-muted);
+        }
+
+        .extras label {
+            display: flex; align-items: center; gap: 8px;
+            cursor: pointer; font-weight: 400;
+        }
+
+        .extras input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 14px; height: 14px;
+        }
+
+        .extras a {
+            color: var(--text-muted); text-decoration: none;
+            font-size: 12px; transition: color var(--transition);
+        }
+        .extras a:hover { color: var(--primary); }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%; padding: 14px;
+            font-size: 14px; font-weight: 600;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; border: none;
+            border-radius: var(--radius); cursor: pointer;
+            transition: all var(--transition);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.95;
+        }
+
+        /* Google Button */
+        .btn-google {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; width: 100%; padding: 12px;
+            margin-top: 12px;
+            font-size: 14px; font-weight: 500;
+            color: var(--text); background: transparent;
+            border: 1px solid var(--border);
+            text-decoration: none; border-radius: var(--radius);
+            transition: all var(--transition);
+        }
+
+        .btn-google:hover {
+            border-color: var(--primary); background: var(--surface-hover);
+        }
+
+        /* Divider */
+        .divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 20px 0; color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px;
+            background: var(--border);
+        }
+
+        /* Footer */
+        .card-footer {
+            margin-top: 24px; padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center; font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .card-footer a {
+            color: var(--primary); text-decoration: none;
+            font-weight: 600; transition: opacity var(--transition);
+        }
+
+        .card-footer a:hover { opacity: 0.8; }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .nav { padding: 12px 16px; }
+            .page-wrap { padding: 80px 16px 32px; }
+            .login-card { padding: 24px; }
+            .card-title { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="{{ route('home') }}" class="nav-logo">Nexus</a>
+        <div class="nav-actions">
+            <a href="{{ route('home') }}" class="back-link">← Back</a>
+            <button class="theme-btn" id="theme-toggle">
+                <i class="fas fa-sun"></i> Theme
             </button>
-        </form>
-        <p style="text-align: center; margin-top: 20px; color: #e5e7eb; text-shadow: 0 0 8px rgba(59, 130, 246, 0.3);">Don't have an account? <a href="{{ route('register') }}" style="color: #93c5fd; text-decoration: none; text-shadow: 0 0 12px rgba(59, 130, 246, 0.6);" onmouseover="this.style.color='#dbeafe'; this.style.textShadow='0 0 20px rgba(59, 130, 246, 0.8)';" onmouseout="this.style.color='#93c5fd'; this.style.textShadow='0 0 12px rgba(59, 130, 246, 0.6)';">Register</a></p>
+        </div>
+    </nav>
+
+    @if(session('suspended') || session()->has('suspended'))
+    <script>window.location.href = '{{ route("auth.suspended") }}';</script>
+    @endif
+
+    <div class="page-wrap">
+        <div class="login-card">
+            <p class="card-label">Sign In</p>
+            <h1 class="card-title">Welcome Back</h1>
+            <p class="card-subtitle">Sign in to continue your journey</p>
+
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
+
+                <div class="field">
+                    <label for="email">Email Address</label>
+                    <input type="email" name="email" id="email"
+                        value="{{ old('email') }}"
+                        placeholder="you@example.com"
+                        required autocomplete="username">
+                    @error('email')
+                        <div class="field-error">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <div class="password-wrap">
+                        <input type="password" name="password" id="password"
+                            placeholder="••••••••"
+                            required autocomplete="current-password">
+                        <button type="button" class="toggle-pw" onclick="togglePassword()">
+                            <i class="fas fa-eye" id="eye-icon"></i>
+                        </button>
+                    </div>
+                    @error('password')
+                        <div class="field-error">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="extras">
+                    <label>
+                        <input type="checkbox" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
+                        Remember me
+                    </label>
+                    @if(Route::has('password.request'))
+                        <a href="{{ route('password.request') }}">Forgot password?</a>
+                    @endif
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    Sign In <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="divider">or continue with</div>
+
+            <a href="{{ route('login.google') }}" class="btn-google">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Continue with Google
+            </a>
+
+            <div class="card-footer">
+                Don't have an account? <a href="{{ route('register') }}">Sign up</a>
+            </div>
+        </div>
     </div>
-</div>
 
-<style>
-body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    background:
-        linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.9) 100%),
-        url('https://zebreus.github.io/all-gnome-backgrounds/thumbs500/earth-horizon-1abefd2c263947e408c36d3972da15fca4790951.webp');
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    width: 100%;
-    position: relative;
-    z-index: -2;
-    color: #ffffff;
-}
-
-.auth-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 1;
-}
-
-
-
-
-
-/* Laptop styles - simplified like mobile to prevent lagging */
-@media (min-width: 768px) {
-    .auth-container {
-        min-height: calc(100vh - 120px);
-        padding: 40px 30px;
-        position: relative;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .auth-card {
-        width: 420px;
-        max-width: 420px;
-        padding: 35px;
-        border-radius: 20px;
-        background: rgba(0, 0, 0, 0.6) !important;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-    }
-
-    .auth-card::before,
-    .auth-card::after {
-        display: none !important;
-    }
-
-    .auth-card h2 {
-        font-size: 32px;
-        margin-bottom: 40px;
-        font-weight: 700;
-        text-shadow: 0 0 5px var(--twitter-blue) !important;
-    }
-
-    .auth-card h2::before,
-    .auth-card h2::after {
-        display: none !important;
-    }
-
-    .auth-card input {
-        padding: 16px 50px 16px 50px !important;
-        font-size: 16px !important;
-        border-radius: 12px !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        transition: none !important;
-        animation: none !important;
-    }
-
-    .auth-card button[type="submit"] {
-        padding: 18px 24px !important;
-        font-size: 16px !important;
-        font-weight: 700 !important;
-        border-radius: 12px !important;
-        background: var(--twitter-blue) !important;
-        box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
-        transition: none !important;
-        animation: none !important;
-    }
-
-    .auth-card button[type="submit"]::before {
-        display: none !important;
-    }
-
-    .btn-glow,
-    .btn-particles {
-        display: none !important;
-    }
-
-    .password-toggle:hover {
-        transform: translateY(-50%) !important;
-        background: none !important;
-        box-shadow: none !important;
-    }
-
-    .input-wrapper input:focus + .input-icon,
-    .input-wrapper input:focus ~ .input-icon {
-        transform: translateY(-50%) !important;
-    }
-
-    .auth-card input:valid:focus,
-    .auth-card input:invalid:not(:placeholder-shown):focus {
-        animation: none !important;
-        box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3) !important;
-    }
-
-    .auth-card input:invalid:not(:placeholder-shown) {
-        animation: none !important;
-    }
-
-    .error-message {
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        animation: none !important;
-        transition: none !important;
-    }
-}
-
-.auth-card {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 35px;
-    border-radius: 20px;
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.6),
-        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-        0 2px 0 rgba(255, 255, 255, 0.05) inset;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    width: 100%;
-    max-width: 420px;
-    box-sizing: border-box;
-    position: relative;
-    overflow: hidden;
-}
-
-.auth-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--twitter-blue), var(--twitter-blue), transparent);
-    opacity: 0.8;
-    box-shadow: 0 0 10px var(--twitter-blue);
-}
-
-.auth-card::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), rgba(255,255,255,0.05), transparent);
-    opacity: 0.6;
-}
-
-/* Enhanced form elements with powerful effects */
-.auth-card input[type="email"],
-.auth-card input[type="password"] {
-    position: relative;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.auth-card input[type="email"]:focus,
-.auth-card input[type="password"]:focus {
-    transform: translateY(-2px) scale(1.01);
-    box-shadow:
-        0 0 0 3px rgba(29, 161, 242, 0.1),
-        0 4px 12px rgba(29, 161, 242, 0.15),
-        inset 0 1px 0 rgba(255,255,255,0.1);
-}
-
-/* Powerful button effects */
-.auth-card button[type="submit"] {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg, var(--twitter-blue) 0%, #1A91DA 100%);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-
-
-.auth-card button[type="submit"]:active {
-    transform: translateY(-1px) scale(0.98);
-}
-
-/* Add shimmer effect to button */
-.auth-card button[type="submit"]::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.6s ease;
-}
-
-.auth-card button[type="submit"]:hover::before {
-    left: 100%;
-}
-
-/* Enhanced checkbox styling */
-.auth-card input[type="checkbox"] {
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--input-bg);
-    position: relative;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-right: 12px;
-}
-
-.auth-card input[type="checkbox"]:checked {
-    background: var(--twitter-blue);
-    border-color: var(--twitter-blue);
-    box-shadow: 0 0 15px rgba(29, 161, 242, 0.3);
-    transform: scale(1.1);
-}
-
-.auth-card input[type="checkbox"]:checked::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
-    text-shadow: 0 0 5px rgba(0,0,0,0.5);
-}
-
-/* Powerful link effects */
-.auth-card a {
-    position: relative;
-    transition: all 0.3s ease;
-    text-shadow: 0 0 8px rgba(29, 161, 242, 0.3);
-}
-
-.auth-card a:hover {
-    transform: translateY(-1px);
-    text-shadow: 0 0 15px rgba(29, 161, 242, 0.6);
-}
-
-.auth-card a::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--twitter-blue), #1A91DA);
-    transition: width 0.3s ease;
-    border-radius: 1px;
-}
-
-.auth-card a:hover::after {
-    width: 100%;
-    box-shadow: 0 0 8px var(--twitter-blue);
-}
-
-/* Enhanced password toggle */
-.auth-card .password-toggle {
-    transition: all 0.3s ease;
-    border-radius: 50%;
-    padding: 8px;
-    margin: -4px;
-}
-
-.auth-card .password-toggle:hover {
-    background: rgba(29, 161, 242, 0.1);
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 0 10px rgba(29, 161, 242, 0.2);
-}
-
-/* No animations on larger screens */
-@media (min-width: 768px) {
-    .auth-card {
-        /* No animations */
-    }
-}
-
-/* Enhanced error message styling */
-.auth-card .error-message {
-    background: rgba(244, 33, 46, 0.1);
-    border: 1px solid rgba(244, 33, 46, 0.3);
-    border-radius: 6px;
-    padding: 8px 12px;
-    margin-top: 8px;
-    font-size: 13px;
-    color: var(--error-color);
-    box-shadow: 0 2px 8px rgba(244, 33, 46, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-/* Powerful Neon Title Effect */
-.login-title {
-    text-align: center;
-    margin-bottom: 40px;
-    color: var(--twitter-dark);
-    font-weight: 300;
-    font-size: 48px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    position: relative;
-    z-index: 10;
-    /* Simple glow effect like mobile */
-    text-shadow: 0 0 10px var(--twitter-blue);
-}
-
-.login-title::before {
-    content: 'LOGIN';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    color: var(--twitter-blue);
-    z-index: -1;
-    opacity: 0.8;
-    animation: neonPulse 3s ease-in-out infinite;
-}
-
-.login-title::after {
-    content: '';
-    position: absolute;
-    bottom: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 120px;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--twitter-blue), var(--neon-lime-bright), var(--twitter-blue), transparent);
-    border-radius: 2px;
-    box-shadow:
-        0 0 10px var(--twitter-blue),
-        0 0 20px var(--neon-lime-bright),
-        0 0 30px var(--twitter-blue);
-    animation: underlineGlow 2.5s ease-in-out infinite alternate;
-}
-
-
-
-/* Responsive breakpoints */
-
-/* Ultra-wide Laptops (2560px+) */
-@media (min-width: 2560px) {
-    .auth-container {
-        padding: 60px 40px;
-    }
-
-    .auth-card {
-        max-width: 600px;
-        padding: 50px;
-    }
-}
-
-/* Large Laptops (1920px - 2559px) */
-@media (min-width: 1920px) and (max-width: 2559px) {
-    .auth-container {
-        padding: 50px 30px;
-    }
-
-    .auth-card {
-        max-width: 550px;
-        padding: 45px;
-    }
-}
-
-/* Standard Laptops (1440px - 1919px) */
-@media (min-width: 1440px) and (max-width: 1919px) {
-    .auth-container {
-        padding: 40px 25px;
-    }
-
-    .auth-card {
-        max-width: 500px;
-        padding: 40px;
-    }
-}
-
-/* Compact Laptops (1366px - 1439px) */
-@media (min-width: 1366px) and (max-width: 1439px) {
-    .auth-container {
-        padding: 35px 20px;
-    }
-
-    .auth-card {
-        max-width: 480px;
-        padding: 38px;
-    }
-}
-
-/* Small Laptops (1200px - 1365px) */
-@media (min-width: 1200px) and (max-width: 1365px) {
-    .auth-container {
-        padding: 30px 20px;
-    }
-
-    .auth-card {
-        max-width: 450px;
-        padding: 35px;
-    }
-}
-
-/* Netbook/Ultra-portable (992px - 1199px) */
-@media (min-width: 992px) and (max-width: 1199px) {
-    .auth-container {
-        padding: 25px 15px;
-    }
-
-    .auth-card {
-        max-width: 420px;
-        padding: 32px;
-    }
-}
-
-/* Medium Screens (768px - 991px) */
-@media (min-width: 768px) and (max-width: 991px) {
-    .auth-container {
-        padding: 20px 15px;
-    }
-
-    .auth-card {
-        max-width: 380px;
-        padding: 28px;
-    }
-}
-
-/* Small-Medium Screens (600px - 767px) */
-@media (min-width: 600px) and (max-width: 767px) {
-    .auth-container {
-        padding: 20px 10px;
-    }
-
-    .auth-card {
-        max-width: 90%;
-        padding: 25px;
-    }
-}
-
-/* Mobile Large (480px - 599px) */
-@media (min-width: 480px) and (max-width: 599px) {
-    .auth-container {
-        padding: 15px 10px;
-        min-height: calc(100vh - 50px);
-    }
-
-    .auth-card {
-        max-width: 95%;
-        padding: 20px;
-        border-radius: 12px;
-    }
-
-    .auth-card h2 {
-        font-size: 24px;
-        margin-bottom: 25px;
-    }
-}
-
-/* Mobile Small (360px - 479px) */
-@media (min-width: 360px) and (max-width: 479px) {
-    .auth-container {
-        padding: 10px 8px;
-    }
-
-    .auth-card {
-        max-width: 100%;
-        padding: 18px;
-        border-radius: 10px;
-    }
-
-    .auth-card h2 {
-        font-size: 22px;
-        margin-bottom: 20px;
-    }
-
-    .auth-card input {
-        padding: 12px 16px !important;
-        font-size: 16px !important; /* Prevents zoom on iOS */
-    }
-
-    .auth-card button[type="submit"] {
-        padding: 12px !important;
-        font-size: 16px !important;
-    }
-}
-
-/* Mobile Extra Small (320px - 359px) */
-@media (max-width: 359px) {
-    .auth-container {
-        padding: 8px 6px;
-    }
-
-    .auth-card {
-        padding: 16px;
-        border-radius: 8px;
-    }
-
-    .auth-card h2 {
-        font-size: 20px;
-        margin-bottom: 18px;
-    }
-
-    .auth-card input {
-        padding: 10px 14px !important;
-        font-size: 16px !important;
-    }
-
-    .auth-card button[type="submit"] {
-        padding: 10px !important;
-        font-size: 16px !important;
-    }
-}
-
-/* Landscape Orientation Adjustments */
-@media (max-height: 500px) and (orientation: landscape) {
-    .auth-container {
-        min-height: auto;
-        padding: 10px;
-    }
-
-    .auth-card {
-        padding: 15px;
-    }
-
-    .auth-card h2 {
-        font-size: 20px;
-        margin-bottom: 15px;
-    }
-}
-
-/* Ultra-wide aspect ratios */
-@media (min-aspect-ratio: 21/9) {
-    .auth-container {
-        padding: 40px;
-    }
-
-    .auth-card {
-        max-width: 500px;
-    }
-}
-
-/* Square screens (like some tablets) */
-@media (aspect-ratio: 1/1) {
-    .auth-container {
-        padding: 20px;
-    }
-
-    .auth-card {
-        max-width: 80%;
-    }
-}
-
-/* Touch-friendly interactions */
-@media (hover: none) and (pointer: coarse) {
-    .auth-card input:focus {
-        transform: none !important;
-    }
-
-    .auth-card button:hover {
-        transform: none !important;
-    }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    .auth-card {
-        border-width: 3px;
-    }
-}
-
-/* Form Styling Overhaul */
-.login-form {
-    width: 100%;
-}
-
-.form-group {
-    margin-bottom: 24px;
-    position: relative;
-}
-
-.form-group label {
-    display: block;
-    color: #e5e7eb;
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    opacity: 0.9;
-    transition: all 0.3s ease;
-    text-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
-}
-
-.input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.input-wrapper input {
-    width: 100%;
-    padding: 16px 50px 16px 50px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    background: rgba(0, 0, 0, 0.4);
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: 400;
-    transition: all 0.3s ease;
-    box-shadow:
-        0 4px 12px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-        inset 0 2px 0 rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-.input-wrapper input:focus {
-    outline: none;
-    border-color: rgba(147, 197, 253, 0.8);
-    box-shadow:
-        0 0 0 3px rgba(59, 130, 246, 0.2),
-        0 4px 12px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-        inset 0 2px 0 rgba(255, 255, 255, 0.05);
-}
-
-.input-wrapper input::placeholder {
-    color: var(--twitter-gray);
-    opacity: 0.7;
-    font-style: italic;
-    transition: opacity 0.3s ease;
-}
-
-.input-wrapper input:focus::placeholder {
-    opacity: 0.4;
-}
-
-/* Input Icons */
-.input-icon {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--twitter-gray);
-    font-size: 16px;
-    transition: all 0.3s ease;
-    z-index: 2;
-}
-
-.input-wrapper input:focus + .input-icon,
-.input-wrapper input:focus ~ .input-icon {
-    color: var(--twitter-blue);
-    transform: translateY(-50%) scale(1.1);
-}
-
-/* Password Toggle Enhancement */
-.password-toggle {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--twitter-gray);
-    cursor: pointer;
-    font-size: 16px;
-    padding: 8px;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-    z-index: 2;
-}
-
-.password-toggle:hover {
-    color: var(--twitter-blue);
-    background: rgba(29, 161, 242, 0.1);
-    transform: translateY(-50%) scale(1.2);
-    box-shadow: 0 0 15px rgba(29, 161, 242, 0.2);
-}
-
-/* Form Options */
-.form-options {
-    margin-bottom: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    position: relative;
-    font-size: 14px;
-    color: var(--twitter-gray);
-    transition: color 0.3s ease;
-}
-
-.checkbox-label:hover {
-    color: var(--twitter-dark);
-}
-
-.checkbox-label input[type="checkbox"] {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
-}
-
-.checkmark {
-    position: relative;
-    height: 20px;
-    width: 20px;
-    background: var(--input-bg);
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
-    margin-right: 12px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.checkbox-label:hover .checkmark {
-    border-color: var(--twitter-blue);
-    box-shadow: 0 0 8px rgba(29, 161, 242, 0.2);
-}
-
-.checkbox-label input:checked ~ .checkmark {
-    background: var(--twitter-blue);
-    border-color: var(--twitter-blue);
-    box-shadow: 0 0 15px rgba(29, 161, 242, 0.3);
-    transform: scale(1.1);
-}
-
-.checkmark::after {
-    content: '';
-    position: absolute;
-    display: none;
-    width: 6px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-    transition: all 0.2s ease;
-}
-
-.checkbox-label input:checked ~ .checkmark::after {
-    display: block;
-    animation: checkmarkDraw 0.3s ease;
-}
-
-@keyframes checkmarkDraw {
-    0% {
-        opacity: 0;
-        transform: rotate(45deg) scale(0);
-    }
-    50% {
-        opacity: 1;
-        transform: rotate(45deg) scale(1.2);
-    }
-    100% {
-        opacity: 1;
-        transform: rotate(45deg) scale(1);
-    }
-}
-
-.checkbox-text {
-    font-weight: 500;
-    user-select: none;
-    color: #e5e7eb;
-    text-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
-}
-
-/* Advanced Button Styling */
-.login-btn {
-    width: 100%;
-    padding: 18px 24px;
-    background: linear-gradient(135deg, var(--twitter-blue) 0%, #1A91DA 30%, var(--twitter-blue) 70%, #1A91DA 100%);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow:
-        0 6px 20px rgba(29, 161, 242, 0.3),
-        0 0 40px rgba(29, 161, 242, 0.1),
-        inset 0 1px 0 rgba(255,255,255,0.2);
-    position: relative;
-    overflow: hidden;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-}
-
-.login-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -150%;
-    width: 150%;
-    height: 100%;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255,255,255,0.4) 30%,
-        rgba(255,255,255,0.6) 50%,
-        rgba(255,255,255,0.4) 70%,
-        transparent 100%
-    );
-    transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1;
-}
-
-.login-btn:hover::before {
-    left: 150%;
-}
-
-.login-btn:hover {
-    /* No hover effects */
-}
-
-.login-btn:active {
-    transform: translateY(-2px) scale(0.98);
-    box-shadow:
-        0 4px 15px rgba(29, 161, 242, 0.5),
-        0 0 30px rgba(29, 161, 242, 0.3),
-        inset 0 2px 6px rgba(0,0,0,0.1);
-}
-
-.btn-text {
-    position: relative;
-    z-index: 2;
-}
-
-.btn-loader {
-    position: relative;
-    z-index: 2;
-}
-
-.spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top: 2px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Enhanced Error Messages */
-.error-message {
-    background: linear-gradient(135deg, rgba(244, 33, 46, 0.1) 0%, rgba(244, 33, 46, 0.05) 100%);
-    border: 1px solid rgba(244, 33, 46, 0.3);
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-top: 8px;
-    font-size: 13px;
-    color: #ff6b6b;
-    box-shadow: 0 2px 8px rgba(244, 33, 46, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    animation: errorShake 0.5s ease-out;
-    position: relative;
-    overflow: hidden;
-}
-
-.error-message::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: linear-gradient(180deg, #ff4757, #ff3838);
-    border-radius: 2px 0 0 2px;
-}
-
-@keyframes errorShake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-}
-
-/* Advanced Focus States */
-.form-group:focus-within label {
-    color: var(--twitter-blue);
-    transform: translateY(-2px);
-    text-shadow: 0 0 8px rgba(29, 161, 242, 0.3);
-}
-
-/* Loading State Enhancement */
-.login-form.submitting .btn-text {
-    opacity: 0;
-}
-
-.login-form.submitting .btn-loader {
-    display: block;
-}
-
-.login-form.submitting .login-btn {
-    pointer-events: none;
-    opacity: 0.8;
-}
-
-/* Success Animation */
-.login-form.success .login-btn {
-    background: linear-gradient(135deg, #00BA7C 0%, #00C46A 100%);
-    box-shadow:
-        0 6px 20px rgba(0, 186, 124, 0.3),
-        0 0 40px rgba(0, 186, 124, 0.2);
-}
-
-.login-form.success .btn-text::after {
-    content: ' ✓';
-    animation: successCheck 0.6s ease;
-}
-
-@keyframes successCheck {
-    0% {
-        opacity: 0;
-        transform: scale(0) rotate(-180deg);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.2) rotate(0deg);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) rotate(0deg);
-    }
-}
-
-/* Enhanced Accessibility */
-@media (prefers-reduced-motion: reduce) {
-    .auth-card input,
-    .auth-card button,
-    .login-btn,
-    .password-toggle,
-    .checkmark,
-    .error-message {
-        transition: none !important;
-        animation: none !important;
-    }
-}
-
-/* High contrast mode enhancements */
-@media (prefers-contrast: high) {
-    .input-wrapper input {
-        border-width: 3px;
-    }
-
-    .login-btn {
-        border: 2px solid white;
-    }
-
-    .checkmark {
-        border-width: 3px;
-    }
-}
-
-/* Advanced responsive enhancements */
-@media (min-width: 768px) {
-    .form-group {
-        margin-bottom: 28px;
-    }
-
-    .input-wrapper input {
-        padding: 20px 55px 20px 55px;
-        font-size: 18px;
-    }
-
-.input-icon {
-    right: 18px;
-    font-size: 18px;
-}
-
-    .password-toggle {
-        right: 18px;
-        font-size: 18px;
-        padding: 10px;
-    }
-
-    .login-btn {
-        padding: 22px 28px;
-        font-size: 18px;
-        letter-spacing: 1.5px;
-    }
-}
-
-/* Touch device optimizations */
-@media (hover: none) and (pointer: coarse) {
-    .input-wrapper input:focus {
-        transform: none;
-        box-shadow: 0 0 0 3px var(--twitter-blue);
-    }
-
-    .login-btn:hover {
-        transform: none;
-    }
-
-    .password-toggle:hover {
-        transform: translateY(-50%);
-        background: none;
-    }
-}
-
-/* Apply performance optimizations to ALL devices */
-.auth-card,
-.login-btn,
-.input-wrapper input,
-.error-message {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-}
-
-.auth-card {
-    background: rgba(0, 0, 0, 0.6) !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-.auth-card::before,
-.auth-card::after {
-    display: none !important;
-}
-
-/* Disable all animations for performance */
-.login-btn,
-.input-wrapper input,
-.password-toggle,
-.btn-glow,
-.btn-particles,
-.error-message,
-.login-title {
-    animation: none !important;
-    transition: none !important;
-}
-
-.login-btn:hover {
-    transform: none !important;
-    box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
-}
-
-.input-wrapper input:focus {
-    transform: none !important;
-    box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3) !important;
-}
-
-.login-title::before,
-.login-title::after {
-    display: none !important;
-}
-
-/* Disable particle effects */
-.btn-particles {
-    display: none !important;
-}
-
-/* Simplify button */
-.login-btn {
-    background: var(--twitter-blue) !important;
-    box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3) !important;
-}
-
-.btn-glow {
-    display: none !important;
-}
-
-/* Disable shimmer effects */
-.login-btn::before {
-    display: none !important;
-}
-
-/* Simplify password toggle */
-.password-toggle:hover {
-    transform: translateY(-50%) !important;
-    background: none !important;
-    box-shadow: none !important;
-}
-
-/* Disable focus glow effects */
-.input-wrapper input:focus + .input-icon,
-.input-wrapper input:focus ~ .input-icon {
-    transform: translateY(-50%) !important;
-}
-
-/* Disable validation animations */
-.auth-card input:valid:focus,
-.auth-card input:invalid:not(:placeholder-shown):focus {
-    animation: none !important;
-    box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3) !important;
-}
-
-.auth-card input:invalid:not(:placeholder-shown) {
-    animation: none !important;
-}
-
-/* Make password toggle buttons completely static */
-.auth-card button[type="button"] {
-    position: absolute !important;
-    right: 16px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    background: none !important;
-    border: none !important;
-    color: var(--twitter-gray) !important;
-    cursor: pointer !important;
-    padding: 8px !important;
-    margin: 0 !important;
-    width: auto !important;
-    height: auto !important;
-    outline: none !important;
-    box-shadow: none !important;
-    transition: none !important;
-}
-
-.auth-card button[type="button"]:focus,
-.auth-card button[type="button"]:active,
-.auth-card button[type="button"]:hover {
-    position: absolute !important;
-    right: 16px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    background: none !important;
-    border: none !important;
-    color: var(--twitter-gray) !important;
-    cursor: pointer !important;
-    padding: 8px !important;
-    margin: 0 !important;
-    width: auto !important;
-    height: auto !important;
-    outline: none !important;
-    box-shadow: none !important;
-    transition: none !important;
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-    .auth-card input,
-    .auth-card button {
-        transition: none !important;
-    }
-}
-</style>
-
-<script>
-function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const eyeIcon = document.getElementById('eye-icon');
-
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        eyeIcon.className = 'fas fa-eye-slash';
-    } else {
-        passwordInput.type = 'password';
-        eyeIcon.className = 'fas fa-eye';
-    }
-}
-</script>
-
-@endsection
+    <script>
+        // Theme toggle - consistent with main app
+        const html = document.documentElement;
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
+
+        function updateThemeIcon() {
+            const icon = document.querySelector('#theme-toggle i');
+            const theme = html.getAttribute('data-theme');
+            icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon();
+        });
+
+        // Password toggle
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eye-icon');
+            input.type = input.type === 'password' ? 'text' : 'password';
+            icon.className = input.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+        }
+    </script>
+</body>
+</html>

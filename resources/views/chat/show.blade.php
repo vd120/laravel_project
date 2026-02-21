@@ -87,7 +87,7 @@
                     </div>
                     <div class="chat-user-details">
                         <h3>{{ $conversation->other_user->name }}</h3>
-                        <span class="user-status">Active</span>
+                        <span class="user-status"><i class="fas fa-circle" style="font-size: 10px; color: var(--text-muted);"></i> Loading...</span>
                     </div>
                 </div>
                 <div class="chat-actions">
@@ -101,20 +101,31 @@
             <div class="chat-messages" id="chatMessages">
                 @forelse($messages as $message)
                 <div class="message {{ $message->is_mine ? 'own' : 'other' }} {{ $message->trashed() ? 'deleted' : '' }}" data-message-id="{{ $message->id }}">
-                    @if($message->is_mine && !$message->trashed())
-                    <button class="message-delete" onclick="deleteMessage({{ $message->id }})" title="Delete message">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                    @endif
                     <div class="message-content">
                         @if($message->trashed())
                             <em>message deleted</em>
                         @else
-                            {{ $message->content }}
+                            @if($message->type === 'image' && $message->media_path)
+                                <div class="message-media">
+                                    <img src="{{ asset('storage/' . $message->media_path) }}" alt="Image" class="message-image" onclick="openMediaViewer(this.src)">
+                                </div>
+                            @elseif($message->type === 'video' && $message->media_path)
+                                <div class="message-media">
+                                    <video src="{{ asset('storage/' . $message->media_path) }}" controls class="message-video"></video>
+                                </div>
+                            @endif
+                            @if($message->content)
+                                {{ $message->content }}
+                            @endif
                         @endif
                     </div>
-                    <div class="message-time">
-                        {{ $message->created_at->format('H:i') }}
+                    <div class="message-meta">
+                        <span class="message-time">{{ $message->created_at->format('H:i') }}</span>
+                        @if($message->is_mine && !$message->trashed())
+                        <button class="message-delete" onclick="deleteMessage({{ $message->id }})" title="Delete">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                        @endif
                     </div>
                 </div>
                 @empty
@@ -124,12 +135,37 @@
                 @endforelse
             </div>
 
+            <!-- Media Viewer Modal -->
+            <div id="mediaViewer" class="media-viewer" onclick="closeMediaViewer()">
+                <button class="media-viewer-close" onclick="closeMediaViewer()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <img id="mediaViewerImage" src="" alt="Full size image">
+            </div>
+
             <div class="chat-input">
                 <form id="messageForm" onsubmit="sendMessage(event)">
-                    <input type="text" id="messageInput" placeholder="Type a message..." maxlength="1000" required>
-                    <button type="submit" id="sendButton" class="send-btn">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+                    <!-- Media preview area -->
+                    <div id="mediaPreview" class="media-preview" style="display: none;">
+                        <div class="media-preview-container">
+                            <img id="imagePreview" src="" alt="Preview" style="display: none;">
+                            <video id="videoPreview" controls style="display: none;"></video>
+                            <button type="button" class="remove-media-btn" onclick="clearMediaPreview()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="input-row">
+                        <label for="mediaInput" class="media-btn" title="Attach photo or video">
+                            <i class="fas fa-image"></i>
+                        </label>
+                        <input type="file" id="mediaInput" accept="image/*,video/*" onchange="handleMediaSelect(event)" style="display: none;">
+                        <input type="text" id="messageInput" placeholder="Type a message..." maxlength="1000">
+                        <button type="submit" id="sendButton" class="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -138,10 +174,11 @@
 
 <style>
 .chat-page {
-    height: calc(100vh - 80px);
+    height: 100vh;
     background: var(--twitter-light);
-    /* Make main header static on chat pages */
-    padding-top: 80px;
+    /* Make main header static on chat pages - use calc to account for header */
+    padding-top: 64px;
+    box-sizing: border-box;
 }
 
 /* Make the main website header static on chat pages */
@@ -495,32 +532,38 @@ header {
 }
 
 .message-delete {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: var(--error-color);
-    color: white;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
     border: none;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    padding: 4px 8px;
     cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
+    font-size: 11px;
+    opacity: 0.6;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(244, 33, 46, 0.3);
-}
-
-.message:hover .message-delete {
     display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    border-radius: 4px;
 }
 
 .message-delete:hover {
-    background: #E0245E;
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(244, 33, 46, 0.4);
+    opacity: 1;
+    color: #ff4757;
+    background: rgba(255, 71, 87, 0.1);
+}
+
+.message-delete i {
+    font-size: 10px;
+}
+
+/* For other user's messages */
+.message.other .message-delete {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.message.other .message-delete:hover {
+    color: #ff4757;
 }
 
 .message-content {
@@ -559,11 +602,16 @@ header {
     font-style: italic;
 }
 
+.message-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
 .message-time {
     font-size: 11px;
     color: var(--twitter-gray);
-    margin-top: 4px;
-    padding: 0 4px;
 }
 
 .no-messages-chat {
@@ -681,21 +729,22 @@ header {
 
 @media (max-width: 768px) {
     .chat-page {
-        height: calc(100vh - 60px);
+        height: 100vh;
+        padding-top: 56px;
     }
 
     .chat-container {
         flex-direction: column;
-        height: 100%;
+        height: calc(100vh - 56px);
     }
 
     .chat-sidebar {
         display: none;
         position: fixed;
-        top: 60px;
+        top: 56px;
         left: 0;
         width: 100%;
-        height: calc(100vh - 60px);
+        height: calc(100vh - 56px);
         z-index: 1000;
         background: var(--card-bg);
         border-right: none;
@@ -715,34 +764,23 @@ header {
         height: 100%;
     }
 
-    /* FIXED HEADER - Always below main header, never moves */
+    /* FIXED HEADER - Always below main header */
     .chat-header-main {
         position: fixed !important;
-        top: 80px !important; /* Below the fixed main header (80px) */
+        top: 56px !important;
         left: 0 !important;
         right: 0 !important;
-        z-index: 9998 !important; /* Below input (9999) but above everything else */
+        z-index: 9998 !important;
         padding: 12px 16px;
         background: var(--card-bg);
         border-bottom: 1px solid var(--border-color);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        /* Prevent header compression */
         flex-shrink: 0 !important;
         min-height: 56px;
-        /* Safe area for notched devices */
-        padding-top: max(12px, env(safe-area-inset-top));
-        /* Full viewport coverage */
-        width: 100vw !important;
-        margin-left: calc(-50vw + 50%) !important;
-        /* Enhanced shadow for better separation */
+        width: 100% !important;
         box-shadow: 0 2px 12px rgba(0,0,0,0.1) !important;
-        /* Hardware acceleration */
-        transform: translateZ(0) !important;
-        will-change: transform !important;
     }
-
-    /* Removed the hamburger menu pseudo-element since we now use the actual button for back navigation */
 
     .chat-user-info {
         margin-left: 48px;
@@ -774,11 +812,9 @@ header {
         padding: 12px 16px;
         overflow-y: auto;
         background: var(--twitter-light);
-        /* Position below the fixed chat header on mobile */
-        margin-top: 72px; /* Chat header height + extra space */
-        /* Ensure messages take full available height on mobile */
-        height: calc(100vh - 232px); /* Account for main header (80px) + chat header (56px) + input (24px) + margin-top (72px) */
-        min-height: 200px; /* Minimum height for usability */
+        margin-top: 56px;
+        height: calc(100vh - 180px);
+        min-height: 200px;
     }
 
     .message {
@@ -808,30 +844,20 @@ header {
         bottom: 0 !important;
         left: 0 !important;
         right: 0 !important;
-        /* FULL BOTTOM - extends to very edge */
-        padding: 12px 16px 0 !important;
+        padding: 12px 16px !important;
+        padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
         border-top: 1px solid var(--border-color) !important;
         background: var(--card-bg) !important;
         backdrop-filter: blur(20px) !important;
         -webkit-backdrop-filter: blur(20px) !important;
         z-index: 9999 !important;
-        /* Safe area for devices with home indicators - only top padding */
-        padding-bottom: 0 !important;
-        /* Enhanced shadow for better separation */
         box-shadow: 0 -6px 20px rgba(0,0,0,0.15) !important;
-        /* Force positioning - no matter what */
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        /* Full viewport coverage */
-        width: 100vw !important;
-        margin-left: calc(-50vw + 50%) !important;
+        width: 100% !important;
     }
 
     #messageInput {
         padding: 12px 16px;
-        font-size: 16px; /* Prevents zoom on iOS */
+        font-size: 16px;
         border-radius: 20px;
     }
 
@@ -1064,12 +1090,248 @@ header {
 .no-conversations p {
     margin: 8px 0;
 }
+
+/* Media Upload Styles */
+.input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.media-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: transparent;
+    color: var(--twitter-blue);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 20px;
+}
+
+.media-btn:hover {
+    background: rgba(29, 161, 242, 0.1);
+    transform: scale(1.05);
+}
+
+.media-preview {
+    margin-bottom: 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--hover-bg);
+}
+
+.media-preview-container {
+    position: relative;
+    display: inline-block;
+    max-width: 200px;
+    max-height: 200px;
+}
+
+.media-preview-container img,
+.media-preview-container video {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.remove-media-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: var(--error-color);
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.remove-media-btn:hover {
+    background: #E0245E;
+    transform: scale(1.1);
+}
+
+/* Message Media Styles */
+.message-media {
+    margin-bottom: 8px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.message-image {
+    max-width: 100%;
+    max-height: 300px;
+    min-width: 150px;
+    cursor: pointer;
+    border-radius: 12px;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+
+.message-image:hover {
+    transform: scale(1.02);
+}
+
+.message-video {
+    max-width: 100%;
+    max-height: 300px;
+    min-width: 200px;
+    border-radius: 12px;
+    background: #000;
+}
+
+/* Media Viewer Modal */
+.media-viewer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.media-viewer.active {
+    display: flex;
+}
+
+.media-viewer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 0.2s ease;
+}
+
+.media-viewer-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.media-viewer img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+/* Media upload progress */
+.upload-progress {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.upload-progress-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Mobile styles for media */
+@media (max-width: 768px) {
+    .media-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .media-preview-container {
+        max-width: 150px;
+        max-height: 150px;
+    }
+
+    .media-preview-container img,
+    .media-preview-container video {
+        max-width: 150px;
+        max-height: 150px;
+    }
+
+    .message-image,
+    .message-video {
+        max-height: 250px;
+    }
+
+    .media-viewer-close {
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+    }
+}
+
+@media (max-width: 480px) {
+    .media-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .media-preview-container {
+        max-width: 120px;
+        max-height: 120px;
+    }
+
+    .media-preview-container img,
+    .media-preview-container video {
+        max-width: 120px;
+        max-height: 120px;
+    }
+
+    .message-image,
+    .message-video {
+        max-height: 200px;
+        min-width: 120px;
+    }
+}
 </style>
 
 <script>
 // Initialize polling for new messages
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Real-time messaging using polling');
+
+    // Update online status when user is active
+    updateOnlineStatus();
+    setInterval(updateOnlineStatus, 3000); // Update every 3 seconds
 
     // Start polling for new messages
     startMessagePolling();
@@ -1190,15 +1452,17 @@ function addMessageToChat(event) {
 
     let deleteButtonHtml = '';
     if (isOwnMessage) {
-        deleteButtonHtml = `<button class="message-delete" onclick="deleteMessage(${event.id})" title="Delete message">
-            <i class="fas fa-trash"></i>
+        deleteButtonHtml = `<button class="message-delete" onclick="deleteMessage(${event.id})" title="Delete">
+            <i class="fas fa-trash"></i> Delete
         </button>`;
     }
 
     messageDiv.innerHTML = `
-        ${deleteButtonHtml}
         <div class="message-content">${event.content}</div>
-        <div class="message-time">${new Date(event.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+        <div class="message-meta">
+            <span class="message-time">${new Date(event.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            ${deleteButtonHtml}
+        </div>
     `;
 
     messagesContainer.appendChild(messageDiv);
@@ -1381,7 +1645,12 @@ function clearChat() {
             });
 
             console.log('Full chat cleared successfully');
-            alert('Chat cleared successfully! All messages have been deleted.');
+            // Show success toast
+            if (typeof showToast === 'function') {
+                showToast('Chat cleared successfully! All messages have been deleted.', 'success');
+            } else {
+                alert('Chat cleared successfully! All messages have been deleted.');
+            }
         } else {
             alert('Failed to clear chat');
         }
@@ -1391,5 +1660,316 @@ function clearChat() {
         alert('Error clearing chat');
     });
 }
+
+// Update user's online status
+function updateOnlineStatus() {
+    fetch('/user/update-online-status', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Online status updated');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating online status:', error);
+    });
+}
+
+// Poll other user's online status
+function startOnlineStatusPolling() {
+    setInterval(() => {
+        fetch('/user/{{ $conversation->other_user->name }}/online-status', {
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateOnlineIndicator(data.is_online);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching online status:', error);
+        });
+    }, 3000); // Check every 3 seconds
+}
+
+function updateOnlineIndicator(isOnline) {
+    const statusElement = document.querySelector('.user-status');
+    if (statusElement) {
+        if (isOnline) {
+            statusElement.innerHTML = '<span style="display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-right: 6px;"></span>Online';
+            statusElement.style.color = '#22c55e';
+        } else {
+            statusElement.textContent = 'Offline';
+            statusElement.style.color = 'var(--text-muted)';
+        }
+    }
+}
+
+// Start polling for other user's online status
+startOnlineStatusPolling();
+
+// ============ Media Upload Functions ============
+
+let selectedMediaFile = null;
+
+function handleMediaSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Check file size (50MB max)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+        alert('File size must be less than 50MB');
+        event.target.value = '';
+        return;
+    }
+
+    selectedMediaFile = file;
+
+    const mediaPreview = document.getElementById('mediaPreview');
+    const imagePreview = document.getElementById('imagePreview');
+    const videoPreview = document.getElementById('videoPreview');
+
+    // Show preview
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
+            videoPreview.style.display = 'none';
+            mediaPreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else if (file.type.startsWith('video/')) {
+        const url = URL.createObjectURL(file);
+        videoPreview.src = url;
+        videoPreview.style.display = 'block';
+        imagePreview.style.display = 'none';
+        mediaPreview.style.display = 'block';
+    }
+}
+
+function clearMediaPreview() {
+    selectedMediaFile = null;
+    const mediaPreview = document.getElementById('mediaPreview');
+    const imagePreview = document.getElementById('imagePreview');
+    const videoPreview = document.getElementById('videoPreview');
+    const mediaInput = document.getElementById('mediaInput');
+
+    mediaPreview.style.display = 'none';
+    imagePreview.style.display = 'none';
+    videoPreview.style.display = 'none';
+    imagePreview.src = '';
+    videoPreview.src = '';
+    mediaInput.value = '';
+}
+
+function openMediaViewer(src) {
+    const viewer = document.getElementById('mediaViewer');
+    const image = document.getElementById('mediaViewerImage');
+    image.src = src;
+    viewer.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeMediaViewer() {
+    const viewer = document.getElementById('mediaViewer');
+    viewer.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Override sendMessage to support media
+const originalSendMessage = sendMessage;
+sendMessage = function(event) {
+    event.preventDefault();
+
+    const input = document.getElementById('messageInput');
+    const content = input.value.trim();
+
+    // Check if there's content or media to send
+    if (!content && !selectedMediaFile) {
+        input.focus();
+        return;
+    }
+
+    // If there's media, use FormData
+    if (selectedMediaFile) {
+        sendMediaMessage(content, selectedMediaFile);
+        return;
+    }
+
+    // Otherwise, send text message using the original function
+    sendTextMessage(content);
+};
+
+function sendTextMessage(content) {
+    const input = document.getElementById('messageInput');
+
+    // Disable input while sending
+    input.disabled = true;
+    document.getElementById('sendButton').disabled = true;
+
+    fetch(`{{ route('chat.store', $conversation) }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            content: content
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            addMessageToChat({
+                id: data.message.id,
+                content: data.message.content,
+                created_at: new Date().toISOString(),
+                type: data.message.type,
+                media_path: data.message.media_path,
+                user: {
+                    id: {{ auth()->id() }},
+                    name: '{{ auth()->user()->name }}',
+                    avatar: '{{ auth()->user()->profile?->avatar }}'
+                }
+            });
+            input.value = '';
+        } else {
+            alert('Failed to send message. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error sending message:', error);
+        alert('Error sending message. Please try again.');
+    })
+    .finally(() => {
+        input.disabled = false;
+        document.getElementById('sendButton').disabled = false;
+        const isMobile = window.innerWidth <= 768;
+        if (!isMobile) {
+            input.focus();
+        }
+    });
+}
+
+function sendMediaMessage(content, mediaFile) {
+    const input = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+
+    // Disable inputs while sending
+    input.disabled = true;
+    sendButton.disabled = true;
+
+    const formData = new FormData();
+    if (content) {
+        formData.append('content', content);
+    }
+    formData.append('media', mediaFile);
+
+    fetch(`{{ route('chat.store', $conversation) }}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            addMessageToChat({
+                id: data.message.id,
+                content: data.message.content || '',
+                created_at: new Date().toISOString(),
+                type: data.message.type,
+                media_path: data.message.media_path,
+                user: {
+                    id: {{ auth()->id() }},
+                    name: '{{ auth()->user()->name }}',
+                    avatar: '{{ auth()->user()->profile?->avatar }}'
+                }
+            });
+            input.value = '';
+            clearMediaPreview();
+        } else {
+            alert(data.error || 'Failed to send message. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error sending message:', error);
+        alert('Error sending message. Please try again.');
+    })
+    .finally(() => {
+        input.disabled = false;
+        sendButton.disabled = false;
+        const isMobile = window.innerWidth <= 768;
+        if (!isMobile) {
+            input.focus();
+        }
+    });
+}
+
+// Override addMessageToChat to support media
+const originalAddMessageToChat = addMessageToChat;
+addMessageToChat = function(event) {
+    const messagesContainer = document.getElementById('chatMessages');
+
+    const messageDiv = document.createElement('div');
+    const isOwnMessage = event.user.id === {{ auth()->id() }};
+    messageDiv.className = `message ${isOwnMessage ? 'own' : 'other'}`;
+    messageDiv.setAttribute('data-message-id', event.id);
+
+    let deleteButtonHtml = '';
+    if (isOwnMessage) {
+        deleteButtonHtml = `<button class="message-delete" onclick="deleteMessage(${event.id})" title="Delete">
+            <i class="fas fa-trash"></i> Delete
+        </button>`;
+    }
+
+    // Build media HTML if present
+    let mediaHtml = '';
+    if (event.type === 'image' && event.media_path) {
+        mediaHtml = `<div class="message-media">
+            <img src="/storage/${event.media_path}" alt="Image" class="message-image" onclick="openMediaViewer(this.src)">
+        </div>`;
+    } else if (event.type === 'video' && event.media_path) {
+        mediaHtml = `<div class="message-media">
+            <video src="/storage/${event.media_path}" controls class="message-video"></video>
+        </div>`;
+    }
+
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            ${mediaHtml}
+            ${event.content ? event.content : ''}
+        </div>
+        <div class="message-meta">
+            <span class="message-time">${new Date(event.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            ${deleteButtonHtml}
+        </div>
+    `;
+
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+};
+
+// Close media viewer on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeMediaViewer();
+    }
+});
 </script>
 @endsection
