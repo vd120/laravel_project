@@ -673,6 +673,39 @@
     .action-btn i {
         font-size: 18px;
     }
+    
+    /* Disable hover effects on mobile */
+    .quick-follow-btn:hover { background: var(--twitter-blue); opacity: 1; }
+    .quick-follow-btn.following:hover { background: transparent; border-color: var(--twitter-gray); color: var(--twitter-dark); }
+    .author-name:hover { text-decoration: none; }
+    .delete-post-btn:hover { background: transparent; }
+    .post-content a:hover { text-decoration: none; }
+    .media-item:hover { opacity: 1; }
+    .action-btn:hover { background: transparent; }
+    .comment-form button:hover { transform: none; }
+    .show-more-comments button:hover, .hide-comments:hover { color: var(--twitter-gray); }
+    .comment-action-btn:hover { background: transparent; color: var(--twitter-gray); }
+    .delete-comment-btn:hover { opacity: 0.7; background: transparent; }
+    .show-more-replies button:hover, .hide-replies:hover, .show-replies-btn:hover { text-decoration: none; }
+    .comment-name:hover { color: var(--twitter-dark); }
+}
+
+/* Disable ALL hover effects on touch devices */
+@media (hover: none) {
+    .quick-follow-btn:hover { background: var(--twitter-blue); opacity: 1; }
+    .quick-follow-btn.following:hover { background: transparent; border-color: var(--twitter-gray); color: var(--twitter-dark); }
+    .author-name:hover { text-decoration: none; }
+    .delete-post-btn:hover { background: transparent; }
+    .post-content a:hover { text-decoration: none; }
+    .media-item:hover { opacity: 1; }
+    .action-btn:hover { background: transparent; }
+    .comment-form button:hover { transform: none; }
+    .show-more-comments button:hover, .hide-comments:hover { color: var(--twitter-gray); }
+    .comment-action-btn:hover { background: transparent; color: var(--twitter-gray); }
+    .delete-comment-btn:hover { opacity: 0.7; background: transparent; }
+    .show-more-replies button:hover, .hide-replies:hover, .show-replies-btn:hover { text-decoration: none; }
+    .comment-name:hover { color: var(--twitter-dark); }
+    .media-modal-nav:hover { background: rgba(0, 0, 0, 0.5); }
 }
 
 /* Media Modal Styles */
@@ -908,6 +941,275 @@
 .cancel-reply:hover {
     color: var(--twitter-dark);
 }
+
+/* Comment item styles - needed for dynamically added comments */
+.comment-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.comment-item:last-child {
+    border-bottom: none;
+}
+
+.comment-item.nested {
+    margin-left: 20px;
+    padding-left: 16px;
+    border-left: 2px solid var(--border-color);
+}
+
+.comment-item.level-1 {
+    margin-left: 20px;
+}
+
+.comment-item.level-2 {
+    margin-left: 40px;
+}
+
+.comment-item.level-3 {
+    margin-left: 60px;
+}
+
+.comment-item.level-4 {
+    margin-left: 80px;
+}
+
+.comment-item.level-5 {
+    margin-left: 100px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.comment-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+.comment-avatar-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--twitter-blue), #8B5CF6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.comment-author-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.comment-name {
+    font-weight: 600;
+    color: var(--twitter-dark);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.comment-name:hover {
+    color: var(--twitter-blue);
+}
+
+.comment-time {
+    font-size: 11px;
+    color: var(--twitter-gray);
+}
+
+.delete-comment-btn {
+    background: none;
+    border: none;
+    color: var(--error-color);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    font-size: 12px;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+.delete-comment-btn:hover {
+    opacity: 1;
+    background: rgba(244, 33, 46, 0.1);
+}
+
+.comment-content {
+    margin-bottom: 8px;
+    padding-left: 46px;
+}
+
+.comment-content p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--twitter-dark);
+    word-wrap: break-word;
+}
+
+.comment-content a {
+    color: var(--twitter-blue);
+    text-decoration: none;
+}
+
+.comment-actions-bar {
+    display: flex;
+    gap: 12px;
+    padding-left: 46px;
+    margin-bottom: 8px;
+}
+
+.comment-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border: none;
+    border-radius: 12px;
+    background: none;
+    color: var(--twitter-gray);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.comment-action-btn:hover {
+    background: var(--twitter-light);
+    color: var(--twitter-dark);
+}
+
+.comment-action-btn.liked {
+    color: var(--error-color);
+    background: rgba(244, 33, 46, 0.1);
+}
+
+.replies-container {
+    margin-top: 8px;
+}
+
+.show-more-replies,
+.hide-replies,
+.show-replies-always {
+    padding-left: 46px;
+    margin-top: 8px;
+}
+
+.show-more-replies button,
+.hide-replies,
+.show-replies-btn {
+    background: none;
+    border: none;
+    color: var(--twitter-blue);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+}
+
+.show-more-replies button:hover,
+.hide-replies:hover,
+.show-replies-btn:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .comment-item.nested {
+        margin-left: 12px;
+        padding-left: 12px;
+    }
+
+    .comment-item.level-1 {
+        margin-left: 12px;
+    }
+
+    .comment-item.level-2 {
+        margin-left: 24px;
+    }
+
+    .comment-item.level-3 {
+        margin-left: 36px;
+    }
+
+    .comment-item.level-4 {
+        margin-left: 48px;
+    }
+
+    .comment-item.level-5 {
+        margin-left: 60px;
+    }
+
+    .comment-content,
+    .comment-actions-bar,
+    .reply-form {
+        padding-left: 0;
+    }
+
+    .show-more-replies,
+    .hide-replies {
+        padding-left: 0;
+    }
+
+    /* Mobile-friendly button styles */
+    .comment-action-btn {
+        padding: 8px 12px;
+        min-height: 44px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .comment-action-btn:active {
+        background: var(--twitter-light);
+        transform: scale(0.98);
+    }
+
+    .delete-comment-btn {
+        padding: 10px;
+        min-width: 44px;
+        min-height: 44px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .delete-comment-btn:active {
+        opacity: 1;
+        background: rgba(244, 33, 46, 0.2);
+    }
+
+    .show-replies-btn {
+        padding: 10px 0;
+        min-height: 44px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .reply-input-wrapper textarea {
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+
+    .reply-input-wrapper button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .cancel-reply {
+        padding: 10px;
+        min-height: 44px;
+    }
+}
 </style>
 
 <!-- Media Modal -->
@@ -961,6 +1263,19 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
     }
 
     function toggleLike(slug, btn) {
+        // Optimistic update - just toggle 'liked' class (blade uses fas fa-heart always)
+        const count = btn.querySelector('.count');
+        const isCurrentlyLiked = btn.classList.contains('liked');
+        const currentCount = count ? parseInt(count.textContent) || 0 : 0;
+        
+        if (isCurrentlyLiked) {
+            btn.classList.remove('liked');
+            if (count) count.textContent = currentCount - 1;
+        } else {
+            btn.classList.add('liked');
+            if (count) count.textContent = currentCount + 1;
+        }
+        
         fetch(`/posts/${slug}/like`, {
             method: 'POST',
             headers: {
@@ -968,38 +1283,39 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                 'Accept': 'application/json'
             }
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            const icon = btn.querySelector('i');
-            const count = btn.querySelector('.count');
-            
-            if (data.liked) {
-                btn.classList.add('liked');
-                icon.classList.remove('far');
-                icon.classList.add('fas');
+            if (data.success) {
+                // Update likers button count
+                var likersBtn = btn.closest('.post-actions').querySelector('.likers-btn');
+                if (likersBtn) {
+                    var likersCountSpan = likersBtn.querySelector('.likers-count');
+                    if (likersCountSpan) {
+                        likersCountSpan.textContent = data.likes_count > 0 ? data.likes_count : '';
+                    }
+                }
             } else {
-                btn.classList.remove('liked');
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-            }
-            
-            if (count) count.textContent = data.likes_count;
-            
-            // Update likers button count
-            var likersBtn = btn.closest('.post-actions').querySelector('.likers-btn');
-            if (likersBtn) {
-                var likersCountSpan = likersBtn.querySelector('.likers-count');
-                if (likersCountSpan) {
-                    likersCountSpan.textContent = data.likes_count > 0 ? data.likes_count : '';
+                // Revert on failure
+                if (isCurrentlyLiked) {
+                    btn.classList.add('liked');
+                    if (count) count.textContent = currentCount;
+                } else {
+                    btn.classList.remove('liked');
+                    if (count) count.textContent = currentCount;
                 }
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error);
+            // Revert on error
+            if (isCurrentlyLiked) {
+                btn.classList.add('liked');
+                if (count) count.textContent = currentCount;
+            } else {
+                btn.classList.remove('liked');
+                if (count) count.textContent = currentCount;
+            }
+        });
     }
 
     function toggleSave(slug, btn) {
@@ -1217,7 +1533,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                     const initial = userName.charAt(0).toUpperCase();
                     
                     const commentHtml = `
-                        <div class="comment-item" data-comment-id="${data.comment.id}">
+                        <div class="comment-item level-0" data-comment-id="${data.comment.id}">
                             <div class="comment-header">
                                 <div class="comment-author">
                                     ${avatarUrl 
@@ -1238,7 +1554,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                             </div>
                             <div class="comment-actions-bar">
                                 <button type="button" class="comment-action-btn" onclick="likeComment(${data.comment.id}, this)">
-                                    <i class="far fa-heart"></i>
+                                    <i class="fas fa-heart"></i>
                                     <span>0</span>
                                 </button>
                                 <button type="button" class="comment-action-btn" onclick="toggleReplyForm(${data.comment.id})">
@@ -1290,6 +1606,19 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
     }
 
     function likeComment(commentId, btn) {
+        // Optimistic update - just toggle 'liked' class (blade uses fas fa-heart always)
+        const countSpan = btn.querySelector('span');
+        const isCurrentlyLiked = btn.classList.contains('liked');
+        const currentCount = countSpan ? parseInt(countSpan.textContent) || 0 : 0;
+        
+        if (isCurrentlyLiked) {
+            btn.classList.remove('liked');
+            if (countSpan) countSpan.textContent = currentCount - 1;
+        } else {
+            btn.classList.add('liked');
+            if (countSpan) countSpan.textContent = currentCount + 1;
+        }
+        
         fetch(`/comments/${commentId}/like`, {
             method: 'POST',
             headers: {
@@ -1299,22 +1628,28 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
         })
         .then(response => response.json())
         .then(data => {
-            const icon = btn.querySelector('i');
-            const countSpan = btn.querySelector('span');
-            
-            if (data.liked) {
+            if (!data.success) {
+                // Revert on failure
+                if (isCurrentlyLiked) {
+                    btn.classList.add('liked');
+                    if (countSpan) countSpan.textContent = currentCount;
+                } else {
+                    btn.classList.remove('liked');
+                    if (countSpan) countSpan.textContent = currentCount;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Revert on error
+            if (isCurrentlyLiked) {
                 btn.classList.add('liked');
-                icon.classList.remove('far');
-                icon.classList.add('fas');
+                if (countSpan) countSpan.textContent = currentCount;
             } else {
                 btn.classList.remove('liked');
-                icon.classList.remove('fas');
-                icon.classList.add('far');
+                if (countSpan) countSpan.textContent = currentCount;
             }
-            
-            if (countSpan) countSpan.textContent = data.likes_count;
-        })
-        .catch(error => console.error('Error:', error));
+        });
     }
 
     function deleteComment(commentId, btn) {
@@ -1379,22 +1714,18 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                     const initial = userName.charAt(0).toUpperCase();
                     
                     // Determine the level of the new reply based on parent comment
-                    let parentLevel = 0;
+                    let parentLevel = null;
                     const parentCommentEl = document.querySelector(`[data-comment-id="${commentId}"]`);
                     if (parentCommentEl) {
-                        for (let i = 1; i <= 5; i++) {
+                        // Check for level classes (level-0, level-1, level-2, etc.)
+                        for (let i = 0; i <= 5; i++) {
                             if (parentCommentEl.classList.contains('level-' + i)) {
                                 parentLevel = i;
                                 break;
                             }
                         }
                     }
-                    
-                    // If no level class found, check if it's a top-level comment (level 0)
-                    if (parentLevel === 0 && parentCommentEl && parentCommentEl.classList.contains('comment-item') && !parentCommentEl.classList.contains('nested')) {
-                        parentLevel = 0;
-                    }
-                    const newLevel = parentLevel + 1;
+                    const newLevel = parentLevel !== null ? parentLevel + 1 : 1;
                     
                     // Check if reply button should be shown (max level is 4, so show for level < 4)
                     const showReplyBtn = newLevel < 4;
@@ -1431,7 +1762,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                             </div>
                             <div class="comment-actions-bar">
                                 <button type="button" class="comment-action-btn" onclick="likeComment(${data.comment.id}, this)">
-                                    <i class="far fa-heart"></i>
+                                    <i class="fas fa-heart"></i>
                                     <span>0</span>
                                 </button>
                                 ${showReplyBtn ? `

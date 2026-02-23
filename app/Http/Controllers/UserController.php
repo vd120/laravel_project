@@ -559,4 +559,51 @@ class UserController extends Controller
             ], 404);
         }
     }
+
+    /**
+     * Check current user's account status (for background polling)
+     * Returns status info for: suspended, deleted, logged out, etc.
+     */
+    public function checkUserStatus()
+    {
+        $user = auth()->user();
+        
+        if (!$user) {
+            return response()->json([
+                'status' => 'logged_out',
+                'message' => 'User is not authenticated'
+            ]);
+        }
+        
+        // Refresh user to get latest data
+        $user = User::find($user->id);
+        
+        if (!$user) {
+            return response()->json([
+                'status' => 'deleted',
+                'message' => 'Your account has been deleted'
+            ]);
+        }
+        
+        // Check if user is suspended
+        if ($user->is_suspended) {
+            return response()->json([
+                'status' => 'suspended',
+                'message' => 'Your account has been suspended'
+            ]);
+        }
+        
+        // Check if email is verified
+        if (!$user->hasVerifiedEmail()) {
+            return response()->json([
+                'status' => 'unverified',
+                'message' => 'Please verify your email'
+            ]);
+        }
+        
+        return response()->json([
+            'status' => 'active',
+            'message' => 'Account is active'
+        ]);
+    }
 }

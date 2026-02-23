@@ -78,6 +78,24 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Follow::class, 'followed_id');
     }
 
+    /**
+     * Get the users that this user is following
+     */
+    public function following()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'followed_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the users that follow this user
+     */
+    public function followersList()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'followed_id', 'follower_id')
+            ->withTimestamps();
+    }
+
     public function likes()
     {
         return $this->hasMany(Like::class);
@@ -139,6 +157,18 @@ class User extends Authenticatable implements MustVerifyEmail
     public function messages()
     {
         return $this->hasMany(Message::class);
+    }
+
+    public function groupMemberships()
+    {
+        return $this->hasMany(GroupMember::class);
+    }
+
+    public function groups()
+    {
+        return $this->belongsToMany(Group::class, 'group_members', 'user_id', 'group_id')
+            ->withPivot('role', 'joined_at')
+            ->withTimestamps();
     }
 
     public function activeStories()

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
+use App\Models\Group;
 use App\Events\MessageSent;
 use Illuminate\Http\Request;
 
@@ -12,11 +13,30 @@ class ChatController extends Controller
 {
     public function index()
     {
-        $conversations = Conversation::where('user1_id', auth()->id())
-            ->orWhere('user2_id', auth()->id())
+        // Get direct conversations
+        $directConversations = Conversation::where('is_group', false)
+            ->where(function ($query) {
+                $query->where('user1_id', auth()->id())
+                      ->orWhere('user2_id', auth()->id());
+            })
             ->with(['user1', 'user2', 'latestMessage.sender'])
             ->orderBy('last_message_at', 'desc')
             ->get();
+
+        // Get group conversations
+        $groupIds = auth()->user()->groupMemberships()->pluck('group_id');
+        $groupConversations = Conversation::where('is_group', true)
+            ->whereIn('group_id', $groupIds)
+            ->with(['group.members.user', 'latestMessage.sender'])
+            ->orderBy('last_message_at', 'desc')
+            ->get();
+        
+        // Load sender for direct conversations' latest messages
+        $directConversations->load('latestMessage.sender');
+
+        // Merge and sort by last message
+        $conversations = $directConversations->merge($groupConversations)
+            ->sortByDesc('last_message_at');
 
         return view('chat.index', compact('conversations'));
     }
@@ -95,10 +115,17 @@ class ChatController extends Controller
         ]);
     }
 
-    public function show(Conversation $conversation)
+    public function show($conversation)
     {
-        // Check if user is part of this conversation
-        if ($conversation->user1_id !== auth()->id() && $conversation->user2_id !== auth()->id()) {
+        // Try to find by ID first (for numeric), then by slug
+        if (is_numeric($conversation)) {
+            $conversation = Conversation::findOrFail($conversation);
+        } else {
+            $conversation = Conversation::where('slug', $conversation)->firstOrFail();
+        }
+        
+        // Check if user has access to this conversation
+        if (!$conversation->isMember(auth()->id())) {
             abort(403);
         }
 
@@ -106,15 +133,15 @@ class ChatController extends Controller
         Message::markConversationAsRead($conversation->id, auth()->id());
 
         // Load active messages only - deleted messages are not shown
-        $messages = $conversation->messages()->with('sender')->get();
+        $messages = $conversation->messages()->with('sender.profile')->get();
 
         return view('chat.show', compact('conversation', 'messages'));
     }
 
     public function store(Request $request, Conversation $conversation)
     {
-        // Check if user is part of this conversation
-        if ($conversation->user1_id !== auth()->id() && $conversation->user2_id !== auth()->id()) {
+        // Check if user has access to this conversation
+        if (!$conversation->isMember(auth()->id())) {
             abort(403);
         }
 
@@ -177,17 +204,16 @@ class ChatController extends Controller
         // Broadcast the message
         broadcast(new MessageSent($message))->toOthers();
 
-        // Create notification for the recipient
-        $recipientId = $conversation->user1_id === auth()->id()
-            ? $conversation->user2_id
-            : $conversation->user1_id;
-
-        // Import NotificationController and create notification
-        \App\Http\Controllers\NotificationController::createMessageNotification(
-            $recipientId,
-            auth()->user(),
-            $message
-        );
+        // Create notifications for all recipients
+        $recipientIds = $conversation->getRecipients(auth()->id());
+        
+        foreach ($recipientIds as $recipientId) {
+            \App\Http\Controllers\NotificationController::createMessageNotification(
+                $recipientId,
+                auth()->user(),
+                $message
+            );
+        }
 
         return response()->json([
             'success' => true,
@@ -227,14 +253,14 @@ class ChatController extends Controller
 
     public function getMessages(Conversation $conversation)
     {
-        // Check if user is part of this conversation
-        if ($conversation->user1_id !== auth()->id() && $conversation->user2_id !== auth()->id()) {
+        // Check if user has access to this conversation
+        if (!$conversation->isMember(auth()->id())) {
             abort(403);
         }
 
         // Get unread messages from other users
         $newMessages = $conversation->messages()
-            ->with('sender')
+            ->with('sender.profile')
             ->where('sender_id', '!=', auth()->id())
             ->where('read_at', null)
             ->orderBy('created_at', 'asc')
@@ -277,8 +303,8 @@ class ChatController extends Controller
 
     public function markAsRead(Conversation $conversation)
     {
-        // Check if user is part of this conversation
-        if ($conversation->user1_id !== auth()->id() && $conversation->user2_id !== auth()->id()) {
+        // Check if user has access to this conversation
+        if (!$conversation->isMember(auth()->id())) {
             abort(403);
         }
 
@@ -289,15 +315,26 @@ class ChatController extends Controller
 
     public function destroy(Message $message)
     {
+        $userId = auth()->id();
+        
         // Check if user owns this message
-        if ($message->sender_id !== auth()->id()) {
-            abort(403);
+        if ($message->sender_id != $userId) {
+            abort(403, 'You can only delete your own messages.');
         }
 
         // Check if message belongs to a conversation the user is part of
         $conversation = $message->conversation;
-        if ($conversation->user1_id !== auth()->id() && $conversation->user2_id !== auth()->id()) {
-            abort(403);
+        
+        // For group conversations, check membership via group
+        if ($conversation->is_group) {
+            if (!$conversation->group || !$conversation->group->hasMember(auth()->user())) {
+                abort(403, 'You are not a member of this conversation.');
+            }
+        } else {
+            // For direct messages, check if user is user1 or user2
+            if ($conversation->user1_id != $userId && $conversation->user2_id != $userId) {
+                abort(403, 'You are not a member of this conversation.');
+            }
         }
 
         $message->delete();
@@ -319,5 +356,63 @@ class ChatController extends Controller
         $conversation->update(['last_message_at' => null]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Get new messages for toast notification (polling)
+     */
+    public function getNewMessagesForToast()
+    {
+        $userId = auth()->id();
+        $user = auth()->user();
+        
+        // Get user's group IDs for group conversations
+        $groupIds = $user->groupMemberships()->pluck('group_id');
+        
+        // Get unread messages not from current user, not yet notified
+        // Include both direct messages and group messages
+        $messages = Message::whereHas('conversation', function($query) use ($userId, $groupIds) {
+                $query->where(function($q) use ($userId, $groupIds) {
+                    // Direct messages
+                    $q->where(function($dq) use ($userId) {
+                        $dq->where('user1_id', $userId)
+                           ->orWhere('user2_id', $userId);
+                    });
+                    
+                    // Group messages - user must be a member of the group
+                    if ($groupIds->count() > 0) {
+                        $q->orWhereIn('group_id', $groupIds);
+                    }
+                });
+            })
+            ->where('sender_id', '!=', $userId)
+            ->whereNull('notified_at')
+            ->with('sender')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        // Mark messages as notified
+        if ($messages->count() > 0) {
+            Message::whereIn('id', $messages->pluck('id'))
+                ->update(['notified_at' => now()]);
+        }
+        
+        $formatted = $messages->map(function($msg) {
+            $conversation = $msg->conversation;
+            $isGroup = $conversation && $conversation->is_group;
+            $groupName = $isGroup && $conversation->group ? $conversation->group->name : null;
+            
+            return [
+                'id' => $msg->id,
+                'sender_name' => $msg->sender->name,
+                'content' => substr($msg->content, 0, 50) . (strlen($msg->content) > 50 ? '...' : ''),
+                'is_group' => $isGroup,
+                'group_name' => $groupName,
+                'conversation_id' => $msg->conversation_id,
+            ];
+        });
+        
+        return response()->json(['new_messages' => $formatted]);
     }
 }

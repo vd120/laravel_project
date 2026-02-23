@@ -56,10 +56,10 @@
             --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             --shadow-glow: 0 0 20px var(--primary-glow);
             
-            /* Transitions - Simplified for performance */
-            --transition-fast: 50ms ease;
-            --transition: 100ms ease;
-            --transition-slow: 150ms ease;
+            /* Transitions - Removed for performance */
+            --transition-fast: 0ms;
+            --transition: 0ms;
+            --transition-slow: 0ms;
             
             /* Z-Index Scale */
             --z-dropdown: 100;
@@ -126,7 +126,6 @@
         .header {
             position: sticky; top: 0; z-index: var(--z-sticky);
             background: var(--surface);
-            backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
         }
 
@@ -208,21 +207,20 @@
             border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); z-index: 9999;
             padding: 8px;
         }
-        .dropdown-menu.show { display: block; animation: dropdownIn 0.2s ease; }
-        @keyframes dropdownIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .dropdown-menu.show { display: block; }
 
-        /* Notification Panel Styles */
+        /* Notification Panel Styles - Simplified & Mobile Friendly */
         .notif-panel {
-            width: 380px;
-            max-width: calc(100vw - 32px);
+            width: 360px;
+            max-width: calc(100vw - 24px);
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
             overflow: hidden;
         }
         .notif-header {
-            padding: 14px 16px;
+            padding: 16px;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
@@ -230,52 +228,54 @@
         }
         .notif-header h3 {
             margin: 0;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
             color: var(--text);
         }
         .notif-header-actions {
             display: flex;
-            gap: 4px;
+            gap: 8px;
         }
         .notif-action-btn {
-            background: transparent;
-            border: none;
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
             color: var(--text-muted);
             font-size: 12px;
             cursor: pointer;
-            padding: 6px 10px;
-            border-radius: 6px;
+            padding: 8px 12px;
+            border-radius: var(--radius);
             transition: all var(--transition);
             font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
         .notif-action-btn:hover {
-            background: var(--surface-hover);
-            color: var(--text);
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
         }
         .notif-action-btn.danger:hover {
-            color: var(--accent);
-            background: rgba(244, 63, 94, 0.1);
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
         }
         .notif-list {
-            max-height: 420px;
+            max-height: 400px;
             overflow-y: auto;
         }
         .notif-list::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
         .notif-list::-webkit-scrollbar-track {
             background: transparent;
         }
         .notif-list::-webkit-scrollbar-thumb {
             background: var(--border);
-            border-radius: 3px;
+            border-radius: 2px;
         }
         .notif-item {
-            padding: 12px 16px;
+            padding: 14px 16px;
             cursor: pointer;
             border-bottom: 1px solid var(--border);
             transition: all var(--transition);
@@ -288,16 +288,15 @@
             background: var(--surface-hover);
         }
         .notif-item.unread {
-            background: rgba(59, 130, 246, 0.08);
+            background: rgba(59, 130, 246, 0.06);
         }
         .notif-item.unread::before {
             content: '';
             position: absolute;
             left: 0;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 0;
+            bottom: 0;
             width: 3px;
-            height: 24px;
             background: var(--primary);
             border-radius: 0 3px 3px 0;
         }
@@ -307,14 +306,14 @@
             gap: 12px;
         }
         .notif-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-sm);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            font-size: 14px;
+            font-size: 16px;
         }
         .notif-icon.follow { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
         .notif-icon.like { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
@@ -327,57 +326,79 @@
             min-width: 0;
         }
         .notif-text p {
-            margin: 0 0 3px 0;
-            font-size: 13px;
+            margin: 0 0 4px 0;
+            font-size: 14px;
             color: var(--text);
-            line-height: 1.5;
+            line-height: 1.4;
         }
         .notif-time {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-muted);
         }
         .notif-item-actions {
             display: flex;
-            gap: 2px;
-            opacity: 0;
-            transition: opacity var(--transition);
-        }
-        .notif-item:hover .notif-item-actions {
-            opacity: 1;
+            gap: 6px;
+            margin-top: 8px;
         }
         .notif-item-btn {
-            background: transparent;
-            border: none;
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
             color: var(--text-muted);
             cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
+            padding: 6px 10px;
+            border-radius: 6px;
             transition: all var(--transition);
             font-size: 11px;
+            font-weight: 500;
         }
         .notif-item-btn:hover {
-            background: var(--surface-hover);
+            background: var(--surface);
         }
         .notif-item-btn.read:hover {
             color: var(--success);
+            border-color: var(--success);
         }
         .notif-item-btn.delete:hover {
             color: var(--accent);
+            border-color: var(--accent);
         }
         .notif-empty {
-            padding: 50px 20px;
+            padding: 40px 20px;
             text-align: center;
             color: var(--text-muted);
         }
         .notif-empty i {
-            font-size: 40px;
+            font-size: 48px;
             margin-bottom: 12px;
             display: block;
-            opacity: 0.25;
+            opacity: 0.2;
         }
         .notif-empty p {
             margin: 0;
-            font-size: 13px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 480px) {
+            .notif-panel {
+                width: calc(100vw - 16px);
+                max-height: 70vh;
+            }
+            .notif-header {
+                padding: 12px 14px;
+            }
+            .notif-action-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            .notif-action-btn span {
+                display: none;
+            }
+            .notif-item {
+                padding: 12px 14px;
+            }
+            .notif-item-actions {
+                opacity: 1;
+            }
         }
 
         .dropdown-menu a, .dropdown-menu button {
@@ -426,7 +447,7 @@
 
         .card {
             background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius-lg); padding: 20px; backdrop-filter: blur(10px);
+            border-radius: var(--radius-lg); padding: 20px;
         }
 
         .form-input {
@@ -446,25 +467,16 @@
             display: flex; flex-direction: column; gap: 12px; pointer-events: none;
         }
         .toast {
-            padding: 16px 24px;
-            background: rgba(17, 17, 17, 0.9);
+            padding: 12px 16px;
+            background: rgba(26, 26, 26, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #ffffff;
+            color: var(--text);
             font-size: 14px; font-weight: 500;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-            animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            display: flex; align-items: center; gap: 14px; pointer-events: auto;
-            position: relative;
-            overflow: hidden;
-        }
-        .toast::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            border-radius: 12px;
+            display: flex; align-items: center; gap: 10px; pointer-events: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
         .toast i:first-child {
             font-size: 18px;
@@ -532,7 +544,7 @@
 
         .mobile-nav {
             display: none; position: fixed; bottom: 0; left: 0; right: 0;
-            background: var(--surface); backdrop-filter: blur(20px);
+            background: var(--surface);
             border-top: 1px solid var(--border);
             padding: 8px 0 calc(12px + env(safe-area-inset-bottom)); z-index: var(--z-fixed);
         }
@@ -551,11 +563,38 @@
             .nav-links { display: none; }
             .mobile-nav { display: block; }
             .app-layout { padding: 20px 16px 100px; }
+            /* Disable hover effects on mobile/touch devices */
+            .nav-links a:hover, .nav-links a.active { background: transparent; }
+            .icon-btn:hover { background: var(--surface); border-color: var(--border); color: var(--text-muted); }
+            .user-btn:hover { background: var(--surface); border-color: var(--border); }
+            .dropdown-menu a:hover, .dropdown-menu button:hover { background: transparent; }
+            .notif-item:hover { background: transparent; }
+            .notif-action-btn:hover { background: var(--surface-hover); color: var(--text-muted); border-color: var(--border); }
+            .notif-action-btn.danger:hover { background: var(--surface-hover); border-color: var(--border); }
+            .notif-item-btn:hover { background: var(--surface-hover); color: var(--text-muted); border-color: var(--border); }
+            .btn:hover { background: var(--surface); border-color: var(--border); }
+            .btn-primary:hover { background: var(--primary); }
         }
         @media (max-width: 480px) {
             .header-inner { padding: 0 12px; height: 56px; }
             .logo { font-size: 1.1rem; }
             .user-btn span { display: none; }
+        }
+        /* Disable ALL hover effects on touch devices */
+        @media (hover: none) {
+            .nav-links a:hover { background: transparent; color: var(--text-muted); }
+            .nav-links a.active { background: var(--surface-hover); color: var(--text); }
+            .icon-btn:hover { background: var(--surface); border-color: var(--border); color: var(--text-muted); }
+            .user-btn:hover { background: var(--surface); border-color: var(--border); }
+            .dropdown-menu a:hover, .dropdown-menu button:hover { background: transparent; }
+            .dropdown-menu .danger:hover { background: transparent; }
+            .notif-item:hover { background: transparent; }
+            .notif-action-btn:hover { background: var(--surface-hover); color: var(--text-muted); border-color: var(--border); }
+            .notif-item-btn:hover { background: var(--surface-hover); color: var(--text-muted); border-color: var(--border); }
+            .btn:hover { background: var(--surface); border-color: var(--border); }
+            .btn-primary:hover { background: var(--primary); }
+            .mobile-nav a:hover { color: var(--text-muted); }
+            .mobile-nav a.active { color: var(--primary); }
         }
     </style>
 </head>
@@ -624,11 +663,13 @@
         <div class="notif-header">
             <h3>Notifications</h3>
             <div class="notif-header-actions">
-                <button class="notif-action-btn" onclick="markAllRead()" title="Mark all read">
+                <button class="notif-action-btn" onclick="markAllRead()" title="Mark all as read">
                     <i class="fas fa-check"></i>
+                    <span>Read all</span>
                 </button>
                 <button class="notif-action-btn danger" onclick="clearAllNotifications()" title="Clear all">
                     <i class="fas fa-trash"></i>
+                    <span>Clear</span>
                 </button>
             </div>
         </div>
@@ -673,7 +714,8 @@
     @endauth
 
     <div id="toast-container"></div>
-
+    
+    <script src="{{ asset('js/realtime.js') }}" defer></script>
     <script>
         function toggleTheme() {
             const html = document.documentElement;
@@ -893,9 +935,108 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            if ({{ auth()->check() ? 'true' : 'false' }}) { loadNotifications(); setInterval(loadNotifications, 30000); }
+            if ({{ auth()->check() ? 'true' : 'false' }}) { 
+                loadNotifications(); 
+                setInterval(loadNotifications, 30000); 
+                
+                // Set current user ID for realtime.js
+                window.currentUserId = {{ auth()->id() ?? 'null' }};
+                
+                // Start polling for new messages to show toast
+                checkNewMessages();
+                setInterval(checkNewMessages, 3000); // Check every 3 seconds
+                
+                // Start polling for user account status
+                checkUserStatus();
+                setInterval(checkUserStatus, 3000); // Check every 3 seconds
+            }
             document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllDropdowns(); });
         });
+        
+        // Function to check for new messages and show toast
+        function checkNewMessages() {
+            if (!window.currentUserId) return;
+            
+            // Don't show message toasts if user is on a chat page
+            const isOnChatPage = window.location.pathname.startsWith('/chat');
+            if (isOnChatPage) return;
+            
+            fetch('/api/messages/new', {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.new_messages && data.new_messages.length > 0) {
+                    data.new_messages.forEach(msg => {
+                        // Truncate message content if too long
+                        let content = msg.content || '';
+                        if (content.length > 50) {
+                            content = content.substring(0, 50) + '...';
+                        }
+                        // Show group name if it's a group message
+                        let prefix = msg.is_group && msg.group_name 
+                            ? `${msg.group_name} - ${msg.sender_name}` 
+                            : msg.sender_name;
+                        showToast(`${prefix}: ${content}`, 'info');
+                    });
+                }
+            })
+            .catch(() => {});
+        }
+        
+        // Function to check user account status (suspended, deleted, etc.)
+        function checkUserStatus() {
+            if (!window.currentUserId) return;
+            
+            fetch('/api/user/status', {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                // Check if response is unauthorized (logged out elsewhere)
+                if (response.status === 401) {
+                    showToast('You have been logged in from another device', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                    return Promise.reject('Unauthorized');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'suspended') {
+                    // User is suspended - redirect to suspended page
+                    showToast('Your account has been suspended', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/suspended';
+                    }, 2000);
+                } else if (data.status === 'deleted') {
+                    // User account is deleted - redirect to login
+                    showToast('Your account has been deleted', 'error');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else if (data.status === 'logged_out') {
+                    // User is logged out - redirect to login
+                    showToast('Session expired', 'info');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else if (data.status === 'unverified') {
+                    // User email is unverified - redirect to verification
+                    showToast('Please verify your email', 'info');
+                    setTimeout(() => {
+                        window.location.href = '/email/verify';
+                    }, 2000);
+                }
+            })
+            .catch(() => {});
+        }
     </script>
 </body>
 </html>

@@ -167,7 +167,7 @@ Route::get('/', function () {
     return app(\App\Http\Controllers\PostController::class)->index(request());
 })->name('home');
 
-Route::middleware(['auth', 'suspended'])->group(function () {
+Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
     Route::resource('posts', PostController::class)->parameters([
         'posts' => 'post:slug'
     ]);
@@ -212,6 +212,9 @@ Route::middleware(['auth', 'suspended'])->group(function () {
 
     // Chat routes
     Route::get('/chat', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
+    
+    // API for checking new messages (polling)
+    Route::get('/api/messages/new', [App\Http\Controllers\ChatController::class, 'getNewMessagesForToast'])->name('api.messages.new');
     Route::get('/chat/conversations', [App\Http\Controllers\ChatController::class, 'getConversations'])->name('chat.conversations');
     Route::get('/api/user/new-messages', [App\Http\Controllers\ChatController::class, 'getNewMessages'])->name('api.user.new-messages');
     Route::get('/api/user/{user}/username', [App\Http\Controllers\UserController::class, 'getUsername'])->name('api.user.username');
@@ -226,6 +229,26 @@ Route::middleware(['auth', 'suspended'])->group(function () {
     // User online status routes
     Route::post('/user/update-online-status', [App\Http\Controllers\UserController::class, 'updateOnlineStatus'])->name('user.update-online-status');
     Route::get('/user/{user}/online-status', [App\Http\Controllers\UserController::class, 'getOnlineStatus'])->name('user.online-status')->where('user', '[a-zA-Z0-9_-]+');
+    
+    // User status check API (for background polling)
+    Route::get('/api/user/status', [App\Http\Controllers\UserController::class, 'checkUserStatus'])->name('api.user.status');
+
+    // Group chat routes with slug-based URLs
+    Route::get('/groups', [App\Http\Controllers\GroupController::class, 'index'])->name('groups.index');
+    Route::get('/groups/create', [App\Http\Controllers\GroupController::class, 'create'])->name('groups.create');
+    Route::post('/groups', [App\Http\Controllers\GroupController::class, 'store'])->name('groups.store');
+    Route::get('/groups/{slug}', [App\Http\Controllers\GroupController::class, 'show'])->name('groups.show');
+    Route::get('/groups/{slug}/edit', [App\Http\Controllers\GroupController::class, 'edit'])->name('groups.edit');
+    Route::put('/groups/{slug}', [App\Http\Controllers\GroupController::class, 'update'])->name('groups.update');
+    Route::delete('/groups/{slug}', [App\Http\Controllers\GroupController::class, 'destroy'])->name('groups.destroy');
+    Route::post('/groups/{slug}/members', [App\Http\Controllers\GroupController::class, 'addMembers'])->name('groups.add-members');
+    Route::delete('/groups/{slug}/members/{userId}', [App\Http\Controllers\GroupController::class, 'removeMember'])->name('groups.remove-member');
+    Route::post('/groups/{slug}/members/{userId}/admin', [App\Http\Controllers\GroupController::class, 'makeAdmin'])->name('groups.make-admin');
+    Route::delete('/groups/{slug}/members/{userId}/admin', [App\Http\Controllers\GroupController::class, 'removeAdmin'])->name('groups.remove-admin');
+    Route::post('/groups/{slug}/regenerate-invite', [App\Http\Controllers\GroupController::class, 'regenerateInvite'])->name('groups.regenerate-invite');
+    
+    // Join group via invite link
+    Route::get('/join/{inviteLink}', [App\Http\Controllers\GroupController::class, 'joinViaInvite'])->name('groups.join');
 
 
 

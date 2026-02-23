@@ -61,16 +61,22 @@ class RealTimeManager {
         const postElement = document.querySelector(`[data-post-id="${event.post_id}"]`);
         if (!postElement) return;
 
-        const likeButton = postElement.querySelector('.like-btn');
-        const likeCount = postElement.querySelector('.like-count');
+        const likeButton = postElement.querySelector('.action-btn.like-btn');
+        const countSpan = likeButton ? likeButton.querySelector('.count') : null;
 
+        // Blade uses fas fa-heart always, just toggle 'liked' class
         if (likeButton && event.user_id === this.currentUserId) {
             likeButton.classList.add('liked');
-            likeButton.innerHTML = '<i class="fas fa-heart"></i> Liked';
         }
 
-        if (likeCount) {
-            likeCount.textContent = event.likes_count;
+        if (countSpan) {
+            countSpan.textContent = event.likes_count;
+        }
+
+        // Update likers button count
+        const likersBtn = postElement.querySelector('.likers-btn .likers-count');
+        if (likersBtn) {
+            likersBtn.textContent = event.likes_count;
         }
 
         // Show notification if not own post
@@ -83,48 +89,39 @@ class RealTimeManager {
         const postElement = document.querySelector(`[data-post-id="${event.post_id}"]`);
         if (!postElement) return;
 
-        const likeButton = postElement.querySelector('.like-btn');
-        const likeCount = postElement.querySelector('.like-count');
+        const likeButton = postElement.querySelector('.action-btn.like-btn');
+        const countSpan = likeButton ? likeButton.querySelector('.count') : null;
 
+        // Blade uses fas fa-heart always, just toggle 'liked' class
         if (likeButton && event.user_id === this.currentUserId) {
             likeButton.classList.remove('liked');
-            likeButton.innerHTML = '<i class="far fa-heart"></i> Like';
         }
 
-        if (likeCount) {
-            likeCount.textContent = event.likes_count;
+        if (countSpan) {
+            countSpan.textContent = event.likes_count;
+        }
+
+        // Update likers button count
+        const likersBtn = postElement.querySelector('.likers-btn .likers-count');
+        if (likersBtn) {
+            likersBtn.textContent = event.likes_count;
         }
     }
 
     handleCommentCreated(event) {
-        console.log('📨 Received comment.created event:', event);
-
         const postElement = document.querySelector(`[data-post-id="${event.post_id}"]`);
-        if (!postElement) {
-            console.log('❌ Post element not found for post ID:', event.post_id);
-            return;
-        }
+        if (!postElement) return;
 
-        // Always add the new comment if it's the current user's comment (optimistic update)
-        if (event.comment.user_id === this.currentUserId) {
-            console.log('➕ Adding own comment to UI immediately');
-            const commentsContainer = postElement.querySelector('.comments-container');
-            if (commentsContainer) {
-                const commentHtml = this.createCommentHtml(event.comment);
-                commentsContainer.insertAdjacentHTML('beforeend', commentHtml);
-                console.log('✅ Comment added to UI');
-            } else {
-                console.log('❌ Comments container not found');
-            }
-        } else {
-            // For other users' comments, add if comments container is visible
-            const commentsContainer = postElement.querySelector('.comments-container');
-            if (commentsContainer && commentsContainer.style.display !== 'none') {
-                console.log('➕ Adding other user comment to UI');
-                const commentHtml = this.createCommentHtml(event.comment);
-                commentsContainer.insertAdjacentHTML('beforeend', commentHtml);
-            }
-        }
+        // Match blade template: .comments-list inside .post-comments-section
+        const commentsList = postElement.querySelector('.comments-list');
+        if (!commentsList) return;
+
+        // Add the new comment at the beginning
+        const commentHtml = this.createCommentHtml(event.comment);
+        commentsList.insertAdjacentHTML('afterbegin', commentHtml);
+
+        // Update comment counter
+        this.updateCommentCount(event.post_id, 1);
 
         // Show notification if not own comment
         if (event.comment.user_id !== this.currentUserId) {
@@ -133,26 +130,34 @@ class RealTimeManager {
     }
 
     handleCommentDeleted(event) {
-        console.log('📨 Received comment.deleted event:', event);
-
-        const postElement = document.querySelector(`[data-post-id="${event.post_id}"]`);
-        if (!postElement) {
-            console.log('❌ Post element not found for post ID:', event.post_id);
-            return;
-        }
-
-        const commentsCount = postElement.querySelector('.comments-count');
-        if (commentsCount) {
-            commentsCount.textContent = event.comments_count;
-        }
-
-        // Remove comment from UI if visible
         const commentElement = document.querySelector(`[data-comment-id="${event.comment_id}"]`);
         if (commentElement) {
-            console.log('🗑️ Removing comment from UI');
+            // Get the post element before removing the comment
+            const postElement = commentElement.closest('.post-card');
+            
             commentElement.remove();
-        } else {
-            console.log('❌ Comment element not found for comment ID:', event.comment_id);
+            
+            // Update comment counter
+            if (postElement && event.post_id) {
+                this.updateCommentCount(event.post_id, -1);
+            }
+        }
+    }
+
+    updateCommentCount(postId, delta) {
+        const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+        if (!postElement) return;
+
+        // Find the h4 element in the comments section: "Comments (X)"
+        const commentHeader = postElement.querySelector('.post-comments-section h4');
+        if (commentHeader) {
+            const currentText = commentHeader.textContent;
+            const match = currentText.match(/\((\d+)\)/);
+            if (match) {
+                const currentCount = parseInt(match[1]) || 0;
+                const newCount = Math.max(0, currentCount + delta);
+                commentHeader.textContent = `Comments (${newCount})`;
+            }
         }
     }
 
@@ -160,12 +165,15 @@ class RealTimeManager {
         const commentElement = document.querySelector(`[data-comment-id="${event.comment_id}"]`);
         if (!commentElement) return;
 
-        const likeCount = commentElement.querySelector('.comment-like-count');
-        if (likeCount) {
-            likeCount.textContent = event.likes_count;
+        // Match blade template: .comment-action-btn with heart icon (like button), not reply button
+        const likeButton = commentElement.querySelector('.comment-action-btn[onclick*="likeComment"]');
+        const countSpan = likeButton ? likeButton.querySelector('span') : null;
+        
+        if (countSpan) {
+            countSpan.textContent = event.likes_count;
         }
 
-        const likeButton = commentElement.querySelector('.comment-like-btn');
+        // Blade uses fas fa-heart always, just toggle 'liked' class
         if (likeButton && event.user_id === this.currentUserId) {
             likeButton.classList.add('liked');
         }
@@ -175,12 +183,15 @@ class RealTimeManager {
         const commentElement = document.querySelector(`[data-comment-id="${event.comment_id}"]`);
         if (!commentElement) return;
 
-        const likeCount = commentElement.querySelector('.comment-like-count');
-        if (likeCount) {
-            likeCount.textContent = event.likes_count;
+        // Match blade template: .comment-action-btn with heart icon (like button), not reply button
+        const likeButton = commentElement.querySelector('.comment-action-btn[onclick*="likeComment"]');
+        const countSpan = likeButton ? likeButton.querySelector('span') : null;
+        
+        if (countSpan) {
+            countSpan.textContent = event.likes_count;
         }
 
-        const likeButton = commentElement.querySelector('.comment-like-btn');
+        // Blade uses fas fa-heart always, just toggle 'liked' class
         if (likeButton && event.user_id === this.currentUserId) {
             likeButton.classList.remove('liked');
         }
@@ -356,92 +367,80 @@ class RealTimeManager {
     }
 
     // ==================== UTILITY METHODS ====================
-    createCommentHtml(comment) {
+    createCommentHtml(comment, parentLevel = null) {
         const currentUserId = this.currentUserId;
         const isOwner = comment.user_id === currentUserId;
+        
+        // Get user data
+        const userName = comment.user && comment.user.name ? comment.user.name : 'User';
+        const userProfile = comment.user && comment.user.profile ? comment.user.profile : null;
+        const avatarUrl = userProfile && userProfile.avatar ? '/storage/' + userProfile.avatar : null;
+        const initial = userName.charAt(0).toUpperCase();
 
         let deleteButtonHtml = '';
         if (isOwner) {
             deleteButtonHtml = `
-                <button type="button" class="comment-delete-btn" onclick="deleteComment(${comment.id}, this)" title="Delete comment">
+                <button type="button" class="delete-comment-btn" onclick="deleteComment(${comment.id}, this)" title="Delete comment">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             `;
         }
 
+        // Calculate level for nested replies
+        // parentLevel = null means top-level comment (level-0)
+        // parentLevel = 0 means reply to level-0 comment (level-1)
+        const isTopLevel = parentLevel === null;
+        const newLevel = isTopLevel ? 0 : parentLevel + 1;
+        const isNested = !isTopLevel;
+        const maxLevel = 4;
+        const showReplyBtn = newLevel < maxLevel;
+
+        // Blade template uses fas fa-heart always for like button, just toggle 'liked' class
         return `
-            <div class="comment nested-comment level-1" data-comment-id="${comment.id}">
-    <div class="comment-avatar">
-                    ${comment.user.profile && comment.user.profile.avatar
-                        ? `<img src="/storage/${comment.user.profile.avatar}" alt="Avatar" class="comment-user-avatar">`
-                        : `<div class="comment-user-avatar-placeholder">
-                            <i class="fas fa-user"></i>
-                        </div>`
-                    }
-            </div>
+            <div class="comment-item ${isNested ? 'nested' : ''} level-${newLevel}" data-comment-id="${comment.id}">
+                <div class="comment-header">
+                    <div class="comment-author">
+                        ${avatarUrl 
+                            ? `<img src="${avatarUrl}" alt="Avatar" class="comment-avatar">`
+                            : `<div class="comment-avatar-placeholder">${initial}</div>`
+                        }
+                        <div class="comment-author-info">
+                            <a href="/users/${userName}" class="comment-name">${userName}</a>
+                            <span class="comment-time">Just now</span>
+                        </div>
+                    </div>
+                    ${deleteButtonHtml}
+                </div>
 
-    <div class="comment-content-wrapper">
-        <div class="comment-header">
-            <div class="comment-user-info">
-                <a href="/users/${comment.user.name}" class="comment-user-name">${comment.user.name}</a>
-                <span class="comment-time">Just now</span>
-            </div>
-            <div class="comment-actions">
-                                    ${deleteButtonHtml}
-                            </div>
-        </div>
+                <div class="comment-content">
+                    <p>${this.escapeHtml(comment.content)}</p>
+                </div>
 
-        <div class="comment-body">
-            <div class="comment-text">${comment.content}</div>
-        </div>
-
-        <div class="comment-footer">
-            <div class="comment-interactions">
-                <button type="button" class="comment-like-btn " onclick="likeComment(${comment.id}, this)">
-                    <i class="fas fa-heart"></i>
-                    <span class="comment-like-count">0</span>
-                </button>
-                                    <button type="button" class="comment-reply-btn" onclick="toggleReplyForm(${comment.id})">
-                        <i class="fas fa-reply"></i>
-                        Reply
+                <div class="comment-actions-bar">
+                    <button type="button" class="comment-action-btn" onclick="likeComment(${comment.id}, this)">
+                        <i class="fas fa-heart"></i>
+                        <span>0</span>
                     </button>
-                            </div>
-        </div>
+                    ${showReplyBtn ? `
+                    <button type="button" class="comment-action-btn" onclick="toggleReplyForm(${comment.id})">
+                        <i class="fas fa-reply"></i>
+                        <span>Reply</span>
+                    </button>
+                    ` : ''}
+                </div>
 
-        <div id="reply-form-${comment.id}" class="comment-reply-form" style="display: none;">
-            <div class="reply-form-container">
-                <div class="reply-avatar">
-                                            ${comment.user.profile && comment.user.profile.avatar
-                                                ? `<img src="/storage/${comment.user.profile.avatar}" alt="Your avatar">`
-                                                : `<div class="reply-avatar-placeholder">
-                                                    <i class="fas fa-user"></i>
-                                                </div>`
-                                            }
-                                    </div>
-                <div class="reply-input-container">
-                    <textarea id="reply-content-${comment.id}" placeholder="Write a reply..." maxlength="280" required="" class="reply-textarea"></textarea>
-                    <div class="reply-actions">
-                        <button type="button" class="reply-submit-btn" onclick="submitReply(${comment.id}, ${comment.post_id})">
+                ${showReplyBtn ? `
+                <div class="reply-form" id="reply-form-${comment.id}" style="display: none;">
+                    <div class="reply-input-wrapper">
+                        <textarea id="reply-content-${comment.id}" placeholder="Write a reply..." maxlength="280"></textarea>
+                        <button type="button" onclick="submitReply(${comment.id}, ${comment.post_id})">
                             <i class="fas fa-paper-plane"></i>
-                            Reply
-                        </button>
-                        <button type="button" class="reply-cancel-btn" onclick="toggleReplyForm(${comment.id})">
-                            Cancel
                         </button>
                     </div>
+                    <button type="button" class="cancel-reply" onclick="toggleReplyForm(${comment.id})">Cancel</button>
                 </div>
+                ` : ''}
             </div>
-        </div>
-    </div>
-
-    </div>
-
-<script>
-function toggleReplyForm(commentId) {
-    const form = document.getElementById('reply-form-' + commentId);
-    form.style.display = form.style.display === 'none' ? 'block' : 'none';
-}
-</script>
         `;
     }
 
@@ -463,40 +462,31 @@ function toggleReplyForm(commentId) {
 // ==================== AJAX FUNCTIONS FOR POST INTERACTIONS ====================
 
 // Toggle like on a post
-function toggleLike(postId, buttonElement) {
+function toggleLike(postSlug, buttonElement) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    // Find like count as sibling element (new layout)
-    const likeContainer = buttonElement.parentElement;
-    const likeCountElement = likeContainer ? likeContainer.querySelector('.like-count') : null;
+    // Match blade template: .action-btn.like-btn with .count span
+    // Blade uses fas fa-heart always, just toggle 'liked' class
+    const countSpan = buttonElement.querySelector('.count');
     const isCurrentlyLiked = buttonElement.classList.contains('liked');
 
     // Get current count
-    const currentCount = likeCountElement ? parseInt(likeCountElement.textContent) || 0 : 0;
+    const currentCount = countSpan ? parseInt(countSpan.textContent) || 0 : 0;
 
-    // Toggle button state immediately
+    // Optimistic update - just toggle 'liked' class (blade uses fas fa-heart always)
     if (isCurrentlyLiked) {
         buttonElement.classList.remove('liked');
-        buttonElement.style.background = 'var(--twitter-blue)';
-        if (likeCountElement) {
-            likeCountElement.textContent = currentCount - 1;
+        if (countSpan) {
+            countSpan.textContent = currentCount - 1;
         }
     } else {
         buttonElement.classList.add('liked');
-        buttonElement.style.background = 'red';
-        if (likeCountElement) {
-            likeCountElement.textContent = currentCount + 1;
+        if (countSpan) {
+            countSpan.textContent = currentCount + 1;
         }
     }
 
-    // Show/hide likers button based on new count
-    const newCount = isCurrentlyLiked ? currentCount - 1 : currentCount + 1;
-    const likersBtn = likeContainer ? likeContainer.querySelector('.likers-btn') : null;
-    if (likersBtn) {
-        likersBtn.style.display = newCount > 0 ? 'inline-flex' : 'none';
-    }
-
-    fetch(`/posts/${postId}/like`, {
+    fetch(`/posts/${postSlug}/like`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -506,61 +496,69 @@ function toggleLike(postId, buttonElement) {
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Like response:', data);
         if (data.success) {
-            // Real-time events will sync with other users
+            // Update likers button count
+            const postActions = buttonElement.closest('.post-actions');
+            if (postActions) {
+                const likersCount = postActions.querySelector('.likers-btn .likers-count');
+                if (likersCount) {
+                    likersCount.textContent = data.likes_count > 0 ? data.likes_count : '';
+                }
+            }
         } else {
-            // Revert the optimistic update if request failed
+            // Revert on failure
             if (isCurrentlyLiked) {
                 buttonElement.classList.add('liked');
-                buttonElement.style.background = 'red';
-                buttonElement.innerHTML = '<i class="fas fa-heart"></i> <span class="like-count">' + (parseInt(likeCountElement.textContent) + 1) + '</span>';
+                if (countSpan) {
+                    countSpan.textContent = currentCount;
+                }
             } else {
                 buttonElement.classList.remove('liked');
-                buttonElement.style.background = 'var(--twitter-blue)';
-                buttonElement.innerHTML = '<i class="fas fa-heart"></i> <span class="like-count">' + (parseInt(likeCountElement.textContent) - 1) + '</span>';
+                if (countSpan) {
+                    countSpan.textContent = currentCount;
+                }
             }
         }
     })
     .catch(error => {
         console.error('Error toggling like:', error);
-        // Revert the optimistic update on error
+        // Revert on error
         if (isCurrentlyLiked) {
             buttonElement.classList.add('liked');
-            buttonElement.style.background = 'red';
-            buttonElement.innerHTML = '<i class="fas fa-heart"></i> <span class="like-count">' + (parseInt(likeCountElement.textContent) + 1) + '</span>';
+            if (countSpan) {
+                countSpan.textContent = currentCount;
+            }
         } else {
             buttonElement.classList.remove('liked');
-            buttonElement.style.background = 'var(--twitter-blue)';
-            buttonElement.innerHTML = '<i class="fas fa-heart"></i> <span class="like-count">' + (parseInt(likeCountElement.textContent) - 1) + '</span>';
-        }
-        // Show error notification
-        if (window.realTimeManager) {
-            window.realTimeManager.showNotification('Failed to toggle like', true);
+            if (countSpan) {
+                countSpan.textContent = currentCount;
+            }
         }
     });
 }
 
 // Toggle save on a post
-function toggleSave(postId, buttonElement) {
+function toggleSave(postSlug, buttonElement) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    // Optimistically update UI immediately
-    const saveTextElement = buttonElement.querySelector('.save-text');
+    // Match blade template: .action-btn.save-btn with span for text
+    const spanElement = buttonElement.querySelector('span');
     const isCurrentlySaved = buttonElement.classList.contains('saved');
 
-    // Toggle button state immediately
+    // Optimistic update - toggle class and text
     if (isCurrentlySaved) {
         buttonElement.classList.remove('saved');
-        saveTextElement.textContent = 'Save';
-        buttonElement.style.background = '#6c757d';
+        if (spanElement) {
+            spanElement.textContent = 'Save';
+        }
     } else {
         buttonElement.classList.add('saved');
-        saveTextElement.textContent = 'Saved';
-        buttonElement.style.background = '#17a2b8';
+        if (spanElement) {
+            spanElement.textContent = 'Saved';
+        }
     }
 
-    fetch(`/posts/${postId}/save`, {
+    fetch(`/posts/${postSlug}/save`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -570,37 +568,34 @@ function toggleSave(postId, buttonElement) {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            console.log('Save toggled successfully');
-            // Real-time events will sync with other users
-        } else {
-            // Revert the optimistic update if request failed
+        if (!data.success) {
+            // Revert on failure
             if (isCurrentlySaved) {
                 buttonElement.classList.add('saved');
-                saveTextElement.textContent = 'Saved';
-                buttonElement.style.background = '#17a2b8';
+                if (spanElement) {
+                    spanElement.textContent = 'Saved';
+                }
             } else {
                 buttonElement.classList.remove('saved');
-                saveTextElement.textContent = 'Save';
-                buttonElement.style.background = '#6c757d';
+                if (spanElement) {
+                    spanElement.textContent = 'Save';
+                }
             }
         }
     })
     .catch(error => {
         console.error('Error toggling save:', error);
-        // Revert the optimistic update on error
+        // Revert on error
         if (isCurrentlySaved) {
             buttonElement.classList.add('saved');
-            saveTextElement.textContent = 'Saved';
-            buttonElement.style.background = '#17a2b8';
+            if (spanElement) {
+                spanElement.textContent = 'Saved';
+            }
         } else {
             buttonElement.classList.remove('saved');
-            saveTextElement.textContent = 'Save';
-            buttonElement.style.background = '#6c757d';
-        }
-        // Show error notification
-        if (window.realTimeManager) {
-            window.realTimeManager.showNotification('Failed to toggle save', true);
+            if (spanElement) {
+                spanElement.textContent = 'Save';
+            }
         }
     });
 }
@@ -609,17 +604,25 @@ function toggleSave(postId, buttonElement) {
 function likeComment(commentId, buttonElement) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    // Optimistically update UI immediately
-    const likeCountElement = buttonElement.querySelector('.comment-like-count');
+    // Match blade template: .comment-action-btn with span for count
+    // Blade uses fas fa-heart always, just toggle 'liked' class
+    const countSpan = buttonElement.querySelector('span');
     const isCurrentlyLiked = buttonElement.classList.contains('liked');
 
-    // Toggle button state immediately
+    // Get current count
+    const currentCount = countSpan ? parseInt(countSpan.textContent) || 0 : 0;
+
+    // Optimistic update - just toggle 'liked' class (blade uses fas fa-heart always)
     if (isCurrentlyLiked) {
         buttonElement.classList.remove('liked');
-        likeCountElement.textContent = parseInt(likeCountElement.textContent) - 1;
+        if (countSpan) {
+            countSpan.textContent = currentCount - 1;
+        }
     } else {
         buttonElement.classList.add('liked');
-        likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
+        if (countSpan) {
+            countSpan.textContent = currentCount + 1;
+        }
     }
 
     fetch(`/comments/${commentId}/like`, {
@@ -632,49 +635,49 @@ function likeComment(commentId, buttonElement) {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            console.log('Comment like toggled successfully');
-            // Real-time events will sync with other users
-        } else {
-            console.error('Comment like request failed');
-            // Revert the optimistic update if request failed
+        if (!data.success) {
+            // Revert on failure
             if (isCurrentlyLiked) {
                 buttonElement.classList.add('liked');
-                likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
+                if (countSpan) {
+                    countSpan.textContent = currentCount;
+                }
             } else {
                 buttonElement.classList.remove('liked');
-                likeCountElement.textContent = parseInt(likeCountElement.textContent) - 1;
+                if (countSpan) {
+                    countSpan.textContent = currentCount;
+                }
             }
         }
     })
     .catch(error => {
         console.error('Error toggling comment like:', error);
-        // Revert the optimistic update on error
+        // Revert on error
         if (isCurrentlyLiked) {
             buttonElement.classList.add('liked');
-            likeCountElement.textContent = parseInt(likeCountElement.textContent) + 1;
+            if (countSpan) {
+                countSpan.textContent = currentCount;
+            }
         } else {
             buttonElement.classList.remove('liked');
-            likeCountElement.textContent = parseInt(likeCountElement.textContent) - 1;
-        }
-        // Show error notification
-        if (window.realTimeManager) {
-            window.realTimeManager.showNotification('Failed to toggle comment like', true);
+            if (countSpan) {
+                countSpan.textContent = currentCount;
+            }
         }
     });
 }
 
 // Submit a new comment
-function submitComment(postId) {
+function submitComment(postSlug, postId) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const textarea = document.getElementById(`comment-content-${postId}`);
+    const textarea = document.getElementById(`comment-content-${postSlug}`);
     const content = textarea.value.trim();
+
+    if (!content) return;
 
     // Disable the textarea and button during submission
     textarea.disabled = true;
     const submitButton = textarea.nextElementSibling;
-    const originalButtonText = submitButton.textContent;
-    submitButton.textContent = 'Posting...';
     submitButton.disabled = true;
 
     fetch('/comments', {
@@ -689,81 +692,34 @@ function submitComment(postId) {
             content: content
         })
     })
-    .then(response => {
-        console.log('Comment response status:', response.status);
-        console.log('Comment response headers:', Object.fromEntries(response.headers.entries()));
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        console.log('Comment response data:', data);
-
-        if (data.success) {
-            console.log('Comment posted successfully');
+        if (data.success && data.comment) {
             // Clear the textarea
             textarea.value = '';
 
-            // Add comment to UI immediately as fallback
-            if (data.comment) {
-                console.log('Comment data received:', data.comment);
-                const postElement = document.querySelector(`[data-post-id="${postId}"]`);
-                console.log('Post element found:', postElement);
-
-                if (postElement) {
-                    // Debug: Log all elements inside post
-                    console.log('Post element children:', postElement.children);
-                    console.log('Post element innerHTML:', postElement.innerHTML.substring(0, 500) + '...');
-
-                    const commentsContainer = postElement.querySelector('.comments-container');
-                    console.log('Comments container found:', commentsContainer);
-
-                    // Try different selectors
-                    const commentsSection = postElement.querySelector('.comments-section');
-                    console.log('Comments section found:', commentsSection);
-
-                    if (commentsContainer) {
-                        console.log('➕ Adding comment to UI as fallback');
-                        const commentHtml = window.realTimeManager.createCommentHtml(data.comment);
-                        console.log('Generated comment HTML length:', commentHtml.length);
-                        commentsContainer.insertAdjacentHTML('beforeend', commentHtml);
-                        console.log('✅ Comment added to UI via fallback');
-                    } else {
-                        console.log('❌ Comments container not found - trying to find it globally');
-                        const globalContainer = document.querySelector('.comments-container');
-                        console.log('Global comments container:', globalContainer);
-                        if (globalContainer) {
-                            const commentHtml = window.realTimeManager.createCommentHtml(data.comment);
-                            globalContainer.insertAdjacentHTML('beforeend', commentHtml);
-                            console.log('✅ Comment added to global comments container');
-                        }
-                    }
-                } else {
-                    console.log('❌ Post element not found for ID:', postId);
-                    // Try finding any comments container on the page
-                    const anyContainer = document.querySelector('.comments-container');
-                    console.log('Any comments container on page:', anyContainer);
+            // Add comment to UI - match blade template: .comments-list inside .post-card
+            const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+            if (postElement) {
+                const commentsList = postElement.querySelector('.comments-list');
+                if (commentsList) {
+                    const commentHtml = window.realTimeManager.createCommentHtml(data.comment);
+                    commentsList.insertAdjacentHTML('afterbegin', commentHtml);
                 }
-            } else {
-                console.log('❌ No comment data in response');
-            }
-
-            // Real-time events will handle syncing with other users
-        } else {
-            console.error('Comment submission failed');
-            if (window.realTimeManager) {
-                window.realTimeManager.showNotification('Failed to post comment', true);
+                
+                // Update comment counter
+                if (window.realTimeManager) {
+                    window.realTimeManager.updateCommentCount(postId, 1);
+                }
             }
         }
     })
     .catch(error => {
         console.error('Error posting comment:', error);
-        if (window.realTimeManager) {
-            window.realTimeManager.showNotification('Failed to post comment', true);
-        }
     })
     .finally(() => {
         // Re-enable the textarea and button
         textarea.disabled = false;
-        submitButton.textContent = originalButtonText;
         submitButton.disabled = false;
     });
 }
@@ -788,6 +744,19 @@ function submitReply(commentId, postId) {
     submitButton.textContent = 'Posting...';
     submitButton.disabled = true;
 
+    // Get parent comment's level for proper nesting
+    const parentCommentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+    let parentLevel = null; // null = not found, will default to 0 (top-level reply)
+    if (parentCommentElement) {
+        // Check for level classes (level-0, level-1, level-2, etc.)
+        for (let i = 0; i <= 5; i++) {
+            if (parentCommentElement.classList.contains(`level-${i}`)) {
+                parentLevel = i;
+                break;
+            }
+        }
+    }
+
     fetch('/comments', {
         method: 'POST',
         headers: {
@@ -804,33 +773,24 @@ function submitReply(commentId, postId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('Reply posted successfully');
             // Clear the textarea and hide the reply form
             textarea.value = '';
             toggleReplyForm(commentId);
 
             // Add reply to UI immediately as fallback
-            if (data.comment) {
-                const parentCommentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
-                if (parentCommentElement) {
-                    // Create or find the replies container
-                    let repliesContainer = parentCommentElement.querySelector('.replies-container');
-                    if (!repliesContainer) {
-                        repliesContainer = document.createElement('div');
-                        repliesContainer.className = 'replies-container';
-                        parentCommentElement.appendChild(repliesContainer);
-                    }
-
-                    console.log('➕ Adding reply to UI as fallback');
-                    const replyHtml = window.realTimeManager.createCommentHtml(data.comment);
-                    repliesContainer.insertAdjacentHTML('beforeend', replyHtml);
-                    console.log('✅ Reply added to UI via fallback');
+            if (data.comment && parentCommentElement) {
+                // Create or find the replies container
+                let repliesContainer = parentCommentElement.querySelector('.replies-container');
+                if (!repliesContainer) {
+                    repliesContainer = document.createElement('div');
+                    repliesContainer.className = 'replies-container';
+                    parentCommentElement.appendChild(repliesContainer);
                 }
-            }
 
-            // Real-time events will handle syncing with other users
+                const replyHtml = window.realTimeManager.createCommentHtml(data.comment, parentLevel);
+                repliesContainer.insertAdjacentHTML('beforeend', replyHtml);
+            }
         } else {
-            console.error('Reply submission failed');
             if (window.realTimeManager) {
                 window.realTimeManager.showNotification('Failed to post reply', true);
             }
@@ -872,36 +832,48 @@ function playVideo(overlayElement) {
     }
 }
 
-// Toggle follow/unfollow for a user
-function toggleFollow(buttonElement, userId) {
+// Toggle follow/unfollow for a user - matches blade template signature
+function toggleFollow(buttonElement, userName) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    // Get username from the button's data attribute or from a global variable
-    const username = buttonElement.getAttribute('data-username') || buttonElement.closest('[data-username]')?.getAttribute('data-username');
+    const isCurrentlyFollowing = buttonElement.getAttribute('data-following') === 'true';
 
-    // Optimistically update UI immediately
-    const isCurrentlyFollowing = buttonElement.classList.contains('following');
+    // Optimistic update - toggle button state
+    buttonElement.disabled = true;
 
-    // Toggle button state immediately
-    if (isCurrentlyFollowing) {
-        buttonElement.classList.remove('following');
-        buttonElement.textContent = 'Follow';
-        buttonElement.style.background = 'var(--twitter-blue)';
-        // Update counts: decrease followed user's followers, decrease current user's following
-        updateFollowerCount(userId, -1);
-        updateFollowingCount(window.currentUserId, -1);
-    } else {
-        buttonElement.classList.add('following');
-        buttonElement.textContent = 'Following';
-        buttonElement.style.background = '#28a745';
-        // Update counts: increase followed user's followers, increase current user's following
-        updateFollowerCount(userId, 1);
-        updateFollowingCount(window.currentUserId, 1);
-    }
-
-    fetch(`/users/${username}/follow`, {
+    fetch(`/users/${encodeURIComponent(userName)}/follow`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.following) {
+            buttonElement.innerHTML = '<i class="fas fa-user-check"></i> <span>Following</span>';
+            buttonElement.setAttribute('data-following', 'true');
+        } else {
+            buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> <span>Follow</span>';
+            buttonElement.setAttribute('data-following', 'false');
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling follow:', error);
+    })
+    .finally(() => {
+        buttonElement.disabled = false;
+    });
+}
+
+// Block a user - matches blade template
+function blockUser(userName) {
+    if (!confirm(`Block ${userName}?`)) return;
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch(`/users/${encodeURIComponent(userName)}/block`, {
+        method: 'POST',
+        headers: {
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
         }
@@ -909,161 +881,81 @@ function toggleFollow(buttonElement, userId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('Follow toggled successfully');
-            // Real-time events will sync with other users
+            window.location.reload();
         } else {
-            console.error('Follow request failed');
-            // Revert the optimistic update if request failed
+            alert(data.message || 'Error blocking user');
+        }
+    })
+    .catch(() => alert('Error blocking user'));
+}
+
+// Unblock a user - matches blade template
+function unblockUser(userName) {
+    if (!confirm(`Unblock ${userName}?`)) return;
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch(`/users/${encodeURIComponent(userName)}/block`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert(data.message || 'Error unblocking user');
+        }
+    })
+    .catch(() => alert('Error unblocking user'));
+}
+
+// Quick follow for posts - used in post partial
+function quickFollow(userName, buttonElement) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const isCurrentlyFollowing = buttonElement.classList.contains('following');
+
+    // Optimistic update
+    if (isCurrentlyFollowing) {
+        buttonElement.classList.remove('following');
+        buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> <span>Follow</span>';
+    } else {
+        buttonElement.classList.add('following');
+        buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> <span>Following</span>';
+    }
+
+    fetch(`/users/${encodeURIComponent(userName)}/follow`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success && !data.following) {
+            // Revert on failure
             if (isCurrentlyFollowing) {
                 buttonElement.classList.add('following');
-                buttonElement.textContent = 'Following';
-                buttonElement.style.background = '#28a745';
-                // Revert count updates
-                updateFollowerCount(userId, 1);
-                updateFollowingCount(window.currentUserId, 1);
+                buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> <span>Following</span>';
             } else {
                 buttonElement.classList.remove('following');
-                buttonElement.textContent = 'Follow';
-                buttonElement.style.background = 'var(--twitter-blue)';
-                // Revert count updates
-                updateFollowerCount(userId, -1);
-                updateFollowingCount(window.currentUserId, -1);
+                buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> <span>Follow</span>';
             }
         }
     })
     .catch(error => {
         console.error('Error toggling follow:', error);
-        // Revert the optimistic update on error
+        // Revert on error
         if (isCurrentlyFollowing) {
             buttonElement.classList.add('following');
-            buttonElement.textContent = 'Following';
-            buttonElement.style.background = '#28a745';
-            // Revert count updates
-            updateFollowerCount(userId, 1);
-            updateFollowingCount(window.currentUserId, 1);
+            buttonElement.innerHTML = '<i class="fas fa-user-minus"></i> <span>Following</span>';
         } else {
             buttonElement.classList.remove('following');
-            buttonElement.textContent = 'Follow';
-            buttonElement.style.background = 'var(--twitter-blue)';
-            // Revert count updates
-            updateFollowerCount(userId, -1);
-            updateFollowingCount(window.currentUserId, -1);
-        }
-        // Show error notification
-        if (window.realTimeManager) {
-            window.realTimeManager.showNotification('Failed to toggle follow', true);
-        }
-    });
-}
-
-// Helper functions to update counts
-function updateFollowerCount(userId, delta) {
-    const followerElements = document.querySelectorAll(`[data-user-followers="${userId}"]`);
-    followerElements.forEach(el => {
-        const currentCount = parseInt(el.textContent) || 0;
-        el.textContent = currentCount + delta;
-    });
-}
-
-function updateFollowingCount(userId, delta) {
-    const followingElements = document.querySelectorAll(`[data-user-following="${userId}"]`);
-    followingElements.forEach(el => {
-        const currentCount = parseInt(el.textContent) || 0;
-        el.textContent = currentCount + delta;
-    });
-}
-
-// Toggle block/unblock for a user
-function toggleBlock(buttonElement) {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const userId = buttonElement.getAttribute('data-user-id');
-    const username = buttonElement.getAttribute('data-username');
-
-    // Optimistically update UI immediately
-    const isCurrentlyBlocked = buttonElement.classList.contains('blocked') || buttonElement.textContent.trim() === 'Unblock';
-    const originalText = buttonElement.textContent;
-
-    // Toggle button state immediately
-    if (isCurrentlyBlocked) {
-        buttonElement.classList.remove('blocked');
-        buttonElement.textContent = 'Block';
-        buttonElement.style.background = '#dc3545';
-    } else {
-        buttonElement.classList.add('blocked');
-        buttonElement.textContent = 'Unblock';
-        buttonElement.style.background = '#6c757d';
-    }
-
-    fetch(`/users/${username}/block`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('Block toggled successfully');
-
-            // Handle UI changes - find the container that holds the buttons
-            let buttonContainer = buttonElement.closest('.action-buttons') || buttonElement.parentElement;
-
-            if (buttonContainer) {
-                if (isCurrentlyBlocked) {
-                    // We just unblocked, so we need to add the follow button
-                    const followButton = document.createElement('button');
-                    followButton.type = 'button';
-                    followButton.className = 'btn follow-btn';
-                    followButton.setAttribute('data-user-id', userId);
-                    followButton.setAttribute('data-username', username);
-                    followButton.onclick = () => toggleFollow(followButton);
-                    followButton.textContent = 'Follow';
-                    followButton.style.background = 'var(--twitter-blue)';
-                    followButton.style.marginRight = '10px';
-
-                    // Insert follow button before the block button
-                    buttonContainer.insertBefore(followButton, buttonElement);
-                } else {
-                    // We just blocked, so we need to remove the follow button
-                    const followButton = buttonContainer.querySelector('.follow-btn');
-                    if (followButton) {
-                        followButton.remove();
-                    }
-                }
-            }
-
-            // Real-time events will sync with other users if needed
-        } else {
-            console.error('Block request failed');
-            // Revert the optimistic update if request failed
-            if (isCurrentlyBlocked) {
-                buttonElement.classList.add('blocked');
-                buttonElement.textContent = originalText;
-                buttonElement.style.background = '#6c757d';
-            } else {
-                buttonElement.classList.remove('blocked');
-                buttonElement.textContent = originalText;
-                buttonElement.style.background = '#dc3545';
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Error toggling block:', error);
-        // Revert the optimistic update on error
-        if (isCurrentlyBlocked) {
-            buttonElement.classList.add('blocked');
-            buttonElement.textContent = originalText;
-            buttonElement.style.background = '#6c757d';
-        } else {
-            buttonElement.classList.remove('blocked');
-            buttonElement.textContent = originalText;
-            buttonElement.style.background = '#dc3545';
-        }
-        // Show error notification
-        if (window.realTimeManager) {
-            window.realTimeManager.showNotification('Failed to toggle block', true);
+            buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> <span>Follow</span>';
         }
     });
 }
@@ -1073,9 +965,8 @@ function deletePost(postSlug, button) {
         return;
     }
 
-    const postId = button.closest('.post').dataset.postId;
-    const postElement = document.getElementById('post-' + postId);
-
+    // Match blade template: .post-card with data-post-id
+    const postElement = button.closest('.post-card');
     if (!postElement) {
         alert('Could not find the post to delete. Please refresh the page.');
         return;
@@ -1100,7 +991,6 @@ function deletePost(postSlug, button) {
     .then(data => {
         if (data.success) {
             postElement.remove();
-            showNotification('Post deleted successfully!', 'success');
         } else {
             alert(data.message || 'Failed to delete post.');
         }
@@ -1116,27 +1006,28 @@ function deletePost(postSlug, button) {
 
 // Delete a comment
 function deleteComment(commentId, buttonElement) {
-    console.log('🗑️ deleteComment called with:', { commentId, buttonElement });
-
-    if (!confirm('Are you sure you want to delete this comment? This action cannot be undone.')) {
+    if (!confirm('Are you sure you want to delete this comment?')) {
         return;
     }
 
-    if (!commentId || commentId === 'undefined' || commentId === 'null') {
-        console.error('❌ Invalid commentId:', commentId);
-        if (window.realTimeManager) {
-            window.realTimeManager.showNotification('Invalid comment ID', true);
-        }
+    if (!commentId) {
         return;
     }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    // Disable button during deletion
-    buttonElement.disabled = true;
-    buttonElement.textContent = 'Deleting...';
+    // Get post element before deletion for counter update
+    const commentElement = buttonElement.closest('.comment-item');
+    const postElement = buttonElement.closest('.post-card');
+    let postId = null;
+    if (postElement) {
+        postId = postElement.getAttribute('data-post-id');
+    }
 
-    console.log('🔗 Making DELETE request to:', `/comments/${commentId}`);
+    // Disable button during deletion
+    const originalHTML = buttonElement.innerHTML;
+    buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    buttonElement.disabled = true;
 
     fetch(`/comments/${commentId}`, {
         method: 'POST',
@@ -1150,30 +1041,23 @@ function deleteComment(commentId, buttonElement) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('Comment deleted successfully');
-            // Remove the comment from the UI
-            const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+            // Remove the comment from the UI - match blade: .comment-item
             if (commentElement) {
                 commentElement.remove();
             }
-            // Comment removed silently without notification
-        } else {
-            console.error('Comment deletion failed');
-            if (window.realTimeManager) {
-                window.realTimeManager.showNotification('Failed to delete comment', true);
+            
+            // Update comment counter
+            if (postId && window.realTimeManager) {
+                window.realTimeManager.updateCommentCount(postId, -1);
             }
         }
     })
     .catch(error => {
         console.error('Error deleting comment:', error);
-        if (window.realTimeManager) {
-            window.realTimeManager.showNotification('Failed to delete comment', true);
-        }
     })
     .finally(() => {
-        // Re-enable button
+        buttonElement.innerHTML = originalHTML;
         buttonElement.disabled = false;
-        buttonElement.textContent = 'Delete';
     });
 }
 
@@ -1184,6 +1068,9 @@ function toggleReplyForm(commentId) {
     const form = document.getElementById('reply-form-' + commentId);
     if (form) {
         form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        if (form.style.display === 'block') {
+            form.querySelector('textarea').focus();
+        }
     }
 }
 

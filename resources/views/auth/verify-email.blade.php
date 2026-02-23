@@ -13,7 +13,7 @@
         <p class="subtitle" id="instruction-text">Please enter the verification code sent to your email address to verify your account.</p>
 
         <!-- Send Code Section -->
-        <div class="send-code-section" id="sendCodeSection" @if(session('message') && (str_contains(session('message'), 'sent') || str_contains(session('message'), 'code'))) style="display:none" @endif>
+        <div class="send-code-section" id="sendCodeSection">
             <form method="POST" action="{{ route('verification.send') }}" id="sendCodeForm">
                 @csrf
                 <button type="submit" class="submit" id="sendCodeBtn">
@@ -23,7 +23,7 @@
         </div>
 
         <!-- Verification Code Form -->
-        <form class="verification-code-form @if(session('message') && (str_contains(session('message'), 'sent') || str_contains(session('message'), 'code'))) active @endif" method="POST" action="{{ route('verification.verify-code') }}" id="verifyForm">
+        <form class="verification-code-form" method="POST" action="{{ route('verification.verify-code') }}" id="verifyForm">
             @csrf
             <div class="code-inputs">
                 <input type="text" name="code[]" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" required autofocus>
@@ -41,9 +41,9 @@
             </button>
         </form>
 
-        <div class="resend-section @if(session('message') && (str_contains(session('message'), 'sent') || str_contains(session('message'), 'code'))) active @endif" id="resendSection">
+        <div class="resend-section" id="resendSection">
             <p>Didn't receive the code?</p>
-            <form method="POST" action="{{ route('verification.send') }}" style="display: inline;">
+            <form method="POST" action="{{ route('verification.send') }}" id="resendForm" style="display: inline;">
                 @csrf
                 <button type="submit" class="resend-btn" id="resendBtn">Resend Code</button>
             </form>
@@ -77,7 +77,7 @@
             font-weight: 600;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             animation: slideIn 0.3s ease-out;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Inter', sans-serif;
             text-align: center;
             max-width: 400px;
             margin: 0 auto;
@@ -94,6 +94,12 @@
     // Show toast on page load if there's a session message
     @if(session('message'))
         showToast('{{ session('message') }}', 'success');
+        // Auto-show the verification form if message contains 'sent' or 'code'
+        @if(str_contains(session('message'), 'sent') || str_contains(session('message'), 'code'))
+            document.addEventListener('DOMContentLoaded', function() {
+                showVerificationForm();
+            });
+        @endif
     @endif
     
     @if(session('error'))
@@ -102,18 +108,151 @@
 
     @if($errors->has('code'))
         showToast('{{ $errors->first('code') }}', 'error');
+        // Show verification form if there was an error with the code
+        document.addEventListener('DOMContentLoaded', function() {
+            showVerificationForm();
+        });
     @endif
 
     // Check if user is already verified (passed from backend)
     const userAlreadyVerified = @if(auth()->check() && auth()->user()->hasVerifiedEmail()) true @else false @endif;
 
-    // Handle send code form submission
-    document.getElementById('sendCodeForm')?.addEventListener('submit', (e) => {
+    // Function to show verification form and hide send code section
+    function showVerificationForm() {
+        document.getElementById('sendCodeSection').style.display = 'none';
+        document.getElementById('verifyForm').classList.add('active');
+        document.getElementById('resendSection').classList.add('active');
+        
+        // Focus on first code input
+        const firstInput = document.querySelector('.code-input');
+        if (firstInput) {
+            firstInput.focus();
+        }
+        
+        // Start countdown
+        startCountdown();
+    }
+
+    // Get CSRF token
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.content || 
+               document.querySelector('input[name="_token"]')?.value || 
+               '';
+    }
+
+    // Handle send code form submission with AJAX
+    document.getElementById('sendCodeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
         if (userAlreadyVerified) {
-            e.preventDefault();
             showToast('Your account is already verified!', 'info');
             return false;
         }
+
+        const form = e.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
+                },
+                body: formData,
+                credentials: 'same-origin'
+            });
+
+            // Don't follow redirects manually - let fetch handle it but check final response
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                // If not JSON, it's likely a redirect response
+                console.log('Response is not JSON, likely redirect');
+                // Show verification form since the server likely processed it
+                showVerificationForm();
+                showToast('Verification code sent!', 'success');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return;
+            }
+            
+            if (response.ok || response.status === 200) {
+                if (data.message) {
+                    showToast(data.message, 'success');
+                }
+                showVerificationForm();
+            } else {
+                showToast(data.message || data.error || 'Failed to send verification code', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            // Fallback to traditional form submission if fetch fails
+            form.submit();
+            return;
+        }
+        
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    });
+
+    // Handle resend form submission with AJAX
+    document.getElementById('resendForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const form = e.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
+                },
+                body: formData,
+                credentials: 'same-origin'
+            });
+
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.log('Response is not JSON, likely redirect');
+                showToast('Verification code sent!', 'success');
+                startCountdown();
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                return;
+            }
+            
+            if (response.ok || response.status === 200) {
+                if (data.message) {
+                    showToast(data.message, 'success');
+                }
+                startCountdown();
+            } else {
+                showToast(data.message || data.error || 'Failed to resend verification code', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            form.submit();
+            return;
+        }
+        
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
     });
 
     // Auto-focus for code inputs
@@ -122,6 +261,9 @@
 
     inputs.forEach((input, index) => {
         input.addEventListener('input', (e) => {
+            // Only allow numbers
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            
             if (e.target.value.length === 1) {
                 if (index < inputs.length - 1) {
                     inputs[index + 1].focus();
@@ -132,6 +274,22 @@
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Backspace' && !e.target.value && index > 0) {
                 inputs[index - 1].focus();
+            }
+        });
+        
+        // Handle paste
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+            
+            pastedData.split('').forEach((char, i) => {
+                if (inputs[i]) {
+                    inputs[i].value = char;
+                }
+            });
+            
+            if (pastedData.length > 0) {
+                inputs[Math.min(pastedData.length, inputs.length - 1)].focus();
             }
         });
     });
@@ -162,13 +320,14 @@
         fullCodeInput.value = code;
     });
 
-    // Start countdown if resend section is visible
-    @if(session('message') && (str_contains(session('message'), 'sent') || str_contains(session('message'), 'code')))
-        startCountdown();
-    @endif
-
     // Countdown timer for resend
+    let countdownInterval = null;
     function startCountdown() {
+        // Clear any existing interval
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+        }
+        
         let seconds = 60;
         const countdownEl = document.getElementById('countdown');
         const resendBtn = document.getElementById('resendBtn');
@@ -176,12 +335,12 @@
         countdownEl.textContent = seconds;
         resendBtn.disabled = true;
 
-        const interval = setInterval(() => {
+        countdownInterval = setInterval(() => {
             seconds--;
             countdownEl.textContent = seconds;
 
             if (seconds <= 0) {
-                clearInterval(interval);
+                clearInterval(countdownInterval);
                 resendBtn.disabled = false;
             }
         }, 1000);
@@ -189,14 +348,14 @@
 </script>
 
 <style>
-.login-page {min-height: calc(100vh - 64px);display: flex;align-items: center;justify-content: center;padding: 20px;background: var(--bg);font-family: 'Courier New', Courier, monospace;}
-.login-card {width: 100%;max-width: 400px;background: var(--surface);border: 1px solid var(--border);border-radius: 16px;padding: 32px 28px;font-family: 'Courier New', Courier, monospace;text-align: center;}
+.login-page {min-height: calc(100vh - 64px);display: flex;align-items: center;justify-content: center;padding: 20px;background: var(--bg);}
+.login-card {width: 100%;max-width: 400px;background: var(--surface);border: 1px solid var(--border);border-radius: 16px;padding: 32px 28px;text-align: center;}
 .auth-icon {width: 80px;height: 80px;background: linear-gradient(135deg, var(--primary), var(--secondary));border-radius: 16px;display: flex;align-items: center;justify-content: center;margin: 0 auto 24px;font-size: 36px;color: white;}
-.title {font-size: 24px;font-weight: 700;color: var(--text);margin: 0 0 12px 0;text-align: center;font-family: 'Courier New', Courier, monospace;}
-.subtitle {font-size: 14px;color: var(--text-muted);margin: 0 0 24px 0;text-align: center;font-family: 'Courier New', Courier, monospace;line-height: 1.5;}
+.title {font-size: 24px;font-weight: 700;color: var(--text);margin: 0 0 12px 0;text-align: center;}
+.subtitle {font-size: 14px;color: var(--text-muted);margin: 0 0 24px 0;text-align: center;line-height: 1.5;}
 .send-code-section {margin-bottom: 24px;}
-.code-inputs {display: flex;gap: 8px;justify-content: center;margin-bottom: 24px;flex-wrap: wrap;}
-.code-input {width: 48px;height: 56px;font-size: 24px;font-weight: 700;text-align: center;border: 2px solid var(--border);border-radius: 10px;background: var(--bg);color: var(--text);transition: all 0.2s;font-family: 'Courier New', Courier, monospace;}
+.code-inputs {display: flex;gap: 6px;justify-content: center;margin-bottom: 24px;flex-wrap: nowrap;}
+.code-input {width: 44px;height: 52px;font-size: 20px;font-weight: 700;text-align: center;border: 2px solid var(--border);border-radius: 8px;background: var(--bg);color: var(--text);transition: all 0.2s;}
 .code-input:focus {outline: none;border-color: var(--primary);box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);}
 .verification-code-form {display: none;}
 .verification-code-form.active {display: block;}
@@ -204,8 +363,8 @@
 .submit:hover {transform: translateY(-1px);box-shadow: 0 6px 20px rgba(139,92,246,0.3);}
 .resend-section {display: none;margin-top: 24px;padding-top: 20px;border-top: 1px solid var(--border);}
 .resend-section.active {display: block;}
-.resend-section p {color: var(--text-muted);font-size: 13px;margin: 0 0 12px 0;font-family: 'Courier New', Courier, monospace;}
-.resend-btn {background: none;border: none;color: var(--primary);font-size: 13px;font-weight: 600;cursor: pointer;text-decoration: underline;padding: 0;font-family: 'Courier New', Courier, monospace;}
+.resend-section p {color: var(--text-muted);font-size: 13px;margin: 0 0 12px 0;}
+.resend-btn {background: none;border: none;color: var(--primary);font-size: 13px;font-weight: 600;cursor: pointer;text-decoration: underline;padding: 0;}
 .resend-btn:disabled {color: var(--text-muted);cursor: not-allowed;text-decoration: none;}
 .timer {font-size: 12px;color: var(--text-muted);margin-top: 8px;}
 .timer span {font-weight: 600;color: var(--primary);}

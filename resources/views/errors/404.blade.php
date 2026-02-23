@@ -5,7 +5,6 @@
 @section('content')
 <div class="error-page">
     <div class="error-content">
-        <div class="error-code">404</div>
         <h1 class="error-title">Page Not Found</h1>
         <p class="error-message">The page you're looking for doesn't exist or has been moved.</p>
         <div class="error-actions">

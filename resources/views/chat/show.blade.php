@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Chat with ' . $conversation->other_user->name)
+@php
+$chatTitle = $conversation->is_group 
+    ? ($conversation->display_name ?? 'Group Chat') 
+    : (($conversation->other_user->name ?? 'Chat'));
+@endphp
+
+@section('title', $chatTitle)
 
 @section('content')
 <div class="chat-page">
@@ -29,7 +35,7 @@
                 @forelse($conversations as $conv)
                 <a href="{{ route('chat.show', $conv) }}" class="conversation-item {{ $conv->id === $conversation->id ? 'active' : '' }} {{ $conv->unread_count > 0 ? 'unread' : '' }}">
                     <div class="conversation-avatar">
-                        @if($conv->other_user->profile && $conv->other_user->profile->avatar)
+                        @if($conv->other_user && $conv->other_user->profile && $conv->other_user->profile->avatar)
                             <img src="{{ asset('storage/' . $conv->other_user->profile->avatar) }}" alt="Avatar">
                         @else
                             <div class="avatar-placeholder">
@@ -39,7 +45,7 @@
                     </div>
 
                     <div class="conversation-info">
-                        <div class="conversation-name">{{ $conv->other_user->name }}</div>
+                        <div class="conversation-name">{{ $conv->other_user->name ?? 'User' }}</div>
                         <div class="conversation-preview">
                             @if($conv->latestMessage)
                                 <span class="last-message">
@@ -76,62 +82,106 @@
                     <i class="fas fa-arrow-left"></i>
                 </button>
                 <div class="chat-user-info">
-                    <div class="chat-avatar">
-                        @if($conversation->other_user->profile && $conversation->other_user->profile->avatar)
-                            <img src="{{ asset('storage/' . $conversation->other_user->profile->avatar) }}" alt="Avatar">
-                        @else
-                            <div class="avatar-placeholder">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        @endif
-                    </div>
-                    <div class="chat-user-details">
-                        <h3>{{ $conversation->other_user->name }}</h3>
-                        <span class="user-status"><i class="fas fa-circle" style="font-size: 10px; color: var(--text-muted);"></i> Loading...</span>
-                    </div>
+                    @if($conversation->is_group)
+                        <div class="chat-avatar">
+                            @if($conversation->group && $conversation->group->avatar)
+                                <img src="{{ asset('storage/' . $conversation->group->avatar) }}" alt="Group">
+                            @else
+                                <div class="avatar-placeholder group-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="chat-user-details">
+                            <h3>{{ $conversation->group->name ?? $conversation->display_name ?? 'Group' }}</h3>
+                            <span class="user-status">{{ $conversation->group->members->count() ?? 0 }} members</span>
+                        </div>
+                    @else
+                        <div class="chat-avatar">
+                            @if($conversation->other_user && $conversation->other_user->profile && $conversation->other_user->profile->avatar)
+                                <img src="{{ asset('storage/' . $conversation->other_user->profile->avatar) }}" alt="Avatar">
+                            @else
+                                <div class="avatar-placeholder">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="chat-user-details">
+                            <h3>{{ $conversation->other_user->name ?? 'User' }}</h3>
+                            <span class="user-status"><i class="fas fa-circle" style="font-size: 10px; color: var(--text-muted);"></i> Loading...</span>
+                        </div>
+                    @endif
                 </div>
                 <div class="chat-actions">
-                    <button class="clear-chat-btn" onclick="clearChat()" title="Delete all messages in this chat">
-                        <i class="fas fa-trash-alt"></i>
-                        Clear Chat
-                    </button>
+                    @if($conversation->is_group)
+                        <a href="{{ route('groups.show', $conversation->group) }}" class="clear-chat-btn" style="background: var(--twitter-blue); text-decoration: none;" title="Group Info">
+                            <i class="fas fa-info-circle"></i>
+                            Group Info
+                        </a>
+                    @else
+                        <button class="clear-chat-btn" onclick="clearChat()" title="Delete all messages in this chat">
+                            <i class="fas fa-trash-alt"></i>
+                            Clear Chat
+                        </button>
+                    @endif
                 </div>
             </div>
 
             <div class="chat-messages" id="chatMessages">
                 @forelse($messages as $message)
-                <div class="message {{ $message->is_mine ? 'own' : 'other' }} {{ $message->trashed() ? 'deleted' : '' }}" data-message-id="{{ $message->id }}">
-                    <div class="message-content">
-                        @if($message->trashed())
-                            <em>message deleted</em>
-                        @else
-                            @if($message->type === 'image' && $message->media_path)
-                                <div class="message-media">
-                                    <img src="{{ asset('storage/' . $message->media_path) }}" alt="Image" class="message-image" onclick="openMediaViewer(this.src)">
-                                </div>
-                            @elseif($message->type === 'video' && $message->media_path)
-                                <div class="message-media">
-                                    <video src="{{ asset('storage/' . $message->media_path) }}" controls class="message-video"></video>
+                    @if($message->type === 'system')
+                        <div class="system-message" data-message-id="{{ $message->id }}">
+                            <span class="system-message-text">{{ $message->content }}</span>
+                            <span class="system-message-time">{{ $message->created_at->format('g:i A') }}</span>
+                        </div>
+                    @else
+                        <div class="message {{ $message->is_mine ? 'own' : 'other' }} {{ $message->trashed() ? 'deleted' : '' }}" data-message-id="{{ $message->id }}">
+                            @if(!$message->is_mine && $message->sender)
+                                <div class="message-avatar">
+                                    @if($message->sender->profile && $message->sender->profile->avatar)
+                                        <img src="{{ asset('storage/' . $message->sender->profile->avatar) }}" alt="{{ $message->sender->name }}">
+                                    @else
+                                        <div class="avatar-placeholder-small">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
-                            @if($message->content)
-                                {{ $message->content }}
-                            @endif
-                        @endif
-                    </div>
-                    <div class="message-meta">
-                        <span class="message-time">{{ $message->created_at->format('H:i') }}</span>
-                        @if($message->is_mine && !$message->trashed())
-                        <button class="message-delete" onclick="deleteMessage({{ $message->id }})" title="Delete">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                        @endif
-                    </div>
-                </div>
+                            <div class="message-bubble">
+                                @if(!$message->is_mine && $message->sender)
+                                    <div class="message-username">{{ $message->sender->name }}</div>
+                                @endif
+                                <div class="message-content">
+                                    @if($message->trashed())
+                                        <em>message deleted</em>
+                                    @else
+                                        @if($message->type === 'image' && $message->media_path)
+                                            <div class="message-media">
+                                                <img src="{{ asset('storage/' . $message->media_path) }}" alt="Image" class="message-image" onclick="openMediaViewer(this.src)">
+                                            </div>
+                                        @elseif($message->type === 'video' && $message->media_path)
+                                            <div class="message-media">
+                                                <video src="{{ asset('storage/' . $message->media_path) }}" controls class="message-video"></video>
+                                            </div>
+                                        @endif
+                                        @if($message->content)
+                                            <span class="message-text">{{ $message->content }}</span>
+                                        @endif
+                                    @endif
+                                    <span class="message-time">{{ $message->created_at->format('g:i A') }}</span>
+                                </div>
+                                @if($message->is_mine && !$message->trashed())
+                                    <button class="message-delete" onclick="deleteMessage({{ $message->id }})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 @empty
-                <div class="no-messages-chat">
-                    <p>Start a conversation with {{ $conversation->other_user->name }}</p>
-                </div>
+                    <div class="no-messages-chat">
+                        <p>Start a conversation with {{ $conversation->other_user->name ?? 'User' }}</p>
+                    </div>
                 @endforelse
             </div>
 
@@ -471,6 +521,11 @@ header {
     color: var(--twitter-gray);
 }
 
+.chat-avatar .avatar-placeholder.group-icon {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+}
+
 .chat-user-details h3 {
     margin: 0 0 4px 0;
     font-size: 16px;
@@ -489,46 +544,87 @@ header {
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 8px;
         background: var(--twitter-light);
-        min-height: 0; /* Allow flex shrinking */
+        min-height: 0;
     }
 
+/* WhatsApp-style message layout */
 .message {
     display: flex;
-    flex-direction: column;
-    max-width: 70%;
+    align-items: flex-end;
+    max-width: 65%;
     animation: messageSlideIn 0.3s ease-out;
     position: relative;
+    gap: 8px;
 }
 
 /* Limit message width on very wide screens for better readability */
 @media (min-width: 1200px) {
     .message {
-        max-width: 60%;
+        max-width: 55%;
     }
 }
 
 @media (min-width: 1600px) {
     .message {
-        max-width: 50%;
+        max-width: 45%;
     }
 }
 
 @media (min-width: 2000px) {
     .message {
-        max-width: 40%;
+        max-width: 35%;
     }
 }
 
 .message.own {
     align-self: flex-end;
-    align-items: flex-end;
+    flex-direction: row-reverse;
 }
 
 .message.other {
     align-self: flex-start;
-    align-items: flex-start;
+    flex-direction: row;
+}
+
+/* Message avatar - WhatsApp style */
+.message-avatar {
+    flex-shrink: 0;
+}
+
+.message-avatar img,
+.avatar-placeholder-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+.avatar-placeholder-small {
+    background: var(--twitter-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--twitter-gray);
+    font-size: 12px;
+}
+
+/* Message bubble container */
+.message-bubble {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Username inside bubble */
+.message-username {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--twitter-blue);
+    margin-bottom: 4px;
+    padding: 0 12px;
 }
 
 .message-delete {
@@ -547,6 +643,39 @@ header {
     border-radius: 4px;
 }
 
+/* Mobile delete button - simple icon only, always visible */
+@media (max-width: 768px) {
+    .message-delete {
+        opacity: 1 !important;
+        padding: 6px 10px;
+        font-size: 12px;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.8);
+        border-radius: 14px;
+        margin-top: 4px;
+        display: flex !important;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .message-delete i {
+        font-size: 12px;
+    }
+    
+    .message.own .message-delete {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .message.other .message-delete {
+        color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .message-delete:active {
+        background: rgba(255, 71, 87, 0.3);
+        color: #ff4757;
+    }
+}
+
 .message-delete:hover {
     opacity: 1;
     color: #ff4757;
@@ -555,6 +684,62 @@ header {
 
 .message-delete i {
     font-size: 10px;
+}
+
+/* Remove button for deleted messages */
+.message-remove {
+    background: transparent;
+    color: var(--twitter-gray);
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    border-radius: 4px;
+}
+
+.message-remove:hover {
+    color: var(--error-color);
+    background: rgba(244, 33, 46, 0.1);
+}
+
+.message-remove i {
+    font-size: 10px;
+}
+
+/* Message sender info for group chats */
+.message-sender {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.sender-avatar,
+.sender-avatar-placeholder {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.sender-avatar-placeholder {
+    background: var(--twitter-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--twitter-gray);
+    font-size: 10px;
+}
+
+.sender-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--twitter-dark);
 }
 
 /* For other user's messages */
@@ -566,28 +751,42 @@ header {
     color: #ff4757;
 }
 
+/* Message content - using layout colors */
 .message-content {
     background: var(--twitter-blue);
     color: white;
-    padding: 12px 16px;
+    padding: 10px 14px;
     border-radius: 18px;
+    border-top-left-radius: 0;
     word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
     font-size: 14px;
     line-height: 1.4;
-    box-shadow: 0 2px 8px rgba(29, 161, 242, 0.2);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .message.own .message-content {
     background: var(--twitter-blue);
-    border-bottom-right-radius: 4px;
+    color: white;
+    border-radius: 18px;
+    border-top-right-radius: 4px;
 }
 
 .message.other .message-content {
     background: var(--card-bg);
     color: var(--twitter-dark);
     border: 1px solid var(--border-color);
-    border-bottom-left-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 18px;
+    border-top-left-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .message.deleted .message-content {
@@ -595,7 +794,6 @@ header {
     color: var(--twitter-gray);
     font-style: italic;
     opacity: 0.7;
-    border: 1px solid var(--border-color);
 }
 
 .message.deleted .message-content em {
@@ -605,13 +803,47 @@ header {
 .message-meta {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: flex-end;
+    gap: 4px;
     margin-top: 4px;
 }
 
 .message-time {
     font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-left: 8px;
+}
+
+.message.other .message-time {
     color: var(--twitter-gray);
+}
+
+/* Message text styling */
+.message-text {
+    display: inline;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
+}
+
+/* Message bubble container - prevent overflow */
+.message-bubble {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* Checkmarks for sent messages */
+.message.own .message-time::after {
+    content: '✓✓';
+    font-size: 12px;
+    margin-left: 4px;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .no-messages-chat {
@@ -627,6 +859,32 @@ header {
     margin: 0;
     font-size: 16px;
     color: var(--twitter-dark);
+}
+
+/* System message styling */
+.system-message {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 12px 0;
+    max-width: 80%;
+}
+
+.system-message-text {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--twitter-gray);
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.system-message-time {
+    font-size: 10px;
+    color: var(--twitter-gray);
+    margin-top: 4px;
+    opacity: 0.7;
 }
 
 .chat-input {
@@ -673,7 +931,7 @@ header {
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(29, 161, 242, 0.3);
+    box-shadow: 0 2px 8px rgba(29, 161,242, 0.3);
 }
 
 .send-btn:hover {
@@ -783,7 +1041,7 @@ header {
     }
 
     .chat-user-info {
-        margin-left: 48px;
+        margin-left: 2px;
         gap: 10px;
     }
 
@@ -906,7 +1164,7 @@ header {
     }
 
     .chat-user-info {
-        margin-left: 40px;
+        margin-left: 2px;
     }
 
     .chat-user-details h3 {
@@ -975,7 +1233,7 @@ header {
     }
 
     .chat-user-info {
-        margin-left: 34px;
+        margin-left: 2px;
     }
 
     .chat-user-details h3 {
@@ -1023,15 +1281,6 @@ header {
     .conversation-item {
         min-height: 60px;
         padding: 12px 16px;
-    }
-
-    .message:hover .message-delete {
-        display: none; /* Disable hover effects on touch devices */
-    }
-
-    .message-delete {
-        display: block; /* Always show delete button on touch devices */
-        opacity: 0.7;
     }
 
     .clear-chat-btn:hover {
@@ -1376,8 +1625,8 @@ document.addEventListener('DOMContentLoaded', function() {
             sidebar &&
             sidebar.classList.contains('mobile-open') &&
             !sidebar.contains(event.target) &&
-            !chatHeader.contains(event.target)) {
-            toggleMobileSidebar();
+            chatHeader && !chatHeader.contains(event.target)) {
+                toggleMobileSidebar();
         }
     });
 });
@@ -1445,28 +1694,91 @@ function sendMessage(event) {
 function addMessageToChat(event) {
     const messagesContainer = document.getElementById('chatMessages');
 
+    // Remove "no messages" placeholder if it exists
+    const noMessagesPlaceholder = messagesContainer.querySelector('.no-messages-chat');
+    if (noMessagesPlaceholder) {
+        noMessagesPlaceholder.remove();
+    }
+
     const messageDiv = document.createElement('div');
     const isOwnMessage = event.user.id === {{ auth()->id() }};
     messageDiv.className = `message ${isOwnMessage ? 'own' : 'other'}`;
     messageDiv.setAttribute('data-message-id', event.id);
 
+    // Build avatar HTML for received messages
+    let avatarHtml = '';
+    if (!isOwnMessage && event.user) {
+        if (event.user.avatar) {
+            avatarHtml = `<div class="message-avatar">
+                <img src="/storage/${event.user.avatar}" alt="${event.user.name}">
+            </div>`;
+        } else {
+            avatarHtml = `<div class="message-avatar">
+                <div class="avatar-placeholder-small">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>`;
+        }
+    }
+
+    // Build username HTML for received messages
+    let usernameHtml = '';
+    if (!isOwnMessage && event.user) {
+        usernameHtml = `<div class="message-username">${event.user.name}</div>`;
+    }
+
+    // Build delete button HTML
     let deleteButtonHtml = '';
     if (isOwnMessage) {
         deleteButtonHtml = `<button class="message-delete" onclick="deleteMessage(${event.id})" title="Delete">
-            <i class="fas fa-trash"></i> Delete
+            <i class="fas fa-trash"></i>
         </button>`;
     }
 
+    // Build media HTML if present
+    let mediaHtml = '';
+    if (event.type === 'image' && event.media_path) {
+        mediaHtml = `<div class="message-media">
+            <img src="/storage/${event.media_path}" alt="Image" class="message-image" onclick="openMediaViewer(this.src)">
+        </div>`;
+    } else if (event.type === 'video' && event.media_path) {
+        mediaHtml = `<div class="message-media">
+            <video src="/storage/${event.media_path}" controls class="message-video"></video>
+        </div>`;
+    }
+
+    // Build message text
+    let messageText = '';
+    if (event.content) {
+        messageText = `<span class="message-text">${event.content}</span>`;
+    }
+
     messageDiv.innerHTML = `
-        <div class="message-content">${event.content}</div>
-        <div class="message-meta">
-            <span class="message-time">${new Date(event.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+        ${avatarHtml}
+        <div class="message-bubble">
+            ${usernameHtml}
+            <div class="message-content">
+                ${mediaHtml}
+                ${messageText}
+                <span class="message-time">${formatTime(event.created_at)}</span>
+            </div>
             ${deleteButtonHtml}
         </div>
     `;
 
     messagesContainer.appendChild(messageDiv);
     scrollToBottom();
+}
+
+// Format time with AM/PM
+function formatTime(dateStr) {
+    const date = new Date(dateStr);
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    return `${hours}:${minutes} ${ampm}`;
 }
 
 function scrollToBottom(smooth = true) {
@@ -1520,19 +1832,8 @@ function startMessagePolling() {
                     markMessagesAsRead();
                 }
 
-                // Handle message updates (deletions, etc.)
-                if (data.message_updates && data.message_updates.length > 0) {
-                    console.log('Checking for message updates...');
-
-                    data.message_updates.forEach(update => {
-                        const messageElement = document.querySelector(`[data-message-id="${update.id}"]`);
-                        if (messageElement && update.deleted) {
-                            // Message has been deleted - remove from UI completely
-                            console.log('Removing deleted message:', update.id);
-                            messageElement.remove();
-                        }
-                    });
-                }
+                // Handle message updates (deletions, etc.) - removed auto-removal of deleted messages
+                // Deleted messages now stay visible with "message deleted" text
             }
         })
         .catch(error => {
@@ -1583,18 +1884,35 @@ function deleteMessage(messageId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update the message to show "message deleted"
+            // Update the message to show "message deleted" with a remove button
             const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
             if (messageElement) {
                 messageElement.classList.add('deleted');
                 const contentElement = messageElement.querySelector('.message-content');
+                const metaElement = messageElement.querySelector('.message-meta');
                 const deleteButton = messageElement.querySelector('.message-delete');
+                
                 if (contentElement) {
                     contentElement.innerHTML = '<em>message deleted</em>';
                 }
+                
+                // Replace delete button with remove button
                 if (deleteButton) {
                     deleteButton.remove();
                 }
+                
+                // Add remove button to completely hide the message
+                if (metaElement) {
+                    const removeButton = document.createElement('button');
+                    removeButton.className = 'message-remove';
+                    removeButton.innerHTML = '<i class="fas fa-times"></i> Remove';
+                    removeButton.title = 'Remove from view';
+                    removeButton.onclick = function() {
+                        messageElement.remove();
+                    };
+                    metaElement.appendChild(removeButton);
+                }
+                
                 console.log('Message deleted successfully');
             }
         } else {
@@ -1683,6 +2001,7 @@ function updateOnlineStatus() {
 
 // Poll other user's online status
 function startOnlineStatusPolling() {
+    @if($conversation->other_user)
     setInterval(() => {
         fetch('/user/{{ $conversation->other_user->name }}/online-status', {
             headers: {
@@ -1700,6 +2019,7 @@ function startOnlineStatusPolling() {
             console.error('Error fetching online status:', error);
         });
     }, 3000); // Check every 3 seconds
+    @endif
 }
 
 function updateOnlineIndicator(isOnline) {
@@ -1921,49 +2241,7 @@ function sendMediaMessage(content, mediaFile) {
     });
 }
 
-// Override addMessageToChat to support media
-const originalAddMessageToChat = addMessageToChat;
-addMessageToChat = function(event) {
-    const messagesContainer = document.getElementById('chatMessages');
-
-    const messageDiv = document.createElement('div');
-    const isOwnMessage = event.user.id === {{ auth()->id() }};
-    messageDiv.className = `message ${isOwnMessage ? 'own' : 'other'}`;
-    messageDiv.setAttribute('data-message-id', event.id);
-
-    let deleteButtonHtml = '';
-    if (isOwnMessage) {
-        deleteButtonHtml = `<button class="message-delete" onclick="deleteMessage(${event.id})" title="Delete">
-            <i class="fas fa-trash"></i> Delete
-        </button>`;
-    }
-
-    // Build media HTML if present
-    let mediaHtml = '';
-    if (event.type === 'image' && event.media_path) {
-        mediaHtml = `<div class="message-media">
-            <img src="/storage/${event.media_path}" alt="Image" class="message-image" onclick="openMediaViewer(this.src)">
-        </div>`;
-    } else if (event.type === 'video' && event.media_path) {
-        mediaHtml = `<div class="message-media">
-            <video src="/storage/${event.media_path}" controls class="message-video"></video>
-        </div>`;
-    }
-
-    messageDiv.innerHTML = `
-        <div class="message-content">
-            ${mediaHtml}
-            ${event.content ? event.content : ''}
-        </div>
-        <div class="message-meta">
-            <span class="message-time">${new Date(event.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-            ${deleteButtonHtml}
-        </div>
-    `;
-
-    messagesContainer.appendChild(messageDiv);
-    scrollToBottom();
-};
+// Note: addMessageToChat already handles all cases including media and group chats
 
 // Close media viewer on escape key
 document.addEventListener('keydown', function(e) {

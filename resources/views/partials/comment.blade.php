@@ -400,6 +400,68 @@
     .hide-replies {
         padding-left: 0;
     }
+
+    /* Mobile-friendly button styles */
+    .comment-action-btn {
+        padding: 8px 12px;
+        min-height: 44px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .comment-action-btn:active {
+        background: var(--twitter-light);
+        transform: scale(0.98);
+    }
+
+    .delete-comment-btn {
+        padding: 10px;
+        min-width: 44px;
+        min-height: 44px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .delete-comment-btn:active {
+        opacity: 1;
+        background: rgba(244, 33, 46, 0.2);
+    }
+
+    .show-replies-btn {
+        padding: 10px 0;
+        min-height: 44px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .reply-input-wrapper textarea {
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+
+    .reply-input-wrapper button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .cancel-reply {
+        padding: 10px;
+        min-height: 44px;
+    }
+    
+    /* Disable hover effects on mobile */
+    .comment-name:hover { color: var(--twitter-dark); }
+    .delete-comment-btn:hover { opacity: 0.7; background: transparent; }
+    .comment-action-btn:hover { background: transparent; color: var(--twitter-gray); }
+    .reply-input-wrapper button:hover { transform: none; }
+    .cancel-reply:hover { color: var(--twitter-gray); }
+    .show-more-replies button:hover, .hide-replies:hover, .show-replies-btn:hover { text-decoration: none; }
+}
+
+/* Disable ALL hover effects on touch devices */
+@media (hover: none) {
+    .comment-name:hover { color: var(--twitter-dark); }
+    .delete-comment-btn:hover { opacity: 0.7; background: transparent; }
+    .comment-action-btn:hover { background: transparent; color: var(--twitter-gray); }
+    .reply-input-wrapper button:hover { transform: none; }
+    .cancel-reply:hover { color: var(--twitter-gray); }
+    .show-more-replies button:hover, .hide-replies:hover, .show-replies-btn:hover { text-decoration: none; }
 }
 </style>
 
