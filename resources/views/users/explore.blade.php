@@ -541,7 +541,7 @@
 }
 
 .follow-btn.following {
-    background: #28a745;
+    background: var(--twitter-blue);
     color: white;
 }
 
@@ -671,7 +671,7 @@
 
 <script>
 function toggleFollow(btn, username) {
-    const isFollowing = btn.getAttribute('data-following') === 'true';
+    const isFollowing = btn.classList.contains('following');
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.disabled = true;
     
@@ -685,13 +685,11 @@ function toggleFollow(btn, username) {
     .then(r => r.json())
     .then(data => {
         if (data.following) {
-            btn.innerHTML = 'Following';
-            btn.setAttribute('data-following', 'true');
-            btn.classList.remove('btn-primary');
+            btn.innerHTML = '<i class="fas fa-user-check"></i> <span>Following</span>';
+            btn.classList.add('following');
         } else {
-            btn.innerHTML = 'Follow';
-            btn.setAttribute('data-following', 'false');
-            btn.classList.add('btn-primary');
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> <span>Follow</span>';
+            btn.classList.remove('following');
         }
         if (typeof showToast === 'function') {
             showToast(data.following ? 'You are now following this user' : 'You unfollowed this user', 'success');
@@ -706,11 +704,6 @@ function toggleFollow(btn, username) {
 }
 
 function toggleBlock(btn, username) {
-    const action = btn.classList.contains('block-btn') ? 'block' : 'unblock';
-    const confirmed = confirm(`Are you sure you want to ${action} ${username}?`);
-    
-    if (!confirmed) return;
-    
     btn.disabled = true;
     
     fetch(`/users/${username}/block`, {

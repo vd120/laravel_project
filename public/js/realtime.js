@@ -856,11 +856,11 @@ function toggleFollow(buttonElement, userName) {
             buttonElement.innerHTML = '<i class="fas fa-user-plus"></i> <span>Follow</span>';
             buttonElement.setAttribute('data-following', 'false');
         }
+        // Reload page immediately after API call to prevent green color issue
+        window.location.reload();
     })
     .catch(error => {
         console.error('Error toggling follow:', error);
-    })
-    .finally(() => {
         buttonElement.disabled = false;
     });
 }
