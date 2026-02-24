@@ -95,6 +95,14 @@ nav a:hover{opacity:1}
     z-index:-2;
     opacity:0.85;
     filter:saturate(0.9) contrast(1.05);
+    transition:transform 0.1s ease-out, opacity 0.3s ease-out, filter 0.3s ease-out;
+    will-change: transform, opacity, filter;
+}
+
+.hero video.scrolling{
+    transform:scale(1.5);
+    opacity:0;
+    filter:blur(30px) saturate(0);
 }
 
 .hero::before{
@@ -103,6 +111,11 @@ nav a:hover{opacity:1}
     inset:0;
     background:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.6) 100%);
     z-index:-1;
+    transition:opacity 0.3s ease-out;
+}
+
+.hero::before.fading{
+    opacity:0;
 }
 
 .hero-content{position:relative;z-index:1;max-width:800px}
@@ -209,7 +222,7 @@ section{padding:120px 20px;text-align:center;background:var(--bg-dark)}
 
 /* CTA SECTION - Apple Style */
 .cta-section{
-    background:#000;
+    background:var(--bg-dark);
     padding:180px 20px;
 }
 
@@ -244,17 +257,18 @@ section{padding:120px 20px;text-align:center;background:var(--bg-dark)}
 
 /* FOOTER - Apple Style */
 footer{
-    background:#1d1d1f;
-    padding:20px;
+    background:#0d0d0d;
+    padding:40px 20px;
     font-size:16px;
     color:#86868b;
+    border-top:1px solid rgba(255,255,255,0.08);
 }
 .footer-content{
     max-width:980px;
     margin:0 auto;
 }
 .footer-content p{margin-bottom:10px}
-footer a{color:#424245;text-decoration:none}
+footer a{color:#86868b;text-decoration:none}
 footer a:hover{text-decoration:underline}
 
 /* RESPONSIVE */
@@ -296,32 +310,106 @@ footer a:hover{text-decoration:underline}
     </div>
 </section>
 
+<!-- WHAT IS NEXUS -->
+<section class="what-is-nexus" style="padding:140px 20px;">
+    <div style="max-width:1000px;margin:0 auto;">
+        <p class="section-label fade-in" style="color:var(--primary-light);">Discover</p>
+        <h2 class="section-title fade-in fade-in-delay-1" style="font-size:clamp(2rem,4vw,3.5rem);">What is Nexus?</h2>
+        
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:30px;margin-top:60px;">
+            <!-- Card 1 -->
+            <div class="fade-in" style="background:linear-gradient(145deg,rgba(30,30,32,0.8) 0%,rgba(18,18,20,0.9) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:var(--primary);filter:blur(60px);opacity:0.3;"></div>
+                <div style="width:56px;height:56px;background:linear-gradient(135deg,#5e60ce 0%,#7400b8 100%);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <h3 style="font-size:24px;font-weight:600;margin-bottom:12px;color:#fff;">All-in-One Platform</h3>
+                <p style="font-size:16px;color:#98989f;line-height:1.6;">Nexus brings together the best social features in one place. Share stories, chat privately, join communities, and connect with people who matter to you.</p>
+            </div>
+            
+            <!-- Card 2 -->
+            <div class="fade-in fade-in-delay-1" style="background:linear-gradient(145deg,rgba(30,30,32,0.8) 0%,rgba(18,18,20,0.9) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:var(--primary-dark);filter:blur(60px);opacity:0.3;"></div>
+                <div style="width:56px;height:56px;background:linear-gradient(135deg,#4ea8de 0%,#5390d9 100%);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <h3 style="font-size:24px;font-weight:600;margin-bottom:12px;color:#fff;">Built for Connection</h3>
+                <p style="font-size:16px;color:#98989f;line-height:1.6;">Experience meaningful interactions with an AI-powered assistant, private encrypted messaging, and communities that align with your interests.</p>
+            </div>
+            
+            <!-- Card 3 -->
+            <div class="fade-in fade-in-delay-2" style="background:linear-gradient(145deg,rgba(30,30,32,0.8) 0%,rgba(18,18,20,0.9) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:var(--accent);filter:blur(60px);opacity:0.3;"></div>
+                <div style="width:56px;height:56px;background:linear-gradient(135deg,#4ea8de 0%,#5e60ce 100%);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h3 style="font-size:24px;font-weight:600;margin-bottom:12px;color:#fff;">Privacy First</h3>
+                <p style="font-size:16px;color:#98989f;line-height:1.6;">Your data belongs to you. Full control over what you share, who sees it, and complete transparency in how your information is used.</p>
+            </div>
+        </div>
+        
+        <!-- Bottom highlight -->
+        <div class="fade-in" style="margin-top:60px;padding:30px;background:rgba(94,96,206,0.1);border:1px solid rgba(94,96,206,0.2);border-radius:20px;text-align:center;">
+            <p style="font-size:18px;color:#d1d1d6;line-height:1.6;">Join thousands of users who've already discovered a better way to <span style="color:#fff;font-weight:500;">connect</span>, <span style="color:#fff;font-weight:500;">share</span>, and <span style="color:#fff;font-weight:500;">belong</span>.</p>
+        </div>
+    </div>
+</section>
+
 <!-- FEATURES -->
 <section class="features" id="features">
     <p class="section-label fade-in">Nexus</p>
     <h2 class="section-title fade-in fade-in-delay-1">Think different.<br>Connect different.</h2>
     <p class="section-desc fade-in fade-in-delay-2">A new way to share, connect, and belong.</p>
     
-    <div class="feature-grid">
-        <div class="feature-card">
-            <h3>Stories</h3>
-            <p>Share moments that matter. Express yourself with photos, videos, and more. Disappear after 24 hours.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:30px;max-width:1100px;margin:0 auto;">
+        <!-- Stories -->
+        <div class="fade-in" style="background:linear-gradient(145deg,rgba(30,30,32,0.8) 0%,rgba(18,18,20,0.9) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px;position:relative;overflow:hidden;text-align:left;">
+            <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:#e879f9;filter:blur(60px);opacity:0.3;"></div>
+            <div style="width:56px;height:56px;background:linear-gradient(135deg,#a855f7 0%,#d946ef 100%);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            </div>
+            <h3 style="font-size:24px;font-weight:600;margin-bottom:12px;color:#fff;">Stories</h3>
+            <p style="font-size:16px;color:#98989f;line-height:1.6;">Share moments that matter. Express yourself with photos, videos, and more. Disappear after 24 hours.</p>
         </div>
-        <div class="feature-card">
-            <h3>Private Chat</h3>
-            <p>Encrypted conversations with friends and family. Your messages, your rules.</p>
+        
+        <!-- Private Chat -->
+        <div class="fade-in fade-in-delay-1" style="background:linear-gradient(145deg,rgba(30,30,32,0.8) 0%,rgba(18,18,20,0.9) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px;position:relative;overflow:hidden;text-align:left;">
+            <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:#34d399;filter:blur(60px);opacity:0.3;"></div>
+            <div style="width:56px;height:56px;background:linear-gradient(135deg,#10b981 0%,#34d399 100%);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h3 style="font-size:24px;font-weight:600;margin-bottom:12px;color:#fff;">Private Chat</h3>
+            <p style="font-size:16px;color:#98989f;line-height:1.6;">Encrypted conversations with friends and family. Your messages, your rules.</p>
         </div>
-        <div class="feature-card">
-            <h3>Communities</h3>
-            <p>Find your people. Join groups based on interests and passions.</p>
+        
+        <!-- Communities -->
+        <div class="fade-in fade-in-delay-2" style="background:linear-gradient(145deg,rgba(30,30,32,0.8) 0%,rgba(18,18,20,0.9) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px;position:relative;overflow:hidden;text-align:left;">
+            <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:#60a5fa;filter:blur(60px);opacity:0.3;"></div>
+            <div style="width:56px;height:56px;background:linear-gradient(135deg,#3b82f6 0%,#60a5fa 100%);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <h3 style="font-size:24px;font-weight:600;margin-bottom:12px;color:#fff;">Communities</h3>
+            <p style="font-size:16px;color:#98989f;line-height:1.6;">Find your people. Join groups based on interests and passions.</p>
         </div>
-        <div class="feature-card">
-            <h3>(Menu-based)<br>AI Assistant</h3>
-            <p>Smart help when you need it. Create, connect, and discover with AI.</p>
+        
+        <!-- AI Assistant -->
+        <div class="fade-in fade-in-delay-1" style="background:linear-gradient(145deg,rgba(30,30,32,0.8) 0%,rgba(18,18,20,0.9) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px;position:relative;overflow:hidden;text-align:left;">
+            <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:#f472b6;filter:blur(60px);opacity:0.3;"></div>
+            <div style="width:56px;height:56px;background:linear-gradient(135deg,#ec4899 0%,#f472b6 100%);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><path d="M9 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/><path d="M15 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
+            </div>
+            <h3 style="font-size:24px;font-weight:600;margin-bottom:12px;color:#fff;">AI Assistant</h3>
+            <p style="font-size:16px;color:#98989f;line-height:1.6;">Smart help when you need it. Create, connect, and discover with AI.</p>
         </div>
-        <div class="feature-card">
-            <h3>Privacy</h3>
-            <p>Your data stays yours. Full control over what you share and who sees it.</p>
+        
+        <!-- Privacy -->
+        <div class="fade-in fade-in-delay-2" style="background:linear-gradient(145deg,rgba(30,30,32,0.8) 0%,rgba(18,18,20,0.9) 100%);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px;position:relative;overflow:hidden;text-align:left;">
+            <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:#fbbf24;filter:blur(60px);opacity:0.3;"></div>
+            <div style="width:56px;height:56px;background:linear-gradient(135deg,#f59e0b 0%,#fbbf24 100%);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3 style="font-size:24px;font-weight:600;margin-bottom:12px;color:#fff;">Privacy</h3>
+            <p style="font-size:16px;color:#98989f;line-height:1.6;">Your data stays yours. Full control over what you share and who sees it.</p>
         </div>
     </div>
 </section>
@@ -347,6 +435,39 @@ footer a:hover{text-decoration:underline}
 
 <script>
 const observer=new IntersectionObserver((entries)=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible')}})},{threshold:0.1});document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+
+// Optimized hero fade animation - prevents lag on devices
+const heroVideo = document.querySelector('.hero video');
+const heroContent = document.querySelector('.hero-content');
+
+let ticking = false;
+
+function updateHeroFade() {
+    const scrollY = window.scrollY;
+    const windowHeight = window.innerHeight;
+    
+    if (scrollY < windowHeight) {
+        const progress = Math.min(scrollY / windowHeight, 1);
+        const opacity = 1 - progress;
+        
+        heroVideo.style.opacity = opacity;
+        heroContent.style.opacity = opacity;
+    } else {
+        heroVideo.style.opacity = 0;
+        heroContent.style.opacity = 0;
+    }
+    
+    ticking = false;
+}
+
+window.addEventListener('scroll', () => {
+    if (!ticking) {
+        window.requestAnimationFrame(updateHeroFade);
+        ticking = true;
+    }
+});
+
+updateHeroFade();
 </script>
 
 </body>
