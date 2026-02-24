@@ -16,18 +16,23 @@
            ============================================ */
         
         :root {
-            --bg: #111111;
-            --surface: #1a1a1a;
-            --surface-hover: #242424;
+            /* Core Colors - Matching Landing Page */
+            --bg: #0d0d0d;
+            --surface: #161616;
+            --surface-hover: #1c1c1e;
             --border: #2a2a2a;
-            --text: #f5f5f5;
-            --text-muted: #888888;
-            --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.25);
-            --secondary: #8b5cf6;
-            --accent: #ef4444;
+            --text: #ffffff;
+            --text-muted: #98989f;
+            
+            /* Brand Colors - Purple/Violet Palette */
+            --primary: #5e60ce;
+            --primary-hover: #7400b8;
+            --primary-glow: rgba(94, 96, 206, 0.25);
+            --secondary: #5390d9;
+            --accent: #4ea8de;
             --success: #22c55e;
             --warning: #f59e0b;
+            
             --radius: 12px;
             --radius-lg: 16px;
             --transition: 200ms ease;

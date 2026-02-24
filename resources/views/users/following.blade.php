@@ -86,7 +86,7 @@
                         <i class="fas fa-user-minus"></i> Unfollow
                     </button>
                 @elseif(auth()->check() && auth()->id() !== $follow->followed->id)
-                    @php $isFollowing = auth()->user()->isFollowing($follow->followed); @endphp
+                    @php $isFollowing = in_array($follow->followed->id, $followingIds); @endphp
                     <button class="btn btn-sm {{ $isFollowing ? '' : 'btn-primary' }}" onclick="toggleFollow(this, '{{ $follow->followed->name }}')" data-following="{{ $isFollowing ? 'true' : 'false' }}">
                         {{ $isFollowing ? 'Following' : 'Follow' }}
                     </button>

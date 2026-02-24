@@ -82,7 +82,7 @@
             </div>
             <div class="user-actions">
                 @if(auth()->check() && auth()->id() !== $follower->follower->id)
-                    @php $isFollowing = auth()->user()->isFollowing($follower->follower); @endphp
+                    @php $isFollowing = in_array($follower->follower->id, $followingIds); @endphp
                     <button class="btn btn-sm {{ $isFollowing ? '' : 'btn-primary' }}" onclick="toggleFollow(this, '{{ $follower->follower->name }}')" data-following="{{ $isFollowing ? 'true' : 'false' }}">
                         {{ $isFollowing ? 'Following' : 'Follow' }}
                     </button>

@@ -134,6 +134,43 @@ $chatTitle = $conversation->is_group
                             <span class="system-message-text">{{ $message->content }}</span>
                             <span class="system-message-time">{{ $message->created_at->format('g:i A') }}</span>
                         </div>
+                    @elseif($message->type === 'group_invite')
+                        @php
+                            $inviteData = json_decode($message->media_path, true);
+                        @endphp
+                        <div class="message {{ $message->is_mine ? 'own' : 'other' }} group-invite-message" data-message-id="{{ $message->id }}">
+                            @if(!$message->is_mine && $message->sender)
+                                <div class="message-avatar">
+                                    @if($message->sender->profile && $message->sender->profile->avatar)
+                                        <img src="{{ asset('storage/' . $message->sender->profile->avatar) }}" alt="{{ $message->sender->name }}">
+                                    @else
+                                        <div class="avatar-placeholder-small">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+                            <div class="message-bubble">
+                                @if(!$message->is_mine && $message->sender)
+                                    <div class="message-username">{{ $message->sender->name }}</div>
+                                @endif
+                                <div class="group-invite-card">
+                                    <div class="group-invite-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="group-invite-content">
+                                        <div class="group-invite-title">{{ $inviteData['group_name'] ?? 'Group' }}</div>
+                                        <div class="group-invite-text">{{ $message->sender->name ?? 'Someone' }} invited you to join this group</div>
+                                    </div>
+                                    @if(!$message->is_mine && $inviteData['invite_link'] ?? null)
+                                        <button class="accept-invite-btn" onclick="acceptGroupInvite('{{ $inviteData['invite_link'] }}')">
+                                            <i class="fas fa-check"></i> Accept & Join
+                                        </button>
+                                    @endif
+                                </div>
+                                <span class="message-time">{{ $message->created_at->format('g:i A') }}</span>
+                            </div>
+                        </div>
                     @else
                         <div class="message {{ $message->is_mine ? 'own' : 'other' }} {{ $message->trashed() ? 'deleted' : '' }}" data-message-id="{{ $message->id }}">
                             @if(!$message->is_mine && $message->sender)
@@ -628,62 +665,68 @@ header {
 }
 
 .message-delete {
-    background: transparent;
-    color: rgba(255, 255, 255, 0.6);
-    border: none;
-    padding: 4px 8px;
+    background: var(--card-bg);
+    color: var(--error-color);
+    border: 1px solid var(--border-color);
+    padding: 6px 10px;
     cursor: pointer;
-    font-size: 11px;
-    opacity: 0.6;
+    font-size: 12px;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
     margin-top: 4px;
-    border-radius: 4px;
-}
-
-/* Mobile delete button - simple icon only, always visible */
-@media (max-width: 768px) {
-    .message-delete {
-        opacity: 1 !important;
-        padding: 6px 10px;
-        font-size: 12px;
-        background: transparent;
-        color: rgba(255, 255, 255, 0.8);
-        border-radius: 14px;
-        margin-top: 4px;
-        display: flex !important;
-        align-items: center;
-        gap: 4px;
-    }
-    
-    .message-delete i {
-        font-size: 12px;
-    }
-    
-    .message.own .message-delete {
-        color: rgba(255, 255, 255, 0.8);
-    }
-    
-    .message.other .message-delete {
-        color: rgba(0, 0, 0, 0.5);
-    }
-    
-    .message-delete:active {
-        background: rgba(255, 71, 87, 0.3);
-        color: #ff4757;
-    }
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .message-delete:hover {
-    opacity: 1;
-    color: #ff4757;
-    background: rgba(255, 71, 87, 0.1);
+    color: white;
+    background: var(--error-color);
+    border-color: var(--error-color);
+    transform: scale(1.05);
 }
 
 .message-delete i {
-    font-size: 10px;
+    font-size: 12px;
+}
+
+/* Mobile delete button - icon only with better visibility */
+@media (max-width: 768px) {
+    .message-delete {
+        padding: 10px;
+        font-size: 14px;
+        background: var(--card-bg);
+        color: var(--error-color);
+        border-radius: 50%;
+        margin-top: 6px;
+        min-width: 40px;
+        min-height: 40px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    
+    .message-delete i {
+        font-size: 16px;
+    }
+    
+    .message.own .message-delete {
+        background: var(--card-bg);
+        color: var(--error-color);
+        border: 1px solid var(--border-color);
+    }
+    
+    .message.other .message-delete {
+        background: var(--card-bg);
+        color: var(--error-color);
+        border: 1px solid var(--border-color);
+    }
+    
+    .message-delete:active {
+        background: var(--error-color);
+        color: white;
+        border-color: var(--error-color);
+    }
 }
 
 /* Remove button for deleted messages */
@@ -1068,6 +1111,7 @@ header {
     .chat-messages {
         flex: 1;
         padding: 12px 16px;
+        padding-bottom: 80px;
         overflow-y: auto;
         background: var(--twitter-light);
         margin-top: 56px;
@@ -1182,6 +1226,7 @@ header {
 
     .chat-messages {
         padding: 10px 12px;
+        padding-bottom: 80px;
     }
 
     .message {
@@ -1251,6 +1296,7 @@ header {
 
     .chat-messages {
         padding: 8px 10px;
+        padding-bottom: 80px;
     }
 
     .message {
@@ -1373,6 +1419,8 @@ header {
     border-radius: 12px;
     overflow: hidden;
     background: var(--hover-bg);
+    position: relative;
+    z-index: 10;
 }
 
 .media-preview-container {
@@ -1523,15 +1571,31 @@ header {
         font-size: 18px;
     }
 
-    .media-preview-container {
-        max-width: 150px;
-        max-height: 150px;
+    /* Hide image preview on mobile - show count badge on send button instead */
+    .media-preview {
+        display: none !important;
     }
 
-    .media-preview-container img,
-    .media-preview-container video {
-        max-width: 150px;
-        max-height: 150px;
+    /* Badge on send button for media count */
+    .send-btn.has-media {
+        position: relative;
+    }
+
+    .send-btn .media-count-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        background: var(--error-color);
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
     .message-image,
@@ -1547,12 +1611,127 @@ header {
     }
 }
 
+/* Group Invite Card Styles */
+.group-invite-message {
+    max-width: 75% !important;
+}
+
+.group-invite-card {
+    background: linear-gradient(135deg, rgba(37, 211, 102, 0.1), rgba(18, 140, 126, 0.1));
+    border: 1px solid rgba(37, 211, 102, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    min-width: 200px;
+}
+
+.message.own .group-invite-card {
+    background: linear-gradient(135deg, rgba(37, 211, 102, 0.15), rgba(18, 140, 126, 0.15));
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.group-invite-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+}
+
+.group-invite-content {
+    text-align: center;
+}
+
+.group-invite-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--twitter-dark);
+    margin-bottom: 4px;
+}
+
+.message.own .group-invite-title {
+    color: white;
+}
+
+.group-invite-text {
+    font-size: 13px;
+    color: var(--twitter-gray);
+}
+
+.message.own .group-invite-text {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.accept-invite-btn {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+}
+
+.accept-invite-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+}
+
+.accept-invite-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.accept-invite-btn.joined {
+    background: var(--twitter-gray);
+    cursor: default;
+}
+
 @media (max-width: 480px) {
     .media-btn {
         width: 36px;
         height: 36px;
         font-size: 16px;
     }
+    
+    .group-invite-card {
+        padding: 12px;
+        min-width: 180px;
+    }
+    
+    .group-invite-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    
+    .group-invite-title {
+        font-size: 14px;
+    }
+    
+    .group-invite-text {
+        font-size: 12px;
+    }
+    
+    .accept-invite-btn {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+}
 
     .media-preview-container {
         max-width: 120px;
@@ -1800,6 +1979,7 @@ function scrollToBottom(smooth = true) {
 function startMessagePolling() {
     // Check for new messages and message updates every 3 seconds
     setInterval(() => {
+        // Poll for messages in current conversation
         fetch(`{{ route('chat.messages', $conversation) }}`, {
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -1839,7 +2019,53 @@ function startMessagePolling() {
         .catch(error => {
             console.error('Error polling messages:', error);
         });
+        
+        // Poll for new messages from OTHER conversations (for toast notifications)
+        pollForOtherChatMessages();
     }, 3000); // Poll every 3 seconds
+}
+
+// Poll for messages from other conversations and show toast notifications
+function pollForOtherChatMessages() {
+    const currentConversationId = {{ $conversation->id }};
+    
+    fetch('/api/messages/new', {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.new_messages && data.new_messages.length > 0) {
+            data.new_messages.forEach(msg => {
+                // Only show toast for messages from OTHER conversations
+                if (msg.conversation_id !== currentConversationId) {
+                    const senderName = msg.sender_name;
+                    const messagePreview = msg.content;
+                    const groupName = msg.group_name;
+                    
+                    let toastMessage;
+                    if (msg.is_group && groupName) {
+                        toastMessage = `${groupName} - ${senderName}: ${messagePreview}`;
+                    } else {
+                        toastMessage = `New message from ${senderName}: ${messagePreview}`;
+                    }
+                    
+                    // Show toast notification
+                    if (typeof showToast === 'function') {
+                        showToast(toastMessage, 'info', 5000);
+                    } else {
+                        // Fallback alert
+                        console.log('Toast:', toastMessage);
+                    }
+                }
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error polling for other chat messages:', error);
+    });
 }
 
 function markMessagesAsRead() {
@@ -2059,6 +2285,7 @@ function handleMediaSelect(event) {
     const mediaPreview = document.getElementById('mediaPreview');
     const imagePreview = document.getElementById('imagePreview');
     const videoPreview = document.getElementById('videoPreview');
+    const sendButton = document.getElementById('sendButton');
 
     // Show preview
     if (file.type.startsWith('image/')) {
@@ -2077,6 +2304,22 @@ function handleMediaSelect(event) {
         imagePreview.style.display = 'none';
         mediaPreview.style.display = 'block';
     }
+
+    // On mobile, add count badge to send button (WhatsApp style)
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+        sendButton.classList.add('has-media');
+        // Remove existing badge if any
+        const existingBadge = sendButton.querySelector('.media-count-badge');
+        if (existingBadge) {
+            existingBadge.remove();
+        }
+        // Add new badge with count 1
+        const badge = document.createElement('span');
+        badge.className = 'media-count-badge';
+        badge.textContent = '1';
+        sendButton.appendChild(badge);
+    }
 }
 
 function clearMediaPreview() {
@@ -2085,6 +2328,7 @@ function clearMediaPreview() {
     const imagePreview = document.getElementById('imagePreview');
     const videoPreview = document.getElementById('videoPreview');
     const mediaInput = document.getElementById('mediaInput');
+    const sendButton = document.getElementById('sendButton');
 
     mediaPreview.style.display = 'none';
     imagePreview.style.display = 'none';
@@ -2092,6 +2336,15 @@ function clearMediaPreview() {
     imagePreview.src = '';
     videoPreview.src = '';
     mediaInput.value = '';
+
+    // Remove media badge from send button on mobile
+    if (sendButton) {
+        sendButton.classList.remove('has-media');
+        const badge = sendButton.querySelector('.media-count-badge');
+        if (badge) {
+            badge.remove();
+        }
+    }
 }
 
 function openMediaViewer(src) {
@@ -2249,5 +2502,62 @@ document.addEventListener('keydown', function(e) {
         closeMediaViewer();
     }
 });
+
+// ============ Group Invite Functions ============
+
+function acceptGroupInvite(inviteLink) {
+    const btn = event.target.closest('.accept-invite-btn');
+    if (btn.disabled) return;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining...';
+    
+    fetch(`/groups/accept-invite/${inviteLink}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            btn.innerHTML = '<i class="fas fa-check"></i> Joined!';
+            btn.classList.add('joined');
+            
+            // Show success toast
+            if (typeof showToast === 'function') {
+                showToast(data.message, 'success', 3000);
+            }
+            
+            // Redirect to group chat after 1.5 seconds
+            if (data.redirect) {
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1500);
+            }
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Accept & Join';
+            
+            if (typeof showToast === 'function') {
+                showToast(data.message || 'Failed to join group', 'error', 3000);
+            } else {
+                alert(data.message || 'Failed to join group');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error accepting invite:', error);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Accept & Join';
+        
+        if (typeof showToast === 'function') {
+            showToast('Error accepting invite', 'error', 3000);
+        } else {
+            alert('Error accepting invite');
+        }
+    });
+}
 </script>
 @endsection

@@ -180,8 +180,8 @@ Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
     Route::get('/stories', [App\Http\Controllers\StoryController::class, 'index'])->name('stories.index');
     Route::get('/stories/create', [App\Http\Controllers\StoryController::class, 'create'])->name('stories.create');
     Route::post('/stories', [App\Http\Controllers\StoryController::class, 'store'])->name('stories.store');
-    Route::get('/stories/{user}', [App\Http\Controllers\StoryController::class, 'show'])->name('stories.show')->where('user', '[a-zA-Z0-9_-]+');
-    Route::get('/stories/{user}/{story}/viewers', [App\Http\Controllers\StoryController::class, 'viewers'])->name('stories.viewers')->where('user', '[a-zA-Z0-9_-]+');
+    Route::get('/stories/{user}', [App\Http\Controllers\StoryController::class, 'show'])->name('stories.show')->where('user', '[a-zA-Z0-9_\- ]+');
+    Route::get('/stories/{user}/{story}/viewers', [App\Http\Controllers\StoryController::class, 'viewers'])->name('stories.viewers')->where('user', '[a-zA-Z0-9_\- ]+');
     Route::post('/stories/{story}/react', [App\Http\Controllers\StoryController::class, 'react'])->name('stories.react');
     Route::delete('/stories/{story}/react', [App\Http\Controllers\StoryController::class, 'unreact'])->name('stories.unreact');
     Route::delete('/stories/{story}', [App\Http\Controllers\StoryController::class, 'destroy'])->name('stories.destroy');
@@ -198,8 +198,8 @@ Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
     });
     Route::get('/explore', [UserController::class, 'explore'])->name('explore');
     Route::get('/search', [UserController::class, 'searchPage'])->name('search');
-    Route::get('/users/{user}/edit', [UserController::class, 'editProfile'])->name('profile.edit')->where('user', '[a-zA-Z0-9_-]+');
-    Route::post('/profile/{user}/update', [UserController::class, 'updateProfile'])->name('profile.update')->where('user', '[a-zA-Z0-9_-]+');
+    Route::get('/users/{user}/edit', [UserController::class, 'editProfile'])->name('profile.edit')->where('user', '[a-zA-Z0-9_\- ]+');
+    Route::post('/profile/{user}/update', [UserController::class, 'updateProfile'])->name('profile.update')->where('user', '[a-zA-Z0-9_\- ]+');
     Route::delete('/profile/delete-avatar', [UserController::class, 'deleteAvatar'])->name('profile.delete-avatar');
     Route::delete('/profile/delete-cover', [UserController::class, 'deleteCoverImage'])->name('profile.delete-cover');
     Route::delete('/profile/delete-account', [UserController::class, 'deleteAccount'])->name('profile.delete-account');
@@ -228,7 +228,7 @@ Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
 
     // User online status routes
     Route::post('/user/update-online-status', [App\Http\Controllers\UserController::class, 'updateOnlineStatus'])->name('user.update-online-status');
-    Route::get('/user/{user}/online-status', [App\Http\Controllers\UserController::class, 'getOnlineStatus'])->name('user.online-status')->where('user', '[a-zA-Z0-9_-]+');
+    Route::get('/user/{user}/online-status', [App\Http\Controllers\UserController::class, 'getOnlineStatus'])->name('user.online-status')->where('user', '[a-zA-Z0-9_\- ]+');
     
     // User status check API (for background polling)
     Route::get('/api/user/status', [App\Http\Controllers\UserController::class, 'checkUserStatus'])->name('api.user.status');
@@ -246,6 +246,8 @@ Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
     Route::post('/groups/{slug}/members/{userId}/admin', [App\Http\Controllers\GroupController::class, 'makeAdmin'])->name('groups.make-admin');
     Route::delete('/groups/{slug}/members/{userId}/admin', [App\Http\Controllers\GroupController::class, 'removeAdmin'])->name('groups.remove-admin');
     Route::post('/groups/{slug}/regenerate-invite', [App\Http\Controllers\GroupController::class, 'regenerateInvite'])->name('groups.regenerate-invite');
+    Route::post('/groups/{slug}/quick-invite', [App\Http\Controllers\GroupController::class, 'quickInvite'])->name('groups.quick-invite');
+    Route::post('/groups/accept-invite/{inviteLink}', [App\Http\Controllers\GroupController::class, 'acceptInvite'])->name('groups.accept-invite');
     
     // Join group via invite link
     Route::get('/join/{inviteLink}', [App\Http\Controllers\GroupController::class, 'joinViaInvite'])->name('groups.join');

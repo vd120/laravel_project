@@ -12,15 +12,38 @@ class UserController extends Controller
 {
     public function show(User $user)
     {
-        $user->load('profile');
-
-        // Load blocked users only for the profile owner
-        $blocked = null;
-        if (auth()->check() && auth()->id() === $user->id) {
-            $blocked = $user->blockedUsers()->with('blocked')->get();
+        // Eager load profile and posts with their relationships
+        $user->load(['profile', 'posts.media', 'posts.comments', 'posts.likes']);
+        
+        // Pre-calculate counts to avoid queries in view
+        $postsCount = $user->posts()->count();
+        $followersCount = $user->followers()->count();
+        $followingCount = $user->follows()->count();
+        $blockedCount = 0;
+        
+        // Check if current user follows this user (for the button state)
+        $isFollowing = false;
+        $isBlocking = false;
+        $isBlockedBy = false;
+        
+        if (auth()->check()) {
+            $isFollowing = auth()->user()->isFollowing($user);
+            $isBlocking = auth()->user()->isBlocking($user);
+            $isBlockedBy = $user->isBlocking(auth()->user());
+            
+            // Load blocked users count only for the profile owner
+            if (auth()->id() === $user->id) {
+                $blockedCount = $user->blockedUsers()->count();
+            }
         }
 
-        return view('users.show', compact('user', 'blocked'));
+        // Paginate posts to avoid loading all at once
+        $posts = $user->posts()
+            ->with(['media', 'comments.replies.user', 'comments.likes', 'likes'])
+            ->latest()
+            ->paginate(10);
+
+        return view('users.show', compact('user', 'posts', 'postsCount', 'followersCount', 'followingCount', 'blockedCount', 'isFollowing', 'isBlocking', 'isBlockedBy'));
     }
 
     public function follow(User $user)
@@ -103,14 +126,30 @@ class UserController extends Controller
 
     public function followers(User $user)
     {
-        $followers = $user->followers()->with('follower')->get();
-        return view('users.followers', compact('user', 'followers'));
+        // Eager load follower profiles and pre-calculate follow status
+        $followers = $user->followers()->with('follower.profile')->get();
+        
+        // Pre-calculate which followers the current user is following
+        $followingIds = [];
+        if (auth()->check()) {
+            $followingIds = auth()->user()->follows()->pluck('followed_id')->toArray();
+        }
+        
+        return view('users.followers', compact('user', 'followers', 'followingIds'));
     }
 
     public function following(User $user)
     {
-        $following = $user->follows()->with('followed')->get();
-        return view('users.following', compact('user', 'following'));
+        // Eager load followed profiles and pre-calculate follow status
+        $following = $user->follows()->with('followed.profile')->get();
+        
+        // Pre-calculate which users the current user is following
+        $followingIds = [];
+        if (auth()->check()) {
+            $followingIds = auth()->user()->follows()->pluck('followed_id')->toArray();
+        }
+        
+        return view('users.following', compact('user', 'following', 'followingIds'));
     }
 
     public function blocked(User $user)
@@ -153,24 +192,19 @@ class UserController extends Controller
 
         // Get all users except current user with their relationships
         $users = User::where('id', '!=', $currentUser->id)
-            ->with(['profile', 'followers', 'follows'])
+            ->with(['profile'])
             ->withCount(['followers', 'follows'])
             ->orderBy('created_at', 'desc')
             ->paginate(20); // Paginate for better performance
 
-        // Get blocked user IDs for current user
+        // Get blocked user IDs for current user (single query)
         $blockedByCurrentUser = $currentUser->blockedUsers()->pluck('blocked_id')->toArray();
         $blockedCurrentUser = Block::where('blocked_id', $currentUser->id)->pluck('blocker_id')->toArray();
+        
+        // Pre-calculate following IDs (single query instead of N queries in view)
+        $followingIds = $currentUser->follows()->pluck('followed_id')->toArray();
 
-        // Debug logging
-        \Log::info('Explore page accessed', [
-            'user_id' => $currentUser->id,
-            'user_count' => $users->count(),
-            'blocked_by_count' => count($blockedByCurrentUser),
-            'blocked_current_count' => count($blockedCurrentUser)
-        ]);
-
-        return view('users.explore', compact('users', 'blockedByCurrentUser', 'blockedCurrentUser'));
+        return view('users.explore', compact('users', 'blockedByCurrentUser', 'blockedCurrentUser', 'followingIds'));
     }
 
     public function searchPage()

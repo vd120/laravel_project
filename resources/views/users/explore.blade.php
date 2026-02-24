@@ -104,12 +104,13 @@
                                 <span>Blocked</span>
                             </div>
                         @else
+                            @php $isUserFollowing = in_array($user->id, $followingIds); @endphp
                             <div class="action-buttons">
                                 <button type="button"
-                                        class="btn follow-btn {{ auth()->user()->isFollowing($user) ? 'following' : '' }}"
+                                        class="btn follow-btn {{ $isUserFollowing ? 'following' : '' }}"
                                         data-username="{{ $user->name }}"
                                         onclick="toggleFollow(this, '{{ $user->name }}')">
-                                    {{ auth()->user()->isFollowing($user) ? 'Following' : 'Follow' }}
+                                    {{ $isUserFollowing ? 'Following' : 'Follow' }}
                                 </button>
                                 <button type="button" class="btn block-btn" data-username="{{ $user->name }}" onclick="toggleBlock(this, '{{ $user->name }}')">Block</button>
                             </div>

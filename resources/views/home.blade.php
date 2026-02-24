@@ -1,268 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Nexus - A modern social platform to connect with friends, share moments, and discover new stories.">
-    <title>Nexus - Share Your Story</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; }
-        body { 
-            font-family: 'Inter', -apple-system, sans-serif; 
-            color: #fff; 
-            background: #0a0a1a;
-            overflow-x: hidden; 
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus — Your Social Platform</title>
 
-        /* Video background container */
-        .video-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-        .video-container video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+<style>
+:root{
+    --primary:#5e60ce;
+    --primary-light:#7400b8;
+    --primary-dark:#4ea8de;
+    --secondary:#5390d9;
+    --accent:#4ea8de;
+    --bg-dark:#0d0d0d;
+    --bg-card:#161616;
+    --bg-elevated:#1c1c1e;
+    --text-primary:#ffffff;
+    --text-secondary:#98989f;
+    --text-muted:#636366;
+    --gradient-1:#5e60ce;
+    --gradient-2:#7400b8;
+}
 
-        .video-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, rgba(10,10,26,0.7) 0%, rgba(10,10,26,0.5) 50%, rgba(10,10,26,0.8) 100%);
-        }
+*{margin:0;padding:0;box-sizing:border-box;scroll-behavior:smooth}
+body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg-dark);
+    color:var(--text-primary);
+    overflow-xhidden;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
 
-        /* Header */
-        nav { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            padding: 20px 40px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            z-index: 100; 
-            background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
-            transition: background 0.3s ease;
-        }
-        nav.scrolled {
-            background: rgba(10, 10, 26, 0.95);
-            backdrop-filter: blur(10px);
-        }
-        .logo { font-size: 20px; font-weight: 700; color: #fff; text-decoration: none; letter-spacing: -0.5px; opacity: 0; transform: translateY(-10px); transition: opacity 0.4s ease, transform 0.4s ease; }
-        .logo.visible { opacity: 1; transform: translateY(0); }
-        .logo span { color: #60a5fa; }
+/* FADE ANIMATIONS */
+.fade-in{opacity:0;transform:translateY(30px);transition:opacity 0.8s ease,transform 0.8s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+.hero .fade-in{opacity:0;transform:translateY(40px);animation:fadeInUp 1s ease forwards}
+.hero .fade-in:nth-child(1){animation-delay:0.3s}
+.hero .fade-in:nth-child(2){animation-delay:0.5s}
+.hero .fade-in:nth-child(3){animation-delay:0.7s}
+@keyframes fadeInUp{to{opacity:1;transform:translateY(0)}}
+.fade-in-delay-1{transition-delay:0.1s}
+.fade-in-delay-2{transition-delay:0.2s}
+.fade-in-delay-3{transition-delay:0.3s}
 
-        /* Hero Title - Big Nexus */
-        .hero-title-big {
-            font-size: clamp(3.5rem, 12vw, 8rem);
-            font-weight: 700;
-            letter-spacing: -2px;
-            margin-bottom: 16px;
-            line-height: 1;
-            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #f472b6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            transition: opacity 0.4s ease, transform 0.4s ease;
-            text-shadow: 0 0 60px rgba(96, 165, 250, 0.3);
-        }
-        .hero-title-big.hidden {
-            opacity: 0;
-            transform: translateY(-20px) scale(0.95);
-        }
+/* NAV - Transparent with Blur */
+nav{
+    position:fixed;
+    top:0;
+    width:100%;
+    padding:14px 40px;
+    backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    background:rgba(0,0,0,0.15);
+    z-index:100;
+    display:flex;
+    justify-content:center;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.nav-container{
+    max-width:980px;
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+nav a{color:#f5f5f7;text-decoration:none;font-size:12px;font-weight:400;opacity:0.8;transition:opacity 0.3s}
+nav a:hover{opacity:1}
+.nav-brand{font-weight:600;font-size:18px}
 
-        /* Hero */
-        .hero { 
-            min-height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-            text-align: center; 
-            padding: 100px 20px; 
-            position: relative;
-            z-index: 1;
-        }
-        .hero h1 { font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 600; letter-spacing: -0.5px; margin-bottom: 20px; line-height: 1.2; color: rgba(255,255,255,0.95); }
-        .hero h1 span { background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero p { font-size: clamp(1rem, 2vw, 1.25rem); color: rgba(255,255,255,0.8); max-width: 500px; margin-bottom: 40px; font-weight: 400; }
-        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; font-size: 15px; font-weight: 600; border-radius: 50px; text-decoration: none; cursor: pointer; border: none; }
-        .btn-primary { background: #fff; color: #000; }
-        .btn-primary:hover { background: #f0f0f0; transform: scale(1.02); }
-        .btn-ghost { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px); }
-        .btn-ghost:hover { background: rgba(255,255,255,0.2); border-color: #fff; }
+/* HERO - Apple Style */
+.hero{
+    height:100vh;
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:0 20px;
+    background:transparent;
+}
 
-        /* About */
-        .about { padding: 100px 20px; background: rgba(10,10,26,0.95); text-align: center; position: relative; z-index: 1; }
-        .about-text { color: rgba(255,255,255,0.8); font-size: clamp(1rem, 2vw, 1.125rem); max-width: 700px; margin: 0 auto; line-height: 1.8; }
+.hero video{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:-2;
+    opacity:0.85;
+    filter:saturate(0.9) contrast(1.05);
+}
 
-        /* Features */
-        .features { padding: 100px 20px; background: rgba(15,15,35,0.98); position: relative; z-index: 1; }
-        .container { max-width: 1100px; margin: 0 auto; }
-        .section-title { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; text-align: center; margin-bottom: 50px; letter-spacing: -1px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
-        .card { padding: 32px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; transition: all 0.3s; }
-        .card:hover { background: rgba(255,255,255,0.08); transform: translateY(-5px); }
-        .card-icon { width: 48px; height: 48px; background: linear-gradient(135deg, #60a5fa, #a78bfa); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 20px; }
-        .card h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 8px; }
-        .card p { color: rgba(255,255,255,0.6); font-size: 0.875rem; line-height: 1.6; }
+.hero::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.6) 100%);
+    z-index:-1;
+}
 
-        /* Join Now */
-        .join-now { padding: 100px 20px; background: linear-gradient(180deg, rgba(10,10,26,0.95) 0%, rgba(20,20,50,0.98) 100%); text-align: center; position: relative; z-index: 1; }
-        .section-subtitle { color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto; }
+.hero-content{position:relative;z-index:1;max-width:800px}
 
-        /* Footer */
-        footer { padding: 40px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); background: #0a0a1a; position: relative; z-index: 1; }
-        footer p { color: rgba(255,255,255,0.4); font-size: 0.875rem; }
-        footer a { color: #60a5fa; text-decoration: none; }
+.hero h1{
+    font-size:clamp(3rem,7vw,5.5rem);
+    font-weight:700;
+    line-height:1.1;
+    margin-bottom:15px;
+    letter-spacing:-0.02em;
+    background:linear-gradient(135deg,#fff 0%,#a1a1a6 100%);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+}
 
-        @media (max-width: 768px) {
-            nav { padding: 16px 20px; }
-            .hero { padding: 80px 20px; }
-            .features { padding: 60px 20px; }
-            .grid { grid-template-columns: 1fr; }
-        }
-    </style>
+.hero h2{
+    font-size:clamp(1.2rem,2.5vw,1.8rem);
+    font-weight:500;
+    line-height:1.3;
+    color:#f5f5f7;
+    margin-bottom:25px;
+    opacity:0.9;
+}
+
+.hero-cta{display:flex;gap:15px;justify-content:center;flex-wrap:wrap}
+.hero-cta-btn{
+    padding:12px 24px;
+    border-radius:980px;
+    font-size:17px;
+    font-weight:500;
+    text-decoration:none;
+    transition:all 0.3s;
+}
+.hero-cta-btn-primary{background:#fff;color:#000}
+.hero-cta-btn-primary:hover{background:#f5f5f5;transform:scale(1.02)}
+.hero-cta-btn-secondary{background:rgba(79,140,255,0.2);color:#fff;border:1px solid var(--primary)}
+.hero-cta-btn-secondary:hover{background:var(--primary)}
+
+/* SECTIONS - Apple Style */
+section{padding:120px 20px;text-align:center;background:var(--bg-dark)}
+
+.section-label{
+    font-size:21px;
+    font-weight:600;
+    color:#f5f5f7;
+    margin-bottom:10px;
+}
+
+.section-title{
+    font-size:clamp(2.5rem,5vw,4rem);
+    font-weight:700;
+    letter-spacing:-0.02em;
+    margin-bottom:15px;
+    color:#f5f5f7;
+}
+
+.section-desc{
+    font-size:21px;
+    line-height:1.4;
+    color:#86868b;
+    max-width:700px;
+    margin:0 auto 60px;
+}
+
+/* FEATURES - Apple Grid */
+.features{background:var(--bg-dark)}
+
+.feature-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:20px;
+    max-width:1200px;
+    margin:0 auto;
+}
+
+.feature-card{
+    background:linear-gradient(180deg,#1d1d1f 0%,#000 100%);
+    border-radius:30px;
+    padding:50px 40px;
+    text-align:left;
+    transition:transform 0.4s ease,box-shadow 0.4s ease;
+    position:relative;
+    overflow:hidden;
+}
+
+.feature-card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 20px 50px rgba(0,0,0,0.5);
+}
+
+.feature-card h3{
+    font-size:28px;
+    font-weight:600;
+    margin-bottom:15px;
+    color:#f5f5f7;
+}
+
+.feature-card p{
+    font-size:17px;
+    line-height:1.5;
+    color:#86868b;
+}
+
+/* CTA SECTION - Apple Style */
+.cta-section{
+    background:#000;
+    padding:180px 20px;
+}
+
+.cta-content{max-width:900px;margin:0 auto}
+
+.cta-section h2{
+    font-size:clamp(2.5rem,5vw,4rem);
+    font-weight:700;
+    margin-bottom:20px;
+    color:#f5f5f7;
+}
+
+.cta-section p{
+    font-size:21px;
+    color:#86868b;
+    margin-bottom:30px;
+}
+
+.cta-buttons{display:flex;gap:15px;justify-content:center}
+.cta-btn{
+    padding:14px 28px;
+    border-radius:980px;
+    font-size:17px;
+    font-weight:500;
+    text-decoration:none;
+    transition:all 0.3s;
+}
+.cta-btn-primary{background:#4f8cff;color:#000}
+.cta-btn-primary:hover{background:#6b9fff;transform:scale(1.02)}
+.cta-btn-secondary{background:transparent;border:1px solid #86868b;color:#f5f5f7}
+.cta-btn-secondary:hover{background:rgba(255,255,255,0.1)}
+
+/* FOOTER - Apple Style */
+footer{
+    background:#1d1d1f;
+    padding:20px;
+    font-size:16px;
+    color:#86868b;
+}
+.footer-content{
+    max-width:980px;
+    margin:0 auto;
+}
+.footer-content p{margin-bottom:10px}
+footer a{color:#424245;text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+    nav{padding:12px 20px}
+    .hero-cta{flex-direction:column;align-items:center}
+    .hero-cta-btn{width:100%;max-width:200px}
+    .cta-buttons{flex-direction:column;align-items:center}
+    .cta-btn{width:100%;max-width:200px}
+    .feature-card{padding:35px 25px}
+}
+</style>
 </head>
 <body>
-    <!-- Video Background -->
-    <div class="video-container">
-        <video autoplay muted loop playsinline preload="none" id="bgVideo" poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Crect fill='%230a0a1a' width='1920' height='1080'/%3E%3C/svg%3E">
-            <source src="https://cdn.pixabay.com/video/2021/12/10/100221-657132594_small.mp4" type="video/mp4">
-        </video>
-        <div class="video-overlay"></div>
+
+<!-- NAV -->
+<nav>
+    <div class="nav-container">
+        <a href="/" class="nav-brand">Nexus</a>
+        <div style="display:flex;gap:30px;">
+            <a href="#features">Features</a>
+            <a href="#join-now">Join</a>
+        </div>
     </div>
+</nav>
 
-    <nav role="navigation" aria-label="Main navigation">
-        <a href="/" class="logo">Nexus</a>
-    </nav>
+<!-- HERO -->
+<section class="hero">
+    <video autoplay muted loop playsinline preload="auto" poster="">
+        <source src="https://cdn.pixabay.com/video/2021/12/10/100221-657132594_small.mp4" type="video/mp4">
+    </video>
+    <div class="hero-content">
+        <h1 class="fade-in">Nexus</h1>
+        <h2 class="fade-in fade-in-delay-1">Your space. Your people. Your story.</h2>
+        <div class="hero-cta fade-in fade-in-delay-2">
+            <a href="#join-now" class="hero-cta-btn hero-cta-btn-primary">Join Now</a>
+            <a href="#features" class="hero-cta-btn hero-cta-btn-secondary">Learn More</a>
+        </div>
+    </div>
+</section>
 
-    <main id="main-content">
-        <section class="hero" aria-labelledby="hero-title">
-            <h2 class="hero-title-big" id="nexus-title">Nexus</h2>
-            <h1 id="hero-title">Where <span>Stories</span> Come to Life</h1>
-            <p>Your space to connect, create, and share the moments that matter most. Join a community where every story finds its audience.</p>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
-                <a href="{{ route('register') }}" class="btn btn-primary">Start Your Journey</a>
-                <a href="{{ route('login') }}" class="btn btn-ghost">Welcome Back</a>
-            </div>
-        </section>
+<!-- FEATURES -->
+<section class="features" id="features">
+    <p class="section-label fade-in">Nexus</p>
+    <h2 class="section-title fade-in fade-in-delay-1">Think different.<br>Connect different.</h2>
+    <p class="section-desc fade-in fade-in-delay-2">A new way to share, connect, and belong.</p>
+    
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>Stories</h3>
+            <p>Share moments that matter. Express yourself with photos, videos, and more. Disappear after 24 hours.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Private Chat</h3>
+            <p>Encrypted conversations with friends and family. Your messages, your rules.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Communities</h3>
+            <p>Find your people. Join groups based on interests and passions.</p>
+        </div>
+        <div class="feature-card">
+            <h3>(Menu-based)<br>AI Assistant</h3>
+            <p>Smart help when you need it. Create, connect, and discover with AI.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Privacy</h3>
+            <p>Your data stays yours. Full control over what you share and who sees it.</p>
+        </div>
+    </div>
+</section>
 
-        <section class="about" aria-labelledby="about-title">
-            <div class="container">
-                <h2 class="section-title" id="about-title">More Than Just a Platform</h2>
-                <p class="about-text">Nexus is where real connections happen. Whether you're sharing everyday moments or life's biggest milestones, we give you the tools to express yourself authentically. Built for creators, dreamers, and everyone in between — your story deserves to be told.</p>
-            </div>
-        </section>
+<!-- CTA -->
+<section class="cta-section" id="join-now">
+    <div class="cta-content">
+        <h2 class="fade-in">Ready to join?</h2>
+        <p class="fade-in fade-in-delay-1">Start your journey with Nexus today.</p>
+        <div class="cta-buttons fade-in fade-in-delay-2">
+            <a href="/register" class="cta-btn cta-btn-primary">Create Account</a>
+            <a href="/login" class="cta-btn cta-btn-secondary">Sign In</a>
+        </div>
+    </div>
+</section>
 
-        <section class="features" aria-labelledby="features-title">
-            <div class="container">
-                <h2 class="section-title" id="features-title">Built for You</h2>
-                <p class="section-subtitle">Everything you need to share, connect, and grow — all in one place.</p>
-                <div class="grid" role="list">
-                    <article class="card" role="listitem">
-                        <div class="card-icon"><i class="fas fa-photo-film"></i></div>
-                        <h3>Rich Media Sharing</h3>
-                        <p>Post stunning photos and videos that capture your world in vivid detail.</p>
-                    </article>
-                    <article class="card" role="listitem">
-                        <div class="card-icon"><i class="fas fa-bolt"></i></div>
-                        <h3>24-Hour Stories</h3>
-                        <p>Share spontaneous moments that disappear after a day. Fun, fast, and fleeting.</p>
-                    </article>
-                    <article class="card" role="listitem">
-                        <div class="card-icon"><i class="fas fa-message"></i></div>
-                        <h3>Direct Messages</h3>
-                        <p>Private, secure conversations with the people who matter most to you.</p>
-                    </article>
-                    <article class="card" role="listitem">
-                        <div class="card-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
-                        <h3>AI-Powered Creation</h3>
-                        <p>Let our smart assistant help you craft the perfect post and find the right words.</p>
-                    </article>
-                    <article class="card" role="listitem">
-                        <div class="card-icon"><i class="fas fa-globe"></i></div>
-                        <h3>Discover & Explore</h3>
-                        <p>Find inspiring content and connect with people who share your passions.</p>
-                    </article>
-                    <article class="card" role="listitem">
-                        <div class="card-icon"><i class="fas fa-lock"></i></div>
-                        <h3>Your Privacy, Your Rules</h3>
-                        <p>Full control over your content. Share with the world or keep it close.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
+<!-- FOOTER -->
+<footer>
+    <div class="footer-content">
+        <p>2026 Copyright © 2026 Nexus Team. All rights reserved.</p>
+    </div>
+</footer>
 
-        <section class="join-now" aria-labelledby="join-title">
-            <div class="container">
-                <h2 class="section-title" id="join-title">Ready to Begin?</h2>
-                <p class="section-subtitle">Join millions already sharing their stories. Your next chapter starts here.</p>
-                <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;">
-                    <a href="{{ route('register') }}" class="btn btn-primary"><i class="fas fa-rocket"></i> Create Free Account</a>
-                    <a href="{{ route('login') }}" class="btn btn-ghost"><i class="fas fa-sign-in-alt"></i> Sign In</a>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer role="contentinfo">
-        <p>&copy; {{ date('Y') }} <a href="/">Nexus</a>. All rights reserved.</p>
-    </footer>
-
-    <script>
-        // Scroll effect for title transition
-        const nav = document.querySelector('nav');
-        const logo = document.querySelector('.logo');
-        const nexusTitle = document.getElementById('nexus-title');
-        
-        // Threshold for when to show/hide elements (in pixels)
-        const scrollThreshold = 100;
-        
-        function handleScroll() {
-            const scrollY = window.scrollY;
-            
-            if (scrollY > scrollThreshold) {
-                // User has scrolled down - show header logo, hide big title
-                nav.classList.add('scrolled');
-                logo.classList.add('visible');
-                nexusTitle.classList.add('hidden');
-            } else {
-                // User is at top - hide header logo, show big title
-                nav.classList.remove('scrolled');
-                logo.classList.remove('visible');
-                nexusTitle.classList.remove('hidden');
-            }
-        }
-        
-        // Listen for scroll events with throttling for performance
-        let ticking = false;
-        window.addEventListener('scroll', function() {
-            if (!ticking) {
-                window.requestAnimationFrame(function() {
-                    handleScroll();
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        });
-        
-        // Initial check on page load
-        handleScroll();
-    </script>
+<script>
+const observer=new IntersectionObserver((entries)=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible')}})},{threshold:0.1});document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+</script>
 
 </body>
 </html>

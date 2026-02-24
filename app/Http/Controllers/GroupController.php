@@ -373,4 +373,149 @@ class GroupController extends Controller
         return redirect()->route('groups.show', $group->slug)
             ->with('success', 'Invite link regenerated successfully!');
     }
+
+    /**
+     * Send quick invite to selected users via private message
+     */
+    public function quickInvite(Request $request, $slug)
+    {
+        $group = Group::where('slug', $slug)->firstOrFail();
+        
+        if (!$group->isAdmin(auth()->user())) {
+            abort(403, 'Only admins can send invites.');
+        }
+
+        $request->validate([
+            'users' => 'required|array|min:1',
+            'users.*' => 'exists:users,id',
+        ]);
+
+        $invited = 0;
+        $alreadyMembers = 0;
+        
+        foreach ($request->users as $userId) {
+            $user = User::find($userId);
+            
+            // Skip if already a member
+            if ($group->hasMember($user)) {
+                $alreadyMembers++;
+                continue;
+            }
+            
+            // Find or create a private conversation with this user
+            $conversation = Conversation::where(function ($q) use ($userId) {
+                $q->where('user1_id', auth()->id())
+                  ->where('user2_id', $userId);
+            })->orWhere(function ($q) use ($userId) {
+                $q->where('user1_id', $userId)
+                  ->where('user2_id', auth()->id());
+            })->where('is_group', false)->first();
+            
+            if (!$conversation) {
+                $conversation = Conversation::create([
+                    'user1_id' => auth()->id(),
+                    'user2_id' => $userId,
+                    'is_group' => false,
+                ]);
+            }
+            
+            // Send a group invite message
+            Message::create([
+                'conversation_id' => $conversation->id,
+                'sender_id' => auth()->id(),
+                'content' => ' invited you to join the group "' . $group->name . '"',
+                'type' => 'group_invite',
+                'media_path' => json_encode([
+                    'group_id' => $group->id,
+                    'group_name' => $group->name,
+                    'group_slug' => $group->slug,
+                    'invite_link' => $group->invite_link,
+                ]),
+            ]);
+            
+            // Also create a notification
+            \App\Models\Notification::create([
+                'user_id' => $userId,
+                'type' => 'group_invite',
+                'data' => json_encode([
+                    'group_id' => $group->id,
+                    'group_name' => $group->name,
+                    'group_slug' => $group->slug,
+                    'inviter_id' => auth()->id(),
+                    'inviter_name' => auth()->user()->name,
+                    'invite_link' => $group->invite_link,
+                ]),
+                'read_at' => null,
+            ]);
+            
+            $invited++;
+        }
+
+        $message = $invited . ' invite(s) sent successfully!';
+        if ($alreadyMembers > 0) {
+            $message .= ' (' . $alreadyMembers . ' user(s) already members)';
+        }
+
+        return redirect()->route('groups.show', $group->slug)
+            ->with('success', $message);
+    }
+
+    /**
+     * Accept group invite from private message
+     */
+    public function acceptInvite($inviteLink)
+    {
+        $group = Group::where('invite_link', $inviteLink)->firstOrFail();
+
+        // Check if user is already a member
+        if ($group->hasMember(auth()->user())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are already a member of this group.'
+            ]);
+        }
+
+        // Add user to group
+        GroupMember::create([
+            'group_id' => $group->id,
+            'user_id' => auth()->id(),
+            'role' => 'member',
+        ]);
+
+        // Find the invite message to get the inviter info
+        $inviteMessage = Message::where('type', 'group_invite')
+            ->where('conversation_id', function($query) use ($group) {
+                $query->select('id')
+                    ->from('conversations')
+                    ->where(function($q) {
+                        $q->where('user1_id', auth()->id())
+                          ->orWhere('user2_id', auth()->id());
+                    })
+                    ->where('is_group', false);
+            })
+            ->whereRaw("JSON_EXTRACT(media_path, '$.invite_link') = ?", [$inviteLink])
+            ->latest()
+            ->first();
+
+        // Create system message for joining - show who added them
+        if ($inviteMessage && $inviteMessage->sender) {
+            $inviterName = $inviteMessage->sender->name;
+            $content = $inviterName . ' added ' . auth()->user()->name;
+        } else {
+            $content = auth()->user()->name . ' joined the group using invite link';
+        }
+
+        Message::create([
+            'conversation_id' => $group->conversation->id,
+            'sender_id' => auth()->id(),
+            'content' => $content,
+            'type' => 'system',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'You have joined the group!',
+            'redirect' => route('chat.show', $group->conversation)
+        ]);
+    }
 }

@@ -48,8 +48,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->where('post', '[a-zA-Z0-9]{24}');
     Route::apiResource('comments', CommentController::class)->except(['index', 'show']);
     Route::post('/comments/{comment}/like', [CommentController::class, 'like']);
-    Route::get('/users/{user}', [UserController::class, 'show'])->where('user', '[a-zA-Z0-9_-]+');
-    Route::post('/users/{user}/follow', [UserController::class, 'follow'])->where('user', '[a-zA-Z0-9_-]+');
+    Route::get('/users/{user}', [UserController::class, 'show'])->where('user', '[a-zA-Z0-9_\- ]+');
+    Route::post('/users/{user}/follow', [UserController::class, 'follow'])->where('user', '[a-zA-Z0-9_\- ]+');
     Route::get('/explore', [UserController::class, 'explore']);
     Route::post('/password/change', [App\Http\Controllers\Api\PasswordController::class, 'change']);
 

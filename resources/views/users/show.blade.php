@@ -82,7 +82,7 @@
         <div class="profile-details">
             <div class="profile-name">
                 {{ $user->name }}
-                @if(auth()->check() && auth()->user()->isBlocking($user))
+                @if(auth()->check() && $isBlocking)
                     <span class="private-badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i class="fas fa-ban"></i> Blocked</span>
                 @endif
                 @if($user->profile && $user->profile->is_private)
@@ -115,18 +115,15 @@
         <div class="profile-actions">
             @if(auth()->check() && auth()->id() === $user->id)
                 <a href="{{ route('profile.edit', $user) }}" class="btn"><i class="fas fa-edit"></i> Edit Profile</a>
-            @elseif(auth()->check() && $user->isBlocking(auth()->user()))
+            @elseif(auth()->check() && $isBlockedBy)
                 <div style="color: var(--text-muted); font-size: 14px;">
                     <i class="fas fa-ban"></i> This user has blocked you
                 </div>
-            @elseif(auth()->check() && auth()->user()->isBlocking($user))
+            @elseif(auth()->check() && $isBlocking)
                 <button class="btn" onclick="unblockUser('{{ $user->name }}')" style="background: #dc3545; color: white;">
                     <i class="fas fa-unlock"></i> <span>Unblock</span>
                 </button>
             @elseif(auth()->check())
-                @php
-                    $isFollowing = auth()->user()->isFollowing($user);
-                @endphp
                 <button class="btn btn-primary" onclick="toggleFollow(this, '{{ $user->name }}')" data-following="{{ $isFollowing ? 'true' : 'false' }}">
                     <i class="fas fa-user-{{ $isFollowing ? 'check' : 'plus' }}"></i> <span>{{ $isFollowing ? 'Following' : 'Follow' }}</span>
                 </button>
@@ -142,29 +139,26 @@
 
     <div class="profile-stats">
         <a href="{{ route('users.show', $user) }}" class="stat-item">
-            <div class="stat-number">{{ $user->posts()->count() }}</div>
+            <div class="stat-number">{{ $postsCount }}</div>
             <div class="stat-label">Posts</div>
         </a>
         <a href="{{ route('users.followers', $user) }}" class="stat-item">
-            <div class="stat-number">{{ $user->followers()->count() }}</div>
+            <div class="stat-number">{{ $followersCount }}</div>
             <div class="stat-label">Followers</div>
         </a>
         <a href="{{ route('users.following', $user) }}" class="stat-item">
-            <div class="stat-number">{{ $user->follows()->count() }}</div>
+            <div class="stat-number">{{ $followingCount }}</div>
             <div class="stat-label">Following</div>
         </a>
         @if(auth()->check() && auth()->id() === $user->id)
         <a href="{{ route('users.blocked', $user) }}" class="stat-item">
-            <div class="stat-number">{{ $user->blockedUsers()->count() }}</div>
+            <div class="stat-number">{{ $blockedCount }}</div>
             <div class="stat-label">Blocked</div>
         </a>
         @endif
     </div>
 
     <div class="profile-content">
-        @php
-            $posts = $user->posts()->with(['media', 'comments', 'likes'])->latest()->paginate(10);
-        @endphp
         @forelse($posts as $post)
             @include('partials.post', ['post' => $post])
         @empty

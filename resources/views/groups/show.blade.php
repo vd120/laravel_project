@@ -61,6 +61,20 @@
             @endif
         </div>
 
+        <!-- Quick Invite Section -->
+        @if($group->isAdmin(auth()->user()))
+        <div class="quick-invite-section">
+            <div class="quick-invite-header">
+                <i class="fas fa-paper-plane"></i>
+                <span>Quick Invite</span>
+            </div>
+            <p class="quick-invite-desc">Send group invites directly to your friends. They'll receive a notification to join.</p>
+            <button class="quick-invite-btn" onclick="showQuickInviteModal()">
+                <i class="fas fa-user-plus"></i> Send Invites
+            </button>
+        </div>
+        @endif
+
         <!-- Members Section -->
         <div class="members-section">
             <div class="members-header">
@@ -93,6 +107,7 @@
                         <div class="member-actions">
                             <form action="{{ route('groups.remove-admin', [$group->slug, $member->user->id]) }}" method="POST" style="display:inline;">
                                 @csrf
+                                @method('DELETE')
                                 <button type="submit" class="demote-btn" title="Remove Admin" onclick="return confirm('Remove admin privileges from this user?')">
                                     <i class="fas fa-user-minus"></i>
                                 </button>
@@ -128,7 +143,7 @@
                         <div class="member-actions">
                             <form action="{{ route('groups.make-admin', [$group->slug, $member->user->id]) }}" method="POST" style="display:inline;">
                                 @csrf
-                                <button type="submit" class="promote-btn" title="Make Admin">
+                                <button type="submit" class="promote-btn" title="Make Admin" onclick="return confirm('Make {{ $member->user->name }} an admin?')">
                                     <i class="fas fa-crown"></i>
                                 </button>
                             </form>
@@ -204,6 +219,62 @@
             <div class="modal-footer">
                 <button type="button" class="btn-cancel" onclick="hideAddMemberModal()">Cancel</button>
                 <button type="submit" class="btn-add">Add Selected</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Quick Invite Modal -->
+<div id="quickInviteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-paper-plane"></i> Quick Invite</h3>
+            <button type="button" class="close-modal" onclick="hideQuickInviteModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form action="{{ route('groups.quick-invite', $group->slug) }}" method="POST">
+            @csrf
+            <div class="modal-body">
+                <p class="invite-info">Select friends to invite. They'll receive a notification with a link to join the group.</p>
+                <div class="search-users">
+                    <input type="text" placeholder="Search friends..." id="inviteSearch" oninput="searchInviteFriends(this.value)">
+                </div>
+                <div id="inviteFriendsList" class="friends-list">
+                    @php
+                        $inviteFriends = auth()->user()->following()->get();
+                    @endphp
+                    @if($inviteFriends->count() > 0)
+                        @foreach($inviteFriends as $friend)
+                        <label class="friend-option {{ $group->hasMember($friend) ? 'already-member' : '' }}">
+                            <input type="checkbox" name="users[]" value="{{ $friend->id }}" {{ $group->hasMember($friend) ? 'disabled' : '' }}>
+                            <div class="friend-info">
+                                @if($friend->profile && $friend->profile->avatar)
+                                    <img src="{{ asset('storage/' . $friend->profile->avatar) }}" alt="{{ $friend->name }}">
+                                @else
+                                    <div class="avatar-fallback small"><i class="fas fa-user"></i></div>
+                                @endif
+                                <span>{{ $friend->name }}</span>
+                                @if($group->hasMember($friend))
+                                    <span class="member-badge"><i class="fas fa-check"></i> Member</span>
+                                @endif
+                            </div>
+                        </label>
+                        @endforeach
+                    @else
+                        <div class="no-friends-message">
+                            <i class="fas fa-user-friends"></i>
+                            <p>You're not following anyone yet.</p>
+                            <a href="{{ route('explore') }}" class="explore-link">Explore Users</a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="hideQuickInviteModal()">Cancel</button>
+                <button type="submit" class="btn-send-invite">
+                    <i class="fas fa-paper-plane"></i> Send Invites
+                </button>
             </div>
         </form>
     </div>
@@ -637,6 +708,105 @@
     cursor: pointer;
 }
 
+/* Quick Invite Styles */
+.quick-invite-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, rgba(37, 211, 102, 0.05), rgba(18, 140, 126, 0.05));
+}
+
+.quick-invite-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #25d366;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.quick-invite-desc {
+    font-size: 13px;
+    color: var(--twitter-gray);
+    margin: 0 0 12px 0;
+}
+
+.quick-invite-btn {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.quick-invite-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+.friend-option.already-member {
+    opacity: 0.6;
+    background: var(--hover-bg);
+}
+
+.member-badge {
+    background: var(--twitter-blue);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: auto;
+}
+
+.no-friends-message {
+    text-align: center;
+    padding: 30px;
+    color: var(--twitter-gray);
+}
+
+.no-friends-message i {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.no-friends-message p {
+    margin: 0 0 12px 0;
+}
+
+.explore-link {
+    color: var(--twitter-blue);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.btn-send-invite {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.invite-info {
+    font-size: 13px;
+    color: var(--twitter-gray);
+    margin: 0 0 12px 0;
+    padding: 10px;
+    background: var(--twitter-light);
+    border-radius: 8px;
+}
+
 @media (max-width: 768px) {
     .group-page {
         padding-top: 56px;
@@ -678,7 +848,32 @@ document.getElementById('addMemberModal').addEventListener('click', function(e) 
 });
 
 function searchFriends(query) {
-    const options = document.querySelectorAll('.friend-option');
+    const options = document.querySelectorAll('#friendsList .friend-option');
+    const q = query.toLowerCase();
+    
+    options.forEach(option => {
+        const name = option.querySelector('.friend-info span').textContent.toLowerCase();
+        option.style.display = name.includes(q) ? 'flex' : 'none';
+    });
+}
+
+// Quick Invite Modal Functions
+function showQuickInviteModal() {
+    document.getElementById('quickInviteModal').style.display = 'flex';
+}
+
+function hideQuickInviteModal() {
+    document.getElementById('quickInviteModal').style.display = 'none';
+}
+
+document.getElementById('quickInviteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideQuickInviteModal();
+    }
+});
+
+function searchInviteFriends(query) {
+    const options = document.querySelectorAll('#inviteFriendsList .friend-option');
     const q = query.toLowerCase();
     
     options.forEach(option => {

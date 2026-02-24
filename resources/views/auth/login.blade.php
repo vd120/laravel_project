@@ -16,20 +16,20 @@
            ============================================ */
         
         :root {
-            /* Core Colors */
-            --bg: #111111;
-            --surface: #1a1a1a;
-            --surface-hover: #242424;
+            /* Core Colors - Matching Landing Page */
+            --bg: #0d0d0d;
+            --surface: #161616;
+            --surface-hover: #1c1c1e;
             --border: #2a2a2a;
-            --text: #f5f5f5;
-            --text-muted: #888888;
+            --text: #ffffff;
+            --text-muted: #98989f;
             
-            /* Brand Colors */
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --primary-glow: rgba(59, 130, 246, 0.25);
-            --secondary: #8b5cf6;
-            --accent: #ef4444;
+            /* Brand Colors - Purple/Violet Palette */
+            --primary: #5e60ce;
+            --primary-hover: #7400b8;
+            --primary-glow: rgba(94, 96, 206, 0.25);
+            --secondary: #5390d9;
+            --accent: #4ea8de;
             --success: #22c55e;
             
             /* Spacing & Radius */
@@ -307,7 +307,7 @@
                     <label for="email">Email Address</label>
                     <input type="email" name="email" id="email"
                         value="{{ old('email') }}"
-                        placeholder="you@example.com"
+                        placeholder="Your Email"
                         required autocomplete="username">
                     @error('email')
                         <div class="field-error">{{ $message }}</div>
@@ -318,7 +318,7 @@
                     <label for="password">Password</label>
                     <div class="password-wrap">
                         <input type="password" name="password" id="password"
-                            placeholder="••••••••"
+                            placeholder="Your Password"
                             required autocomplete="current-password">
                         <button type="button" class="toggle-pw" onclick="togglePassword()">
                             <i class="fas fa-eye" id="eye-icon"></i>
