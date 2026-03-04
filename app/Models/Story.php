@@ -3,13 +3,36 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class Story extends Model
 {
-    protected $fillable = ['user_id', 'media_type', 'media_path', 'content', 'expires_at', 'views'];
+    protected $fillable = ['user_id', 'slug', 'media_type', 'media_path', 'content', 'expires_at', 'views'];
 
     protected $dates = ['expires_at'];
+
+    /**
+     * Boot the model
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($story) {
+            if (empty($story->slug)) {
+                $story->slug = Str::random(24);
+            }
+        });
+    }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
 
     public function user()
     {

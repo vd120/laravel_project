@@ -44,14 +44,10 @@
             <div class="comment-main">
                 <div class="comment-user">
                     <div class="user-avatar">
-                        @if($comment->user->profile && $comment->user->profile->avatar)
-                            <img src="{{ asset('storage/' . $comment->user->profile->avatar) }}" alt="">
-                        @else
-                            <div class="avatar-placeholder">{{ substr($comment->user->name, 0, 1) }}</div>
-                        @endif
+                        <img src="{{ $comment->user->avatar_url }}" alt="">
                     </div>
                     <div class="user-details">
-                        <span class="user-name">{{ $comment->user->name }}</span>
+                        <span class="user-name">{{ $comment->user->username }}</span>
                         <span class="comment-time">{{ $comment->created_at->diffForHumans() }}</span>
                     </div>
                 </div>
@@ -67,7 +63,7 @@
                     </div>
                     <div class="meta-item">
                         <i class="fas fa-user"></i>
-                        <span>Post by {{ $comment->post->user->name }}</span>
+                        <span>Post by {{ $comment->post->user->username }}</span>
                     </div>
                     <a href="/posts/{{ $comment->post->slug }}" target="_blank" class="view-post-link">
                         <i class="fas fa-external-link-alt"></i> View Post
@@ -114,10 +110,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: -16px -16px 24px;
-    padding: 24px 16px;
+    margin: 0 -16px 24px;
+    padding: 20px 16px;
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border-radius: 0 0 20px 20px;
+    border-radius: 16px 16px 20px 20px;
 }
 
 .header-left {

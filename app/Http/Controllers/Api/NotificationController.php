@@ -22,14 +22,33 @@ class NotificationController extends Controller
                 ], 401);
             }
 
-            $notifications = Notification::where('user_id', $user->id)
-                ->orderBy('created_at', 'desc')
-                ->take(50)
-                ->get();
+            // Get active conversation ID from request (when user is viewing a chat)
+            $activeConversationId = $request->input('active_conversation_id');
 
-            $unreadCount = Notification::where('user_id', $user->id)
-                ->whereNull('read_at')
-                ->count();
+            // Build query for notifications
+            $query = Notification::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->take(50);
+
+            // If user is viewing a chat, exclude message notifications from that conversation
+            if ($activeConversationId) {
+                $query->where(function($q) use ($activeConversationId) {
+                    $q->where('type', '!=', 'message')
+                      ->orWhereRaw("JSON_EXTRACT(data, '$.conversation_id') != ?", [$activeConversationId]);
+                });
+            }
+
+            $notifications = $query->get();
+
+            // Build query for unread count (also exclude active conversation)
+            $unreadQuery = Notification::where('user_id', $user->id)->whereNull('read_at');
+            if ($activeConversationId) {
+                $unreadQuery->where(function($q) use ($activeConversationId) {
+                    $q->where('type', '!=', 'message')
+                      ->orWhereRaw("JSON_EXTRACT(data, '$.conversation_id') != ?", [$activeConversationId]);
+                });
+            }
+            $unreadCount = $unreadQuery->count();
 
             return response()->json([
                 'success' => true,
@@ -43,17 +62,43 @@ class NotificationController extends Controller
                             $triggerUser = User::find($notification->data['mentioner_id'] ?? null);
                         }
 
+                        // Generate link based on notification type
+                        $link = null;
+                        if ($notification->type === 'follow' && $triggerUser) {
+                            $link = '/users/' . ($triggerUser->username ?? $triggerUser->id);
+                        } elseif ($notification->type === 'like' && $notification->related_id) {
+                            // Posts use slug, not ID
+                            $post = \App\Models\Post::find($notification->related_id);
+                            $link = $post ? '/posts/' . $post->slug : null;
+                        } elseif ($notification->type === 'comment' && $notification->related_id) {
+                            // For comment notifications, related_id is the Comment ID, so we need to get the Post from the Comment
+                            $comment = \App\Models\Comment::find($notification->related_id);
+                            $post = $comment ? $comment->post : null;
+                            $link = $post ? '/posts/' . $post->slug : null;
+                        } elseif ($notification->type === 'mention' && $triggerUser) {
+                            $link = '/users/' . ($triggerUser->username ?? $triggerUser->id);
+                        } elseif ($notification->type === 'message' && ($notification->data['conversation_id'] ?? null)) {
+                            // Conversations use slug, not ID
+                            $conversation = \App\Models\Conversation::find($notification->data['conversation_id']);
+                            $link = $conversation ? '/chat/' . $conversation->slug : null;
+                        } elseif ($notification->type === 'group_invite' && ($notification->data['conversation_id'] ?? null)) {
+                            // Group invite - redirect to chat conversation where invite was sent
+                            $conversation = \App\Models\Conversation::find($notification->data['conversation_id']);
+                            $link = $conversation ? '/chat/' . $conversation->slug : null;
+                        }
+
                         return [
                             'id' => $notification->id,
                             'type' => $notification->type,
                             'message' => $notification->message,
+                            'link' => $link,
                             'read_at' => $notification->read_at,
                             'created_at' => $notification->created_at,
                             'related_type' => $notification->related_type,
                             'related_id' => $notification->related_id,
                             'user' => $triggerUser ? [
                                 'id' => $triggerUser->id,
-                                'name' => $triggerUser->name,
+                                'username' => $triggerUser->username,
                                 'avatar' => $triggerUser->profile && $triggerUser->profile->avatar
                                     ? asset('storage/' . $triggerUser->profile->avatar)
                                     : null,

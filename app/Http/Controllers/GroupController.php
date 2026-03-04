@@ -84,7 +84,7 @@ class GroupController extends Controller
         Message::create([
             'conversation_id' => $conversation->id,
             'sender_id' => auth()->id(),
-            'content' => auth()->user()->name . ' created this group',
+            'content' => auth()->user()->username . ' created this group',
             'type' => 'system',
         ]);
 
@@ -196,7 +196,7 @@ class GroupController extends Controller
                 Message::create([
                     'conversation_id' => $group->conversation->id,
                     'sender_id' => $memberId,
-                    'content' => $addedUser->name . ' added to the group by ' . auth()->user()->name,
+                    'content' => $addedUser->username . ' added to the group by ' . auth()->user()->username,
                     'type' => 'system',
                 ]);
             }
@@ -213,7 +213,7 @@ class GroupController extends Controller
     {
         $group = Group::where('slug', $slug)->firstOrFail();
         $user = User::findOrFail($userId);
-        
+
         if (!$group->isAdmin(auth()->user()) && auth()->id() !== $user->id) {
             abort(403, 'Only admins can remove members.');
         }
@@ -222,6 +222,40 @@ class GroupController extends Controller
         if ($group->isAdmin($user) && $group->admins()->count() === 1) {
             return redirect()->route('groups.show', $group->slug)
                 ->with('error', 'Cannot remove the last admin. Transfer admin rights first.');
+        }
+
+        // Create system message before removing
+        if (auth()->id() === $user->id) {
+            // User is leaving voluntarily
+            Message::create([
+                'conversation_id' => $group->conversation->id,
+                'sender_id' => $user->id,
+                'content' => $user->username . ' exited group',
+                'type' => 'system',
+            ]);
+        } else {
+            // Admin is removing user
+            $admin = auth()->user();
+
+            // Public message (everyone sees)
+            Message::create([
+                'conversation_id' => $group->conversation->id,
+                'sender_id' => $admin->id,
+                'content' => $admin->username . ' removed ' . $user->username,
+                'type' => 'system',
+            ]);
+
+            // Private message to removed user only
+            Message::create([
+                'conversation_id' => $group->conversation->id,
+                'sender_id' => $admin->id,
+                'visible_to' => $user->id,  // Only visible to removed user
+                'content' => 'You were removed from group',
+                'type' => 'system',
+            ]);
+            
+            // Update conversation timestamp
+            $group->conversation->update(['last_message_at' => now()]);
         }
 
         $group->removeMember($user);
@@ -243,19 +277,40 @@ class GroupController extends Controller
     {
         $group = Group::where('slug', $slug)->firstOrFail();
         $user = User::findOrFail($userId);
-        
+
         if (!$group->isAdmin(auth()->user())) {
             abort(403, 'Only admins can promote members.');
         }
 
         $member = $group->members()->where('user_id', $user->id)->first();
-        
+
         if ($member) {
             $member->update(['role' => 'admin']);
         }
 
+        // Create system message in group chat (visible to all)
+        $admin = auth()->user();
+        Message::create([
+            'conversation_id' => $group->conversation->id,
+            'sender_id' => $admin->id,
+            'content' => $admin->username . ' made ' . $user->username . ' an admin',
+            'type' => 'system',
+        ]);
+
+        // Send "You are admin now" message visible ONLY to promoted user
+        Message::create([
+            'conversation_id' => $group->conversation->id,
+            'sender_id' => $admin->id,
+            'visible_to' => $user->id,  // Only visible to this user
+            'content' => 'You are admin now',
+            'type' => 'system',
+        ]);
+        
+        // Update conversation timestamp
+        $group->conversation->update(['last_message_at' => now()]);
+
         return redirect()->route('groups.show', $group->slug)
-            ->with('success', $user->name . ' is now an admin!');
+            ->with('success', $user->username . ' is now an admin!');
     }
 
     /**
@@ -283,13 +338,25 @@ class GroupController extends Controller
         }
 
         $member = $group->members()->where('user_id', $user->id)->first();
-        
+
         if ($member && $member->role === 'admin') {
             $member->update(['role' => 'member']);
         }
 
+        // Create system message in group chat
+        $admin = auth()->user();
+        Message::create([
+            'conversation_id' => $group->conversation->id,
+            'sender_id' => $admin->id,
+            'content' => $admin->username . ' removed ' . $user->username . ' from admin',
+            'type' => 'system',
+        ]);
+        
+        // Update conversation timestamp
+        $group->conversation->update(['last_message_at' => now()]);
+
         return redirect()->route('groups.show', $group->slug)
-            ->with('success', $user->name . ' is no longer an admin.');
+            ->with('success', $user->username . ' is no longer an admin.');
     }
 
     /**
@@ -347,7 +414,7 @@ class GroupController extends Controller
         Message::create([
             'conversation_id' => $group->conversation->id,
             'sender_id' => auth()->id(),
-            'content' => auth()->user()->name . ' joined the group using invite link',
+            'content' => auth()->user()->username . ' joined the group using invite link',
             'type' => 'system',
         ]);
 
@@ -423,7 +490,7 @@ class GroupController extends Controller
             Message::create([
                 'conversation_id' => $conversation->id,
                 'sender_id' => auth()->id(),
-                'content' => ' invited you to join the group "' . $group->name . '"',
+                'content' => '',  // Empty string - the invite card shows the info
                 'type' => 'group_invite',
                 'media_path' => json_encode([
                     'group_id' => $group->id,
@@ -434,17 +501,19 @@ class GroupController extends Controller
             ]);
             
             // Also create a notification
+            $inviter = auth()->user();
             \App\Models\Notification::create([
                 'user_id' => $userId,
                 'type' => 'group_invite',
-                'data' => json_encode([
+                'data' => [
                     'group_id' => $group->id,
                     'group_name' => $group->name,
                     'group_slug' => $group->slug,
-                    'inviter_id' => auth()->id(),
-                    'inviter_name' => auth()->user()->name,
+                    'inviter_id' => $inviter->id,
+                    'inviter_username' => $inviter->username ?? 'Someone',
                     'invite_link' => $group->invite_link,
-                ]),
+                    'conversation_id' => $conversation->id,
+                ],
                 'read_at' => null,
             ]);
             
@@ -475,6 +544,24 @@ class GroupController extends Controller
             ]);
         }
 
+        // Find the invite message to get who sent the invite
+        $inviteMessage = Message::where('type', 'group_invite')
+            ->whereHas('conversation', function($query) {
+                $query->where('is_group', false)
+                    ->where(function($q) {
+                        $q->where('user1_id', auth()->id())
+                          ->orWhere('user2_id', auth()->id());
+                    });
+            })
+            ->whereRaw("JSON_EXTRACT(media_path, '$.invite_link') = ?", [$inviteLink])
+            ->latest()
+            ->first();
+
+        $inviter = null;
+        if ($inviteMessage && $inviteMessage->sender) {
+            $inviter = $inviteMessage->sender;
+        }
+
         // Add user to group
         GroupMember::create([
             'group_id' => $group->id,
@@ -482,35 +569,27 @@ class GroupController extends Controller
             'role' => 'member',
         ]);
 
-        // Find the invite message to get the inviter info
-        $inviteMessage = Message::where('type', 'group_invite')
-            ->where('conversation_id', function($query) use ($group) {
-                $query->select('id')
-                    ->from('conversations')
-                    ->where(function($q) {
-                        $q->where('user1_id', auth()->id())
-                          ->orWhere('user2_id', auth()->id());
-                    })
-                    ->where('is_group', false);
-            })
-            ->whereRaw("JSON_EXTRACT(media_path, '$.invite_link') = ?", [$inviteLink])
-            ->latest()
-            ->first();
-
-        // Create system message for joining - show who added them
-        if ($inviteMessage && $inviteMessage->sender) {
-            $inviterName = $inviteMessage->sender->name;
-            $content = $inviterName . ' added ' . auth()->user()->name;
+        // Create system message in group chat
+        if ($inviter) {
+            // Quick invite - show "inviter added new_member"
+            Message::create([
+                'conversation_id' => $group->conversation->id,
+                'sender_id' => $inviter->id,
+                'content' => $inviter->username . ' added ' . auth()->user()->username,
+                'type' => 'system',
+            ]);
         } else {
-            $content = auth()->user()->name . ' joined the group using invite link';
+            // Direct invite link - show "username joined using group invite link"
+            Message::create([
+                'conversation_id' => $group->conversation->id,
+                'sender_id' => auth()->id(),
+                'content' => auth()->user()->username . ' joined using group invite link',
+                'type' => 'system',
+            ]);
         }
-
-        Message::create([
-            'conversation_id' => $group->conversation->id,
-            'sender_id' => auth()->id(),
-            'content' => $content,
-            'type' => 'system',
-        ]);
+        
+        // Update conversation timestamp
+        $group->conversation->update(['last_message_at' => now()]);
 
         return response()->json([
             'success' => true,

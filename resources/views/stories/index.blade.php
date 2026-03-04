@@ -32,7 +32,7 @@
             @php
             $latestStory = $userStories->sortByDesc('created_at')->first();
             @endphp
-            <div class="story-card" onclick="viewStory('{{ $latestStory->user->name }}', {{ $latestStory->id }})">
+            <div class="story-card" onclick="viewStory('{{ $latestStory->user->username }}', '{{ $latestStory->slug }}')">
                 <div class="story-preview">
                     @if($latestStory->media_type === 'image')
                         <img src="{{ asset('storage/' . $latestStory->media_path) }}" alt="Story">
@@ -44,14 +44,10 @@
                 </div>
                 <div class="story-overlay">
                     <div class="story-avatar">
-                        @if($latestStory->user->profile && $latestStory->user->profile->avatar)
-                            <img src="{{ asset('storage/' . $latestStory->user->profile->avatar) }}" alt="Avatar">
-                        @else
-                            <div class="avatar-placeholder">{{ substr($latestStory->user->name, 0, 1) }}</div>
-                        @endif
+                        <img src="{{ $latestStory->user->avatar_url }}" alt="Avatar">
                     </div>
                     <div class="story-meta">
-                        <span class="story-user">{{ $latestStory->user->name }}</span>
+                        <span class="story-user">{{ $latestStory->user->username }}</span>
                         <span class="story-time">{{ $latestStory->created_at->diffForHumans() }}</span>
                     </div>
                 </div>
@@ -70,7 +66,7 @@
             $latestStory = $user->activeStories->sortByDesc('created_at')->first();
             @endphp
             @if($latestStory)
-            <div class="story-card" onclick="viewStory('{{ $user->name }}', {{ $latestStory->id }})">
+            <div class="story-card" onclick="viewStory('{{ $user->username }}', '{{ $latestStory->slug }}')">
                 <div class="story-preview">
                     @if($latestStory->media_type === 'image')
                         <img src="{{ asset('storage/' . $latestStory->media_path) }}" alt="Story">
@@ -82,14 +78,10 @@
                 </div>
                 <div class="story-overlay">
                     <div class="story-avatar">
-                        @if($user->profile && $user->profile->avatar)
-                            <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="Avatar">
-                        @else
-                            <div class="avatar-placeholder">{{ substr($user->name, 0, 1) }}</div>
-                        @endif
+                        <img src="{{ $user->avatar_url }}" alt="Avatar">
                     </div>
                     <div class="story-meta">
-                        <span class="story-user">{{ $user->name }}</span>
+                        <span class="story-user">{{ $user->username }}</span>
                         <span class="story-time">{{ $latestStory->created_at->diffForHumans() }}</span>
                     </div>
                 </div>
@@ -114,7 +106,7 @@
 .stories-page {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 24px 20px;
 }
 
 .page-header {
@@ -284,18 +276,8 @@
 </style>
 
 <script>
-function viewStory(username, storyId) {
-    window.location.href = '/stories/' + username + '?story=' + storyId;
-}
-
-// Listen for story deletion events
-if (typeof Echo !== 'undefined') {
-    Echo.private('users.{{ auth()->id() }}')
-        .listen('StoryDeleted', (e) => {
-            console.log('Story deleted:', e.storyId);
-            // Reload the page to update stories list
-            window.location.reload();
-        });
+function viewStory(username, storySlug) {
+    window.location.href = '/stories/' + username + '/' + storySlug;
 }
 
 // Check for story deleted toast

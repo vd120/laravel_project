@@ -36,29 +36,138 @@
 }
 .story-name { font-size: 12px; color: var(--text-muted); max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Create Post */
-.create-post { 
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-    padding: 20px; margin-bottom: 24px;
+/* Create Post - Clean Professional Design */
+.create-post {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 24px;
 }
-.create-post textarea { 
-    width: 100%; min-height: 100px; padding: 16px; border: 1px solid var(--border);
-    border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 15px;
-    resize: vertical; transition: all var(--transition);
+.create-post-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
 }
-.create-post textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
-.create-post textarea::placeholder { color: var(--text-muted); }
+.create-post-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.create-post-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+}
+.create-post-author {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+}
+.create-post textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    resize: vertical;
+    transition: border-color 0.2s ease;
+}
+.create-post textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+.create-post textarea::placeholder {
+    color: var(--text-muted);
+}
 
-.post-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; flex-wrap: wrap; gap: 12px; }
-.post-actions-left { display: flex; gap: 12px; }
-.post-action-btn { 
-    display: flex; align-items: center; gap: 8px; padding: 10px 16px;
-    border: 1px solid var(--border); border-radius: var(--radius); background: transparent;
-    color: var(--text-muted); font-size: 14px; cursor: pointer; transition: all var(--transition);
+.post-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 12px;
 }
-.post-action-btn:hover { color: var(--text); border-color: var(--primary); }
-.privacy-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: var(--radius); font-size: 14px; cursor: pointer; transition: all var(--transition); border: 1px solid var(--border); background: transparent; color: var(--text-muted); }
-.privacy-btn.active { background: rgba(139, 92, 246, 0.1); border-color: var(--primary); color: var(--primary); }
+.post-actions-left {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.post-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.post-action-btn:hover {
+    color: var(--primary);
+    background: rgba(139, 92, 246, 0.1);
+}
+.post-action-btn i {
+    font-size: 16px;
+}
+.privacy-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+}
+.privacy-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.privacy-btn.active {
+    background: rgba(139, 92, 246, 0.1);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.privacy-btn i {
+    font-size: 14px;
+}
+.btn-primary {
+    background: var(--primary);
+    border: none;
+    padding: 10px 24px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+.btn-primary:hover {
+    background: var(--primary-hover);
+}
 
 /* Posts Feed */
 .posts-feed { display: flex; flex-direction: column; gap: 20px; }
@@ -136,14 +245,10 @@ body.light-theme .btn-primary:hover {
                 @php
                 $latestMyStory = $myStories->sortByDesc('created_at')->first();
                 @endphp
-                <div class="story-item" onclick="viewStory('{{ auth()->user()->name }}', {{ $latestMyStory->id }})">
+                <div class="story-item" onclick="viewStoryFromHome('{{ auth()->user()->username }}', '{{ $latestMyStory->slug }}')">
                     <div class="story-avatar-wrapper">
                         <div class="story-avatar">
-                            @if(auth()->user()->profile && auth()->user()->profile->avatar)
-                                <img src="{{ asset('storage/' . auth()->user()->profile->avatar) }}" alt="{{ auth()->user()->name }}">
-                            @else
-                                <div class="avatar-placeholder">{{ substr(auth()->user()->name, 0, 1) }}</div>
-                            @endif
+                            <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->username }}">
                         </div>
                     </div>
                     <div class="story-name">Your story</div>
@@ -152,11 +257,7 @@ body.light-theme .btn-primary:hover {
             <div class="story-item create" onclick="window.location.href='{{ route('stories.create') }}'" style="position: relative;">
                 <div class="story-avatar-wrapper">
                     <div class="story-avatar">
-                        @if(auth()->user()->profile && auth()->user()->profile->avatar)
-                            <img src="{{ asset('storage/' . auth()->user()->profile->avatar) }}" alt="{{ auth()->user()->name }}">
-                        @else
-                            <div class="avatar-placeholder">{{ substr(auth()->user()->name, 0, 1) }}</div>
-                        @endif
+                        <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}">
                         <div class="add-icon"><i class="fas fa-plus"></i></div>
                     </div>
                 </div>
@@ -169,17 +270,13 @@ body.light-theme .btn-primary:hover {
                 $latestStory = $user->activeStories->sortByDesc('created_at')->first();
                 @endphp
                 @if($latestStory)
-                <div class="story-item" onclick="viewStory('{{ $user->name }}', {{ $latestStory->id }})">
+                <div class="story-item" onclick="viewStoryFromHome('{{ $user->username }}', '{{ $latestStory->slug }}')">
                     <div class="story-avatar-wrapper">
                         <div class="story-avatar">
-                            @if($user->profile && $user->profile->avatar)
-                                <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="{{ $user->name }}">
-                            @else
-                                <div class="avatar-placeholder">{{ substr($user->name, 0, 1) }}</div>
-                            @endif
+                            <img src="{{ $user->avatar_url }}" alt="{{ $user->username }}">
                         </div>
                     </div>
-                    <div class="story-name">{{ $user->name }}</div>
+                    <div class="story-name">{{ $user->username }}</div>
                 </div>
                 @endif
             @endforeach
@@ -187,31 +284,25 @@ body.light-theme .btn-primary:hover {
     </div>
     @endif
 
-    {{-- Create Post --}}
+    {{-- Create Post - Clean Professional Design --}}
     <div class="create-post">
-        <div class="create-post-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            @if(auth()->user()->profile && auth()->user()->profile->avatar)
-                <img src="{{ asset('storage/' . auth()->user()->profile->avatar) }}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-            @else
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
-                    {{ substr(auth()->user()->name, 0, 1) }}
-                </div>
-            @endif
-            <span style="font-weight: 600; color: var(--text);">{{ auth()->user()->name }}</span>
+        <div class="create-post-header">
+            <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="create-post-avatar">
+            <span class="create-post-author">{{ auth()->user()->name }}</span>
         </div>
         <textarea id="post-content" placeholder="What's on your mind?"></textarea>
         <div class="post-actions">
             <div class="post-actions-left">
                 <label for="media" class="post-action-btn" style="cursor: pointer;">
-                    <i class="fas fa-image"></i> Media
+                    <i class="fas fa-image"></i> <span>Photo</span>
                 </label>
                 <input type="file" id="media" accept="image/*,video/*" multiple style="display: none;" onchange="previewMedia(this)">
                 <button type="button" class="privacy-btn" id="privacy-btn" onclick="togglePrivacy()">
                     <i class="fas fa-globe" id="privacy-icon"></i> <span id="privacy-text">Public</span>
                 </button>
             </div>
-            <button type="button" class="btn btn-primary" onclick="submitPost()" style="background: linear-gradient(135deg, var(--primary), var(--secondary));">
-                <i class="fas fa-paper-plane"></i> Post
+            <button type="button" class="btn btn-primary" onclick="submitPost()">
+                Post
             </button>
         </div>
         <input type="hidden" id="is-private" value="0">
@@ -247,7 +338,8 @@ body.light-theme .btn-primary:hover {
 </div>
 
 <script>
-function viewStory(user, storyId) { window.location.href = '/stories/' + user + '?story=' + storyId; }
+function viewStory(user, storySlug) { window.location.href = '/stories/' + user + '/' + storySlug; }
+function viewStoryFromHome(user, storySlug) { window.location.href = '/stories/' + user + '/' + storySlug + '?from=home'; }
 
 function togglePrivacy() {
     const btn = document.getElementById('privacy-btn');
@@ -387,23 +479,29 @@ function updateFileInput() {
 function submitPost() {
     const content = document.getElementById('post-content').value.trim();
     const isPrivate = document.getElementById('is-private').value;
-    const media = document.getElementById('media').files;
-    
-    if (!content && media.length === 0) {
+    const mediaFiles = document.getElementById('media').files;
+
+    if (!content && mediaFiles.length === 0) {
         showToast('Please enter content or add media', 'error');
         return;
     }
-    
+
     const formData = new FormData();
     formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
     formData.append('content', content);
     formData.append('is_private', isPrivate);
-    Array.from(media).forEach((file, i) => formData.append(`media[${i}]`, file));
-    
+    Array.from(mediaFiles).forEach((file, i) => formData.append(`media[${i}]`, file));
+
+    // Show loading state
+    const submitBtn = document.querySelector('button[onclick="submitPost()"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+    submitBtn.disabled = true;
+
     fetch('/posts', {
         method: 'POST',
         body: formData,
-        headers: { 
+        headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Accept': 'application/json'
         }
@@ -412,12 +510,19 @@ function submitPost() {
     .then(data => {
         if (data.success) {
             showToast('Post created!', 'success');
+            // Reload page to show new post
             setTimeout(() => location.reload(), 500);
         } else {
             showToast(data.message || 'Failed to create post', 'error');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
         }
     })
-    .catch(() => showToast('Error creating post', 'error'));
+    .catch(() => {
+        showToast('Error creating post', 'error');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
 }
 
 // Initialize - using global showToast from layout

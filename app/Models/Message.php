@@ -11,6 +11,7 @@ class Message extends Model
     protected $fillable = [
         'conversation_id',
         'sender_id',
+        'visible_to',
         'content',
         'type',
         'media_path',
@@ -18,10 +19,18 @@ class Message extends Model
         'original_filename',
         'media_size',
         'read_at',
-        'notified_at'
+        'delivered_at',
+        'notified_at',
+        'deleted_for',
+        'deleted_by_sender',
     ];
 
-    protected $dates = ['read_at', 'notified_at'];
+    protected $dates = ['read_at', 'delivered_at', 'notified_at', 'created_at', 'updated_at', 'deleted_at'];
+
+    protected $casts = [
+        'deleted_for' => 'array',
+        'deleted_by_sender' => 'boolean',
+    ];
 
     public function conversation()
     {
@@ -49,7 +58,7 @@ class Message extends Model
 
     public static function markConversationAsRead($conversationId, $userId)
     {
-        static::where('conversation_id', $conversationId)
+        return static::where('conversation_id', $conversationId)
             ->where('messages.sender_id', '!=', $userId)
             ->whereNull('read_at')
             ->update([

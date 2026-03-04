@@ -24,26 +24,29 @@ class RealtimeService
     }
 
     /**
-     * Check if WebSocket is available
+     * Check if real-time (polling) is available
+     * Always returns true since we use polling-based updates
      */
     public function isRealtimeAvailable(): bool
     {
-        return config('broadcasting.default') !== 'log' &&
-               config('broadcasting.default') !== 'null';
+        return true;
     }
 
     /**
      * Get real-time configuration for frontend
+     * Returns polling configuration
      */
     public function getRealtimeConfig(): array
     {
         return [
-            'enabled' => $this->isRealtimeAvailable(),
-            'driver' => config('broadcasting.default'),
-            'key' => config('broadcasting.connections.' . config('broadcasting.default') . '.key'),
-            'host' => config('broadcasting.connections.' . config('broadcasting.default') . '.options.host'),
-            'port' => config('broadcasting.connections.' . config('broadcasting.default') . '.options.port'),
-            'scheme' => config('broadcasting.connections.' . config('broadcasting.default') . '.options.scheme'),
+            'enabled' => true,
+            'driver' => 'polling',
+            'intervals' => [
+                'chatList' => 3000,
+                'chatRoom' => 2000,
+                'onlineStatus' => 5000,
+                'notifications' => 5000,
+            ],
         ];
     }
 
@@ -101,7 +104,7 @@ class RealtimeService
                         'content' => app(MentionService::class)->convertMentionsToLinks($comment->content),
                         'user' => [
                             'id' => $comment->user->id,
-                            'name' => $comment->user->name,
+                            'username' => $comment->user->username,
                             'avatar' => $comment->user->profile && $comment->user->profile->avatar
                                 ? asset('storage/' . $comment->user->profile->avatar)
                                 : null,

@@ -43,14 +43,10 @@
             <div class="post-main">
                 <div class="post-user">
                     <div class="user-avatar">
-                        @if($post->user->profile && $post->user->profile->avatar)
-                            <img src="{{ asset('storage/' . $post->user->profile->avatar) }}" alt="">
-                        @else
-                            <div class="avatar-placeholder">{{ substr($post->user->name, 0, 1) }}</div>
-                        @endif
+                        <img src="{{ $post->user->avatar_url }}" alt="">
                     </div>
                     <div class="user-details">
-                        <span class="user-name">{{ $post->user->name }}</span>
+                        <span class="user-name">{{ $post->user->username }}</span>
                         <span class="post-time">{{ $post->created_at->diffForHumans() }}</span>
                     </div>
                     @if($post->is_private)
@@ -144,10 +140,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: -16px -16px 24px;
-    padding: 24px 16px;
+    margin: 0 -16px 24px;
+    padding: 20px 16px;
     background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-    border-radius: 0 0 20px 20px;
+    border-radius: 16px 16px 20px 20px;
 }
 
 .header-left {
@@ -313,10 +309,11 @@
 .user-details {
     display: flex;
     flex-direction: column;
+    gap: 2px;
 }
 
 .user-name {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text);
 }

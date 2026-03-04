@@ -97,6 +97,7 @@ searchInput.addEventListener('input', (e) => {
     
     searchTimeout = setTimeout(() => {
         fetch(`/api/search-users?q=${encodeURIComponent(query)}`, {
+            credentials: 'include',
             headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
         })
         .then(r => r.json())
@@ -104,14 +105,14 @@ searchInput.addEventListener('input', (e) => {
             if (data.users && data.users.length > 0) {
                 resultsContainer.innerHTML = data.users.map(user => `
                     <div class="user-card">
-                        <a href="/users/${user.name}" class="user-avatar">
-                            ${user.avatar ? `<img src="/storage/${user.avatar}" alt="${user.name}">` : `<div class="placeholder">${user.name.charAt(0)}</div>`}
+                        <a href="/users/${user.username}" class="user-avatar">
+                            <img src="${escapeHtml(user.avatar_url)}" alt="${escapeHtml(user.username)}">
                         </a>
                         <div class="user-info">
-                            <a href="/users/${user.name}">
-                                <div class="user-name">${user.name}</div>
+                            <a href="/users/${user.username}">
+                                <div class="user-name">${escapeHtml(user.name)}</div>
                             </a>
-                            <div class="user-meta">@ ${user.name}</div>
+                            <div class="user-meta">@${escapeHtml(user.username)}</div>
                         </div>
                     </div>
                 `).join('');

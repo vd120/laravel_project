@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Story Viewers - ' . $user->name)
+@section('title', 'Story Viewers - ' . $user->username)
 
 @section('content')
 <div class="story-viewers-page">
     <div class="page-header">
-        <a href="{{ route('stories.show', $user) }}" class="back-link">
+        <a href="{{ route('stories.show', [$user, $story]) }}" class="back-link">
             <i class="fas fa-arrow-left"></i>
             Back to Story
         </a>
@@ -22,36 +22,30 @@
         @endif
         <div class="story-info">
             <span class="story-date">Posted {{ $story->created_at->diffForHumans() }}</span>
-            <span class="view-count"><i class="fas fa-eye"></i> {{ $story->storyViews->count() }} views</span>
+            <span class="view-count"><i class="fas fa-eye"></i> {{ $viewerData->count() }} views</span>
         </div>
     </div>
 
     <div class="viewers-list">
         <h2>Viewers</h2>
-        @php
-            $viewers = $story->viewers ?? collect([]);
-        @endphp
-        @if($viewers->count() > 0)
+        @if($viewerData->count() > 0)
             <div class="viewers-grid">
-                @foreach($viewers as $viewer)
+                @foreach($viewerData as $viewer)
                 <div class="viewer-item">
                     <div class="viewer-avatar">
-                        @if($viewer->profile && $viewer->profile->avatar)
-                            <img src="{{ asset('storage/' . $viewer->profile->avatar) }}" alt="Avatar">
-                        @else
-                            <div class="avatar-placeholder">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        @endif
+                        <img src="{{ $viewer['user']->avatar_url }}" alt="Avatar">
                     </div>
                     <div class="viewer-info">
-                        <a href="{{ route('users.show', $viewer) }}" class="viewer-name">{{ $viewer->name }}</a>
-                        @if($viewer->profile && $viewer->profile->bio)
-                            <span class="viewer-bio">{{ Str::limit($viewer->profile->bio, 40) }}</span>
+                        <a href="{{ route('users.show', $viewer['user']) }}" class="viewer-name">{{ $viewer['user']->username }}</a>
+                        @if($viewer['reaction'])
+                            <span class="viewer-reaction">Reaction: {{ $viewer['reaction'] }}</span>
+                        @endif
+                        @if($viewer['user']->profile && $viewer['user']->profile->bio)
+                            <span class="viewer-bio">{{ Str::limit($viewer['user']->profile->bio, 40) }}</span>
                         @endif
                     </div>
                     <div class="viewer-meta">
-                        <span class="viewed-time">{{ $viewer->pivot->created_at->diffForHumans() }}</span>
+                        <span class="viewed-time">{{ $viewer['viewed_at']->diffForHumans() }}</span>
                     </div>
                 </div>
                 @endforeach
@@ -232,11 +226,19 @@
 
 .viewer-bio {
     display: block;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--twitter-gray);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.viewer-reaction {
+    display: block;
+    font-size: 13px;
+    color: var(--twitter-blue);
+    margin-top: 2px;
+    font-weight: 500;
 }
 
 .viewer-meta {

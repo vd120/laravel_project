@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Story - {{ $user->name }}</title>
+    <title>Story - {{ $user->username }}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -366,6 +366,22 @@
             cursor: not-allowed;
         }
 
+        .story-sending-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            padding: 6px 12px;
+            background: rgba(29, 155, 240, 0.3);
+            border-radius: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        .story-sending-indicator i {
+            font-size: 14px;
+        }
+
         /* Reaction Picker */
         .reaction-picker {
             position: absolute;
@@ -394,6 +410,49 @@
 
         .emoji-btn:hover {
             transform: scale(1.2);
+        }
+
+        /* Reaction Button State */
+        .reaction-btn.has-reaction i {
+            color: #ef4444;
+            animation: heartBeat 1.5s infinite;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .user-reaction-display {
+            position: absolute;
+            bottom: 80px;
+            right: 80px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: reactionPop 0.3s ease-out;
+            z-index: 20;
+        }
+
+        .user-reaction-emoji {
+            animation: reactionPulse 2s infinite;
+        }
+
+        @keyframes reactionPop {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes reactionPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
 
         /* Tap Areas */
@@ -427,24 +486,15 @@
             <!-- Header -->
             <div class="story-header">
                 <div class="story-user">
-                    @if($user->profile && $user->profile->avatar)
-                        <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="Avatar" class="story-avatar">
-                    @else
-                        <div class="story-avatar-placeholder">{{ substr($user->name, 0, 1) }}</div>
-                    @endif
+                    <img src="{{ $user->avatar_url }}" alt="Avatar" class="story-avatar">
                     <div class="story-info">
-                        <span class="story-username">{{ $user->name }}</span>
+                        <span class="story-username">{{ $user->username }}</span>
                         <span class="story-time" id="story-time"></span>
                     </div>
                 </div>
                 <div class="story-header-actions">
-                    @if($user->id !== auth()->id())
-                        <a href="{{ route('chat.start', $user->id) }}" class="story-message" title="Send message">
-                            <i class="fas fa-paper-plane"></i>
-                        </a>
-                    @endif
                     @if($user->id === auth()->id())
-                        <button class="story-delete" onclick="deleteStory({{ $stories->first()->id }})" title="Delete story">
+                        <button class="story-delete" onclick="deleteStory('{{ $stories->first()->slug }}')" title="Delete story">
                             <i class="fas fa-trash"></i>
                         </button>
                     @endif
@@ -454,7 +504,7 @@
             <!-- Content -->
             <div class="story-content">
                 @foreach($stories as $index => $story)
-                    <div class="story-slide {{ $index === 0 ? 'active' : '' }}" data-story-id="{{ $story->id }}" data-index="{{ $index }}" data-created-at="{{ $story->created_at }}">
+                    <div class="story-slide {{ $index === 0 ? 'active' : '' }}" data-story-slug="{{ $story->slug }}" data-index="{{ $index }}" data-created-at="{{ $story->created_at }}">
                         @if($story->media_type === 'image')
                             <img src="{{ asset('storage/' . $story->media_path) }}" alt="Story" class="story-media">
                         @else
@@ -484,14 +534,14 @@
             <!-- Controls -->
             <div class="story-controls">
                 @if($user->id === auth()->id())
-                    <a href="{{ route('stories.viewers', [$user, $stories->first()]) }}" class="control-btn viewers-btn">
+                    <a href="{{ route('stories.viewers', [$user, $stories->first()]) }}" class="control-btn viewers-btn" title="View who watched">
                         <i class="fas fa-eye"></i>
                         <span>{{ $stories->first()->storyViews->count() ?? 0 }}</span>
                     </a>
                 @else
                     <div></div>
                 @endif
-                
+
                 <!-- Message Input - Only show if not viewing own story -->
                 @if($user->id !== auth()->id())
                 <div class="story-message-input-wrapper">
@@ -499,21 +549,18 @@
                     <button class="story-send-btn" onclick="sendStoryMessage()" id="story-send-btn">
                         <i class="fas fa-paper-plane"></i>
                     </button>
+                    <div class="story-sending-indicator" id="story-sending-indicator" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Sending reply...</span>
+                    </div>
                 </div>
                 @endif
-                
-                <button class="control-btn" onclick="toggleReactions()">
+
+                <button class="control-btn reaction-btn" onclick="toggleReaction()" id="reaction-btn">
                     <i class="fas fa-heart"></i>
                 </button>
             </div>
 
-            <!-- Reaction Picker -->
-            <div class="reaction-picker" id="reaction-picker">
-                <button class="emoji-btn" onclick="reactToStory('❤️')">❤️</button>
-                <button class="emoji-btn" onclick="reactToStory('👍')">👍</button>
-                <button class="emoji-btn" onclick="reactToStory('🔥')">🔥</button>
-                <button class="emoji-btn" onclick="reactToStory('👏')">👏</button>
-            </div>
         </div>
     </div>
 
@@ -521,8 +568,71 @@
         let currentIndex = 0;
         const stories = document.querySelectorAll('.story-slide');
         const progressBars = document.querySelectorAll('.progress-bar');
-        let storyTimer;
+        let storyTimer = null;
         let isPaused = false;
+        let messageInput = null;
+
+
+        // Clear timer completely
+        function clearStoryTimer() {
+            if (storyTimer) {
+                clearTimeout(storyTimer);
+                storyTimer = null;
+            }
+        }
+
+        // Initialize message input reference
+        function initMessageInput() {
+            messageInput = document.getElementById('story-message');
+            if (messageInput) {
+                // Focus: Pause timer immediately
+                messageInput.addEventListener('focus', function() {
+                    isPaused = true;
+                    clearStoryTimer();
+                    
+                    // Also pause CSS animation
+                    const activeBar = progressBars[currentIndex];
+                    if (activeBar) {
+                        const fill = activeBar.querySelector('.progress-fill');
+                        if (fill) {
+                            fill.classList.add('paused');
+                            fill.style.animationPlayState = 'paused';
+                        }
+                    }
+                });
+
+                // Blur: Resume only if empty
+                messageInput.addEventListener('blur', function() {
+                    if (!this.value.trim()) {
+                        isPaused = false;
+                        
+                        // Resume CSS animation
+                        const activeBar = progressBars[currentIndex];
+                        if (activeBar) {
+                            const fill = activeBar.querySelector('.progress-fill');
+                            if (fill) {
+                                fill.classList.remove('paused');
+                                fill.style.animationPlayState = 'running';
+                            }
+                        }
+                        
+                        startTimer();
+                    }
+                });
+
+                // Input: Keep timer paused while typing
+                messageInput.addEventListener('input', function() {
+                    isPaused = true;
+                    clearStoryTimer();
+                });
+
+                // Also pause on click/touch
+                messageInput.addEventListener('click', function() {
+                    isPaused = true;
+                    clearStoryTimer();
+                });
+            }
+        }
 
         function startTimer() {
             if (isPaused) return;
@@ -591,13 +701,14 @@
 
         function pauseTimer() {
             isPaused = true;
-            clearTimeout(storyTimer);
+            clearStoryTimer();
             // Also pause the CSS animation
             const activeBar = progressBars[currentIndex];
             if (activeBar) {
                 const fill = activeBar.querySelector('.progress-fill');
                 if (fill) {
                     fill.classList.add('paused');
+                    fill.style.animationPlayState = 'paused';
                 }
             }
         }
@@ -610,6 +721,7 @@
                 const fill = activeBar.querySelector('.progress-fill');
                 if (fill) {
                     fill.classList.remove('paused');
+                    fill.style.animationPlayState = 'running';
                 }
             }
             startTimer();
@@ -654,7 +766,15 @@
                         fill.style.animation = 'none';
                         fill.offsetHeight; // Trigger reflow
                         fill.style.animation = `progress ${duration}s linear forwards`;
-                        fill.classList.remove('paused');
+                        
+                        // If paused, keep it paused
+                        if (isPaused) {
+                            fill.classList.add('paused');
+                            fill.style.animationPlayState = 'paused';
+                        } else {
+                            fill.classList.remove('paused');
+                            fill.style.animationPlayState = 'running';
+                        }
                     }
                 } else {
                     if (fill) {
@@ -698,44 +818,118 @@
 
         function closeViewer() {
             clearTimeout(storyTimer);
-            window.location.href = '{{ route("stories.index") }}';
-        }
-
-        function toggleReactions() {
-            const picker = document.getElementById('reaction-picker');
-            const isShowing = picker.classList.contains('show');
-            
-            if (!isShowing) {
-                // Opening the picker - pause the timer
-                pauseTimer();
+            // Check if user came from home page
+            const urlParams = new URLSearchParams(window.location.search);
+            const from = urlParams.get('from');
+            if (from === 'home') {
+                window.location.href = '{{ route("home") }}';
             } else {
-                // Closing the picker without selecting - resume the timer
-                resumeTimer();
+                window.location.href = '{{ route("stories.index") }}';
             }
-            
-            picker.classList.toggle('show');
         }
 
-        function reactToStory(emoji) {
-            // Close the picker and resume the timer
-            document.getElementById('reaction-picker').classList.remove('show');
-            resumeTimer();
+        function toggleReaction() {
+            const story = stories[currentIndex];
+            const storySlug = story.dataset.storySlug;
+            const username = '{{ $user->username }}';
             
-            const storyId = stories[currentIndex].dataset.storyId;
-            fetch('/stories/' + storyId + '/react', {
+            // Check if user already has a reaction
+            fetch('/stories/' + username + '/' + storySlug + '/check-reaction')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.has_reaction) {
+                        // User already reacted - REMOVE reaction
+                        removeReaction(storySlug, username);
+                    } else {
+                        // User hasn't reacted - ADD default heart reaction
+                        addReaction(storySlug, username, '❤️');
+                    }
+                })
+                .catch(err => console.error('Error checking reaction:', err));
+        }
+
+        function addReaction(storySlug, username, emoji) {
+            fetch('/stories/' + username + '/' + storySlug + '/react', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
                 body: JSON.stringify({ reaction_type: emoji })
-            });
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update reaction button to red heart
+                    updateReactionButton(true);
+                }
+            })
+            .catch(err => console.error('Error adding reaction:', err));
         }
 
-        function deleteStory(storyId) {
+        function removeReaction(storySlug, username) {
+            fetch('/stories/' + username + '/' + storySlug + '/react', {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update reaction button to white heart
+                    updateReactionButton(false);
+                }
+            })
+            .catch(err => console.error('Error removing reaction:', err));
+        }
+
+        function updateReactionButton(hasReaction) {
+            const btn = document.getElementById('reaction-btn');
+            if (!btn) return;
+
+            if (hasReaction) {
+                btn.classList.add('has-reaction');
+            } else {
+                btn.classList.remove('has-reaction');
+            }
+        }
+
+        function checkUserReaction() {
+            const story = stories[currentIndex];
+            if (!story) return;
+            const storySlug = story.dataset.storySlug;
+            const username = '{{ $user->username }}';
+
+            fetch('/stories/' + username + '/' + storySlug + '/check-reaction')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.has_reaction) {
+                        updateReactionButton(true);
+                    }
+                })
+                .catch(err => console.error('Error checking reaction:', err));
+        }
+
+        function showUserReaction(emoji) {
+            const display = document.getElementById('user-reaction-display');
+            const emojiSpan = document.getElementById('user-reaction-emoji');
+
+            emojiSpan.textContent = emoji;
+            display.style.display = 'flex';
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                display.style.display = 'none';
+            }, 3000);
+        }
+
+        function deleteStory(storySlug) {
             if (!confirm('Are you sure you want to delete this story?')) return;
-            
-            fetch('/stories/' + storyId, {
+
+            const username = '{{ $user->username }}';
+            fetch('/stories/' + username + '/' + storySlug, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -776,20 +970,26 @@
 
         async function sendStoryMessage() {
             const input = document.getElementById('story-message');
-            const message = input.value.trim();
             const sendBtn = document.getElementById('story-send-btn');
-            
+            const sendingIndicator = document.getElementById('story-sending-indicator');
+            const message = input.value.trim();
+
             if (!message) return;
-            
-            // Disable button to prevent double send
-            sendBtn.disabled = true;
-            
-            const storyAuthorId = {{ $user->id }};
-            const storyAuthorName = '{{ $user->name }}';
-            
+
+            // Pause timer while sending
+            pauseTimer();
+
+            // Hide send button, show sending indicator
+            sendBtn.style.display = 'none';
+            sendingIndicator.style.display = 'flex';
+
+            const storyAuthorId = '{{ $user->id }}';
+            const storyAuthorName = '{{ $user->username }}';
+            const currentStorySlug = stories[currentIndex].dataset.storySlug;
+
             // Add "from story" indicator to message
-            const messageWithIndicator = `📸 ${message}`;
-            
+            const messageWithIndicator = `📸 Reply to your story: ${message}`;
+
             try {
                 // First, get or create conversation
                 const response = await fetch('/chat/start/' + storyAuthorId, {
@@ -799,84 +999,105 @@
                         'Accept': 'application/json'
                     }
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!data.success) {
                     // Handle error
                     if (typeof showToast === 'function') {
                         showToast(data.error || 'Failed to send message', 'error');
                     }
-                    sendBtn.disabled = false;
+                    sendBtn.style.display = 'flex';
+                    sendingIndicator.style.display = 'none';
+                    resumeTimer();
                     return;
                 }
-                
-                if (data.conversation_id) {
+
+                // Use slug for route (Conversation model uses slug as route key)
+                const conversationSlug = data.slug;
+
+                if (conversationSlug) {
                     // Now send the message to this conversation
-                    const messageResponse = await fetch('/chat/' + data.conversation_id, {
+                    const messageResponse = await fetch('/chat/' + conversationSlug, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                             'Accept': 'application/json'
                         },
-                        body: JSON.stringify({ content: messageWithIndicator })
+                        body: JSON.stringify({
+                            content: messageWithIndicator,
+                            story_slug: currentStorySlug
+                        })
                     });
-                    
+
                     const messageData = await messageResponse.json();
-                    
+
                     if (messageData.success) {
-                        // Show success feedback
+                        // Show success feedback with WhatsApp-style toast
+                        // Store in sessionStorage so it persists even if page closes
+                        sessionStorage.setItem('storyReplySent', JSON.stringify({
+                            message: 'Reply sent to ' + storyAuthorName + ' 📸',
+                            type: 'success',
+                            time: Date.now()
+                        }));
+
                         if (typeof showToast === 'function') {
-                            showToast('Message sent! 📸', 'success');
+                            showToast('Reply sent to ' + storyAuthorName + ' 📸', 'success', 5000);
                         }
                     } else {
                         if (typeof showToast === 'function') {
-                            showToast('Failed to send message', 'error');
+                            showToast('Failed to send message', 'error', 5000);
                         }
                     }
                 }
             } catch (error) {
                 console.error('Error:', error);
                 if (typeof showToast === 'function') {
-                    showToast('Failed to send message', 'error');
+                    showToast('Failed to send message', 'error', 5000);
                 }
             }
-            
+
+            // Clear input and restore button
             input.value = '';
-            sendBtn.disabled = false;
+            sendBtn.style.display = 'flex';
+            sendingIndicator.style.display = 'none';
+            
             // Resume timer after sending
             resumeTimer();
         }
         
-        // Pause timer when message input is focused (only if element exists)
-        const messageInput = document.getElementById('story-message');
-        if (messageInput) {
-            messageInput.addEventListener('focus', function() {
-                pauseTimer();
-            });
-            
-            // Resume timer when message input loses focus (but only if there's no text)
-            messageInput.addEventListener('blur', function() {
-                if (!this.value.trim()) {
-                    resumeTimer();
-                }
-            });
-            
-            // Keep timer paused while typing
-            messageInput.addEventListener('input', function() {
-                pauseTimer();
-            });
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') nextStory();
-            if (e.key === 'ArrowLeft') previousStory();
-            if (e.key === 'Escape') closeViewer();
-        });
-
         document.addEventListener('DOMContentLoaded', () => {
+            initMessageInput();
             updateDisplay();
+            startTimer();
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') nextStory();
+                if (e.key === 'ArrowLeft') previousStory();
+                if (e.key === 'Escape') closeViewer();
+            });
+            
+            // Check if there's a pending story reply toast from navigation
+            const pendingToast = sessionStorage.getItem('storyReplySent');
+            if (pendingToast) {
+                const toastData = JSON.parse(pendingToast);
+                // Only show if it's recent (within 10 seconds)
+                if (Date.now() - toastData.time < 10000) {
+                    setTimeout(() => {
+                        if (typeof showToast === 'function') {
+                            showToast(toastData.message, toastData.type, 5000);
+                        }
+                        sessionStorage.removeItem('storyReplySent');
+                    }, 500);
+                } else {
+                    sessionStorage.removeItem('storyReplySent');
+                }
+            }
+            
+            // Check if current user has already reacted to this story
+            checkUserReaction();
         });
     </script>
 </body>

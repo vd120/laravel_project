@@ -11,26 +11,39 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
     <style>
-        /* === EXACT LOGIN PAGE DESIGN (preserved) === */
+        /* === UNIFIED DESIGN SYSTEM === */
         :root{
-            --bg-dark:#0d0d0d;
-            --bg-glass:rgba(22,22,22,0.7);
-            --border:rgba(255,255,255,0.08);
-            --text-primary:#ffffff;
-            --text-secondary:#98989f;
-            --primary:#5e60ce;
-            --secondary:#7400b8;
-            /* extended for register features – same color language */
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --error: #ff6b6b;
+            --bg: #0d0d0d;
+            --surface: rgba(22, 22, 22, 0.7);
+            --surface-hover: #1c1c1e;
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #ffffff;
+            --text-muted: #86868b;
+            --primary: #5e60ce;
+            --primary-hover: #7400b8;
+            --secondary: #4ea8de;
+            --success: #30d158;
+            --warning: #ffd60a;
+            --error: #ef4444;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+        }
+
+        [data-theme="light"] {
+            --bg: #ffffff;
+            --surface: rgba(249, 250, 251, 0.7);
+            --surface-hover: #f3f4f6;
+            --border: rgba(0, 0, 0, 0.08);
+            --text: #111111;
+            --text-muted: #6b7280;
         }
 
         *{margin:0;padding:0;box-sizing:border-box}
         body{
             font-family:'Inter',sans-serif;
-            background:var(--bg-dark);
-            color:var(--text-primary);
+            background:var(--bg);
+            color:var(--text);
             -webkit-font-smoothing:antialiased;
             min-height:100vh;
         }
@@ -40,35 +53,54 @@
             position:fixed;
             top:0;
             width:100%;
-            padding:14px 40px;
+            padding:10px 40px;
             backdrop-filter:blur(30px);
             -webkit-backdrop-filter:blur(30px);
-            background:rgba(0,0,0,0.15);
-            border-bottom:1px solid var(--border);
+            background:rgba(13, 13, 13, 0.8);
+            border-bottom:1px solid rgba(255, 255, 255, 0.1);
             display:flex;
             justify-content:center;
-            z-index:100;
+            z-index:300;
         }
+
+        [data-theme="light"] nav{
+            background:rgba(255, 255, 255, 0.8);
+            border-bottom:1px solid rgba(0, 0, 0, 0.1);
+        }
+
         .nav-container{
             max-width:980px;
             width:100%;
             display:flex;
             justify-content:space-between;
             align-items:center;
+            height:48px;
         }
         .nav-brand{
             font-weight:600;
             font-size:18px;
             text-decoration:none;
-            color:#f5f5f7;
+            color:#ffffff;
         }
+
+        [data-theme="light"] .nav-brand{
+            color:#000000;
+        }
+
         .nav-link{
             font-size:13px;
             color:#86868b;
             text-decoration:none;
             transition:0.3s;
         }
-        .nav-link:hover{color:#fff}
+        .nav-link:hover{color:#ffffff}
+
+        [data-theme="light"] .nav-link{
+            color:#6b7280;
+        }
+        [data-theme="light"] .nav-link:hover{
+            color:#000000;
+        }
 
         /* PAGE WRAP */
         .page{
@@ -83,7 +115,7 @@
         .login-card{
             width:100%;
             max-width:420px;
-            background:var(--bg-glass);
+            background:var(--surface);
             border:1px solid var(--border);
             backdrop-filter:blur(40px);
             border-radius:28px;
@@ -109,13 +141,13 @@
             font-weight:700;
             margin-bottom:10px;
             letter-spacing:-0.02em;
-            background:linear-gradient(135deg,#fff 0%,#a1a1a6 100%);
+            background:linear-gradient(135deg,var(--text) 0%,var(--text-muted) 100%);
             -webkit-background-clip:text;
             -webkit-text-fill-color:transparent;
         }
         .login-sub{
             font-size:16px;
-            color:#86868b;
+            color:var(--text-muted);
             margin-bottom:40px;
         }
 
@@ -125,7 +157,7 @@
             display:block;
             font-size:14px;
             margin-bottom:8px;
-            color:#f5f5f7;
+            color:var(--text);
         }
         .field input{
             width:100%;
@@ -133,7 +165,7 @@
             border-radius:14px;
             border:1px solid var(--border);
             background:rgba(255,255,255,0.03);
-            color:#fff;
+            color:var(--text);
             font-size:15px;
             outline:none;
             transition:0.3s;
@@ -154,11 +186,11 @@
             transform:translateY(-50%);
             background:none;
             border:none;
-            color:#86868b;
+            color:var(--text-muted);
             cursor:pointer;
             font-size:16px;
         }
-        .toggle-pw:hover{color:#fff}
+        .toggle-pw:hover{color:var(--text)}
 
         /* field errors & status */
         .field-error{
@@ -197,7 +229,7 @@
         .strength-label {
             font-size: 11px;
             margin-top: 4px;
-            color: var(--text-secondary);
+            color: var(--text-muted);
         }
         .strength-label.weak { color: var(--error); }
         .strength-label.medium { color: var(--warning); }
@@ -208,7 +240,7 @@
         .terms-row {
             display: flex; align-items: flex-start; gap: 10px;
             margin-bottom: 30px;
-            font-size: 13px; color: #86868b;
+            font-size: 13px; color: var(--text-muted);
         }
         .terms-row input[type="checkbox"] {
             accent-color: var(--primary);
@@ -224,19 +256,19 @@
         /* alert box (for errors) */
         .alert-error {
             padding: 14px 18px;
-            border:1px solid rgba(255,107,107,0.3);
-            background:rgba(255,107,107,0.1);
+            border:1px solid rgba(239, 68, 68, 0.3);
+            background:rgba(239, 68, 68, 0.1);
             border-radius:14px;
             margin-bottom:25px;
             font-size:13px;
-            color:#ff8a8a;
+            color:#ef4444;
         }
 
         /* buttons — identical to login */
         .btn{
             width:100%;
             padding:14px;
-            border-radius:980px;
+            border-radius:var(--radius-full);
             font-size:16px;
             font-weight:500;
             border:none;
@@ -259,7 +291,7 @@
         .divider{
             text-align:center;
             font-size:13px;
-            color:#86868b;
+            color:var(--text-muted);
             margin:25px 0;
             position:relative;
         }
@@ -282,10 +314,10 @@
             align-items:center;
             gap:10px;
             padding:14px;
-            border-radius:980px;
+            border-radius:var(--radius-full);
             border:1px solid var(--border);
             background:transparent;
-            color:#fff;
+            color:var(--text);
             text-decoration:none;
             transition:0.3s;
         }
@@ -298,10 +330,10 @@
             margin-top:35px;
             text-align:center;
             font-size:14px;
-            color:#86868b;
+            color:var(--text-muted);
         }
         .card-footer a{
-            color:#fff;
+            color:var(--text);
             text-decoration:none;
             font-weight:500;
         }
@@ -314,12 +346,23 @@
     </style>
 </head>
 <body>
+<script>
+    (function() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+</script>
 
-<!-- NAV (identical to login, no theme toggle) -->
+<!-- NAV (identical to login, with theme toggle) -->
 <nav>
     <div class="nav-container">
         <a href="{{ route('home') }}" class="nav-brand">Nexus</a>
-        <a href="{{ route('home') }}" class="nav-link">← Back</a>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button type="button" onclick="toggleTheme()" style="background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 8px; border-radius: 50%;">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </button>
+            <a href="{{ route('home') }}" class="nav-link">← Back</a>
+        </div>
     </div>
 </nav>
 
@@ -342,13 +385,25 @@
         <form method="POST" action="{{ route('register') }}">
             @csrf
 
+            <!-- full name field -->
+            <div class="field">
+                <label for="name">Full Name</label>
+                <input type="text" name="name" id="name"
+                    value="{{ old('name') }}"
+                    placeholder="Enter your full name"
+                    required autocomplete="name">
+                @error('name')<div class="field-error">{{ $message }}</div>@enderror
+            </div>
+
             <!-- username field (with status) -->
             <div class="field">
                 <label for="username">Username</label>
                 <input type="text" name="username" id="username"
                     value="{{ old('username') }}"
                     placeholder="Choose a username"
-                    required minlength="3"
+                    required minlength="3" maxlength="50"
+                    pattern="[a-zA-Z0-9_\-]+"
+                    title="Username can only contain letters, numbers, underscores, and hyphens"
                     autocomplete="username">
                 <div class="field-status" id="username-status"></div>
                 @error('username')<div class="field-error">{{ $message }}</div>@enderror
@@ -519,6 +574,28 @@
                 .catch(() => { status.textContent = ''; status.className = 'field-status'; });
         }, 500);
     });
+
+    function toggleTheme() {
+        const html = document.documentElement;
+        const icon = document.getElementById('theme-icon');
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+        icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        localStorage.setItem('theme', newTheme);
+    }
+
+    // Set initial theme icon based on saved theme
+    (function() {
+        const html = document.documentElement;
+        const icon = document.getElementById('theme-icon');
+        const currentTheme = html.getAttribute('data-theme');
+        if (currentTheme === 'light') {
+            icon.className = 'fas fa-moon';
+        } else {
+            icon.className = 'fas fa-sun';
+        }
+    })();
 </script>
 
 </body>

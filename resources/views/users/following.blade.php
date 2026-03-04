@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', $user->name . ' - Following')
+@section('title', $user->username . ' - Following')
 
 @section('content')
 <style>
 .users-list-container { max-width: 680px; margin: 0 auto; }
 .page-header { margin-bottom: 24px; display: flex; flex-direction: column; gap: 8px; }
 .page-header-top { display: flex; align-items: center; gap: 12px; }
-.back-btn { 
+.back-btn {
     display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;
     background: var(--surface); border: 1px solid var(--border); border-radius: 50%; color: var(--text);
     text-decoration: none; transition: all var(--transition); flex-shrink: 0;
@@ -17,8 +17,8 @@
 .page-header p { color: var(--text-muted); font-size: 14px; margin: 0; }
 
 /* Button styles */
-.btn-follow { 
-    padding: 6px 16px; border-radius: 16px; font-size: 13px; font-weight: 600; 
+.btn-follow {
+    padding: 6px 16px; border-radius: 16px; font-size: 13px; font-weight: 600;
     cursor: pointer; transition: all var(--transition); border: none; min-width: 80px;
 }
 .btn-follow.primary { background: var(--primary); color: white; }
@@ -27,18 +27,18 @@
 .btn-follow.secondary:hover { border-color: var(--primary); color: var(--primary); }
 
 .users-grid { display: flex; flex-direction: column; gap: 12px; }
-.user-card { 
+.user-card {
     display: flex; align-items: center; gap: 16px; padding: 16px 20px;
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
     transition: all var(--transition);
 }
 .user-card:hover { border-color: var(--primary); }
-.user-avatar { 
+.user-avatar {
     width: 36px; height: 36px; border-radius: 50%; overflow: hidden;
     background: linear-gradient(135deg, var(--primary), var(--secondary)); flex-shrink: 0;
 }
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.user-avatar .placeholder { 
+.user-avatar .placeholder {
     width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
     font-size: 12px; font-weight: 700; color: white;
 }
@@ -61,33 +61,29 @@
             </a>
             <h1><i class="fas fa-user-friends"></i> Following</h1>
         </div>
-        <p>{{ $user->name }} follows {{ $following->count() }} user{{ $following->count() !== 1 ? 's' : '' }}</p>
+        <p>{{ $user->username }} follows {{ $following->count() }} user{{ $following->count() !== 1 ? 's' : '' }}</p>
     </div>
 
     <div class="users-grid">
         @forelse($following as $follow)
         <div class="user-card">
             <a href="{{ route('users.show', $follow->followed) }}" class="user-avatar">
-                @if($follow->followed->profile && $follow->followed->profile->avatar)
-                    <img src="{{ asset('storage/' . $follow->followed->profile->avatar) }}" alt="{{ $follow->followed->name }}">
-                @else
-                    <div class="placeholder">{{ substr($follow->followed->name, 0, 1) }}</div>
-                @endif
+                <img src="{{ $follow->followed->avatar_url }}" alt="{{ $follow->followed->username }}">
             </a>
             <div class="user-info">
                 <a href="{{ route('users.show', $follow->followed) }}">
-                    <div class="user-name">{{ $follow->followed->name }}</div>
+                    <div class="user-name">{{ $follow->followed->username }}</div>
                 </a>
-                <div class="user-meta">@ {{ $follow->followed->name }}</div>
+                <div class="user-meta">@ {{ $follow->followed->username }}</div>
             </div>
             <div class="user-actions">
                 @if(auth()->check() && auth()->id() === $user->id)
-                    <button class="btn btn-ghost" onclick="unfollow(this, '{{ $follow->followed->name }}')">
+                    <button class="btn btn-ghost" onclick="followingPageUnfollow(this, '{{ $follow->followed->username }}')">
                         <i class="fas fa-user-minus"></i> Unfollow
                     </button>
                 @elseif(auth()->check() && auth()->id() !== $follow->followed->id)
                     @php $isFollowing = in_array($follow->followed->id, $followingIds); @endphp
-                    <button class="btn btn-sm {{ $isFollowing ? '' : 'btn-primary' }}" onclick="toggleFollow(this, '{{ $follow->followed->name }}')" data-following="{{ $isFollowing ? 'true' : 'false' }}">
+                    <button class="btn btn-sm {{ $isFollowing ? '' : 'btn-primary' }}" onclick="followingPageToggleFollow(this, '{{ $follow->followed->username }}')" data-following="{{ $isFollowing ? 'true' : 'false' }}">
                         {{ $isFollowing ? 'Following' : 'Follow' }}
                     </button>
                 @endif
@@ -97,39 +93,65 @@
         <div class="empty-state">
             <i class="fas fa-user-friends"></i>
             <h3>Not following anyone</h3>
-            <p style="color: var(--text-muted);">{{ $user->name }} hasn't followed anyone yet.</p>
+            <p style="color: var(--text-muted);">{{ $user->username }} hasn't followed anyone yet.</p>
         </div>
         @endforelse
     </div>
 </div>
 
 <script>
-function unfollow(btn, username) {
-    if (!confirm('Unfollow this user?')) return;
+function followingPageUnfollow(btn, username) {
+    const originalHtml = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.disabled = true;
+    
     fetch(`/users/${username}/follow`, {
         method: 'POST',
-        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
+        headers: { 
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 
+            'Accept': 'application/json' 
+        }
     })
-    .then(() => btn.closest('.user-card').remove());
+    .then(r => {
+        if (!r.ok) throw new Error('Network response was not ok');
+        return r.json();
+    })
+    .then(data => {
+        // Reload the page to update the list
+        window.location.reload();
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    });
 }
 
-function toggleFollow(btn, username) {
-    const isFollowing = btn.getAttribute('data-following') === 'true';
+function followingPageToggleFollow(btn, username) {
+    const originalHtml = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.disabled = true;
+    
     fetch(`/users/${username}/follow`, {
         method: 'POST',
-        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
+        headers: { 
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 
+            'Accept': 'application/json' 
+        }
     })
-    .then(r => r.json())
+    .then(r => {
+        if (!r.ok) throw new Error('Network response was not ok');
+        return r.json();
+    })
     .then(data => {
-        btn.innerHTML = data.following ? 'Following' : 'Follow';
-        btn.classList.toggle('btn-primary', !data.following);
-        btn.setAttribute('data-following', data.following ? 'true' : 'false');
+        // Reload the page to update the list
+        window.location.reload();
     })
-    .finally(() => btn.disabled = false);
+    .catch((error) => {
+        console.error('Error:', error);
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    });
 }
 </script>
 @endsection

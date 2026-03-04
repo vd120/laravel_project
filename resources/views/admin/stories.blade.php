@@ -62,14 +62,10 @@
             <div class="story-info">
                 <div class="story-user">
                     <div class="user-avatar">
-                        @if($story->user->profile && $story->user->profile->avatar)
-                            <img src="{{ asset('storage/' . $story->user->profile->avatar) }}" alt="">
-                        @else
-                            <div class="avatar-placeholder">{{ substr($story->user->name, 0, 1) }}</div>
-                        @endif
+                        <img src="{{ $story->user->avatar_url }}" alt="">
                     </div>
                     <div class="user-details">
-                        <span class="user-name">{{ $story->user->name }}</span>
+                        <span class="user-name">{{ $story->user->username }}</span>
                         <span class="story-time">{{ $story->created_at->diffForHumans() }}</span>
                     </div>
                 </div>
@@ -121,10 +117,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: -16px -16px 24px;
-    padding: 24px 16px;
+    margin: 0 -16px 24px;
+    padding: 20px 16px;
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    border-radius: 0 0 20px 20px;
+    border-radius: 16px 16px 20px 20px;
 }
 
 .header-left {

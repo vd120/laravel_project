@@ -1,18 +1,13 @@
 <div class="post-card" id="post-{{ $post->id }}" data-post-id="{{ $post->id }}">
     <div class="post-header">
         <div class="post-author">
-            @if($post->user->profile && $post->user->profile->avatar)
-                <img src="{{ asset('storage/' . $post->user->profile->avatar) }}" alt="{{ $post->user->name }}" class="author-avatar">
-            @else
-                <div class="author-avatar-placeholder">{{ substr($post->user->name, 0, 1) }}</div>
-            @endif
+            <img src="{{ $post->user->avatar_url }}" alt="{{ $post->user->username }}" class="author-avatar">
             <div class="author-info">
-                <a href="{{ route('users.show', $post->user) }}" class="author-name">{{ $post->user->name }}</a>
+                <a href="{{ route('users.show', $post->user) }}" class="author-name">{{ $post->user->username }}</a>
                 @auth
                     @if(auth()->id() !== $post->user->id)
                         @php $isFollowing = auth()->user()->isFollowing($post->user); @endphp
-                        <button type="button" class="quick-follow-btn {{ $isFollowing ? 'following' : '' }}" onclick="quickFollow('{{ $post->user->name }}', this)" data-following="{{ $isFollowing ? 'true' : 'false' }}">
-                            <i class="fas {{ $isFollowing ? 'fa-user-minus' : 'fa-user-plus' }}"></i>
+                        <button type="button" class="quick-follow-btn {{ $isFollowing ? 'following' : '' }}" onclick="quickFollow('{{ $post->user->username }}', this)" data-following="{{ $isFollowing ? 'true' : 'false' }}">
                             <span>{{ $isFollowing ? 'Following' : 'Follow' }}</span>
                         </button>
                     @endif
@@ -32,7 +27,26 @@
 
     @if($post->content)
         <div class="post-content">
-            <p>{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($post->content) !!}</p>
+            @php
+                $content = app(\App\Services\MentionService::class)->convertMentionsToLinks($post->content);
+                $contentLength = strlen(strip_tags($post->content));
+                $shouldTruncate = $contentLength > 300;
+                $truncatedContent = $shouldTruncate ? substr(strip_tags($post->content), 0, 300) . '...' : $post->content;
+                if ($shouldTruncate) {
+                    $truncatedContent = app(\App\Services\MentionService::class)->convertMentionsToLinks($truncatedContent);
+                }
+            @endphp
+            <p class="post-text {{ $shouldTruncate ? 'truncated' : '' }}" 
+               data-full-content="{{ htmlspecialchars($content, ENT_QUOTES, 'UTF-8') }}"
+               data-truncated-content="{{ htmlspecialchars($truncatedContent, ENT_QUOTES, 'UTF-8') }}">
+                {!! $shouldTruncate ? $truncatedContent : $content !!}
+            </p>
+            @if($shouldTruncate)
+                <button type="button" class="show-more-btn" onclick="togglePostContent(this)">
+                    <span class="show-more-text">Show more</span>
+                    <span class="show-less-text" style="display: none;">Show less</span>
+                </button>
+            @endif
         </div>
     @endif
 
@@ -110,7 +124,7 @@
         
         @if(auth()->check())
             <div class="comment-form">
-                <textarea id="comment-content-{{ $post->slug }}" placeholder="Write a comment..." maxlength="280"></textarea>
+                <textarea id="comment-content-{{ $post->slug }}" placeholder="Write a comment..." maxlength="5000"></textarea>
                 <button type="button" onclick="submitComment('{{ $post->slug }}', {{ $post->id }})">
                     <i class="fas fa-paper-plane"></i>
                 </button>
@@ -153,12 +167,12 @@
 
 <style>
 .post-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
     margin-bottom: 16px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow);
 }
 
 .post-header {
@@ -179,13 +193,14 @@
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
+    border: 2px solid var(--border);
 }
 
 .author-avatar-placeholder {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--twitter-blue), #8B5CF6);
+    background: linear-gradient(135deg, var(--primary), #8B5CF6);
     color: white;
     display: flex;
     align-items: center;
@@ -206,12 +221,12 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 2px 8px;
-    font-size: 11px;
+    padding: 4px 10px;
+    font-size: 12px;
     font-weight: 600;
     border: none;
-    border-radius: 12px;
-    background: var(--twitter-blue);
+    border-radius: var(--radius-full);
+    background: var(--primary);
     color: white;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -219,25 +234,25 @@
 }
 
 .quick-follow-btn:hover {
-    background: #1d9bf0;
+    background: var(--primary-hover);
     opacity: 0.9;
 }
 
 .quick-follow-btn.following {
     background: transparent;
-    border: 1px solid var(--twitter-gray);
-    color: var(--twitter-dark);
+    border: 1px solid var(--border);
+    color: var(--text);
 }
 
 .quick-follow-btn.following:hover {
-    background: rgba(244, 33, 59, 0.1);
-    border-color: var(--error-color);
-    color: var(--error-color);
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
 }
 
 .author-name {
     font-weight: 600;
-    color: var(--twitter-dark);
+    color: var(--text);
     text-decoration: none;
     font-size: 15px;
     line-height: 1.2;
@@ -249,23 +264,24 @@
 
 .post-time {
     font-size: 13px;
-    color: var(--twitter-gray);
+    color: var(--text-muted);
     line-height: 1.2;
 }
 
 .privacy-badge {
-    background: var(--error-color);
+    background: #ef4444;
     color: white;
     font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
     margin-left: 6px;
+    font-weight: 600;
 }
 
 .delete-post-btn {
     background: none;
     border: none;
-    color: var(--twitter-gray);
+    color: var(--text-muted);
     cursor: pointer;
     padding: 8px;
     border-radius: 50%;
@@ -273,7 +289,8 @@
 }
 
 .delete-post-btn:hover {
-    background: var(--hover-bg);
+    background: var(--surface-hover);
+    color: #ef4444;
 }
 
 .post-content {
@@ -283,15 +300,54 @@
 .post-content p {
     margin: 0;
     font-size: 15px;
-    line-height: 1.4;
-    color: var(--twitter-dark);
+    line-height: 1.6;
+    color: var(--text);
     word-wrap: break-word;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Noto Sans Arabic', 'Tahoma', 'Arial', sans-serif;
+    unicode-bidi: embed;
+}
+
+/* Arabic and RTL text support */
+.post-content p:lang(ar),
+.post-content p[dir="rtl"],
+.post-content p[lang="ar"] {
+    direction: rtl;
+    text-align: right;
 }
 
 .post-content a {
-    color: var(--twitter-blue);
+    color: var(--primary);
     text-decoration: none;
     font-weight: 600;
+}
+
+/* Show More/Less Button */
+.show-more-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-top: 4px;
+    transition: all 0.2s ease;
+}
+
+.show-more-btn:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.post-text.truncated {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.post-text.expanded {
+    display: block;
 }
 
 .post-content a:hover {
@@ -324,7 +380,7 @@
     width: 100%;
     max-height: 600px;
     object-fit: contain;
-    background: #f0f2f5;
+    background: var(--surface-hover);
 }
 
 /* Two images - side by side, equal height */
@@ -427,7 +483,7 @@
     overflow: hidden;
     cursor: pointer;
     min-height: 200px;
-    background: #f0f2f5;
+    background: var(--surface-hover);
 }
 
 .media-item:hover {
@@ -510,9 +566,9 @@
     gap: 6px;
     padding: 6px 12px;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius);
     background: transparent;
-    color: var(--twitter-gray);
+    color: var(--text-muted);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -522,15 +578,15 @@
 }
 
 .action-btn:hover {
-    background: var(--hover-bg);
+    background: var(--surface-hover);
 }
 
 .action-btn.liked {
-    color: var(--error-color);
+    color: #ef4444;
 }
 
 .action-btn.saved {
-    color: var(--twitter-blue);
+    color: var(--primary);
 }
 
 .action-btn.likers-btn {
@@ -540,71 +596,90 @@
 }
 
 .post-comments-section {
-    border-top: 1px solid var(--border-color);
-    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
 }
 
 .post-comments-section h4 {
-    margin: 0 0 8px 0;
+    margin: 0 0 12px 0;
     font-size: 14px;
     font-weight: 600;
-    color: var(--twitter-gray);
+    color: var(--text);
 }
 
 .comment-form {
     display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: center;
 }
 
 .comment-form textarea {
     flex: 1;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 20px;
-    background: var(--twitter-light);
-    color: var(--twitter-dark);
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    color: var(--text);
     font-size: 14px;
     resize: none;
-    height: 36px;
+    height: 40px;
     line-height: 20px;
+    transition: all 0.2s ease;
 }
 
 .comment-form textarea:focus {
     outline: none;
-    background: var(--input-bg);
+    border-color: var(--primary);
+    background: var(--surface-hover);
+}
+
+.comment-form textarea::placeholder {
+    color: var(--text-muted);
 }
 
 .comment-form button {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border: none;
     border-radius: 50%;
-    background: var(--twitter-blue);
+    background: var(--primary);
     color: white;
     cursor: pointer;
-    transition: transform 0.2s ease;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .comment-form button:hover {
+    background: var(--primary-hover);
     transform: scale(1.05);
+}
+
+.comment-form button:active {
+    transform: scale(0.98);
 }
 
 .guest-message {
     text-align: center;
-    padding: 12px;
-    background: var(--twitter-light);
-    border-radius: 8px;
+    padding: 16px;
+    background: var(--surface);
+    border-radius: var(--radius);
     margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--text-muted);
 }
 
 .guest-message a {
-    color: var(--twitter-blue);
+    color: var(--primary);
     text-decoration: none;
     font-weight: 600;
+}
+
+.guest-message a:hover {
+    text-decoration: underline;
 }
 
 .show-more-comments,
@@ -617,16 +692,18 @@
 .hide-comments {
     background: none;
     border: none;
-    color: var(--twitter-gray);
+    color: var(--primary);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     padding: 0;
+    transition: all 0.2s ease;
 }
 
 .show-more-comments button:hover,
 .hide-comments:hover {
-    color: var(--twitter-dark);
+    color: var(--primary-hover);
+    text-decoration: underline;
 }
 
 /* Mobile Responsive */
@@ -673,38 +750,38 @@
     .action-btn i {
         font-size: 18px;
     }
-    
+
     /* Disable hover effects on mobile */
-    .quick-follow-btn:hover { background: var(--twitter-blue); opacity: 1; }
-    .quick-follow-btn.following:hover { background: transparent; border-color: var(--twitter-gray); color: var(--twitter-dark); }
+    .quick-follow-btn:hover { background: var(--primary); opacity: 1; }
+    .quick-follow-btn.following:hover { background: transparent; border-color: var(--border); color: var(--text); }
     .author-name:hover { text-decoration: none; }
     .delete-post-btn:hover { background: transparent; }
     .post-content a:hover { text-decoration: none; }
     .media-item:hover { opacity: 1; }
     .action-btn:hover { background: transparent; }
     .comment-form button:hover { transform: none; }
-    .show-more-comments button:hover, .hide-comments:hover { color: var(--twitter-gray); }
-    .comment-action-btn:hover { background: transparent; color: var(--twitter-gray); }
+    .show-more-comments button:hover, .hide-comments:hover { color: var(--text-muted); }
+    .comment-action-btn:hover { background: transparent; color: var(--text-muted); }
     .delete-comment-btn:hover { opacity: 0.7; background: transparent; }
     .show-more-replies button:hover, .hide-replies:hover, .show-replies-btn:hover { text-decoration: none; }
-    .comment-name:hover { color: var(--twitter-dark); }
+    .comment-name:hover { color: var(--text); }
 }
 
 /* Disable ALL hover effects on touch devices */
 @media (hover: none) {
-    .quick-follow-btn:hover { background: var(--twitter-blue); opacity: 1; }
-    .quick-follow-btn.following:hover { background: transparent; border-color: var(--twitter-gray); color: var(--twitter-dark); }
+    .quick-follow-btn:hover { background: var(--primary); opacity: 1; }
+    .quick-follow-btn.following:hover { background: transparent; border-color: var(--border); color: var(--text); }
     .author-name:hover { text-decoration: none; }
     .delete-post-btn:hover { background: transparent; }
     .post-content a:hover { text-decoration: none; }
     .media-item:hover { opacity: 1; }
     .action-btn:hover { background: transparent; }
     .comment-form button:hover { transform: none; }
-    .show-more-comments button:hover, .hide-comments:hover { color: var(--twitter-gray); }
-    .comment-action-btn:hover { background: transparent; color: var(--twitter-gray); }
+    .show-more-comments button:hover, .hide-comments:hover { color: var(--text-muted); }
+    .comment-action-btn:hover { background: transparent; color: var(--text-muted); }
     .delete-comment-btn:hover { opacity: 0.7; background: transparent; }
     .show-more-replies button:hover, .hide-replies:hover, .show-replies-btn:hover { text-decoration: none; }
-    .comment-name:hover { color: var(--twitter-dark); }
+    .comment-name:hover { color: var(--text); }
     .media-modal-nav:hover { background: rgba(0, 0, 0, 0.5); }
 }
 
@@ -897,10 +974,10 @@
 .reply-input-wrapper textarea {
     flex: 1;
     padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    background: var(--input-bg);
-    color: var(--twitter-dark);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    color: var(--text);
     font-size: 13px;
     resize: none;
     height: 36px;
@@ -909,7 +986,7 @@
 
 .reply-input-wrapper textarea:focus {
     outline: none;
-    border-color: var(--twitter-blue);
+    border-color: var(--primary);
 }
 
 .reply-input-wrapper button {
@@ -917,7 +994,7 @@
     height: 32px;
     border: none;
     border-radius: 50%;
-    background: var(--twitter-blue);
+    background: var(--primary);
     color: white;
     cursor: pointer;
     font-size: 12px;
@@ -933,19 +1010,19 @@
     margin-left: 40px;
     background: none;
     border: none;
-    color: var(--twitter-gray);
+    color: var(--text-muted);
     font-size: 12px;
     cursor: pointer;
 }
 
 .cancel-reply:hover {
-    color: var(--twitter-dark);
+    color: var(--text);
 }
 
 /* Comment item styles - needed for dynamically added comments */
 .comment-item {
     padding: 12px 0;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border);
 }
 
 .comment-item:last-child {
@@ -955,7 +1032,7 @@
 .comment-item.nested {
     margin-left: 20px;
     padding-left: 16px;
-    border-left: 2px solid var(--border-color);
+    border-left: 2px solid var(--border);
 }
 
 .comment-item.level-1 {
@@ -996,14 +1073,14 @@
     height: 36px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--border-color);
+    border: 2px solid var(--border);
 }
 
 .comment-avatar-placeholder {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--twitter-blue), #8B5CF6);
+    background: linear-gradient(135deg, var(--primary), #8B5CF6);
     color: white;
     display: flex;
     align-items: center;
@@ -1019,24 +1096,24 @@
 
 .comment-name {
     font-weight: 600;
-    color: var(--twitter-dark);
+    color: var(--text);
     text-decoration: none;
     font-size: 14px;
 }
 
 .comment-name:hover {
-    color: var(--twitter-blue);
+    color: var(--primary);
 }
 
 .comment-time {
     font-size: 11px;
-    color: var(--twitter-gray);
+    color: var(--text-muted);
 }
 
 .delete-comment-btn {
     background: none;
     border: none;
-    color: var(--error-color);
+    color: #ef4444;
     cursor: pointer;
     padding: 6px;
     border-radius: 50%;
@@ -1047,7 +1124,7 @@
 
 .delete-comment-btn:hover {
     opacity: 1;
-    background: rgba(244, 33, 46, 0.1);
+    background: rgba(239, 68, 68, 0.1);
 }
 
 .comment-content {
@@ -1058,13 +1135,23 @@
 .comment-content p {
     margin: 0;
     font-size: 14px;
-    line-height: 1.5;
-    color: var(--twitter-dark);
+    line-height: 1.6;
+    color: var(--text);
     word-wrap: break-word;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Noto Sans Arabic', 'Tahoma', 'Arial', sans-serif;
+    unicode-bidi: embed;
+}
+
+/* Arabic and RTL text support */
+.comment-content p:lang(ar),
+.comment-content p[dir="rtl"],
+.comment-content p[lang="ar"] {
+    direction: rtl;
+    text-align: right;
 }
 
 .comment-content a {
-    color: var(--twitter-blue);
+    color: var(--primary);
     text-decoration: none;
 }
 
@@ -1081,9 +1168,9 @@
     gap: 4px;
     padding: 4px 10px;
     border: none;
-    border-radius: 12px;
+    border-radius: var(--radius-full);
     background: none;
-    color: var(--twitter-gray);
+    color: var(--text-muted);
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
@@ -1091,13 +1178,13 @@
 }
 
 .comment-action-btn:hover {
-    background: var(--twitter-light);
-    color: var(--twitter-dark);
+    background: var(--surface-hover);
+    color: var(--text);
 }
 
 .comment-action-btn.liked {
-    color: var(--error-color);
-    background: rgba(244, 33, 46, 0.1);
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
 }
 
 .replies-container {
@@ -1116,7 +1203,7 @@
 .show-replies-btn {
     background: none;
     border: none;
-    color: var(--twitter-blue);
+    color: var(--primary);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
@@ -1174,7 +1261,7 @@
     }
 
     .comment-action-btn:active {
-        background: var(--twitter-light);
+        background: var(--surface-hover);
         transform: scale(0.98);
     }
 
@@ -1187,7 +1274,7 @@
 
     .delete-comment-btn:active {
         opacity: 1;
-        background: rgba(244, 33, 46, 0.2);
+        background: rgba(239, 68, 68, 0.2);
     }
 
     .show-replies-btn {
@@ -1421,8 +1508,8 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
 
         const content = document.createElement('div');
         content.style.cssText = `
-            background: var(--card-bg, #1a1a1a);
-            border: 1px solid var(--border, #333);
+            background: var(--surface, #161616);
+            border: 1px solid var(--border, #2a2a2a);
             border-radius: 16px;
             width: 90%;
             max-width: 400px;
@@ -1438,11 +1525,11 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
             align-items: center;
             margin-bottom: 20px;
             padding-bottom: 12px;
-            border-bottom: 1px solid var(--border, #333);
+            border-bottom: 1px solid var(--border, #2a2a2a);
         `;
         header.innerHTML = `
-            <h3 style="margin: 0; font-size: 18px; font-weight: 700;">Likes (${likers.length})</h3>
-            <button onclick="document.getElementById('likers-modal').remove()" style="background: none; border: none; color: var(--text-muted, #888); font-size: 24px; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text);">Likes (${likers.length})</h3>
+            <button onclick="document.getElementById('likers-modal').remove()" style="background: none; border: none; color: var(--text-muted, #86868b); font-size: 24px; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
         `;
 
         const list = document.createElement('div');
@@ -1450,10 +1537,11 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
 
         likers.forEach(liker => {
             const avatar = liker.avatar || null;
-            const initial = liker.name ? liker.name.charAt(0).toUpperCase() : '?';
+            const displayName = liker.username || liker.name || 'User';
+            const initial = displayName ? displayName.charAt(0).toUpperCase() : '?';
 
             const item = document.createElement('a');
-            item.href = `/users/${liker.username || liker.name}`;
+            item.href = `/users/${liker.username}`;
             item.style.cssText = `
                 display: flex;
                 align-items: center;
@@ -1464,17 +1552,17 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                 color: inherit;
                 transition: background 0.2s;
             `;
-            item.onmouseover = () => item.style.background = 'var(--hover-bg, #2a2a2a)';
+            item.onmouseover = () => item.style.background = 'var(--surface-hover, #1c1c1e)';
             item.onmouseout = () => item.style.background = 'transparent';
 
             item.innerHTML = `
-                ${avatar 
-                    ? `<img src="${avatar}" alt="${liker.name}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">`
-                    : `<div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--primary, #8b5cf6), var(--secondary, #06b6d4)); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white;">${initial}</div>`
+                ${avatar
+                    ? `<img src="${avatar}" alt="${displayName}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">`
+                    : `<div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--primary, #5e60ce), var(--secondary, #4ea8de)); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white;">${initial}</div>`
                 }
                 <div style="flex: 1;">
-                    <div style="font-weight: 600; font-size: 14px;">${liker.name}</div>
-                    <div style="font-size: 12px; color: var(--text-muted, #888);">@${liker.username || liker.name}</div>
+                    <div style="font-weight: 600; font-size: 14px;">@${displayName}</div>
+                    ${liker.name ? `<div style="font-size: 12px; color: var(--text-muted, #86868b);">${liker.name}</div>` : ''}
                 </div>
                 ${liker.is_verified ? '<i class="fas fa-check-circle" style="color: #22c55e; font-size: 16px;"></i>' : ''}
             `;
@@ -1516,29 +1604,26 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
         .then(data => {
             if (data.success && data.comment) {
                 textarea.value = '';
-                showToast('Comment posted successfully', 'success');
-                
+
                 // Add comment to the list dynamically without page reload
                 const commentsList = document.querySelector(`#post-${postId} .comments-list`);
                 if (commentsList && data.comment) {
-                    const user = data.comment.user || { name: '{{ auth()->user() ? auth()->user()->name : "You" }}', profile: { avatar: null } };
-                    const avatar = user.profile && user.profile.avatar 
-                        ? `/storage/${user.profile.avatar}` 
+                    const user = data.comment.user || { username: '{{ auth()->user() ? auth()->user()->username : "user" }}', name: '{{ auth()->user() ? auth()->user()->name : "User" }}', profile: { avatar: null } };
+                    const avatar = user.profile && user.profile.avatar
+                        ? `/storage/${user.profile.avatar}`
                         : null;
-                    const firstLetter = user.name ? user.name.charAt(0).toUpperCase() : '?';
-                    
-                    const userName = data.comment.user && data.comment.user.name ? data.comment.user.name : 'You';
-                    const userProfile = data.comment.user && data.comment.user.profile ? data.comment.user.profile : null;
-                    const avatarUrl = userProfile && userProfile.avatar ? '/storage/' + userProfile.avatar : null;
-                    const initial = userName.charAt(0).toUpperCase();
-                    
+                    const firstLetter = user.username ? user.username.charAt(0).toUpperCase() : '?';
+
+                    const userName = data.comment.user && data.comment.user.username ? data.comment.user.username : '{{ auth()->user() ? auth()->user()->username : "user" }}';
+                    const avatarUrl = data.comment.user && data.comment.user.avatar_url ? data.comment.user.avatar_url : null;
+
                     const commentHtml = `
                         <div class="comment-item level-0" data-comment-id="${data.comment.id}">
                             <div class="comment-header">
                                 <div class="comment-author">
-                                    ${avatarUrl 
+                                    ${avatarUrl
                                         ? `<img src="${avatarUrl}" alt="Avatar" class="comment-avatar">`
-                                        : `<div class="comment-avatar-placeholder">${initial}</div>`
+                                        : `<div class="comment-avatar-placeholder">?</div>`
                                     }
                                     <div class="comment-author-info">
                                         <a href="/users/${userName}" class="comment-name">${userName}</a>
@@ -1564,7 +1649,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                             </div>
                             <div class="reply-form" id="reply-form-${data.comment.id}" style="display: none;">
                                 <div class="reply-input-wrapper">
-                                    <textarea id="reply-content-${data.comment.id}" placeholder="Write a reply..." maxlength="280"></textarea>
+                                    <textarea id="reply-content-${data.comment.id}" placeholder="Write a reply..." maxlength="5000"></textarea>
                                     <button type="button" onclick="submitReply(${data.comment.id}, ${postId})">
                                         <i class="fas fa-paper-plane"></i>
                                     </button>
@@ -1667,7 +1752,6 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
             if (data.success) {
                 const commentItem = btn.closest('.comment-item');
                 if (commentItem) commentItem.remove();
-                showToast('Comment deleted', 'success');
             }
         })
         .catch(error => console.error('Error:', error));
@@ -1694,8 +1778,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                 textarea.value = '';
                 const replyForm = document.getElementById(`reply-form-${commentId}`);
                 if (replyForm) replyForm.style.display = 'none';
-                showToast('Reply posted successfully', 'success');
-                
+
                 // Add reply to the parent comment's replies container
                 const parentComment = document.querySelector(`[data-comment-id="${commentId}"]`);
                 if (parentComment) {
@@ -1708,11 +1791,10 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                         parentComment.appendChild(repliesContainer);
                     }
                     
-                    const userName = data.comment.user && data.comment.user.name ? data.comment.user.name : 'You';
-                    const userProfile = data.comment.user && data.comment.user.profile ? data.comment.user.profile : null;
-                    const avatarUrl = userProfile && userProfile.avatar ? '/storage/' + userProfile.avatar : null;
+                    const userName = data.comment.user && data.comment.user.username ? data.comment.user.username : '{{ auth()->user() ? auth()->user()->username : "user" }}';
+                    const avatarUrl = data.comment.user && data.comment.user.avatar_url ? data.comment.user.avatar_url : null;
                     const initial = userName.charAt(0).toUpperCase();
-                    
+
                     // Determine the level of the new reply based on parent comment
                     let parentLevel = null;
                     const parentCommentEl = document.querySelector(`[data-comment-id="${commentId}"]`);
@@ -1775,7 +1857,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                             ${showReplyBtn ? `
                             <div class="reply-form" id="reply-form-${data.comment.id}" style="display: none;">
                                 <div class="reply-input-wrapper">
-                                    <textarea id="reply-content-${data.comment.id}" placeholder="Write a reply..." maxlength="280"></textarea>
+                                    <textarea id="reply-content-${data.comment.id}" placeholder="Write a reply..." maxlength="5000"></textarea>
                                     <button type="button" onclick="submitReply(${data.comment.id}, ${postId})">
                                         <i class="fas fa-paper-plane"></i>
                                     </button>
@@ -1921,24 +2003,63 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
         .then(data => {
             if (data.following) {
                 btn.classList.add('following');
-                btn.querySelector('i').classList.remove('fa-user-plus');
-                btn.querySelector('i').classList.add('fa-user-minus');
-                btn.querySelector('span').textContent = 'Following';
+                const icon = btn.querySelector('i');
+                const text = btn.querySelector('span');
+                if (icon) {
+                    icon.classList.remove('fa-user-plus');
+                    icon.classList.add('fa-user-minus');
+                }
+                if (text) text.textContent = 'Following';
                 btn.setAttribute('data-following', 'true');
-                showToast('You are now following this user', 'success');
             } else {
                 btn.classList.remove('following');
-                btn.querySelector('i').classList.remove('fa-user-minus');
-                btn.querySelector('i').classList.add('fa-user-plus');
-                btn.querySelector('span').textContent = 'Follow';
+                const icon = btn.querySelector('i');
+                const text = btn.querySelector('span');
+                if (icon) {
+                    icon.classList.remove('fa-user-minus');
+                    icon.classList.add('fa-user-plus');
+                }
+                if (text) text.textContent = 'Follow';
                 btn.setAttribute('data-following', 'false');
-                showToast('You unfollowed this user', 'info');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showToast('Failed to update follow status', 'error');
         });
+    }
+
+    // Toggle post content show more/less
+    function togglePostContent(button) {
+        const postText = button.previousElementSibling;
+        const showMoreText = button.querySelector('.show-more-text');
+        const showLessText = button.querySelector('.show-less-text');
+        
+        const fullContent = postText.getAttribute('data-full-content');
+        const truncatedContent = postText.getAttribute('data-truncated-content');
+
+        if (postText.classList.contains('truncated')) {
+            // Expand - show full content
+            postText.classList.remove('truncated');
+            postText.classList.add('expanded');
+            postText.innerHTML = fullContent;
+            postText.style.display = 'block';
+            postText.style.webkitLineClamp = 'unset';
+            postText.style.webkitBoxOrient = 'unset';
+            postText.style.overflow = 'visible';
+            showMoreText.style.display = 'none';
+            showLessText.style.display = 'inline';
+        } else {
+            // Collapse - show truncated content
+            postText.classList.remove('expanded');
+            postText.classList.add('truncated');
+            postText.innerHTML = truncatedContent;
+            postText.style.display = '-webkit-box';
+            postText.style.webkitLineClamp = '3';
+            postText.style.webkitBoxOrient = 'vertical';
+            postText.style.overflow = 'hidden';
+            showMoreText.style.display = 'inline';
+            showLessText.style.display = 'none';
+        }
     }
 }
 </script>

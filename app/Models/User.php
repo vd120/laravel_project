@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -20,6 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
         'is_admin',
@@ -28,6 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'verification_code_expires_at',
         'last_active',
         'is_online',
+        'username_changed_at',
     ];
 
     /**
@@ -50,7 +53,69 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'username_changed_at' => 'datetime',
+            'last_active' => 'datetime',
+            'is_online' => 'boolean',
         ];
+    }
+
+    /**
+     * Boot the model
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Validate username format before saving
+        static::saving(function ($user) {
+            if (empty($user->username)) {
+                // Auto-generate username if empty
+                $user->username = self::generateUniqueUsername($user->name);
+            }
+
+            if (!preg_match('/^[a-zA-Z0-9_-]+$/', $user->username)) {
+                throw new \InvalidArgumentException('Username can only contain letters, numbers, underscores, and hyphens.');
+            }
+        });
+
+        // Auto-generate username when creating a new user
+        static::creating(function ($user) {
+            if (empty($user->username)) {
+                $user->username = self::generateUniqueUsername($user->name);
+            }
+        });
+
+        // Auto-create profile for new users
+        static::created(function ($user) {
+            if (!$user->profile) {
+                $user->profile()->create();
+            }
+        });
+    }
+
+    /**
+     * Generate a unique username from name
+     */
+    protected static function generateUniqueUsername($name)
+    {
+        // Convert name to slug format
+        $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $name));
+        $baseUsername = substr($baseUsername, 0, 20); // Limit base length
+        
+        if (empty($baseUsername)) {
+            $baseUsername = 'user';
+        }
+        
+        $username = $baseUsername;
+        $counter = 1;
+        
+        // Check if username exists and add numbers if needed
+        while (self::where('username', $username)->exists()) {
+            $username = substr($baseUsername, 0, 20 - strlen($counter)) . $counter;
+            $counter++;
+        }
+        
+        return $username;
     }
 
     /**
@@ -60,7 +125,20 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getRouteKeyName()
     {
-        return 'name';
+        return 'username';
+    }
+
+    /**
+     * Get the avatar URL - returns custom avatar or generated default
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->profile && $this->profile->avatar) {
+            return asset('storage/' . $this->profile->avatar);
+        }
+
+        // Return default "unknown face" placeholder image
+        return asset('images/default-avatar.svg');
     }
 
     public function posts()
@@ -239,37 +317,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Check if user is currently online
-     * User is considered online if:
-     * - is_online is true AND last_active was within the last 5 minutes
-     */
-    public function isUserOnline(): bool
-    {
-        if (!$this->is_online) {
-            return false;
-        }
-        
-        // Check if last_active was within 5 minutes
-        if ($this->last_active && now()->diffInMinutes($this->last_active) < 5) {
-            return true;
-        }
-        
-        // If is_online is true but last_active is old, update it
-        return false;
-    }
-
-    /**
-     * Update user's online status
-     */
-    public function updateOnlineStatus(): void
-    {
-        $this->update([
-            'is_online' => true,
-            'last_active' => now(),
-        ]);
-    }
-
-    /**
      * Mark user as offline (called when they logout or close browser)
      */
     public function markAsOffline(): void
@@ -277,5 +324,120 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->update([
             'is_online' => false,
         ]);
+    }
+
+    /**
+     * Username change cooldown period in seconds (3 days)
+     */
+    const USERNAME_COOLDOWN_SECONDS = 259200; // 3 * 24 * 60 * 60
+
+    /**
+     * Check if user can change their username
+     * Admins can change anytime, regular users must wait 3 days
+     */
+    public function canChangeUsername(): bool
+    {
+        // Admins can change username anytime
+        if ($this->is_admin) {
+            return true;
+        }
+
+        // If never changed, can change
+        if (is_null($this->username_changed_at)) {
+            return true;
+        }
+
+        // Check if cooldown period has passed
+        return now()->diffInSeconds($this->username_changed_at) >= self::USERNAME_COOLDOWN_SECONDS;
+    }
+
+    /**
+     * Get the remaining time until username can be changed
+     * Returns array with days, hours, minutes, seconds
+     */
+    public function getUsernameChangeCooldownRemaining(): array
+    {
+        if ($this->canChangeUsername()) {
+            return [
+                'days' => 0,
+                'hours' => 0,
+                'minutes' => 0,
+                'seconds' => 0,
+                'total_seconds' => 0,
+            ];
+        }
+
+        $elapsed = (int) now()->diffInSeconds($this->username_changed_at);
+        $remaining = self::USERNAME_COOLDOWN_SECONDS - $elapsed;
+
+        return [
+            'days' => intdiv($remaining, 86400),
+            'hours' => intdiv($remaining % 86400, 3600),
+            'minutes' => intdiv($remaining % 3600, 60),
+            'seconds' => $remaining % 60,
+            'total_seconds' => $remaining,
+        ];
+    }
+
+    /**
+     * Get a human-readable cooldown message
+     */
+    public function getUsernameChangeCooldownMessage(): string
+    {
+        if ($this->canChangeUsername()) {
+            return '';
+        }
+
+        $remaining = $this->getUsernameChangeCooldownRemaining();
+
+        if ($remaining['days'] > 0) {
+            return "You can change your username in {$remaining['days']} day" . ($remaining['days'] > 1 ? 's' : '');
+        }
+
+        if ($remaining['hours'] > 0) {
+            return "You can change your username in {$remaining['hours']} hour" . ($remaining['hours'] > 1 ? 's' : '');
+        }
+
+        if ($remaining['minutes'] > 0) {
+            return "You can change your username in {$remaining['minutes']} minute" . ($remaining['minutes'] > 1 ? 's' : '');
+        }
+
+        return "You can change your username in {$remaining['seconds']} second" . ($remaining['seconds'] > 1 ? 's' : '');
+    }
+
+    /**
+     * Update username and record the change time
+     */
+    public function updateUsername(string $newUsername): void
+    {
+        $this->update([
+            'username' => $newUsername,
+            'username_changed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Send the password reset notification.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $resetUrl = url(route('password.reset', [
+            'token' => $token,
+            'email' => $this->email,
+        ], false));
+
+        \Illuminate\Support\Facades\Mail::raw(
+            "Hello,\n\n" .
+            "You requested a password reset for your " . config('app.name') . " account.\n\n" .
+            "Click the link below to reset your password:\n" .
+            $resetUrl . "\n\n" .
+            "This link expires in 60 minutes.\n\n" .
+            "If you didn't request this, you can safely ignore this email.\n\n" .
+            "© " . date('Y') . " " . config('app.name'),
+            function ($message) {
+                $message->to($this->email)
+                        ->subject(config('app.name') . ' - Password Reset Request');
+            }
+        );
     }
 }

@@ -95,22 +95,16 @@
                 <label>Profile Picture</label>
                 <div class="image-upload">
                     <div class="image-preview">
-                        @if($user->profile && $user->profile->avatar)
-                            <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="Avatar" id="avatar-preview">
-                        @else
-                            <div class="placeholder">{{ substr($user->name, 0, 1) }}</div>
-                        @endif
+                        <img src="{{ $user->avatar_url }}" alt="Avatar" id="avatar-preview">
                     </div>
                     <div class="image-upload-actions">
                         <label class="upload-btn">
                             <i class="fas fa-camera"></i> Change Avatar
                             <input type="file" name="avatar" class="file-input" accept="image/*" onchange="previewImage(this, 'avatar-preview')">
                         </label>
-                        @if($user->profile && $user->profile->avatar)
-                            <button type="button" class="btn btn-ghost" onclick="deleteAvatar()" style="margin-left: 8px;">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        @endif
+                        <button type="button" class="btn btn-ghost" onclick="deleteAvatar()" style="margin-left: 8px;">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -143,12 +137,45 @@
         {{-- Basic Info --}}
         <div class="edit-card">
             <h3><i class="fas fa-user"></i> Basic Information</h3>
-            
+
             <div class="form-row">
                 <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" name="username" class="form-input" value="{{ old('username', $user->name) }}" required>
+                    <label for="username">Username</label>
+                    @php
+                        $canChangeUsername = auth()->user()->canChangeUsername();
+                        $cooldownRemaining = auth()->user()->getUsernameChangeCooldownRemaining();
+                    @endphp
+                    @if(!$canChangeUsername && !auth()->user()->is_admin)
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <i class="fas fa-clock" style="color: var(--accent);"></i>
+                            <span style="font-size: 13px; color: var(--accent);">
+                                <span id="cooldown-timer" data-seconds="{{ $cooldownRemaining['total_seconds'] }}">Loading...</span>
+                            </span>
+                        </div>
+                    @endif
+                    <input type="text" 
+                           name="username" 
+                           id="username"
+                           class="form-input" 
+                           value="{{ old('username', $user->username) }}"
+                           required
+                           minlength="3"
+                           maxlength="50"
+                           pattern="[a-zA-Z0-9_\-]+"
+                           title="Username can only contain letters, numbers, underscores, and hyphens"
+                           {{ !$canChangeUsername && !auth()->user()->is_admin ? 'disabled' : '' }}>
+                    @if(!$canChangeUsername && !auth()->user()->is_admin)
+                        <input type="hidden" name="username" value="{{ $user->username }}">
+                        <span style="font-size: 12px; color: var(--text-muted);">
+                            <i class="fas fa-info-circle"></i> Username can be changed every 3 days. Admins can change anytime.
+                        </span>
+                    @endif
                     @error('username')<span style="color: var(--accent); font-size: 13px;">{{ $message }}</span>@enderror
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="name" class="form-input" value="{{ old('name', $user->name) }}" required>
+                    @error('name')<span style="color: var(--accent); font-size: 13px;">{{ $message }}</span>@enderror
                 </div>
                 <div class="form-group">
                     <label>Email</label>
@@ -310,5 +337,53 @@ function confirmDeleteAccount() {
         }
     });
 }
+
+// Username change cooldown countdown timer
+function updateCooldownTimer() {
+    const timerElement = document.getElementById('cooldown-timer');
+    if (!timerElement) return;
+
+    let seconds = parseInt(timerElement.getAttribute('data-seconds'));
+
+    if (seconds <= 0) {
+        timerElement.textContent = 'You can change your username now!';
+        timerElement.style.color = '#22c55e'; // green
+        // Enable the username field
+        const usernameInput = document.getElementById('username');
+        if (usernameInput) {
+            usernameInput.disabled = false;
+        }
+        return;
+    }
+
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    let timeString = '';
+    if (days > 0) {
+        timeString = `${days}d ${hours}h ${minutes}m ${secs}s remaining`;
+    } else if (hours > 0) {
+        timeString = `${hours}h ${minutes}m ${secs}s remaining`;
+    } else if (minutes > 0) {
+        timeString = `${minutes}m ${secs}s remaining`;
+    } else {
+        timeString = `${secs}s remaining`;
+    }
+
+    timerElement.textContent = timeString;
+
+    // Update the data attribute
+    timerElement.setAttribute('data-seconds', seconds - 1);
+
+    // Update every second
+    setTimeout(updateCooldownTimer, 1000);
+}
+
+// Start the timer when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    updateCooldownTimer();
+});
 </script>
 @endsection

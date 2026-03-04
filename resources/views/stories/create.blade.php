@@ -70,7 +70,7 @@
 
             <div class="form-group">
                 <label for="content">Caption (optional)</label>
-                <textarea name="content" id="content" rows="3" maxlength="280" placeholder="Add a caption to your story..."></textarea>
+                <textarea name="content" id="content" rows="3" maxlength="5000" placeholder="Add a caption to your story..."></textarea>
                 <span class="char-count" id="char-count">0/280</span>
             </div>
 
@@ -88,7 +88,7 @@
 .create-story-page {
     max-width: 600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 24px 20px;
 }
 
 .page-header {

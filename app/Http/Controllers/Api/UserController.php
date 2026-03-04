@@ -47,15 +47,19 @@ class UserController extends Controller
         }
 
         $users = User::where('id', '!=', auth()->id())
-            ->where('name', 'LIKE', '%' . $query . '%')
+            ->where(function($q) use ($query) {
+                $q->where('username', 'LIKE', '%' . $query . '%')
+                  ->orWhere('name', 'LIKE', '%' . $query . '%');
+            })
             ->with('profile')
             ->limit($limit)
             ->get()
             ->map(function ($user) {
                 return [
                     'id' => $user->id,
+                    'username' => $user->username,
                     'name' => $user->name,
-                    'username' => $user->name, // Using name as username for now
+                    'avatar_url' => $user->avatar_url,
                     'profile' => $user->profile ? [
                         'avatar' => $user->profile->avatar,
                         'bio' => $user->profile->bio,

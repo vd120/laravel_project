@@ -38,21 +38,36 @@ class SocialAuthController extends Controller
 
             // Case 1: New user - email doesn't exist in database
             if (!$user) {
-                // Generate a unique username from email or name
-                $username = Str::slug($googleUser->name);
-                $originalUsername = $username;
-                $counter = 1;
+                // Generate a unique username from name (remove spaces and special characters)
+                $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $googleUser->name));
                 
+                // If username is empty after removing special chars, use base from email
+                if (empty($baseUsername)) {
+                    $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', explode('@', $googleUser->email)[0]));
+                }
+                
+                // Limit base length to leave room for numbers
+                $baseUsername = substr($baseUsername, 0, 20);
+                
+                // If still empty, use 'user'
+                if (empty($baseUsername)) {
+                    $baseUsername = 'user';
+                }
+                
+                $username = $baseUsername;
+                $counter = 1;
+
+                // Ensure uniqueness
                 while (User::where('username', $username)->exists()) {
-                    $username = $originalUsername . $counter;
+                    $username = substr($baseUsername, 0, 20 - strlen($counter)) . $counter;
                     $counter++;
                 }
 
                 // Create new user WITHOUT email verification (needs verification)
                 $user = User::create([
+                    'username' => $username,
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
-                    'username' => $username,
                     'password' => Hash::make(Str::random(32)),
                     'email_verified_at' => null, // NOT verified - needs verification code
                 ]);
@@ -85,7 +100,7 @@ class SocialAuthController extends Controller
             // Regenerate session
             request()->session()->regenerate();
 
-            return redirect()->intended('/')->with('message', 'Welcome back, ' . $user->name . '!');
+            return redirect()->intended('/')->with('message', 'Welcome back, ' . $user->username . '!');
         } catch (\Exception $e) {
             \Log::error('Google OAuth Error: ' . $e->getMessage());
             return redirect()->route('login')->withErrors(['email' => 'Unable to login with Google. Please try again.']);

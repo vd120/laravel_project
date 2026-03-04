@@ -27,11 +27,20 @@
                 <h2><i class="fas fa-user"></i> Basic Information</h2>
                 <div class="form-grid">
                     <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" name="name" value="{{ old('name', $user->name) }}" required minlength="1" maxlength="255" autocomplete="name">
+                        @error('name')
+                            <span class="error">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
                         <label>Username *</label>
-                        <input type="text" name="username" value="{{ old('username', $user->name) }}" required minlength="3" maxlength="50" autocomplete="username">
+                        <input type="text" name="username" value="{{ old('username', $user->username) }}" required minlength="3" maxlength="50" pattern="[a-zA-Z0-9_\-]+" autocomplete="username">
                         @error('username')
                             <span class="error">{{ $message }}</span>
                         @enderror
+                        <small class="help-text">Only letters, numbers, underscores, and hyphens allowed.</small>
                     </div>
 
                     <div class="form-group">
@@ -133,23 +142,15 @@
                     <div class="image-upload">
                         <label>Avatar</label>
                         <div class="image-preview">
-                            @if($user->profile && $user->profile->avatar)
-                                <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="Avatar" id="avatar-preview">
-                            @else
-                                <div class="no-image" id="avatar-preview">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                            @endif
+                            <img src="{{ $user->avatar_url }}" alt="Avatar" id="avatar-preview">
                         </div>
                         <div class="image-actions">
                             <label for="avatar" class="btn-upload">
                                 <i class="fas fa-upload"></i> Upload
                             </label>
-                            @if($user->profile && $user->profile->avatar)
                             <button type="button" onclick="removeImage('avatar')" class="btn-remove">
                                 <i class="fas fa-trash"></i> Remove
                             </button>
-                            @endif
                         </div>
                         <input type="file" id="avatar" name="avatar" accept="image/*" style="display: none;" onchange="previewImage(this, 'avatar-preview')">
                         <input type="hidden" name="remove_avatar" id="remove-avatar" value="0">
@@ -205,10 +206,10 @@
 .admin-header {
     display: flex;
     align-items: center;
-    margin: -16px -16px 24px;
-    padding: 24px 16px;
+    margin: 0 -16px 24px;
+    padding: 20px 16px;
     background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    border-radius: 0 0 20px 20px;
+    border-radius: 16px 16px 20px 20px;
 }
 
 .header-left {

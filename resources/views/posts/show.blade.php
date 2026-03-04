@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Post by ' . $post->user->name)
+@section('title', 'Post by ' . $post->user->username)
 
 @section('content')
 <div class="post-detail-page">

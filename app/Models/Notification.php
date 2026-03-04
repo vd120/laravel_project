@@ -28,10 +28,8 @@ class Notification extends Model
     {
         parent::boot();
 
-        static::created(function ($notification) {
-            // Fire the real-time notification event
-            broadcast(new \App\Events\NotificationReceived($notification, $notification->user_id));
-        });
+        // Note: Real-time notifications are now handled via polling
+        // No WebSocket events needed
     }
 
     /**
@@ -101,6 +99,7 @@ class Notification extends Model
             'comment' => $this->getCommentNotificationMessage(),
             'follow' => $this->getFollowNotificationMessage(),
             'mention' => $this->getMentionNotificationMessage(),
+            'group_invite' => $this->getGroupInviteNotificationMessage(),
             default => 'You have a new notification'
         };
     }
@@ -110,8 +109,22 @@ class Notification extends Model
      */
     private function getMessageNotificationMessage(): string
     {
-        $sender = $this->data['sender_name'] ?? 'Someone';
+        $sender = $this->data['sender_username'] ?? 'Someone';
         $preview = $this->data['message_preview'] ?? '';
+        $messageType = $this->data['message_type'] ?? 'text';
+
+        // Check if this is a story reply
+        if (str_starts_with($preview, '📸 Reply to your story:')) {
+            $preview = trim(str_replace('📸 Reply to your story:', '', $preview));
+            return "{$sender} replied on your story: {$preview}";
+        }
+
+        // For media messages, show "username: sent an image/video/etc"
+        if ($messageType !== 'text' && !empty($messageType)) {
+            return "{$sender}: {$preview}";
+        }
+
+        // For text messages, show the preview
         return "{$sender}: {$preview}";
     }
 
@@ -157,5 +170,28 @@ class Notification extends Model
         }
 
         return "{$mentioner} mentioned you";
+    }
+
+    /**
+     * Get group invite notification text
+     */
+    private function getGroupInviteNotificationMessage(): string
+    {
+        if (empty($this->data) || !is_array($this->data)) {
+            return 'You received a group invite';
+        }
+        
+        $inviter = $this->data['inviter_username'] ?? null;
+        $groupName = $this->data['group_name'] ?? null;
+        
+        // If data is not loaded yet, return generic message
+        if (!$inviter && !$groupName) {
+            return 'You received a group invite';
+        }
+        
+        $inviterText = $inviter ?? 'Someone';
+        $groupNameText = $groupName ?? 'a group';
+
+        return "{$inviterText} invited you to join the group \"{$groupNameText}\"";
     }
 }

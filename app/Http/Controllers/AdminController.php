@@ -29,7 +29,7 @@ class AdminController extends Controller
                 $q->where('is_private', true);
             })->count(),
             'recent_users' => User::with('profile')->latest()->take(5)->get(),
-            'recent_posts' => Post::with('user')->latest()->take(5)->get(),
+            'recent_posts' => Post::with(['user.profile'])->latest()->take(5)->get(),
         ];
 
         return view('admin.dashboard', compact('stats'));
@@ -43,7 +43,8 @@ class AdminController extends Controller
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('name', 'LIKE', '%' . $search . '%')
+                $q->where('username', 'LIKE', '%' . $search . '%')
+                  ->orWhere('name', 'LIKE', '%' . $search . '%')
                   ->orWhere('email', 'LIKE', '%' . $search . '%');
             });
         }
@@ -67,7 +68,7 @@ class AdminController extends Controller
         $user->load(['profile', 'posts' => function($q) {
             $q->with(['media', 'comments.user', 'likes'])->latest();
         }, 'followers', 'follows', 'stories' => function($q) {
-            $q->latest();
+            $q->with(['storyViews', 'reactions'])->latest();
         }]);
 
         return view('admin.user-detail', compact('user'));
@@ -82,13 +83,14 @@ class AdminController extends Controller
     public function updateUser(Request $request, User $user)
     {
         $request->validate([
+            'name' => 'required|string|min:1|max:255',
             'username' => [
                 'required',
                 'string',
                 'min:3',
                 'max:50',
                 'regex:/^[a-zA-Z0-9_-]+$/',
-                'unique:users,name,' . $user->id,
+                'unique:users,username,' . $user->id,
             ],
             'email' => [
                 'required',
@@ -115,7 +117,8 @@ class AdminController extends Controller
 
         // Update user basic information
         $updateData = [
-            'name' => $request->username,
+            'username' => $request->username,
+            'name' => $request->name ?? $user->name,
             'email' => $request->email,
             'is_admin' => $request->has('is_admin'),
             'is_suspended' => $request->has('is_suspended'),
@@ -267,7 +270,7 @@ class AdminController extends Controller
 
     public function comments(Request $request)
     {
-        $query = Comment::with(['user', 'post.user']);
+        $query = Comment::with(['user', 'post.user', 'likes']);
 
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
@@ -293,7 +296,8 @@ class AdminController extends Controller
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
             $query->whereHas('user', function($q) use ($search) {
-                $q->where('name', 'LIKE', '%' . $search . '%');
+                $q->where('username', 'LIKE', '%' . $search . '%')
+                  ->orWhere('name', 'LIKE', '%' . $search . '%');
             });
         }
 
@@ -319,13 +323,15 @@ class AdminController extends Controller
     public function createAdminAccount(Request $request)
     {
         $request->validate([
-            'username' => 'required|string|min:3|max:50|regex:/^[a-zA-Z0-9_-]+$/|unique:users,name',
+            'name' => 'required|string|min:1|max:255',
+            'username' => 'required|string|min:3|max:50|regex:/^[a-zA-Z0-9_-]+$/|unique:users,username',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8',
         ]);
 
         $user = User::create([
-            'name' => $request->username,
+            'username' => $request->username,
+            'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'email_verified_at' => now(),

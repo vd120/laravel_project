@@ -32,7 +32,7 @@ class MentionService
         }
 
         
-        $mentionedUsers = User::whereIn('name', $mentionedUsernames)
+        $mentionedUsers = User::whereIn('username', $mentionedUsernames)
             ->where('id', '!=', $mentionerId)
             ->whereDoesntHave('blockedBy', function($query) use ($mentionerId) {
                 $query->where('blocker_id', $mentionerId);
@@ -56,7 +56,7 @@ class MentionService
                 'user_id' => $mentionedUser->id,
                 'type' => 'mention',
                 'data' => [
-                    'mentioner_name' => User::find($mentionerId)->name,
+                    'mentioner_username' => $mentionedUser->username,
                     'mentionable_type' => get_class($mentionable),
                 ],
                 'related_type' => get_class($mentionable),
@@ -74,13 +74,13 @@ class MentionService
             '/@([a-zA-Z0-9_-]+)/',
             function ($matches) {
                 $username = $matches[1];
-                $user = User::where('name', $username)->first();
+                $user = User::where('username', $username)->first();
 
                 if ($user) {
-                    return '<a href="' . route('users.show', $user->name) . '" class="mention-link">@' . $username . '</a>';
+                    return '<a href="' . route('users.show', $user) . '" class="mention-link">@' . $username . '</a>';
                 }
 
-                return '@' . $username; 
+                return '@' . $username;
             },
             $text
         );

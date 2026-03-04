@@ -26,11 +26,7 @@
     <div class="user-card">
         <div class="user-card-header">
             <div class="user-avatar-large">
-                @if($user->profile && $user->profile->avatar)
-                    <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="">
-                @else
-                    <div class="avatar-placeholder">{{ substr($user->name, 0, 1) }}</div>
-                @endif
+                <img src="{{ $user->avatar_url }}" alt="">
             </div>
             @if($user->is_suspended)
             <div class="suspended-badge" style="right: 130px;"><i class="fas fa-ban"></i> Suspended</div>
@@ -41,7 +37,10 @@
         </div>
         
         <div class="user-card-body">
-            <h2>{{ $user->name }}</h2>
+            <h2>{{ $user->username }}</h2>
+            @if($user->name)
+            <p class="user-fullname" style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">{{ $user->name }}</p>
+            @endif
             <div class="user-status">
                 @if($user->profile && $user->profile->is_private)
                 <span class="status-badge private"><i class="fas fa-lock"></i> Private</span>
@@ -52,8 +51,21 @@
 
             <div class="user-meta">
                 <div class="meta-item">
+                    <i class="fas fa-user"></i>
+                    <span>{{ $user->name }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-at"></i>
+                    <span>{{ $user->username }}</span>
+                </div>
+                <div class="meta-item">
                     <i class="fas fa-envelope"></i>
                     <span>{{ $user->email }}</span>
+                    @if($user->hasVerifiedEmail())
+                    <span class="verification-badge verified"><i class="fas fa-check-circle"></i> Verified</span>
+                    @else
+                    <span class="verification-badge unverified"><i class="fas fa-exclamation-circle"></i> Unverified</span>
+                    @endif
                 </div>
                 @if($user->profile && $user->profile->location)
                 <div class="meta-item">
@@ -195,7 +207,7 @@
                         </video>
                     @endif
                     <div class="story-overlay">
-                        <span><i class="fas fa-eye"></i> {{ $story->views }}</span>
+                        <span><i class="fas fa-eye"></i> {{ $story->storyViews->count() }}</span>
                     </div>
                 </div>
                 @endforeach
@@ -221,10 +233,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: -16px -16px 24px;
-    padding: 24px 16px;
+    margin: 0 -16px 24px;
+    padding: 20px 16px;
     background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
-    border-radius: 0 0 20px 20px;
+    border-radius: 16px 16px 20px 20px;
 }
 
 .header-left {
@@ -361,6 +373,27 @@
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.verification-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.verification-badge.verified {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.verification-badge.unverified {
+    background: rgba(244, 63, 94, 0.15);
+    color: #f43f5e;
 }
 
 .user-card-body {

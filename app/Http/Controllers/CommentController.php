@@ -2,10 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\CommentCreated;
-use App\Events\CommentDeleted;
-use App\Events\CommentLiked;
-use App\Events\CommentUnliked;
 use App\Models\Comment;
 use App\Models\CommentLike;
 use Illuminate\Http\Request;
@@ -36,7 +32,8 @@ class CommentController extends Controller
                 'user_id' => $comment->post->user_id,
                 'type' => 'comment',
                 'data' => [
-                    'commenter_name' => auth()->user()->name,
+                    'commenter_name' => auth()->user()->username ?? auth()->user()->name ?? 'Someone',
+                    'commenter_username' => auth()->user()->username ?? 'Unknown',
                     'commenter_id' => auth()->id(),
                     'comment_content' => substr($comment->content, 0, 50) . (strlen($comment->content) > 50 ? '...' : ''),
                     'post_content' => substr($comment->post->content ?? 'Image post', 0, 30)
@@ -46,11 +43,13 @@ class CommentController extends Controller
             ]);
         }
 
-        broadcast(new CommentCreated($comment))->toOthers();
-
         // Check if it's an AJAX request
         if ($request->expectsJson()) {
             $commentData = $comment->load(['user.profile']);
+            // Ensure accessor-based attributes like avatar_url are included in JSON
+            if ($commentData->user) {
+                $commentData->user->append('avatar_url');
+            }
             $commentData->content = app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content);
 
             return response()->json([
@@ -100,12 +99,6 @@ class CommentController extends Controller
         $commentId = $comment->id;
         $comment->delete();
 
-        broadcast(new CommentDeleted(
-            $commentId,
-            $postId,
-            $comment->post->comments()->count()
-        ))->toOthers();
-
         // Check if it's an AJAX request
         if (request()->expectsJson()) {
             return response()->json([
@@ -125,18 +118,11 @@ class CommentController extends Controller
             $like->delete();
             // Refresh the comment model to get updated relationships
             $comment->refresh();
-            broadcast(new CommentUnliked(
-                $comment->id,
-                $user->id,
-                $user->name,
-                $comment->likes()->count()
-            ))->toOthers();
-        } else {
+            } else {
             $newLike = CommentLike::create(['user_id' => $user->id, 'comment_id' => $comment->id]);
             // Refresh the comment model to get updated relationships
             $comment->refresh();
-            broadcast(new CommentLiked($newLike))->toOthers();
-        }
+            }
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {

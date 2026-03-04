@@ -38,7 +38,8 @@ class MessageController extends Controller
                     'sender' => [
                         'id' => $message->sender->id,
                         'name' => $message->sender->name,
-                        'avatar' => $message->sender->profile ? $message->sender->profile->avatar : null,
+                        'username' => $message->sender->username,
+                        'avatar_url' => $message->sender->avatar_url,
                     ],
                     'conversation_id' => $conversation->id,
                     'created_at' => $message->created_at,

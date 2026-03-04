@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\AiController;
@@ -10,6 +12,11 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+// Explicit route binding for Story model to use slug
+Route::bind('story', function ($value) {
+    return \App\Models\Story::where('slug', $value)->firstOrFail();
+});
+
 Route::get('/dashboard', function () {
     return redirect('/');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -17,7 +24,7 @@ Route::get('/dashboard', function () {
 Route::middleware('guest')->group(function () {
     Route::get('login', function () {
         return view('auth.login');
-    })->name('login');
+    })->name('login.view');
 
     Route::post('login', [LoginController::class, 'store'])->name('login');
 
@@ -27,9 +34,15 @@ Route::middleware('guest')->group(function () {
 
     Route::get('register', function () {
         return view('auth.register');
-    })->name('register');
+    })->name('register.view');
 
     Route::post('register', [RegisterController::class, 'store'])->name('register');
+
+    // Password Reset Routes
+    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+    Route::get('reset-password/{token}', [ResetPasswordController::class, 'create'])->name('password.reset');
+    Route::post('reset-password', [ResetPasswordController::class, 'store'])->name('password.update');
 
     // Google OAuth Routes
     Route::get('/auth/google', [SocialAuthController::class, 'redirectToGoogle'])->name('login.google');
@@ -167,9 +180,20 @@ Route::get('/', function () {
     return app(\App\Http\Controllers\PostController::class)->index(request());
 })->name('home');
 
+// User account status check (for security monitoring)
+Route::middleware(['auth', 'suspended'])->group(function () {
+    Route::get('/user/check-account-status', [App\Http\Controllers\UserController::class, 'checkAccountStatus'])->name('user.check-account-status');
+});
+
+// Test route for debugging
+Route::get('/user/test-route', function() {
+    return response()->json(['status' => 'ok', 'message' => 'Route works']);
+});
+
 Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
-    Route::resource('posts', PostController::class)->parameters([
-        'posts' => 'post:slug'
+    Route::resource('posts', PostController::class, [
+        'parameters' => ['posts' => 'post:slug'],
+        'only' => ['index', 'show', 'store', 'update', 'destroy', 'create', 'edit']
     ]);
     Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like')->where('post', '[a-zA-Z0-9]{24}');
     Route::post('/posts/{post}/save', [PostController::class, 'save'])->name('posts.save')->where('post', '[a-zA-Z0-9]{24}');
@@ -180,11 +204,14 @@ Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
     Route::get('/stories', [App\Http\Controllers\StoryController::class, 'index'])->name('stories.index');
     Route::get('/stories/create', [App\Http\Controllers\StoryController::class, 'create'])->name('stories.create');
     Route::post('/stories', [App\Http\Controllers\StoryController::class, 'store'])->name('stories.store');
-    Route::get('/stories/{user}', [App\Http\Controllers\StoryController::class, 'show'])->name('stories.show')->where('user', '[a-zA-Z0-9_\- ]+');
-    Route::get('/stories/{user}/{story}/viewers', [App\Http\Controllers\StoryController::class, 'viewers'])->name('stories.viewers')->where('user', '[a-zA-Z0-9_\- ]+');
-    Route::post('/stories/{story}/react', [App\Http\Controllers\StoryController::class, 'react'])->name('stories.react');
-    Route::delete('/stories/{story}/react', [App\Http\Controllers\StoryController::class, 'unreact'])->name('stories.unreact');
-    Route::delete('/stories/{story}', [App\Http\Controllers\StoryController::class, 'destroy'])->name('stories.destroy');
+    Route::get('/stories/{user}/{story}', [App\Http\Controllers\StoryController::class, 'show'])->name('stories.show')->where('user', '[a-zA-Z0-9_-]+');
+    Route::get('/stories/{user}/{story}/viewers', [App\Http\Controllers\StoryController::class, 'viewers'])->name('stories.viewers')->where('user', '[a-zA-Z0-9_-]+');
+    Route::post('/stories/{user}/{story}/react', [App\Http\Controllers\StoryController::class, 'react'])->name('stories.react');
+    Route::delete('/stories/{user}/{story}/react', [App\Http\Controllers\StoryController::class, 'removeReaction'])->name('stories.remove-reaction');
+    Route::get('/stories/{user}/{story}/reactions', [App\Http\Controllers\StoryController::class, 'getReactions'])->name('stories.reactions');
+    Route::get('/stories/{user}/{story}/check-reaction', [App\Http\Controllers\StoryController::class, 'checkReaction'])->name('stories.check-reaction');
+    Route::delete('/stories/{user}/{story}', [App\Http\Controllers\StoryController::class, 'destroy'])->name('stories.destroy');
+
     Route::get('/profile', function () { return redirect()->route('users.show', auth()->user()); })->name('profile');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
     Route::get('/users/{user}/followers', [UserController::class, 'followers'])->name('users.followers');
@@ -203,7 +230,7 @@ Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
     Route::delete('/profile/delete-avatar', [UserController::class, 'deleteAvatar'])->name('profile.delete-avatar');
     Route::delete('/profile/delete-cover', [UserController::class, 'deleteCoverImage'])->name('profile.delete-cover');
     Route::delete('/profile/delete-account', [UserController::class, 'deleteAccount'])->name('profile.delete-account');
-    Route::get('/password/change', function () { return view('auth.password-change'); })->name('password.change');
+    Route::get('/password/change', function () { return view('auth.password-change'); })->name('password.change.view');
     Route::post('/password/change', [PasswordController::class, 'change'])->name('password.change');
 
     // AI Assistant routes
@@ -212,12 +239,15 @@ Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
 
     // Chat routes
     Route::get('/chat', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
-    
-    // API for checking new messages (polling)
-    Route::get('/api/messages/new', [App\Http\Controllers\ChatController::class, 'getNewMessagesForToast'])->name('api.messages.new');
+
     Route::get('/chat/conversations', [App\Http\Controllers\ChatController::class, 'getConversations'])->name('chat.conversations');
-    Route::get('/api/user/new-messages', [App\Http\Controllers\ChatController::class, 'getNewMessages'])->name('api.user.new-messages');
+    Route::get('/chat/conversations/updated', [App\Http\Controllers\ChatController::class, 'getUpdatedConversations'])->name('chat.conversations.updated');
+    Route::get('/api/conversations', [App\Http\Controllers\ChatController::class, 'getConversations'])->name('api.conversations');
     Route::get('/api/user/{user}/username', [App\Http\Controllers\UserController::class, 'getUsername'])->name('api.user.username');
+    Route::post('/user/online-status', [App\Http\Controllers\UserController::class, 'updateOnlineStatus'])->name('user.online-status');
+    Route::post('/user/online-status/offline', [App\Http\Controllers\UserController::class, 'setOfflineStatus'])->name('user.offline-status');
+    Route::get('/user/{user}/online-status', [App\Http\Controllers\UserController::class, 'getOnlineStatus'])->name('user.get-online-status');
+    Route::post('/user/online-status/batch', [App\Http\Controllers\UserController::class, 'getMultipleOnlineStatus'])->name('user.batch-online-status');
     Route::get('/chat/{conversation}', [App\Http\Controllers\ChatController::class, 'show'])->name('chat.show');
     Route::post('/chat/{conversation}', [App\Http\Controllers\ChatController::class, 'store'])->name('chat.store');
     Route::delete('/chat/message/{message}', [App\Http\Controllers\ChatController::class, 'destroy'])->name('chat.destroy');
@@ -225,13 +255,10 @@ Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
     Route::get('/chat/start/{userId}', [App\Http\Controllers\ChatController::class, 'startConversation'])->name('chat.start');
     Route::get('/chat/{conversation}/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/{conversation}/read', [App\Http\Controllers\ChatController::class, 'markAsRead'])->name('chat.mark-read');
-
-    // User online status routes
-    Route::post('/user/update-online-status', [App\Http\Controllers\UserController::class, 'updateOnlineStatus'])->name('user.update-online-status');
-    Route::get('/user/{user}/online-status', [App\Http\Controllers\UserController::class, 'getOnlineStatus'])->name('user.online-status')->where('user', '[a-zA-Z0-9_\- ]+');
-    
-    // User status check API (for background polling)
-    Route::get('/api/user/status', [App\Http\Controllers\UserController::class, 'checkUserStatus'])->name('api.user.status');
+    Route::post('/chat/{conversation}/status', [App\Http\Controllers\ChatController::class, 'getMessageStatuses'])->name('chat.status');
+    Route::post('/chat/message/delivered', [App\Http\Controllers\ChatController::class, 'confirmDelivery'])->name('chat.message-delivered');
+    Route::post('/chat/{conversation}/typing', [App\Http\Controllers\ChatController::class, 'sendTypingIndicator'])->name('chat.typing');
+    Route::get('/chat/{conversation}/typing', [App\Http\Controllers\ChatController::class, 'getTypingStatus'])->name('chat.typing-status');
 
     // Group chat routes with slug-based URLs
     Route::get('/groups', [App\Http\Controllers\GroupController::class, 'index'])->name('groups.index');

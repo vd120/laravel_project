@@ -257,7 +257,7 @@ class AiController extends Controller
 
         $result = "";
         foreach ($suggestions as $suggestion) {
-            $result .= "• @" . $suggestion->name . " (" . $suggestion->posts_count . " posts)\n";
+            $result .= "• @" . $suggestion->username . " (" . $suggestion->posts_count . " posts)\n";
         }
 
         return $result;

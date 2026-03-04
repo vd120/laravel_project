@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\PostLiked;
-use App\Events\PostUnliked;
 use App\Models\Post;
 use App\Models\SavedPost;
 use Illuminate\Http\Request;
@@ -20,35 +18,24 @@ class PostController extends Controller
 
         if ($user) {
             // Authenticated user logic
-            // Get paginated posts, but filter based on privacy settings and blocks
+            // Show posts from ALL users (with privacy and block restrictions)
             $posts = Post::with(['user', 'media', 'likes', 'savedPosts', 'comments.replies.user', 'comments.likes'])
                 ->where(function($query) use ($user) {
-                    // Always show public posts from non-private accounts
-                    $query->where('is_private', false)
-                          ->whereHas('user.profile', function($profileQuery) {
-                              $profileQuery->where('is_private', false);
-                          })
-                    // Or show private posts from non-private accounts that the user follows
-                    ->orWhere(function($subQuery) use ($user) {
-                        $subQuery->where('is_private', true)
-                                 ->whereHas('user.profile', function($profileQuery) {
-                                     $profileQuery->where('is_private', false);
-                                 })
-                                 ->whereHas('user.followers', function($followerQuery) use ($user) {
-                                     $followerQuery->where('follower_id', $user->id);
-                                 });
-                    })
-                    // Or show posts from private accounts that the user follows (both account and post level)
-                    ->orWhere(function($subQuery) use ($user) {
-                        $subQuery->whereHas('user.profile', function($profileQuery) {
-                            $profileQuery->where('is_private', true);
+                    // Show posts where ANY of these conditions are true:
+                    $query->where(function($q) use ($user) {
+                            // 1. Your own posts (always show)
+                            $q->where('user_id', $user->id);
                         })
-                        ->whereHas('user.followers', function($followerQuery) use ($user) {
-                            $followerQuery->where('follower_id', $user->id);
+                        ->orWhere(function($q) use ($user) {
+                            // 2. Posts from users you follow (regardless of their privacy settings)
+                            $q->whereHas('user.followers', function($followerQuery) use ($user) {
+                                $followerQuery->where('follower_id', $user->id);
+                            });
+                        })
+                        ->orWhere(function($q) use ($user) {
+                            // 3. Public posts from all users (for discovery - regardless of profile privacy)
+                            $q->where('is_private', false);
                         });
-                    })
-                    // Or show the user's own posts
-                    ->orWhere('user_id', $user->id);
                 })
                 // Exclude posts from users that blocked the current user or that the current user blocked
                 ->whereDoesntHave('user.blockedBy', function($blockedByQuery) use ($user) {
@@ -224,9 +211,14 @@ class PostController extends Controller
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {
+            $post->load('user', 'media');
+            if ($post->user) {
+                $post->user->append('avatar_url');
+            }
+
             return response()->json([
                 'success' => true,
-                'post' => $post->load('user', 'media'),
+                'post' => $post,
                 'message' => 'Post created successfully'
             ]);
         }
@@ -306,6 +298,12 @@ class PostController extends Controller
             app(\App\Services\MentionService::class)->processMentions($post, $post->content, auth()->id());
         }
 
+        // Ensure avatar_url is present for the post author in JSON
+        $post->load('user');
+        if ($post->user) {
+            $post->user->append('avatar_url');
+        }
+
         return response()->json($post);
     }
 
@@ -338,13 +336,7 @@ class PostController extends Controller
             $like->delete();
             // Refresh the post model to get updated relationships
             $post->refresh();
-            broadcast(new PostUnliked(
-                $post->id,
-                $user->id,
-                $user->name,
-                $post->likes()->count()
-            ))->toOthers();
-        } else {
+            } else {
             $newLike = $post->likes()->create(['user_id' => $user->id]);
             // Refresh the post model to get updated relationships
             $post->refresh();
@@ -355,7 +347,8 @@ class PostController extends Controller
                     'user_id' => $post->user_id,
                     'type' => 'like',
                     'data' => [
-                        'liker_name' => $user->name,
+                        'liker_name' => $user->username ?? $user->name ?? 'Someone',
+                        'liker_username' => $user->username ?? 'Unknown',
                         'liker_id' => $user->id,
                         'post_content' => substr($post->content ?? 'Image post', 0, 50)
                     ],
@@ -364,8 +357,7 @@ class PostController extends Controller
                 ]);
             }
 
-            broadcast(new PostLiked($newLike))->toOthers();
-        }
+            }
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {
@@ -373,7 +365,7 @@ class PostController extends Controller
             $recentLikers = $post->likes()->with('user:id,name')->latest()->limit(10)->get()->map(function($like) {
                 return [
                     'id' => $like->user->id,
-                    'name' => $like->user->name
+                    'username' => $like->user->username
                 ];
             });
             
@@ -430,7 +422,7 @@ class PostController extends Controller
 
         // Get users who liked this post
         $likers = $post->likes()
-            ->with('user:id,name')
+            ->with('user:id,name,username')
             ->with('user.profile:id,user_id,avatar,bio')
             ->get()
             ->map(function ($like) use ($user) {
@@ -439,9 +431,8 @@ class PostController extends Controller
 
                 return [
                     'id' => $liker->id,
-                    'name' => $liker->name,
-                    'username' => $liker->name, // Use name as username
-                    'avatar' => $profile && $profile->avatar ? asset('storage/' . $profile->avatar) : null,
+                    'username' => $liker->username,
+                    'avatar' => $liker->avatar_url,
                     'bio' => $profile ? $profile->bio : null,
                     'can_follow' => $liker->id !== $user->id && !$user->isFollowing($liker) && !$liker->isBlocking($user),
                     'is_following' => $user->isFollowing($liker)

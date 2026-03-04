@@ -63,25 +63,20 @@
         @forelse($blocked as $block)
         <div class="user-card">
             <a href="{{ route('users.show', $block->blocked) }}" class="user-avatar">
-                @if($block->blocked->profile && $block->blocked->profile->avatar)
-                    <img src="{{ asset('storage/' . $block->blocked->profile->avatar) }}" alt="{{ $block->blocked->name }}">
-                @else
-                    <div class="placeholder">{{ substr($block->blocked->name, 0, 1) }}</div>
-                @endif
+                <img src="{{ $block->blocked->avatar_url }}" alt="{{ $block->blocked->username }}">
             </a>
             <div class="user-info">
                 <a href="{{ route('users.show', $block->blocked) }}">
-                    <div class="user-name">{{ $block->blocked->name }}</div>
+                    <div class="user-name">{{ $block->blocked->username }}</div>
                 </a>
                 <div class="user-meta">
                     <span class="blocked-badge"><i class="fas fa-ban"></i> Blocked</span>
                     <span>Blocked on {{ $block->created_at->format('M d, Y') }}</span>
                 </div>
             </div>
-            <form action="{{ route('users.block', $block->blocked->name) }}" method="POST">
-                @csrf
-                <button type="submit" class="btn btn-ghost"><i class="fas fa-unlock"></i> Unblock</button>
-            </form>
+            <button class="btn btn-ghost" onclick="blockedPageUnblock(this, '{{ $block->blocked->username }}')">
+                <i class="fas fa-unlock"></i> Unblock
+            </button>
         </div>
         @empty
         <div class="empty-state">
@@ -92,4 +87,34 @@
         @endforelse
     </div>
 </div>
+
+<script>
+function blockedPageUnblock(btn, username) {
+    if (!confirm('Unblock this user?')) return;
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+    
+    fetch(`/users/${username}/block`, {
+        method: 'POST',
+        headers: { 
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 
+            'Accept': 'application/json' 
+        }
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('Network response was not ok');
+        return r.json();
+    })
+    .then(data => {
+        // Reload the page to update the list
+        window.location.reload();
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    });
+}
+</script>
 @endsection

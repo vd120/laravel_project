@@ -92,16 +92,48 @@ class NotificationController extends Controller
      */
     public static function createMessageNotification($recipientId, $sender, $message): Notification
     {
+        // Generate appropriate preview text based on message type
+        $messagePreview = '';
+        $messageType = $message->type ?? 'text';
+        
+        if ($messageType === 'text' || empty($messageType)) {
+            $messagePreview = substr($message->content ?? '', 0, 35) . (strlen($message->content ?? '') > 35 ? '...' : '');
+        } else {
+            // For media messages, show type instead of content
+            $messagePreview = self::getMessageTypeText($messageType);
+        }
+        
         return self::createNotification(
             $recipientId,
             'message',
             [
-                'sender_name' => $sender->name ?? 'Unknown',
+                'sender_name' => $sender->name ?? $sender->username ?? 'Someone',
+                'sender_username' => $sender->username ?? 'Unknown',
                 'sender_id' => $sender->id,
-                'message_preview' => substr($message->content ?? '', 0, 35) . (strlen($message->content ?? '') > 35 ? '...' : ''),
+                'message_preview' => $messagePreview,
+                'message_type' => $messageType,
                 'conversation_id' => $message->conversation_id ?? null
             ],
             $message
         );
+    }
+    
+    /**
+     * Get human-readable text for message type
+     */
+    private static function getMessageTypeText($type): string
+    {
+        return match($type) {
+            'image' => 'sent an image',
+            'video' => 'sent a video',
+            'audio' => 'sent an audio',
+            'document' => 'sent a document',
+            'gif' => 'sent a GIF',
+            'sticker' => 'sent a sticker',
+            'story_reply' => 'replied to your story',
+            'group_invite' => 'sent a group invite',
+            'system' => 'system message',
+            default => 'sent a message'
+        };
     }
 }

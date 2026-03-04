@@ -45,22 +45,13 @@
             @foreach($users as $user)
                 <div class="user-card">
                     <div class="user-avatar-section">
-                        @if($user->profile && $user->profile->avatar)
-                            <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="Avatar" class="user-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="user-avatar-placeholder" style="display: none;">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        @else
-                            <div class="user-avatar-placeholder">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        @endif
+                        <img src="{{ $user->avatar_url }}" alt="Avatar" class="user-avatar">
                     </div>
 
                     <div class="user-content">
                         <div class="user-header">
                             <h3 class="user-name">
-                                <a href="{{ route('users.show', $user) }}">{{ $user->name }}</a>
+                                <a href="{{ route('users.show', $user) }}">{{ $user->username }}</a>
                                 @if($user->is_suspended)
                                     <span class="suspension-badge">
                                         <i class="fas fa-exclamation-triangle"></i> Suspended
@@ -96,7 +87,7 @@
                     <div class="user-card-actions">
                         @if(in_array($user->id, $blockedByCurrentUser))
                             <div class="action-buttons">
-                                <button type="button" class="btn unblock-btn" data-username="{{ $user->name }}" onclick="toggleBlock(this, '{{ $user->name }}')">Unblock</button>
+                                <button type="button" class="btn unblock-btn" data-username="{{ $user->username }}" onclick="exploreToggleBlock(this, '{{ $user->username }}')">Unblock</button>
                             </div>
                         @elseif(in_array($user->id, $blockedCurrentUser))
                             <div class="cannot-interact">
@@ -108,11 +99,11 @@
                             <div class="action-buttons">
                                 <button type="button"
                                         class="btn follow-btn {{ $isUserFollowing ? 'following' : '' }}"
-                                        data-username="{{ $user->name }}"
-                                        onclick="toggleFollow(this, '{{ $user->name }}')">
+                                        data-username="{{ $user->username }}"
+                                        onclick="exploreToggleFollow(this, '{{ $user->username }}')">
                                     {{ $isUserFollowing ? 'Following' : 'Follow' }}
                                 </button>
-                                <button type="button" class="btn block-btn" data-username="{{ $user->name }}" onclick="toggleBlock(this, '{{ $user->name }}')">Block</button>
+                                <button type="button" class="btn block-btn" data-username="{{ $user->username }}" onclick="exploreToggleBlock(this, '{{ $user->username }}')">Block</button>
                             </div>
                         @endif
                     </div>
@@ -140,7 +131,7 @@
 .explore-page {
     max-width: 600px;
     margin: 0 auto;
-    padding: 16px;
+    padding: 24px 16px;
 }
 
 .page-header {
@@ -329,14 +320,11 @@
     font-weight: 600;
     font-size: 14px;
     color: var(--twitter-dark);
-    margin-bottom: 2px;
     display: block;
-}
-
-.search-user-username {
-    font-size: 12px;
-    color: var(--twitter-gray);
-    display: block;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .search-user-bio {
@@ -402,30 +390,30 @@
 
 .user-content {
     flex: 1;
-    min-width: 0;
-}
-
-.user-header {
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    min-width: 0; /* Allows text truncation */
 }
 
 .user-name {
     margin: 0;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     display: flex;
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .user-name a {
     color: var(--twitter-dark);
     text-decoration: none;
     transition: color 0.2s ease;
+    max-width: 200px; /* Limit username width */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
 }
 
 .user-name a:hover {
@@ -440,7 +428,21 @@
     border-radius: 10px;
     display: inline-flex;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
+    flex-shrink: 0; /* Prevent badge from shrinking */
+    font-weight: 500;
+}
+
+.privacy-badge.verified {
+    background: #3b82f6;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
     font-weight: 500;
 }
 
@@ -456,7 +458,21 @@
     font-weight: 500;
     text-transform: uppercase;
     box-shadow: 0 1px 3px rgba(255, 107, 107, 0.3);
+    flex-shrink: 0;
     animation: pulse 2s infinite;
+}
+
+.block-indicator {
+    background: var(--twitter-light);
+    color: var(--twitter-gray);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    font-weight: 500;
 }
 
 @keyframes pulse {
@@ -634,6 +650,15 @@
         font-weight: 700;
         color: var(--twitter-dark);
     }
+    
+    /* Smaller username on mobile */
+    .user-name {
+        font-size: 13px;
+    }
+    
+    .user-name a {
+        max-width: 160px; /* Shorter on mobile */
+    }
 }
 
 @media (max-width: 360px) {
@@ -670,68 +695,50 @@
 </style>
 
 <script>
-function toggleFollow(btn, username) {
-    const isFollowing = btn.classList.contains('following');
+function exploreToggleFollow(btn, username) {
+    const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.disabled = true;
-    
+
     fetch(`/users/${username}/follow`, {
         method: 'POST',
-        headers: { 
+        headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Accept': 'application/json'
         }
     })
     .then(r => r.json())
     .then(data => {
-        if (data.following) {
-            btn.innerHTML = '<i class="fas fa-user-check"></i> <span>Following</span>';
-            btn.classList.add('following');
-        } else {
-            btn.innerHTML = '<i class="fas fa-user-plus"></i> <span>Follow</span>';
-            btn.classList.remove('following');
-        }
-        if (typeof showToast === 'function') {
-            showToast(data.following ? 'You are now following this user' : 'You unfollowed this user', 'success');
-        }
+        // Force reload immediately
+        window.location.href = window.location.href;
     })
     .catch(() => {
-        if (typeof showToast === 'function') {
-            showToast('Error updating follow status', 'error');
-        }
-    })
-    .finally(() => btn.disabled = false);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
 }
 
-function toggleBlock(btn, username) {
+function exploreToggleBlock(btn, username) {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.disabled = true;
-    
+
     fetch(`/users/${username}/block`, {
         method: 'POST',
-        headers: { 
+        headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Accept': 'application/json'
         }
     })
     .then(r => r.json())
     .then(data => {
-        if (data.success) {
-            if (typeof showToast === 'function') {
-                showToast(data.message, 'success');
-            }
-            setTimeout(() => window.location.reload(), 500);
-        } else {
-            if (typeof showToast === 'function') {
-                showToast(data.message || 'Error', 'error');
-            }
-        }
+        // Force reload immediately
+        window.location.href = window.location.href;
     })
     .catch(() => {
-        if (typeof showToast === 'function') {
-            showToast('Error updating block status', 'error');
-        }
-    })
-    .finally(() => btn.disabled = false);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -797,6 +804,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Make API request
         fetch(`/api/search-users?q=${encodeURIComponent(query)}`, {
+            credentials: 'include',
             method: 'GET',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -839,23 +847,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const userItem = document.createElement('div');
             userItem.className = 'search-user-item';
             userItem.onclick = () => {
-                window.location.href = `/users/${encodeURIComponent(user.name)}`;
+                window.location.href = `/users/${encodeURIComponent(user.username)}`;
             };
 
-            const avatarHtml = user.profile && user.profile.avatar
-                ? `<img src="/storage/${user.profile.avatar}" alt="Avatar" class="search-user-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                   <div class="search-user-avatar-placeholder" style="display: none;"><i class="fas fa-user"></i></div>`
-                : `<div class="search-user-avatar-placeholder"><i class="fas fa-user"></i></div>`;
+            const avatarHtml = `<img src="${user.avatar_url}" alt="Avatar" class="search-user-avatar">`;
 
             const bioHtml = user.profile && user.profile.bio
-                ? `<span class="search-user-bio">${user.profile.bio}</span>`
+                ? `<span class="search-user-bio">${user.profile.bio || ''}</span>`
                 : '';
 
             userItem.innerHTML = `
                 ${avatarHtml}
                 <div class="search-user-info">
-                    <span class="search-user-name">${user.name}</span>
-                    <span class="search-user-username">@${user.username || user.name.toLowerCase().replace(/\s+/g, '')}</span>
+                    <span class="search-user-name">${user.username}</span>
                     ${bioHtml}
                 </div>
             `;

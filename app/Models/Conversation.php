@@ -42,7 +42,7 @@ class Conversation extends Model
 
     public function latestMessage()
     {
-        return $this->hasOne(Message::class)->latestOfMany();
+        return $this->hasOne(Message::class)->orderBy('created_at', 'desc');
     }
 
     public function getOtherUserAttribute()
@@ -107,14 +107,13 @@ class Conversation extends Model
 
     public static function createConversation($user1Id, $user2Id)
     {
-        // Ensure user1_id is always smaller than user2_id for consistency
-        if ($user1Id > $user2Id) {
-            [$user1Id, $user2Id] = [$user2Id, $user1Id];
-        }
-
+        // Ensure user1_id is always smaller than user2_id for consistency (works with UUIDs)
+        $ids = [$user1Id, $user2Id];
+        sort($ids);
+        
         return static::create([
-            'user1_id' => $user1Id,
-            'user2_id' => $user2Id,
+            'user1_id' => $ids[0],
+            'user2_id' => $ids[1],
             'slug' => Str::random(24),
             'is_group' => false,
         ]);

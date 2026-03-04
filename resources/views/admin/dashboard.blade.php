@@ -148,14 +148,10 @@
                     @forelse($stats['recent_users']->take(5) as $user)
                     <div class="activity-item">
                         <div class="activity-avatar">
-                            @if($user->profile && $user->profile->avatar)
-                                <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="">
-                            @else
-                                <div class="avatar-initials">{{ substr($user->name, 0, 1) }}</div>
-                            @endif
+                            <img src="{{ $user->avatar_url }}" alt="">
                         </div>
                         <div class="activity-details">
-                            <span class="activity-name">{{ $user->name }}</span>
+                            <span class="activity-name">{{ $user->username }}</span>
                             <span class="activity-time">{{ $user->created_at->diffForHumans() }}</span>
                         </div>
                         <a href="{{ route('admin.users.show', $user) }}" class="activity-link">
@@ -177,14 +173,10 @@
                     @forelse($stats['recent_posts']->take(5) as $post)
                     <div class="activity-item">
                         <div class="activity-avatar">
-                            @if($post->user->profile && $post->user->profile->avatar)
-                                <img src="{{ asset('storage/' . $post->user->profile->avatar) }}" alt="">
-                            @else
-                                <div class="avatar-initials">{{ substr($post->user->name, 0, 1) }}</div>
-                            @endif
+                            <img src="{{ $post->user->avatar_url }}" alt="">
                         </div>
                         <div class="activity-details">
-                            <span class="activity-name">{{ $post->user->name }}</span>
+                            <span class="activity-name">{{ $post->user->username }}</span>
                             <span class="activity-time">{{ Str::limit($post->content ?? 'Media post', 30) }}</span>
                         </div>
                         <a href="{{ route('admin.posts') }}" class="activity-link">
@@ -211,6 +203,10 @@
         </div>
         <form method="POST" action="{{ route('admin.create-admin') }}">
             @csrf
+            <div class="form-row">
+                <label>Full Name</label>
+                <input type="text" name="name" required minlength="1" maxlength="255" placeholder="Enter full name">
+            </div>
             <div class="form-row">
                 <label>Username</label>
                 <input type="text" name="username" required minlength="3" maxlength="50" autocomplete="username" placeholder="Enter username">
@@ -240,10 +236,10 @@
 
 .admin-header {
     background: linear-gradient(135deg, #1d9bf0 0%, #8b5cf6 100%);
-    margin: -16px -16px 30px;
-    padding: 40px 20px;
+    margin: 0 -16px 30px;
+    padding: 32px 20px 24px;
     text-align: center;
-    border-radius: 0 0 24px 24px;
+    border-radius: 16px 16px 24px 24px;
 }
 
 .admin-header-content {
@@ -679,9 +675,9 @@
 
 @media (max-width: 768px) {
     .admin-header {
-        margin: -16px -16px 24px;
-        padding: 30px 16px;
-        border-radius: 0 0 20px 20px;
+        margin: 0 -16px 24px;
+        padding: 28px 16px 20px;
+        border-radius: 16px 16px 20px 20px;
     }
 
     .admin-title h1 {

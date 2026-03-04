@@ -50,7 +50,7 @@ class RegisterController extends Controller
                 'string',
                 'min:3',
                 'max:50',
-                'unique:users,name',
+                'unique:users,username',
                 'regex:/^[a-zA-Z0-9_-]+$/',
                 function ($attribute, $value, $fail) use ($reservedUsernames) {
                     if (in_array(strtolower($value), $reservedUsernames)) {
@@ -122,7 +122,8 @@ class RegisterController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->username,
+            'username' => $request->username,
+            'name' => $request->name ?? $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'email_verified_at' => null, // Explicitly set to null for verification

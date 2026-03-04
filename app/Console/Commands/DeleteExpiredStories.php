@@ -11,7 +11,7 @@ class DeleteExpiredStories extends Command
      *
      * @var string
      */
-    protected $signature = 'app:delete-expired-stories';
+    protected $signature = 'stories:cleanup';
 
     /**
      * The console command description.

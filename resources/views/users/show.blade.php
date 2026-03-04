@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $user->name . ' - Profile')
+@section('title', $user->username . ' - Profile')
 
 @section('content')
 <style>
@@ -68,12 +68,8 @@
             @endif
         </div>
         <div class="profile-avatar-wrapper">
-            <div class="profile-avatar" @if($user->profile && $user->profile->avatar) onclick="openImageModal('{{ asset('storage/' . $user->profile->avatar) }}')" style="cursor: pointer;" @endif>
-                @if($user->profile && $user->profile->avatar)
-                    <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="{{ $user->name }}">
-                @else
-                    <div class="avatar-placeholder">{{ substr($user->name, 0, 1) }}</div>
-                @endif
+            <div class="profile-avatar" @if($user->avatar_url) onclick="openImageModal('{{ $user->avatar_url }}')" style="cursor: pointer;" @endif>
+                <img src="{{ $user->avatar_url }}" alt="{{ $user->username }}">
             </div>
         </div>
     </div>
@@ -100,7 +96,7 @@
                     <span class="private-badge" style="background: rgba(255, 165, 0, 0.1); color: orange;"><i class="fas fa-exclamation-circle"></i> Email Unverified</span>
                 @endif
             </div>
-            <div class="profile-username">@ {{ $user->name }}</div>
+            <div class="profile-username">@ {{ $user->username }}</div>
             @if($user->profile && $user->profile->bio)
                 <div class="profile-bio">{{ $user->profile->bio }}</div>
             @endif
@@ -120,15 +116,15 @@
                     <i class="fas fa-ban"></i> This user has blocked you
                 </div>
             @elseif(auth()->check() && $isBlocking)
-                <button class="btn" onclick="unblockUser('{{ $user->name }}')" style="background: #dc3545; color: white;">
+                <button class="btn" onclick="profileUnblockUser('{{ $user->username }}')" style="background: #dc3545; color: white;">
                     <i class="fas fa-unlock"></i> <span>Unblock</span>
                 </button>
             @elseif(auth()->check())
-                <button class="btn btn-primary" onclick="toggleFollow(this, '{{ $user->name }}')" data-following="{{ $isFollowing ? 'true' : 'false' }}">
+                <button class="btn btn-primary" onclick="profileToggleFollow(this, '{{ $user->username }}')" data-following="{{ $isFollowing ? 'true' : 'false' }}">
                     <i class="fas fa-user-{{ $isFollowing ? 'check' : 'plus' }}"></i> <span>{{ $isFollowing ? 'Following' : 'Follow' }}</span>
                 </button>
                 <a href="{{ route('chat.start', $user->id) }}" class="btn"><i class="fas fa-envelope"></i> Message</a>
-                <button class="btn" onclick="blockUser('{{ $user->name }}')" style="background: #dc3545; color: white;">
+                <button class="btn" onclick="profileBlockUser('{{ $user->username }}')" style="background: #dc3545; color: white;">
                     <i class="fas fa-ban"></i> <span>Block</span>
                 </button>
             @else
@@ -193,72 +189,67 @@ function closeImageModal(event) {
     document.body.style.overflow = '';
 }
 
-function toggleFollow(btn, userName) {
+function profileToggleFollow(btn, userName) {
     const isFollowing = btn.getAttribute('data-following') === 'true';
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.disabled = true;
-    
+
     fetch(`/users/${encodeURIComponent(userName)}/follow`, {
         method: 'POST',
-        headers: { 
+        headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Accept': 'application/json'
         }
     })
     .then(r => r.json())
     .then(data => {
-        if (data.following) {
-            btn.innerHTML = '<i class="fas fa-user-check"></i> <span>Following</span>';
-            btn.setAttribute('data-following', 'true');
-        } else {
-            btn.innerHTML = '<i class="fas fa-user-plus"></i> <span>Follow</span>';
-            btn.setAttribute('data-following', 'false');
-        }
+        // Force reload immediately
+        window.location.href = window.location.href;
     })
-    .catch(() => alert('Error updating follow status'))
-    .finally(() => btn.disabled = false);
+    .catch(() => {
+        btn.innerHTML = '<i class="fas fa-user-' + (isFollowing ? 'check' : 'plus') + '"></i> <span>' + (isFollowing ? 'Following' : 'Follow') + '</span>';
+        btn.disabled = false;
+    });
 }
 
-function unblockUser(userName) {
+function profileUnblockUser(userName) {
     if (!confirm(`Unblock ${userName}?`)) return;
-    
+
     fetch(`/users/${encodeURIComponent(userName)}/block`, {
         method: 'POST',
-        headers: { 
+        headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Accept': 'application/json'
         }
     })
     .then(r => r.json())
     .then(data => {
-        if (data.success) {
-            window.location.reload();
-        } else {
-            alert(data.message || 'Error unblocking user');
-        }
+        // Force reload immediately
+        window.location.href = window.location.href;
     })
-    .catch(() => alert('Error unblocking user'));
+    .catch(() => {
+        alert('Error unblocking user');
+    });
 }
 
-function blockUser(userName) {
+function profileBlockUser(userName) {
     if (!confirm(`Block ${userName}?`)) return;
-    
+
     fetch(`/users/${encodeURIComponent(userName)}/block`, {
         method: 'POST',
-        headers: { 
+        headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Accept': 'application/json'
         }
     })
     .then(r => r.json())
     .then(data => {
-        if (data.success) {
-            window.location.reload();
-        } else {
-            alert(data.message || 'Error blocking user');
-        }
+        // Force reload immediately
+        window.location.href = window.location.href;
     })
-    .catch(() => alert('Error blocking user'));
+    .catch(() => {
+        alert('Error blocking user');
+    });
 }
 </script>
 @endsection

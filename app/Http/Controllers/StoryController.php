@@ -2,9 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\StoryDeleted;
-use App\Events\StoryReacted;
-use App\Events\StoryUnreacted;
 use App\Models\Story;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -154,7 +151,7 @@ class StoryController extends Controller
         return redirect()->route('stories.index')->with('success', 'Story posted successfully!');
     }
 
-    public function show(User $user, Request $request)
+    public function show(User $user, Story $story, Request $request)
     {
         // Check if current user can view this user's stories
         $currentUser = auth()->user();
@@ -163,39 +160,32 @@ class StoryController extends Controller
             abort(403, 'You can only view stories from users you follow.');
         }
 
-        // Get all active stories from this user
-        $stories = $user->activeStories()->get();
+        // Get all active stories from this user with their views
+        $stories = $user->activeStories()->with('storyViews')->get();
 
-        // If a specific story is requested, prioritize it but show all stories
-        if ($request->has('story')) {
-            $requestedStoryId = $request->get('story');
-            
-            // Find the requested story and mark it as viewed
-            $requestedStory = $stories->firstWhere('id', $requestedStoryId);
-            
-            if ($requestedStory) {
-                // Increment view count for the requested story (only if it's not the author's own story and user hasn't viewed it before)
-                if ($requestedStory->user_id !== $currentUser->id) {
-                    // Check if this user has already viewed this story
-                    $existingView = \App\Models\StoryView::where('user_id', $currentUser->id)
-                        ->where('story_id', $requestedStory->id)
-                        ->exists();
+        // If a specific story is requested via route parameter, prioritize it but show all stories
+        if ($story && $story->user_id === $user->id) {
+            // Mark story as viewed
+            if ($story->user_id !== $currentUser->id) {
+                // Check if this user has already viewed this story
+                $existingView = \App\Models\StoryView::where('user_id', $currentUser->id)
+                    ->where('story_id', $story->id)
+                    ->exists();
 
-                    if (!$existingView) {
-                        // Record the view and increment the count
-                        \App\Models\StoryView::create([
-                            'user_id' => $currentUser->id,
-                            'story_id' => $requestedStory->id
-                        ]);
-                        $requestedStory->increment('views');
-                    }
+                if (!$existingView) {
+                    // Record the view and increment the count
+                    \App\Models\StoryView::create([
+                        'user_id' => $currentUser->id,
+                        'story_id' => $story->id
+                    ]);
+                    $story->increment('views');
                 }
-
-                // Sort stories to show the requested one first
-                $stories = $stories->sortBy(function ($story) use ($requestedStoryId) {
-                    return $story->id == $requestedStoryId ? 0 : 1;
-                })->values();
             }
+
+            // Sort stories to show the requested one first
+            $stories = $stories->sortBy(function ($s) use ($story) {
+                return $s->id == $story->id ? 0 : 1;
+            })->values();
         }
 
         return view('stories.show', compact('user', 'stories'));
@@ -210,57 +200,110 @@ class StoryController extends Controller
 
         // Get all users who viewed this story with their view timestamps and reactions
         $viewers = \App\Models\StoryView::where('story_id', $story->id)
-            ->with(['user.profile', 'user.storyReactions' => function($query) use ($story) {
-                $query->where('story_id', $story->id);
-            }])
+            ->with(['user.profile'])
             ->orderBy('created_at', 'desc')
             ->get();
 
         // Transform the data to include reaction info
-        $viewerData = $viewers->map(function($viewer) {
+        $viewerData = $viewers->map(function($viewer) use ($story) {
+            // Get reaction for this specific story
+            $reaction = \App\Models\StoryReaction::where('user_id', $viewer->user_id)
+                ->where('story_id', $story->id)
+                ->first();
+            
             return [
                 'user' => $viewer->user,
                 'viewed_at' => $viewer->created_at,
-                'reaction' => $viewer->user->storyReactions->first()?->reaction_type
+                'reaction' => $reaction ? $reaction->reaction_type : null
             ];
         });
 
         return view('stories.viewers', compact('user', 'story', 'viewerData'));
     }
 
-    public function react(Request $request, Story $story)
+    public function react(string $user, Request $request, Story $story)
     {
-        $request->validate([
-            'reaction_type' => 'required|string|max:10'
-        ]);
-
-        $user = auth()->user();
+        $authUser = auth()->user();
 
         // Check if user can view this story
-        if ($story->user_id !== $user->id && !$user->isFollowing($story->user)) {
+        if ($story->user_id !== $authUser->id && !$authUser->isFollowing($story->user)) {
             abort(403, 'You can only react to stories from users you follow.');
         }
 
         // Check if user already reacted to this story
-        $existingReaction = \App\Models\StoryReaction::where('user_id', $user->id)
+        $existingReaction = \App\Models\StoryReaction::where('user_id', $authUser->id)
             ->where('story_id', $story->id)
             ->first();
 
         if ($existingReaction) {
             // Update existing reaction
             $existingReaction->update(['reaction_type' => $request->reaction_type]);
-            broadcast(new StoryReacted($existingReaction))->toOthers();
         } else {
             // Create new reaction
             $newReaction = \App\Models\StoryReaction::create([
-                'user_id' => $user->id,
+                'user_id' => $authUser->id,
                 'story_id' => $story->id,
                 'reaction_type' => $request->reaction_type
             ]);
-            broadcast(new StoryReacted($newReaction))->toOthers();
         }
 
         return response()->json(['success' => true]);
+    }
+
+    public function removeReaction(string $user, Story $story)
+    {
+        $authUser = auth()->user();
+
+        // Delete user's reaction from this story
+        \App\Models\StoryReaction::where('user_id', $authUser->id)
+            ->where('story_id', $story->id)
+            ->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function getReactions(string $user, Story $story)
+    {
+        // Get all reactions for this story
+        $reactions = \App\Models\StoryReaction::where('story_id', $story->id)
+            ->with(['user.profile'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($reaction) {
+                return [
+                    'user_id' => $reaction->user_id,
+                    'user_username' => $reaction->user->username,
+                    'user_avatar' => $reaction->user->avatar_url ?? null,
+                    'reaction_type' => $reaction->reaction_type
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'reactions' => $reactions
+        ]);
+    }
+
+    public function checkReaction(string $user, Story $story)
+    {
+        $authUser = auth()->user();
+
+        if (!$authUser) {
+            return response()->json([
+                'success' => false,
+                'has_reaction' => false
+            ], 401);
+        }
+
+        // Check if user has already reacted to this story
+        $hasReaction = \App\Models\StoryReaction::where('user_id', $authUser->id)
+            ->where('story_id', $story->id)
+            ->exists();
+
+        return response()->json([
+            'success' => true,
+            'has_reaction' => $hasReaction
+        ]);
     }
 
     public function unreact(Story $story)
@@ -277,17 +320,10 @@ class StoryController extends Controller
             ->where('story_id', $story->id)
             ->delete();
 
-        broadcast(new StoryUnreacted(
-            $story->id,
-            $user->id,
-            $user->name,
-            $story->reactions()->count()
-        ))->toOthers();
-
         return response()->json(['success' => true]);
     }
 
-    public function destroy(Story $story)
+    public function destroy(string $user, Story $story)
     {
         if ($story->user_id !== auth()->id()) {
             abort(403);
@@ -295,15 +331,12 @@ class StoryController extends Controller
 
         $storyId = $story->id;
         $userId = $story->user_id;
-        $userName = $story->user->name;
+        $userName = $story->user->username;
 
         // Delete the media file
         Storage::disk('public')->delete($story->media_path);
 
         $story->delete();
-
-        // Broadcast the deletion event
-        broadcast(new StoryDeleted($storyId, $userId, $userName))->toOthers();
 
         // Log for debugging
         \Log::info('Story deleted', [

@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\UserFollowed;
-use App\Events\UserUnfollowed;
 use App\Models\Block;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -53,14 +51,7 @@ class UserController extends Controller
         if ($currentUser->isFollowing($user)) {
             $currentUser->follows()->where('followed_id', $user->id)->delete();
 
-            broadcast(new UserUnfollowed(
-                $currentUser->id,
-                $currentUser->name,
-                $user->id,
-                $user->name,
-                $user->followers()->count()
-            ))->toOthers();
-        } else {
+            } else {
             $follow = $currentUser->follows()->create(['followed_id' => $user->id]);
 
             // Create notification for the followed user
@@ -68,15 +59,14 @@ class UserController extends Controller
                 'user_id' => $user->id,
                 'type' => 'follow',
                 'data' => [
-                    'follower_name' => $currentUser->name,
+                    'follower_username' => $currentUser->username,
                     'follower_id' => $currentUser->id
                 ],
                 'related_type' => \App\Models\Follow::class,
                 'related_id' => $follow->id
             ]);
 
-            broadcast(new UserFollowed($follow))->toOthers();
-        }
+            }
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {
@@ -244,7 +234,7 @@ class UserController extends Controller
                 'min:3',
                 'max:50',
                 'regex:/^[a-zA-Z0-9_-]+$/',
-                'unique:users,name,' . $user->id,
+                'unique:users,username,' . $user->id,
             ],
             'email' => [
                 'required',
@@ -268,7 +258,7 @@ class UserController extends Controller
 
         // Update user basic information
         $user->update([
-            'name' => $request->username,
+            'username' => $request->username,
             'email' => $request->email,
         ]);
 
@@ -494,6 +484,121 @@ class UserController extends Controller
     }
 
     /**
+     * Update user's online status (ping for chat)
+     */
+    public function updateOnlineStatus(Request $request)
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        }
+
+        // Update last active timestamp and set online status
+        $user->update([
+            'last_active' => now(),
+            'is_online' => true
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'is_online' => true,
+            'last_active' => now()->toISOString()
+        ]);
+    }
+
+    /**
+     * Set user as offline (when closing browser)
+     */
+    public function setOfflineStatus(Request $request)
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        }
+
+        // Set user as offline
+        $user->update([
+            'is_online' => false
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'is_online' => false
+        ]);
+    }
+
+    /**
+     * Get user's online status
+     */
+    public function getOnlineStatus($userId)
+    {
+        $user = User::find($userId);
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        // Consider user offline if last active more than 2 minutes ago
+        $isOnline = $user->is_online && $user->last_active && $user->last_active->diffInSeconds(now()) < 120;
+
+        // Auto-update is_online flag if user has been inactive for more than 2 minutes
+        if (!$isOnline && $user->is_online) {
+            $user->update(['is_online' => false]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'user_id' => $userId,
+            'is_online' => $isOnline,
+            'last_active' => $user->last_active ? \Carbon\Carbon::parse($user->last_active)->toISOString() : null,
+            'last_active_human' => $user->last_active ? \Carbon\Carbon::parse($user->last_active)->diffForHumans() : null
+        ]);
+    }
+
+    /**
+     * Get online status for multiple users (for chat list)
+     */
+    public function getMultipleOnlineStatus(Request $request)
+    {
+        $userIds = $request->input('user_ids', []);
+
+        if (empty($userIds)) {
+            return response()->json(['success' => true, 'statuses' => []]);
+        }
+
+        $users = User::whereIn('id', $userIds)->get(['id', 'is_online', 'last_active']);
+        $statuses = [];
+        $usersToUpdate = [];
+
+        foreach ($users as $user) {
+            $isOnline = $user->is_online && $user->last_active && $user->last_active->diffInSeconds(now()) < 120;
+            
+            // Mark for update if still marked online but inactive
+            if (!$isOnline && $user->is_online) {
+                $usersToUpdate[] = $user->id;
+            }
+            
+            $statuses[$user->id] = [
+                'is_online' => $isOnline,
+                'last_active' => $user->last_active ? \Carbon\Carbon::parse($user->last_active)->toISOString() : null,
+                'last_active_human' => $user->last_active ? \Carbon\Carbon::parse($user->last_active)->diffForHumans() : null
+            ];
+        }
+
+        // Bulk update offline status for inactive users
+        if (!empty($usersToUpdate)) {
+            User::whereIn('id', $usersToUpdate)->update(['is_online' => false]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'statuses' => $statuses
+        ]);
+    }
+
+    /**
      * Get username from user ID (API endpoint)
      */
     public function getUsername($userId)
@@ -503,7 +608,7 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'username' => $user->name
+                'username' => $user->username
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -552,88 +657,77 @@ class UserController extends Controller
     }
 
     /**
-     * Update user's online status
-     */
-    public function updateOnlineStatus()
-    {
-        $user = auth()->user();
-        
-        if ($user) {
-            $user->updateOnlineStatus();
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Online status updated'
-            ]);
-        }
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'User not authenticated'
-        ], 401);
-    }
-
-    /**
-     * Get user's online status by username
-     */
-    public function getOnlineStatus($username)
-    {
-        try {
-            $user = User::where('name', $username)->firstOrFail();
-            $isOnline = $user->isUserOnline();
-            
-            return response()->json([
-                'success' => true,
-                'is_online' => $isOnline
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not found'
-            ], 404);
-        }
-    }
-
-    /**
      * Check current user's account status (for background polling)
-     * Returns status info for: suspended, deleted, logged out, etc.
+     * Returns status info for: suspended, deleted, logged out, concurrent login, etc.
      */
-    public function checkUserStatus()
+    public function checkAccountStatus()
     {
         $user = auth()->user();
-        
+
         if (!$user) {
             return response()->json([
                 'status' => 'logged_out',
-                'message' => 'User is not authenticated'
+                'message' => 'User is not authenticated',
+                'redirect' => route('login.view')
             ]);
         }
-        
-        // Refresh user to get latest data
+
+        // Refresh user to get latest data from database
         $user = User::find($user->id);
-        
+
+        // Check if user was deleted
         if (!$user) {
-            return response()->json([
-                'status' => 'deleted',
-                'message' => 'Your account has been deleted'
-            ]);
+            return app(\App\Http\Controllers\Auth\LoginController::class)->logoutWithMessage(request(), 'deleted');
         }
-        
+
         // Check if user is suspended
         if ($user->is_suspended) {
+            auth()->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            
             return response()->json([
                 'status' => 'suspended',
-                'message' => 'Your account has been suspended'
-            ]);
+                'message' => 'Your account has been suspended',
+                'redirect' => route('auth.suspended')
+            ], 403);
         }
-        
+
         // Check if email is verified
         if (!$user->hasVerifiedEmail()) {
             return response()->json([
                 'status' => 'unverified',
-                'message' => 'Please verify your email'
-            ]);
+                'message' => 'Please verify your email',
+                'redirect' => route('verification.notice')
+            ], 403);
         }
+
+        // Check for concurrent login (different session ID)
+        $currentSessionId = request()->session()->getId();
+        $storedSessionId = session('session_id');
+
+        if ($storedSessionId && $storedSessionId !== $currentSessionId) {
+            // Another session exists - check if it's newer
+            $lastActivity = session('last_activity');
+            if ($lastActivity && $lastActivity > now()->subMinutes(5)->timestamp) {
+                // Another active session detected - logout current session for security
+                auth()->logout();
+                request()->session()->invalidate();
+                request()->session()->regenerateToken();
+
+                return response()->json([
+                    'status' => 'concurrent_login',
+                    'message' => 'Your account is logged in from another device. For security, this session has been logged out.',
+                    'redirect' => route('login.view')
+                ], 403);
+            }
+        }
+
+        // Update session tracking
+        session([
+            'session_id' => $currentSessionId,
+            'last_activity' => now()->timestamp
+        ]);
         
         return response()->json([
             'status' => 'active',

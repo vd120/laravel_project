@@ -57,14 +57,10 @@
             <div class="col-user">
                 <div class="user-cell">
                     <div class="user-avatar">
-                        @if($user->profile && $user->profile->avatar)
-                            <img src="{{ asset('storage/' . $user->profile->avatar) }}" alt="">
-                        @else
-                            <div class="avatar-initials">{{ substr($user->name, 0, 1) }}</div>
-                        @endif
+                        <img src="{{ $user->avatar_url }}" alt="">
                     </div>
                     <div class="user-details">
-                        <span class="user-name">{{ $user->name }}</span>
+                        <span class="user-name">{{ $user->username }}</span>
                         @if($user->profile && $user->profile->bio)
                         <span class="user-bio">{{ Str::limit($user->profile->bio, 25) }}</span>
                         @endif
@@ -138,10 +134,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: -16px -16px 24px;
-    padding: 24px 16px;
+    margin: 0 -16px 24px;
+    padding: 20px 16px;
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border-radius: 0 0 20px 20px;
+    border-radius: 16px 16px 20px 20px;
 }
 
 .header-left {
@@ -329,6 +325,7 @@
 .user-details {
     display: flex;
     flex-direction: column;
+    gap: 2px;
 }
 
 .user-name {

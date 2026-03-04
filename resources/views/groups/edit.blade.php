@@ -45,13 +45,7 @@
                 @foreach($group->members as $member)
                     <div class="member-item">
                         <div class="member-info">
-                            @if($member->user->profile && $member->user->profile->avatar)
-                                <img src="{{ asset('storage/' . $member->user->profile->avatar) }}" alt="{{ $member->user->name }}" class="member-avatar">
-                            @else
-                                <div class="member-avatar-placeholder">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                            @endif
+                            <img src="{{ $member->user->avatar_url }}" alt="{{ $member->user->name }}" class="member-avatar">
                             <span class="member-name">{{ $member->user->name }}</span>
                             @if($member->is_admin)
                                 <span class="admin-badge">Admin</span>

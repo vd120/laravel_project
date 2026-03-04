@@ -1,351 +1,729 @@
 @extends('layouts.app')
 
 @php
-$chatTitle = $conversation->is_group 
-    ? ($conversation->display_name ?? 'Group Chat') 
-    : (($conversation->other_user->name ?? 'Chat'));
+$chatTitle = $conversation->is_group
+    ? ($conversation->display_name ?? 'Group Chat')
+    : (($conversation->other_user->username ?? 'Chat'));
 @endphp
 
 @section('title', $chatTitle)
 
 @section('content')
-<div class="chat-page">
-    <div class="chat-container">
-        <!-- Minimized Sidebar - Only visible when toggled -->
-        <div class="chat-sidebar minimized">
-            <div class="chat-header">
-                <button class="back-btn" onclick="window.location.href='{{ route('chat.index') }}'">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <h2>Messages</h2>
-                <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle conversations">
-                    <i class="fas fa-bars"></i>
-                </button>
-            </div>
+<style>
+/* Hide layout mobile nav on chat page */
+.mobile-nav { display: none !important; }
 
-            <div class="conversations-list">
+/* Override layout constraints for full width chat */
+.app-layout, .main-content {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+.chat-page {
+    padding-top: 64px;
+}
+
+@media (min-width: 901px) {
+    .chat-page {
+        padding-top: 68px;
+    }
+}
+</style>
+<div class="chat-page">
+    <div class="chat-layout">
+        {{-- Sidebar --}}
+        <aside class="chat-sidebar" id="chatSidebar">
+            <header class="sidebar-header">
+                <div class="header-left">
+                    <div class="user-avatar-large">
+                        <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->username }}">
+                    </div>
+                    <span class="username-text">{{ auth()->user()->username }}</span>
+                </div>
+                <div class="header-actions">
+                    <a href="{{ route('groups.create') }}" class="icon-btn" title="New Group">
+                        <i class="fas fa-users"></i>
+                    </a>
+                    <button class="icon-btn" onclick="showUserSearch()" title="New Message">
+                        <i class="fas fa-message"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="search-bar">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search or start new chat" id="sidebarSearch" oninput="filterSidebarConversations(this.value)">
+                </div>
+            </div>
+            <div class="conversations-list" id="sidebarConvList">
                 @php
                     $conversations = \App\Models\Conversation::where('user1_id', auth()->id())
                         ->orWhere('user2_id', auth()->id())
                         ->with(['user1', 'user2', 'latestMessage.sender'])
                         ->orderBy('last_message_at', 'desc')
+                        ->limit(50)
                         ->get();
                 @endphp
-
                 @forelse($conversations as $conv)
-                <a href="{{ route('chat.show', $conv) }}" class="conversation-item {{ $conv->id === $conversation->id ? 'active' : '' }} {{ $conv->unread_count > 0 ? 'unread' : '' }}">
-                    <div class="conversation-avatar">
-                        @if($conv->other_user && $conv->other_user->profile && $conv->other_user->profile->avatar)
-                            <img src="{{ asset('storage/' . $conv->other_user->profile->avatar) }}" alt="Avatar">
+                @php
+                    $latestMessage = $conv->latestMessage;
+                    $isGroup = $conv->is_group;
+                    $displayName = $isGroup ? $conv->display_name : ($conv->other_user->username ?? 'User');
+                    $avatarUrl = $isGroup
+                        ? ($conv->group && $conv->group->avatar ? asset('storage/' . $conv->group->avatar) : null)
+                        : ($conv->other_user ? $conv->other_user->avatar_url : null);
+
+                    // Message preview logic
+                    $messagePreview = '';
+                    $messageIcon = '';
+                    if ($latestMessage) {
+                        $isOwn = $latestMessage->sender_id === auth()->id();
+                        $content = strip_tags($latestMessage->content);
+
+                        switch ($latestMessage->type) {
+                            case 'image':
+                                $messageIcon = '📷 ';
+                                $messagePreview = $isOwn ? 'You sent a photo' : 'Sent a photo';
+                                break;
+                            case 'video':
+                                $messageIcon = '🎥 ';
+                                $messagePreview = $isOwn ? 'You sent a video' : 'Sent a video';
+                                break;
+                            case 'audio':
+                                $messageIcon = '🎤 ';
+                                $messagePreview = $isOwn ? 'You sent an audio' : 'Sent an audio';
+                                break;
+                            case 'document':
+                                $messageIcon = '📎 ';
+                                $messagePreview = $isOwn ? 'You sent a document' : 'Sent a document';
+                                break;
+                            case 'gif':
+                                $messageIcon = 'GIF ';
+                                $messagePreview = $isOwn ? 'You sent a GIF' : 'Sent a GIF';
+                                break;
+                            case 'sticker':
+                                $messageIcon = '⭐ ';
+                                $messagePreview = $isOwn ? 'You sent a sticker' : 'Sent a sticker';
+                                break;
+                            case 'story_reply':
+                                $messageIcon = '📸 ';
+                                $content = trim(str_replace('📸 Reply to your story:', '', $content));
+                                $messagePreview = $isOwn ? 'You replied to story' : 'Replied to your story';
+                                if (!empty($content)) {
+                                    $messagePreview .= ': ' . Str::limit($content, 25);
+                                }
+                                break;
+                            default:
+                                $messagePreview = $content;
+                                break;
+                        }
+
+                        // Add "You: " prefix for own messages (except story replies)
+                        if ($isOwn && $latestMessage->type !== 'story_reply') {
+                            $messagePreview = 'You: ' . $messagePreview;
+                        }
+                    }
+
+                    if (empty($messagePreview)) {
+                        $messagePreview = '👋 Start a conversation';
+                    }
+                @endphp
+                <a href="{{ route('chat.show', $conv) }}" class="conversation-item {{ $conv->id === $conversation->id ? 'active' : '' }} {{ $conv->unread_count > 0 ? 'unread' : '' }}" data-name="{{ $displayName }}" data-user-id="{{ $isGroup ? '' : ($conv->other_user?->id ?? '') }}" data-conversation-slug="{{ $conv->slug }}">
+                    <div class="conv-avatar">
+                        @if($avatarUrl)
+                            <img src="{{ $avatarUrl }}" alt="{{ $displayName }}">
+                        @elseif($isGroup)
+                            <div class="avatar-fallback group"><i class="fas fa-users"></i></div>
                         @else
-                            <div class="avatar-placeholder">
-                                <i class="fas fa-user"></i>
-                            </div>
+                            <div class="avatar-fallback">{{ substr($displayName, 0, 1) }}</div>
                         @endif
                     </div>
-
-                    <div class="conversation-info">
-                        <div class="conversation-name">{{ $conv->other_user->name ?? 'User' }}</div>
-                        <div class="conversation-preview">
-                            @if($conv->latestMessage)
-                                <span class="last-message">
-                                    {{ $conv->latestMessage->sender_id === auth()->id() ? 'You: ' : '' }}
-                                    {{ Str::limit($conv->latestMessage->content, 30) }}
+                    <div class="conv-content">
+                        <div class="conv-header">
+                            <div class="conv-title-container">
+                                <span class="conv-title">
+                                    {{ $displayName }}
+                                    @if(!$isGroup && $conv->other_user)
+                                        <span class="online-status-text {{ $conv->other_user->is_online && $conv->other_user->last_active && $conv->other_user->last_active->diffInSeconds(now()) < 120 ? 'online' : 'offline' }}"
+                                              data-user-id="{{ $conv->other_user->id }}">
+                                            {{ $conv->other_user->is_online && $conv->other_user->last_active && $conv->other_user->last_active->diffInSeconds(now()) < 120 ? '• Online' : '' }}
+                                        </span>
+                                    @endif
                                 </span>
-                            @else
-                                <span class="no-messages">No messages yet</span>
+                                @if(!$isGroup && $conv->other_user)
+                                    <span class="typing-indicator-inline" style="display: none; color: #25d366; font-size: 11px; font-style: italic; margin-left: 6px;">typing...</span>
+                                @endif
+                            </div>
+                            <span class="conv-time">@if($conv->last_message_at){{ \Carbon\Carbon::parse($conv->last_message_at)->format('H:i') }}@endif</span>
+                        </div>
+                        <div class="conv-footer">
+                            <p class="conv-preview {{ $conv->unread_count > 0 ? 'unread-text' : '' }}">
+                                @if($latestMessage && $latestMessage->sender_id === auth()->id())
+                                    <i class="fas {{ $latestMessage->read_at ? 'fa-check-double read' : 'fa-check sent' }}"></i>
+                                @endif
+                                @if($latestMessage)
+                                    @if($latestMessage->type === 'image')
+                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent an image</span>
+                                    @elseif($latestMessage->type === 'video')
+                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a video</span>
+                                    @elseif($latestMessage->type === 'audio')
+                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent an audio</span>
+                                    @elseif($latestMessage->type === 'document')
+                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a document</span>
+                                    @elseif($latestMessage->type === 'gif')
+                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a GIF</span>
+                                    @elseif($latestMessage->type === 'sticker')
+                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a sticker</span>
+                                    @elseif($latestMessage->type === 'story_reply')
+                                        <span class="preview-text">{{ $messagePreview }}</span>
+                                    @else
+                                        <span class="preview-text">{{ $messagePreview }}</span>
+                                    @endif
+                                @else
+                                    <span class="preview-text">👋 Start a conversation</span>
+                                @endif
+                            </p>
+                            @if($conv->unread_count > 0)
+                                <span class="unread-pill">{{ $conv->unread_count > 99 ? '99+' : $conv->unread_count }}</span>
                             @endif
                         </div>
                     </div>
-
-                    <div class="conversation-meta">
-                        @if($conv->last_message_at)
-                            <div class="last-time">{{ \Carbon\Carbon::parse($conv->last_message_at)->diffForHumans() }}</div>
-                        @endif
-                        @if($conv->unread_count > 0)
-                            <div class="unread-badge">{{ $conv->unread_count }}</div>
-                        @endif
-                    </div>
                 </a>
                 @empty
-                <div class="no-conversations">
-                    <i class="fas fa-comments"></i>
-                    <p>No conversations yet</p>
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-comments"></i></div>
+                    <h3>No messages yet</h3>
+                    <p>Start a new conversation</p>
                 </div>
                 @endforelse
             </div>
-        </div>
+        </aside>
 
-        <div class="chat-main">
-            <div class="chat-header-main">
-                <button class="sidebar-toggle-main" onclick="window.location.href='{{ route('chat.index') }}'" title="Back to conversations">
+        {{-- Main Chat Area --}}
+        <main class="chat-main">
+            <header class="chat-header">
+                <button class="back-btn-mobile" onclick="window.location.href='{{ route('chat.index') }}'">
                     <i class="fas fa-arrow-left"></i>
                 </button>
                 <div class="chat-user-info">
                     @if($conversation->is_group)
-                        <div class="chat-avatar">
-                            @if($conversation->group && $conversation->group->avatar)
-                                <img src="{{ asset('storage/' . $conversation->group->avatar) }}" alt="Group">
-                            @else
-                                <div class="avatar-placeholder group-icon">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="chat-user-details">
-                            <h3>{{ $conversation->group->name ?? $conversation->display_name ?? 'Group' }}</h3>
-                            <span class="user-status">{{ $conversation->group->members->count() ?? 0 }} members</span>
-                        </div>
+                        <a href="{{ route('groups.show', $conversation->group) }}" class="chat-avatar-link">
+                            <div class="chat-avatar">
+                                @if($conversation->group && $conversation->group->avatar)
+                                    <img src="{{ asset('storage/' . $conversation->group->avatar) }}" alt="Group">
+                                @else
+                                    <div class="avatar-fallback"><i class="fas fa-users"></i></div>
+                                @endif
+                            </div>
+                        </a>
+                        <a href="{{ route('groups.show', $conversation->group) }}" class="chat-details-link">
+                            <div class="chat-details">
+                                <h3>{{ $conversation->group->name ?? $conversation->display_name ?? 'Group' }}</h3>
+                                <span class="status">{{ $conversation->group->members->count() ?? 0 }} members</span>
+                            </div>
+                        </a>
                     @else
                         <div class="chat-avatar">
-                            @if($conversation->other_user && $conversation->other_user->profile && $conversation->other_user->profile->avatar)
-                                <img src="{{ asset('storage/' . $conversation->other_user->profile->avatar) }}" alt="Avatar">
+                            @if($conversation->other_user)
+                                <img src="{{ $conversation->other_user->avatar_url }}" alt="Avatar">
                             @else
-                                <div class="avatar-placeholder">
-                                    <i class="fas fa-user"></i>
-                                </div>
+                                <div class="avatar-fallback">{{ substr('U', 0, 1) }}</div>
                             @endif
                         </div>
-                        <div class="chat-user-details">
-                            <h3>{{ $conversation->other_user->name ?? 'User' }}</h3>
-                            <span class="user-status"><i class="fas fa-circle" style="font-size: 10px; color: var(--text-muted);"></i> Loading...</span>
+                        <div class="chat-details">
+                            <h3>{{ $conversation->other_user->username ?? 'User' }}</h3>
+                            <span class="status" id="chat-user-status" data-user-id="{{ $conversation->other_user->id ?? '' }}">
+                                <span class="status-dot"></span>
+                                <span class="status-text">Offline</span>
+                            </span>
                         </div>
                     @endif
                 </div>
                 <div class="chat-actions">
                     @if($conversation->is_group)
-                        <a href="{{ route('groups.show', $conversation->group) }}" class="clear-chat-btn" style="background: var(--twitter-blue); text-decoration: none;" title="Group Info">
-                            <i class="fas fa-info-circle"></i>
-                            Group Info
-                        </a>
+                        <a href="{{ route('groups.show', $conversation->group) }}" class="action-btn"><i class="fas fa-info-circle"></i></a>
                     @else
-                        <button class="clear-chat-btn" onclick="clearChat()" title="Delete all messages in this chat">
-                            <i class="fas fa-trash-alt"></i>
-                            Clear Chat
-                        </button>
+                        <button class="action-btn" onclick="clearChat()"><i class="fas fa-trash"></i></button>
                     @endif
                 </div>
-            </div>
+            </header>
 
-            <div class="chat-messages" id="chatMessages">
+            <div class="chat-main-content">
+                <div class="chat-messages" id="chatMessages">
                 @forelse($messages as $message)
                     @if($message->type === 'system')
-                        <div class="system-message" data-message-id="{{ $message->id }}">
-                            <span class="system-message-text">{{ $message->content }}</span>
-                            <span class="system-message-time">{{ $message->created_at->format('g:i A') }}</span>
+                        <div class="system-message">
+                            <span class="system-text">{{ $message->content }}</span>
+                            <span class="system-time">{{ $message->created_at->format('H:i') }}</span>
                         </div>
                     @elseif($message->type === 'group_invite')
-                        @php
-                            $inviteData = json_decode($message->media_path, true);
-                        @endphp
-                        <div class="message {{ $message->is_mine ? 'own' : 'other' }} group-invite-message" data-message-id="{{ $message->id }}">
+                        @php $inviteData = json_decode($message->media_path, true); @endphp
+                        <div class="message {{ $message->is_mine ? 'own' : 'other' }} group-invite" data-message-id="{{ $message->id }}">
                             @if(!$message->is_mine && $message->sender)
                                 <div class="message-avatar">
-                                    @if($message->sender->profile && $message->sender->profile->avatar)
-                                        <img src="{{ asset('storage/' . $message->sender->profile->avatar) }}" alt="{{ $message->sender->name }}">
-                                    @else
-                                        <div class="avatar-placeholder-small">
-                                            <i class="fas fa-user"></i>
-                                        </div>
-                                    @endif
+                                    <img src="{{ $message->sender->avatar_url }}" alt="{{ $message->sender->username }}">
                                 </div>
                             @endif
                             <div class="message-bubble">
                                 @if(!$message->is_mine && $message->sender)
-                                    <div class="message-username">{{ $message->sender->name }}</div>
+                                    <div class="sender-name">{{ $message->sender->username ?? $message->sender->name }}</div>
                                 @endif
-                                <div class="group-invite-card">
-                                    <div class="group-invite-icon">
-                                        <i class="fas fa-users"></i>
+                                <div class="invite-card">
+                                    <div class="invite-icon"><i class="fas fa-users"></i></div>
+                                    <div class="invite-content">
+                                        <div class="invite-title">{{ $inviteData['group_name'] ?? 'Group' }}</div>
+                                        <div class="invite-text">{{ $message->sender->username ?? $message->sender->name ?? 'Someone' }} invited you to join</div>
                                     </div>
-                                    <div class="group-invite-content">
-                                        <div class="group-invite-title">{{ $inviteData['group_name'] ?? 'Group' }}</div>
-                                        <div class="group-invite-text">{{ $message->sender->name ?? 'Someone' }} invited you to join this group</div>
-                                    </div>
-                                    @if(!$message->is_mine && $inviteData['invite_link'] ?? null)
-                                        <button class="accept-invite-btn" onclick="acceptGroupInvite('{{ $inviteData['invite_link'] }}')">
-                                            <i class="fas fa-check"></i> Accept & Join
-                                        </button>
+                                    @if(!$message->is_mine && ($inviteData['invite_link'] ?? null))
+                                        <button class="accept-btn" onclick="acceptGroupInvite('{{ $inviteData['invite_link'] }}')"><i class="fas fa-check"></i> Join</button>
                                     @endif
                                 </div>
-                                <span class="message-time">{{ $message->created_at->format('g:i A') }}</span>
+                                <span class="message-time">
+                                    {{ $message->created_at->format('H:i') }}
+                                    @if($message->is_mine)
+                                        @if($message->read_at)
+                                            <i class="fas fa-check-double read" title="Seen"></i>
+                                        @else
+                                            <i class="fas fa-check" title="Sent"></i>
+                                        @endif
+                                    @endif
+                                </span>
                             </div>
                         </div>
                     @else
                         <div class="message {{ $message->is_mine ? 'own' : 'other' }} {{ $message->trashed() ? 'deleted' : '' }}" data-message-id="{{ $message->id }}">
                             @if(!$message->is_mine && $message->sender)
                                 <div class="message-avatar">
-                                    @if($message->sender->profile && $message->sender->profile->avatar)
-                                        <img src="{{ asset('storage/' . $message->sender->profile->avatar) }}" alt="{{ $message->sender->name }}">
-                                    @else
-                                        <div class="avatar-placeholder-small">
-                                            <i class="fas fa-user"></i>
-                                        </div>
-                                    @endif
+                                    <img src="{{ $message->sender->avatar_url }}" alt="{{ $message->sender->username }}">
                                 </div>
                             @endif
                             <div class="message-bubble">
                                 @if(!$message->is_mine && $message->sender)
-                                    <div class="message-username">{{ $message->sender->name }}</div>
+                                    <div class="sender-name">{{ $message->sender->username ?? $message->sender->name }}</div>
                                 @endif
                                 <div class="message-content">
                                     @if($message->trashed())
-                                        <em>message deleted</em>
+                                        <em class="deleted-text">message deleted</em>
                                     @else
-                                        @if($message->type === 'image' && $message->media_path)
+                                        @php
+                                            // Handle multiple media files (stored as JSON)
+                                            $mediaItems = null;
+                                            if ($message->media_path && str_starts_with($message->media_path, '[')) {
+                                                $mediaItems = json_decode($message->media_path, true);
+                                            }
+                                        @endphp
+
+                                        @if($mediaItems && is_array($mediaItems))
+                                            {{-- Multiple media files - WhatsApp-style grid with max 4 items --}}
+                                            <div class="message-media-album" data-message-id="{{ $message->id }}">
+                                                {{-- Store all media paths in a script tag --}}
+                                                <script type="application/json" class="media-data">
+                                                    @json($mediaItems)
+                                                </script>
+                                                @php
+                                            $displayCount = min(count($mediaItems), 4);
+                                            $remainingCount = count($mediaItems) - $displayCount;
+                                        @endphp
+
+                                        @if($displayCount === 1)
+                                            {{-- Single image - full width --}}
+                                            <div class="media-grid-single">
+                                                @php $media = $mediaItems[0]; @endphp
+                                                @if($media['type'] === 'image')
+                                                    <img src="{{ asset('storage/' . $media['path']) }}"
+                                                         alt="Image"
+                                                         class="message-image"
+                                                         onclick="openMediaViewerFromAlbum(this, {{ $message->id }}, 0)">
+                                                @elseif($media['type'] === 'video')
+                                                    <video src="{{ asset('storage/' . $media['path']) }}" onclick="openMediaViewerFromAlbum(this, {{ $message->id }}, 0)"></video>
+                                                @endif
+                                            </div>
+                                        @elseif($displayCount === 2)
+                                            {{-- Two images - side by side --}}
+                                            <div class="media-grid-two">
+                                                @foreach(array_slice($mediaItems, 0, 2) as $index => $media)
+                                                    @if($media['type'] === 'image')
+                                                        <img src="{{ asset('storage/' . $media['path']) }}"
+                                                             alt="Image"
+                                                             class="message-image"
+                                                             onclick="openMediaViewerFromAlbum(this, {{ $message->id }}, {{ $index }})">
+                                                    @elseif($media['type'] === 'video')
+                                                        <div class="media-item video">
+                                                            <video src="{{ asset('storage/' . $media['path']) }}"></video>
+                                                            <div class="media-overlay" onclick="openMediaViewerFromAlbum(this, {{ $message->id }}, {{ $index }})">
+                                                                <i class="fas fa-play"></i>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            {{-- 3 or 4 images - WhatsApp grid --}}
+                                            <div class="media-grid-{{ $displayCount }}">
+                                                @foreach(array_slice($mediaItems, 0, $displayCount) as $index => $media)
+                                                    @if($media['type'] === 'image')
+                                                        <div class="media-item {{ $media['type'] }}">
+                                                            <img src="{{ asset('storage/' . $media['path']) }}"
+                                                                 alt="Image"
+                                                                 onclick="openMediaViewerFromAlbum(this, {{ $message->id }}, {{ $index }})">
+                                                            @if($index === 3 && $remainingCount > 0)
+                                                                <div class="media-overlay" onclick="openMediaViewerFromAlbum(this, {{ $message->id }}, 4)">
+                                                                    <span class="overlay-text">+{{ $remainingCount }}</span>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    @elseif($media['type'] === 'video')
+                                                        <div class="media-item video">
+                                                            <video src="{{ asset('storage/' . $media['path']) }}"></video>
+                                                            <div class="media-overlay" onclick="openMediaViewerFromAlbum(this, {{ $message->id }}, {{ $index }})">
+                                                                <i class="fas fa-play"></i>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                            </div>
+                                        @elseif($message->type === 'image' && $message->media_path)
                                             <div class="message-media">
-                                                <img src="{{ asset('storage/' . $message->media_path) }}" alt="Image" class="message-image" onclick="openMediaViewer(this.src)">
+                                                <img src="{{ asset('storage/' . $message->media_path) }}" alt="Image" onclick="openMediaViewer(this.src)">
                                             </div>
                                         @elseif($message->type === 'video' && $message->media_path)
                                             <div class="message-media">
-                                                <video src="{{ asset('storage/' . $message->media_path) }}" controls class="message-video"></video>
+                                                <video src="{{ asset('storage/' . $message->media_path) }}" controls></video>
                                             </div>
                                         @endif
-                                        @if($message->content)
-                                            <span class="message-text">{{ $message->content }}</span>
+                                        @if($message->content && $message->content !== '' && $message->type !== 'group_invite')
+                                            @php
+                                                // Check if this is a story reply message
+                                                $isStoryReply = str_starts_with($message->content, '📸 Reply to your story:');
+                                                $storyReplyContent = $isStoryReply ? trim(str_replace('📸 Reply to your story:', '', $message->content)) : null;
+                                            @endphp
+                                            @if($isStoryReply)
+                                                <div class="story-reply-message">
+                                                    <div class="story-reply-header">
+                                                        <span class="story-reply-label">Story Reply</span>
+                                                    </div>
+                                                    <div class="story-reply-content">{{ $storyReplyContent }}</div>
+                                                </div>
+                                            @else
+                                                <span class="text">{{ $message->content }}</span>
+                                            @endif
                                         @endif
                                     @endif
-                                    <span class="message-time">{{ $message->created_at->format('g:i A') }}</span>
+                                    <span class="message-time">
+                                        {{ $message->created_at->format('H:i') }}
+                                        @if($message->is_mine)
+                                            @if($message->read_at)
+                                                {{-- 2 blue checks - message read/seen --}}
+                                                <i class="fas fa-check-double read" title="Seen"></i>
+                                            @else
+                                                {{-- 1 gray check - message sent but not delivered --}}
+                                                <i class="fas fa-check" title="Sent"></i>
+                                            @endif
+                                        @endif
+                                    </span>
                                 </div>
                                 @if($message->is_mine && !$message->trashed())
-                                    <button class="message-delete" onclick="deleteMessage({{ $message->id }})" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <button class="delete-btn" onclick="deleteMessage({{ $message->id }})"><i class="fas fa-trash"></i></button>
                                 @endif
                             </div>
                         </div>
                     @endif
                 @empty
-                    <div class="no-messages-chat">
-                        <p>Start a conversation with {{ $conversation->other_user->name ?? 'User' }}</p>
+                    <div class="no-messages">
+                        <i class="fas fa-comments"></i>
+                        <p>Start a conversation with {{ $conversation->other_user->username ?? 'User' }}</p>
                     </div>
                 @endforelse
             </div>
-
-            <!-- Media Viewer Modal -->
-            <div id="mediaViewer" class="media-viewer" onclick="closeMediaViewer()">
-                <button class="media-viewer-close" onclick="closeMediaViewer()">
-                    <i class="fas fa-times"></i>
-                </button>
-                <img id="mediaViewerImage" src="" alt="Full size image">
             </div>
 
-            <div class="chat-input">
+            <div class="chat-input-area">
+                <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                    <span class="typing-dots">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </span>
+                    <span class="typing-text">{{ $conversation->other_user->username ?? 'User' }} is typing...</span>
+                </div>
                 <form id="messageForm" onsubmit="sendMessage(event)">
-                    <!-- Media preview area -->
                     <div id="mediaPreview" class="media-preview" style="display: none;">
-                        <div class="media-preview-container">
-                            <img id="imagePreview" src="" alt="Preview" style="display: none;">
-                            <video id="videoPreview" controls style="display: none;"></video>
-                            <button type="button" class="remove-media-btn" onclick="clearMediaPreview()">
-                                <i class="fas fa-times"></i>
+                        <div class="preview-carousel">
+                            <button type="button" class="carousel-arrow left" onclick="movePreview(-1)" title="Previous">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="preview-slides" id="previewSlides">
+                                <!-- Slides will be added here -->
+                            </div>
+                            <button type="button" class="carousel-arrow right" onclick="movePreview(1)" title="Next">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="preview-indicators" id="previewIndicators">
+                            <!-- Dots will be added here -->
+                        </div>
+                        <div class="preview-info">
+                            <span id="previewCount">1 / 1</span>
+                            <button type="button" class="clear-all" onclick="clearMediaPreview()" title="Remove all">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </div>
-                    
                     <div class="input-row">
-                        <label for="mediaInput" class="media-btn" title="Attach photo or video">
-                            <i class="fas fa-image"></i>
-                        </label>
-                        <input type="file" id="mediaInput" accept="image/*,video/*" onchange="handleMediaSelect(event)" style="display: none;">
-                        <input type="text" id="messageInput" placeholder="Type a message..." maxlength="1000">
-                        <button type="submit" id="sendButton" class="send-btn">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
+                        <label for="mediaInput" class="attach-btn" title="Attach"><i class="fas fa-paperclip"></i></label>
+                        <input type="file" id="mediaInput" accept="image/*,video/*" multiple onchange="handleMediaSelect(event)" style="display: none;">
+                        <input type="text" id="messageInput" placeholder="Type a message" maxlength="1000" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                        <button type="submit" id="sendButton" class="send-btn"><i class="fas fa-paper-plane"></i></button>
                     </div>
                 </form>
+            </div>
+        </main>
+    </div>
+
+    {{-- Media Viewer Modal --}}
+    <div id="mediaViewer" class="media-viewer" onclick="closeMediaViewerOnOverlay(event)">
+        <button class="viewer-close" onclick="closeMediaViewer()"><i class="fas fa-times"></i></button>
+        <button class="viewer-arrow left" onclick="navigateMedia(-1, event)"><i class="fas fa-chevron-left"></i></button>
+        <button class="viewer-arrow right" onclick="navigateMedia(1, event)"><i class="fas fa-chevron-right"></i></button>
+        <div class="viewer-content">
+            <img id="viewerImage" src="" alt="Full size">
+            <video id="viewerVideo" src="" controls style="display: none; max-width: 90%; max-height: 90vh;"></video>
+        </div>
+        <div class="viewer-counter" id="viewerCounter">1 / 1</div>
+    </div>
+
+    {{-- User Search Modal --}}
+    <div id="userSearchModal" class="modal-overlay" style="display: none;" onclick="if(event.target===this)hideUserSearch()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <button class="back-btn" onclick="hideUserSearch()"><i class="fas fa-arrow-left"></i></button>
+                <h3>New Chat</h3>
+                <div class="spacer"></div>
+            </div>
+            <div class="modal-body">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="userSearch" placeholder="Search contacts..." class="search-input">
+                </div>
+                <div id="userResults" class="results-list"></div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Delete Message Modal --}}
+    <div id="deleteMessageModal" class="modal-overlay" style="display: none;" onclick="if(event.target===this)closeDeleteModal()">
+        <div class="modal-box delete-modal">
+            <div class="modal-header">
+                <h3>Delete Message</h3>
+                <button class="close-btn" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="delete-description">Choose who should have this message deleted:</p>
+                <button class="delete-option" onclick="confirmDelete('everyone')">
+                    <div class="delete-option-icon"><i class="fas fa-users"></i></div>
+                    <div class="delete-option-content">
+                        <div class="delete-option-title">Delete for Everyone</div>
+                        <div class="delete-option-desc">Message will be removed for all participants</div>
+                    </div>
+                </button>
+                <button class="delete-option" onclick="confirmDelete('me')">
+                    <div class="delete-option-icon"><i class="fas fa-user"></i></div>
+                    <div class="delete-option-content">
+                        <div class="delete-option-title">Delete for Me</div>
+                        <div class="delete-option-desc">Only you will have this message removed</div>
+                    </div>
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <style>
+/* Hide main layout mobile nav on chat pages */
+.chat-page ~ .mobile-nav,
+body:has(.chat-page) .mobile-nav {
+    display: none !important;
+}
+
+/* Use layout CSS variables for theme support */
+:root {
+    --wa-bg: var(--bg, #111b21);
+    --wa-panel: var(--surface, #202c33);
+    --wa-panel-hover: var(--surface-hover, #2a3942);
+    --wa-border: var(--border, #2f3b43);
+    --wa-text: var(--text, #e9edef);
+    --wa-text-muted: var(--text-muted, #8696a0);
+    --wa-accent: var(--primary, #00a884);
+    --wa-blue: var(--primary, #53bdeb);
+    --wa-green: var(--success, #25d366);
+    --wa-red: var(--danger, #f15c6d);
+    --wa-message-out: #005c4b;
+    --wa-message-in: #202c33;
+}
+
 .chat-page {
-    height: 100vh;
-    background: var(--twitter-light);
-    /* Make main header static on chat pages - use calc to account for header */
-    padding-top: 64px;
-    box-sizing: border-box;
+    height: calc(100vh - 64px);
+    background: var(--wa-bg);
+    overflow: hidden;
+    position: relative;
 }
 
-/* Make the main website header static on chat pages */
-.chat-page ~ header,
-.chat-page header,
-header {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 10000 !important;
-    background: var(--card-bg) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid var(--border-color) !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1) !important;
+@media (min-width: 901px) {
+    .chat-page {
+        height: calc(100vh - 68px);
+        padding-top: 1px;
+    }
 }
 
-.chat-container {
+/* Override layout constraints for full width */
+.chat-page ~ .app-layout,
+.chat-page ~ .main-content {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.chat-layout {
     display: flex;
     height: 100%;
     width: 100%;
+    max-width: 100%;
+    margin: 0;
 }
 
+/* Sidebar - Fixed width on left */
 .chat-sidebar {
-    width: min(350px, 25vw);
-    min-width: 280px;
-    background: var(--card-bg);
-    border-right: 1px solid var(--border-color);
+    width: 100%;
+    max-width: none;
+    min-width: 320px;
+    background: var(--wa-panel);
     display: flex;
     flex-direction: column;
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 1001;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+    border-right: 1px solid var(--wa-border);
 }
 
-.chat-sidebar.open {
-    transform: translateX(0);
+/* Desktop - make sidebar wider */
+@media (min-width: 900px) {
+    .chat-sidebar {
+        max-width: 450px;
+    }
 }
 
-.chat-sidebar.minimized {
-    display: none;
+@media (min-width: 1200px) {
+    .chat-sidebar {
+        max-width: 500px;
+    }
 }
 
-.chat-header {
-    padding: 20px;
-    border-bottom: 1px solid var(--border-color);
+@media (min-width: 1400px) {
+    .chat-sidebar {
+        max-width: 550px;
+    }
+}
+
+/* Header */
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--wa-panel);
+    border-bottom: 1px solid var(--wa-border);
+}
+
+.header-left { display: flex; align-items: center; gap: 10px; }
+
+.user-avatar-large {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--wa-accent), var(--wa-blue));
     display: flex;
     align-items: center;
-    gap: 12px;
-}
-
-.back-btn {
-    background: none;
-    border: none;
+    justify-content: center;
+    color: white;
     font-size: 18px;
-    color: var(--twitter-gray);
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-}
-
-.back-btn:hover {
-    background: var(--hover-bg);
-    color: var(--twitter-dark);
-}
-
-.chat-header h2 {
-    margin: 0;
-    font-size: 20px;
     font-weight: 600;
-    color: var(--twitter-dark);
+    flex-shrink: 0;
 }
 
+.user-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.username-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--wa-text);
+}
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.icon-btn {
+    width: 38px;
+    height: 38px;
+    border: none;
+    background: transparent;
+    color: var(--wa-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+    font-size: 16px;
+}
+
+.icon-btn:hover {
+    background: var(--wa-panel-hover);
+    color: var(--wa-text);
+}
+
+/* Search */
+.search-bar {
+    padding: 8px 12px;
+    background: var(--wa-panel);
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input-wrapper i {
+    position: absolute;
+    left: 14px;
+    color: var(--wa-text-muted);
+    font-size: 14px;
+}
+
+.search-input-wrapper input {
+    width: 100%;
+    padding: 10px 14px 10px 44px;
+    background: var(--wa-bg);
+    border: none;
+    border-radius: 8px;
+    color: var(--wa-text);
+    font-size: 14px;
+    outline: none;
+}
+
+.search-input-wrapper input:focus {
+    box-shadow: 0 0 0 2px var(--wa-accent);
+}
+
+/* Conversations List */
 .conversations-list {
     flex: 1;
     overflow-y: auto;
@@ -354,150 +732,561 @@ header {
 .conversation-item {
     display: flex;
     align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color);
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid var(--wa-border);
     text-decoration: none;
-    color: inherit;
-    transition: all 0.3s ease;
-    box-shadow: 0 1px 0 rgba(0,0,0,0.05);
 }
 
-.conversation-item:hover,
+.conversation-item:hover {
+    background: var(--wa-panel-hover);
+}
+
 .conversation-item.active {
-    background: var(--hover-bg);
-    transform: translateX(2px);
+    background: var(--wa-panel-hover);
 }
 
 .conversation-item.unread {
-    background: rgba(29, 161, 242, 0.08);
-    border-left: 3px solid var(--twitter-blue);
+    background: rgba(0, 168, 132, 0.08);
 }
 
-.conversation-avatar {
-    margin-right: 12px;
+.conv-avatar {
+    margin-right: 14px;
+    flex-shrink: 0;
+    position: relative;
 }
 
-.conversation-avatar img,
-.avatar-placeholder {
-    width: 50px;
-    height: 50px;
+.conv-avatar .avatar-fallback,
+.conv-avatar img {
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--border-color);
 }
 
-.avatar-placeholder {
-    background: var(--twitter-light);
+.avatar-fallback {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--twitter-gray);
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 50%;
 }
 
-.conversation-info {
+.online-indicator {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--wa-text-muted);
+    border: 2px solid var(--wa-panel);
+    transition: background 0.3s;
+}
+
+.online-indicator.online {
+    background: var(--wa-green);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.avatar-fallback.group {
+    background: linear-gradient(135deg, var(--wa-accent), var(--wa-blue));
+}
+
+.conv-content {
     flex: 1;
     min-width: 0;
 }
 
-.conversation-name {
-    font-weight: 600;
-    color: var(--twitter-dark);
+.conv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 4px;
 }
 
-.conversation-preview {
-    font-size: 14px;
-    color: var(--twitter-gray);
+.conv-title-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
 }
 
-.last-message {
-    display: block;
+.conv-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--wa-text);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.no-messages {
-    font-style: italic;
-}
-
-.conversation-meta {
-    text-align: right;
+.online-status-text {
     font-size: 12px;
-    color: var(--twitter-gray);
-}
-
-.last-time {
-    margin-bottom: 4px;
-}
-
-.unread-badge {
-    background: var(--twitter-blue);
-    color: white;
-    border-radius: 10px;
-    padding: 2px 6px;
-    font-size: 11px;
-    font-weight: 600;
+    margin-left: 6px;
+    font-weight: 500;
+    position: relative;
     display: inline-block;
-    box-shadow: 0 1px 3px rgba(29, 161, 242, 0.3);
 }
 
-.chat-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: var(--card-bg);
+.online-status-text.online {
+    color: #25d366;
+    animation: neon-pulse 2s ease-in-out infinite;
 }
 
-.chat-header-main {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--card-bg);
+.online-status-text.offline {
+    color: #667781;
+    animation: none; /* ensure offline status never bounces */
+}
+
+@keyframes neon-pulse {
+    0%, 100% {
+        text-shadow: 0 0 2px rgba(37, 211, 102, 0.6);
+    }
+    50% {
+        text-shadow: 0 0 12px rgba(37, 211, 102, 1);
+    }
+}
+
+.conv-time {
+    font-size: 12px;
+    color: var(--wa-text-muted);
+    flex-shrink: 0;
+}
+
+.conv-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.sidebar-toggle-main {
+.conv-preview {
+    margin: 0;
+    font-size: 13px;
+    color: var(--wa-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 260px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.conv-preview.unread-text {
+    color: var(--wa-text);
+    font-weight: 500;
+}
+
+.conv-preview i.read-status {
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.conv-preview i.read-status.read,
+.conv-preview i.read {
+    color: #53bdeb;
+}
+
+.conv-preview i.read-status.sent,
+.conv-preview i.sent {
+    color: #8696a3;
+}
+
+.empty-preview {
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.unread-pill {
+    background: var(--wa-accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    min-width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.empty-icon {
+    font-size: 64px;
+    color: var(--wa-text-muted);
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.empty-state h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    color: var(--wa-text);
+}
+
+.empty-state p {
+    margin: 0 0 24px;
+    color: var(--wa-text-muted);
+    font-size: 14px;
+}
+
+/* Static Header - Fixed on mobile, static on desktop */
+.chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--wa-panel);
+    border-bottom: 1px solid var(--wa-border);
+    height: 64px;
+    flex-shrink: 0;
+}
+
+/* Mobile - fixed header */
+@media (max-width: 900px) {
+    .chat-header {
+        position: fixed;
+        top: 64px;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        height: 56px;
+        padding: 10px 14px;
+    }
+}
+
+.back-btn-mobile {
     background: none;
     border: none;
+    color: var(--wa-text-muted);
     font-size: 18px;
-    color: var(--twitter-gray);
     cursor: pointer;
     padding: 8px;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.back-btn-mobile:hover { color: var(--wa-text); }
+
+/* Chat user info and actions */
+.chat-header .chat-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    overflow: hidden;
+    padding-top: 10px;
+}
+
+.chat-header .chat-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* Static Input Area - Fixed on mobile, static on desktop */
+.chat-input-area {
+    padding: 12px 16px;
+    background: var(--wa-panel);
+    border-top: 1px solid var(--wa-border);
+    flex-shrink: 0;
+}
+
+/* Mobile - fixed input */
+@media (max-width: 900px) {
+    .chat-input-area {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        padding: 10px 14px;
+    }
+}
+
+/* Messages area - with padding to account for fixed header */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Main content wrapper */
+.chat-main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Desktop - add padding for project header */
+@media (min-width: 901px) {
+    .chat-main-content {
+        padding-top: 15px;
+    }
+}
+
+/* Mobile - add padding for fixed header/input */
+@media (max-width: 900px) {
+    .chat-main-content {
+        padding-top: 10px;
+        padding-bottom: 70px;
+    }
+
+    .chat-messages {
+        padding-top: 70px;
+    }
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--wa-panel);
+    border-bottom: 1px solid var(--wa-border);
+}
+
+.sidebar-user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.user-avatar-sm {
     width: 36px;
     height: 36px;
-}
-
-.sidebar-toggle-main:hover {
-    background: var(--hover-bg);
-    color: var(--twitter-dark);
-}
-
-.sidebar-toggle {
-    background: none;
-    border: none;
-    font-size: 16px;
-    color: var(--twitter-gray);
-    cursor: pointer;
-    padding: 6px;
     border-radius: 50%;
-    transition: all 0.2s ease;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--wa-accent), var(--wa-blue));
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
 }
 
-.sidebar-toggle:hover {
-    background: var(--hover-bg);
-    color: var(--twitter-dark);
+.user-avatar-sm img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sidebar-username {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--wa-text);
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: var(--wa-text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.back-btn:hover { color: var(--wa-text); }
+
+.sidebar-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+}
+
+.icon-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--wa-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 15px;
+}
+
+.icon-btn:hover { background: var(--wa-panel-hover); }
+
+.sidebar-search {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--wa-border);
+}
+
+.search-wrapper {
+    position: relative;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--wa-text-muted);
+    font-size: 13px;
+}
+
+.search-wrapper input {
+    width: 100%;
+    padding: 9px 12px 9px 38px;
+    background: var(--wa-bg);
+    border: none;
+    border-radius: 8px;
+    color: var(--wa-text);
+    font-size: 14px;
+    outline: none;
+}
+
+.search-wrapper input:focus { box-shadow: 0 0 0 2px var(--wa-accent); }
+
+.conv-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.conv-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--wa-border);
+    text-decoration: none;
+    transition: background 0.2s;
+}
+
+.conv-item:hover { background: var(--wa-panel-hover); }
+.conv-item.active { background: var(--wa-panel-hover); }
+.conv-item.unread { background: rgba(0, 168, 132, 0.08); }
+
+.conv-avatar {
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.conv-avatar img,
+.conv-avatar .avatar-fallback {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-fallback {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 50%;
+}
+
+.conv-body { flex: 1; min-width: 0; }
+
+.conv-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.conv-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--wa-text);
+}
+
+.conv-time {
+    font-size: 12px;
+    color: var(--wa-text-muted);
+}
+
+.conv-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.conv-preview {
+    font-size: 13px;
+    color: var(--wa-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.conv-preview i { font-size: 10px; color: var(--wa-blue); }
+.conv-preview em { font-style: italic; opacity: 0.7; }
+
+.badge {
+    background: var(--wa-accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+}
+
+.empty-sidebar {
+    padding: 50px 20px;
+    text-align: center;
+    color: var(--wa-text-muted);
+}
+
+.empty-sidebar i { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
+.empty-sidebar p { margin: 0; }
+
+/* Main Chat */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--wa-bg);
+    position: relative;
+    overflow: hidden;
+}
+
+.chat-main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .chat-user-info {
@@ -506,2058 +1295,2146 @@ header {
     gap: 12px;
 }
 
-.chat-actions {
+/* Group chat clickable links */
+.chat-avatar-link,
+.chat-details-link {
+    text-decoration: none;
+    color: inherit;
     display: flex;
+    align-items: center;
     gap: 12px;
+    transition: opacity 0.2s;
 }
 
-.clear-chat-btn {
-    background: var(--error-color);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    cursor: pointer;
+.chat-avatar-link:hover,
+.chat-details-link:hover {
+    opacity: 0.8;
+}
+
+.chat-avatar-link:hover .chat-avatar,
+.chat-details-link:hover h3 {
+    opacity: 0.8;
+}
+
+.chat-avatar img, .chat-avatar .avatar-fallback {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat-details h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--wa-text);
+    transition: color 0.2s;
+}
+
+.chat-details-link:hover h3 {
+    color: var(--wa-accent);
+}
+
+.status {
+    font-size: 13px;
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(244, 33, 46, 0.3);
+    color: var(--wa-text-muted);
 }
 
-.clear-chat-btn:hover {
-    background: #E0245E;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(244, 33, 46, 0.4);
+.status.online {
+    color: var(--wa-green);
 }
 
-.clear-chat-btn i {
-    font-size: 12px;
-}
-
-.chat-avatar {
-    width: 40px;
-    height: 40px;
-}
-
-.chat-avatar img,
-.chat-avatar .avatar-placeholder {
-    width: 100%;
-    height: 100%;
+.status .status-dot {
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--border-color);
+    background: currentColor;
 }
 
-.chat-avatar .avatar-placeholder {
-    background: var(--twitter-light);
+.status.online .status-dot {
+    animation: pulse 2s infinite;
+}
+
+/* Online indicator for chat list */
+.online-indicator {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--wa-text-muted);
+    border: 2px solid var(--wa-panel);
+    transition: background 0.3s;
+}
+
+.online-indicator.online {
+    background: var(--wa-green);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.chat-actions {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--twitter-gray);
-}
-
-.chat-avatar .avatar-placeholder.group-icon {
-    background: linear-gradient(135deg, #25d366, #128c7e);
-    color: white;
-}
-
-.chat-user-details h3 {
-    margin: 0 0 4px 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--twitter-dark);
-}
-
-.user-status {
-    font-size: 12px;
-    color: var(--success-color);
-}
-
-    .chat-messages {
-        flex: 1;
-        padding: 20px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        background: var(--twitter-light);
-        min-height: 0;
-    }
-
-/* WhatsApp-style message layout */
-.message {
-    display: flex;
-    align-items: flex-end;
-    max-width: 65%;
-    animation: messageSlideIn 0.3s ease-out;
-    position: relative;
     gap: 8px;
 }
 
-/* Limit message width on very wide screens for better readability */
-@media (min-width: 1200px) {
-    .message {
-        max-width: 55%;
-    }
+/* Messages */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-@media (min-width: 1600px) {
-    .message {
-        max-width: 45%;
-    }
+.action-btn {
+    width: 38px;
+    height: 38px;
+    border: none;
+    background: transparent;
+    color: var(--wa-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 16px;
 }
 
-@media (min-width: 2000px) {
-    .message {
-        max-width: 35%;
-    }
+.action-btn:hover { background: var(--wa-panel-hover); color: var(--wa-text); }
+
+.message {
+    display: flex;
+    gap: 8px;
+    max-width: 75%;
+    animation: msgIn 0.2s ease;
+}
+
+@keyframes msgIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .message.own {
     align-self: flex-end;
     flex-direction: row-reverse;
+    justify-self: flex-end;
 }
 
 .message.other {
     align-self: flex-start;
-    flex-direction: row;
+    justify-self: flex-start;
 }
 
-/* Message avatar - WhatsApp style */
 .message-avatar {
     flex-shrink: 0;
 }
 
-.message-avatar img,
-.avatar-placeholder-small {
-    width: 32px;
-    height: 32px;
+.message-avatar img, .message-avatar .avatar-fallback {
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--border-color);
+    margin-top: 2px;
 }
 
-.avatar-placeholder-small {
-    background: var(--twitter-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--twitter-gray);
-    font-size: 12px;
-}
-
-/* Message bubble container */
 .message-bubble {
     display: flex;
     flex-direction: column;
-    position: relative;
+    max-width: 100%;
+    align-items: flex-end;
+    word-break: break-word;
 }
 
-/* Username inside bubble */
-.message-username {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--twitter-blue);
-    margin-bottom: 4px;
-    padding: 0 12px;
+.message.own .message-bubble {
+    align-items: flex-end;
 }
 
-.message-delete {
-    background: var(--card-bg);
-    color: var(--error-color);
-    border: 1px solid var(--border-color);
-    padding: 6px 10px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 4px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.message-delete:hover {
-    color: white;
-    background: var(--error-color);
-    border-color: var(--error-color);
-    transform: scale(1.05);
-}
-
-.message-delete i {
-    font-size: 12px;
-}
-
-/* Mobile delete button - icon only with better visibility */
-@media (max-width: 768px) {
-    .message-delete {
-        padding: 10px;
-        font-size: 14px;
-        background: var(--card-bg);
-        color: var(--error-color);
-        border-radius: 50%;
-        margin-top: 6px;
-        min-width: 40px;
-        min-height: 40px;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-    
-    .message-delete i {
-        font-size: 16px;
-    }
-    
-    .message.own .message-delete {
-        background: var(--card-bg);
-        color: var(--error-color);
-        border: 1px solid var(--border-color);
-    }
-    
-    .message.other .message-delete {
-        background: var(--card-bg);
-        color: var(--error-color);
-        border: 1px solid var(--border-color);
-    }
-    
-    .message-delete:active {
-        background: var(--error-color);
-        color: white;
-        border-color: var(--error-color);
-    }
-}
-
-/* Remove button for deleted messages */
-.message-remove {
-    background: transparent;
-    color: var(--twitter-gray);
-    border: none;
-    padding: 4px 8px;
-    cursor: pointer;
-    font-size: 11px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 4px;
-    border-radius: 4px;
-}
-
-.message-remove:hover {
-    color: var(--error-color);
-    background: rgba(244, 33, 46, 0.1);
-}
-
-.message-remove i {
-    font-size: 10px;
-}
-
-/* Message sender info for group chats */
-.message-sender {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-}
-
-.sender-avatar,
-.sender-avatar-placeholder {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.sender-avatar-placeholder {
-    background: var(--twitter-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--twitter-gray);
-    font-size: 10px;
+.message.other .message-bubble {
+    align-items: flex-start;
 }
 
 .sender-name {
     font-size: 12px;
     font-weight: 600;
-    color: var(--twitter-dark);
+    color: #53bdeb;
+    margin-bottom: 3px;
+    padding: 0 12px;
 }
 
-/* For other user's messages */
-.message.other .message-delete {
-    color: rgba(0, 0, 0, 0.5);
-}
-
-.message.other .message-delete:hover {
-    color: #ff4757;
-}
-
-/* Message content - using layout colors */
 .message-content {
-    background: var(--twitter-blue);
-    color: white;
-    padding: 10px 14px;
-    border-radius: 18px;
-    border-top-left-radius: 0;
-    word-wrap: break-word;
-    word-break: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
+    padding: 8px 12px;
+    border-radius: 12px;
     font-size: 14px;
     line-height: 1.4;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     position: relative;
+    min-width: fit-content;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-width: 100%;
-    min-width: 0;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .message.own .message-content {
-    background: var(--twitter-blue);
-    color: white;
-    border-radius: 18px;
+    background: var(--wa-message-out);
+    color: #e9edef;
     border-top-right-radius: 4px;
+    border: 1px solid rgba(0, 168, 132, 0.2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .message.other .message-content {
-    background: var(--card-bg);
-    color: var(--twitter-dark);
-    border: 1px solid var(--border-color);
-    border-radius: 18px;
+    background: var(--wa-message-in);
+    color: #e9edef;
     border-top-left-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid rgba(83, 189, 235, 0.2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.message-content .text {
+    word-wrap: break-word;
+    display: block;
+    color: inherit;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Noto Sans Arabic', 'Tahoma', 'Arial', sans-serif;
+    unicode-bidi: embed;
+    line-height: 1.6;
+}
+
+/* Arabic and RTL text support */
+.message-content .text:lang(ar),
+.message-content .text[dir="rtl"],
+.message-content .text[lang="ar"] {
+    direction: rtl;
+    text-align: right;
+}
+
+.message-content .deleted-text {
+    font-style: italic;
+    color: rgba(233, 237, 239, 0.5);
+    font-size: 13px;
 }
 
 .message.deleted .message-content {
-    background: var(--hover-bg);
-    color: var(--twitter-gray);
-    font-style: italic;
     opacity: 0.7;
+    background: rgba(0, 0, 0, 0.1) !important;
 }
 
-.message.deleted .message-content em {
-    font-style: italic;
+/* Story Reply Message Style */
+.story-reply-message {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.message-meta {
+.story-reply-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--wa-text-muted);
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.story-reply-header i {
+    font-size: 11px;
+    color: var(--wa-accent);
+}
+
+.story-reply-label {
+    font-weight: 500;
+    color: #53bdeb;
+}
+
+.story-reply-content {
+    font-size: 14px;
+    line-height: 1.4;
+    color: #e9edef;
+}
+
+.message.own .story-reply-header {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Media album grid for multiple files - WhatsApp style */
+.message-media-album {
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    max-width: 100%;
+}
+
+/* Single image - full width */
+.media-grid-single {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.media-grid-single img {
+    width: 100%;
+    height: auto;
+    max-height: 250px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Two images - side by side */
+.media-grid-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    max-width: 100%;
+}
+
+.media-grid-two img,
+.media-grid-two video {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Three images - WhatsApp triangle layout */
+.media-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    max-width: 100%;
+}
+
+.media-grid-3 .media-item:first-child {
+    grid-row: 1 / 3;
+    grid-column: 1;
+}
+
+.media-grid-3 .media-item:first-child img {
+    height: 100%;
+    aspect-ratio: 1;
+}
+
+.media-grid-3 .media-item:nth-child(2),
+.media-grid-3 .media-item:nth-child(3) {
+    grid-column: 2;
+}
+
+/* Four images - WhatsApp grid */
+.media-grid-4 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    max-width: 100%;
+}
+
+.media-grid-4 .media-item {
+    position: relative;
+    aspect-ratio: 1;
+}
+
+.media-grid-4 .media-item img,
+.media-grid-4 .media-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Media item container */
+.media-item {
+    position: relative;
+    overflow: hidden;
+}
+
+.media-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Overlay for videos and +N counter */
+.media-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.media-overlay:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.media-overlay i {
+    color: white;
+    font-size: 32px;
+}
+
+.media-overlay .overlay-text {
+    color: white;
+    font-size: 24px;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Video play icon */
+.media-item.video .media-overlay i {
+    background: rgba(0, 0, 0, 0.6);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.message-media {
+    margin-bottom: 6px;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.message-media img, .message-media video {
+    max-width: 100%;
+    width: auto;
+    max-height: 250px;
+    display: block;
+}
+
+.message-time {
+    font-size: 11px;
+    color: rgba(233, 237, 239, 0.7);
     display: flex;
     align-items: center;
     justify-content: flex-end;
     gap: 4px;
     margin-top: 4px;
+    flex-wrap: nowrap;
 }
 
-.message-time {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.7);
-    margin-left: 8px;
+.message-time i.read {
+    color: #53bdeb;
+    /* WhatsApp blue for seen messages */
+}
+
+.message.own .message-time {
+    justify-content: flex-end;
 }
 
 .message.other .message-time {
-    color: var(--twitter-gray);
+    justify-content: flex-start;
 }
 
-/* Message text styling */
-.message-text {
-    display: inline;
-    word-wrap: break-word;
-    word-break: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
-    max-width: 100%;
+.message.own .message-time i {
+    font-size: 10px;
+    flex-shrink: 0;
 }
 
-/* Message bubble container - prevent overflow */
-.message-bubble {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    max-width: 100%;
-    min-width: 0;
-    overflow: hidden;
-}
-
-/* Checkmarks for sent messages */
-.message.own .message-time::after {
-    content: '✓✓';
+.delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--wa-text-muted);
+    cursor: pointer;
+    padding: 6px 10px;
     font-size: 12px;
-    margin-left: 4px;
-    color: rgba(255, 255, 255, 0.8);
+    border-radius: 6px;
+    margin-top: 4px;
+    align-self: flex-end;
 }
 
-.no-messages-chat {
-    flex: 1;
+.delete-btn:hover { background: var(--wa-red); color: white; }
+
+.message.deleted .message-content { opacity: 0.6; }
+.deleted-text { font-style: italic; }
+
+/* Group Invite */
+.invite-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+}
+
+.invite-icon {
+    width: 42px;
+    height: 42px;
+    background: var(--wa-accent);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    color: var(--twitter-gray);
+    color: white;
+    font-size: 18px;
 }
 
-.no-messages-chat p {
-    margin: 0;
-    font-size: 16px;
-    color: var(--twitter-dark);
+.invite-content { flex: 1; }
+.invite-title { 
+    font-weight: 600; 
+    margin-bottom: 3px;
+    color: #e9edef;
+}
+.invite-text { 
+    font-size: 12px; 
+    opacity: 0.8;
+    color: #e9edef;
 }
 
-/* System message styling */
+.accept-btn {
+    background: var(--wa-accent);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.accept-btn:hover { background: var(--wa-green); }
+.accept-btn.joined { background: var(--wa-text-muted); }
+
+/* System Message */
 .system-message {
     align-self: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 12px 0;
-    max-width: 80%;
-}
-
-.system-message-text {
-    background: rgba(0, 0, 0, 0.05);
-    color: var(--twitter-gray);
-    font-size: 12px;
+    background: rgba(0, 0, 0, 0.2);
     padding: 6px 14px;
     border-radius: 12px;
     text-align: center;
+    margin: 10px 0;
 }
 
-.system-message-time {
-    font-size: 10px;
-    color: var(--twitter-gray);
-    margin-top: 4px;
-    opacity: 0.7;
+.system-text { font-size: 12px; color: var(--wa-text-muted); }
+.system-time { font-size: 10px; color: var(--wa-text-muted); opacity: 0.7; display: block; margin-top: 3px; }
+
+/* No Messages */
+.no-messages {
+    align-self: center;
+    text-align: center;
+    color: var(--wa-text-muted);
+    margin-top: 60px;
 }
 
-.chat-input {
-    padding: 16px 20px;
-    border-top: 1px solid var(--border-color);
-    background: var(--card-bg);
-}
+.no-messages i { font-size: 56px; margin-bottom: 16px; opacity: 0.2; }
+.no-messages p { margin: 0; font-size: 15px; }
 
-.chat-input form {
+/* Input Area - styles only (position is fixed in earlier CSS) */
+#messageForm { display: flex; flex-direction: column; gap: 8px; }
+
+/* Typing Indicator */
+.typing-indicator {
     display: flex;
-    gap: 12px;
     align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    margin-bottom: 4px;
+    color: var(--wa-text-muted);
+    font-size: 13px;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.typing-indicator.hiding {
+    opacity: 0;
+    transform: translateY(5px);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.typing-dots {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+}
+
+.typing-dots .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--wa-text-muted);
+    animation: typingBounce 1.4s infinite ease-in-out both;
+}
+
+.typing-dots .dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.typing-dots .dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes typingBounce {
+    0%, 80%, 100% {
+        transform: scale(0.6);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.media-preview {
+    background: var(--wa-bg);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+/* Carousel Preview */
+.preview-carousel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.carousel-arrow {
+    background: var(--wa-panel);
+    border: 1px solid var(--wa-border);
+    color: var(--wa-text);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.carousel-arrow:hover {
+    background: var(--wa-accent);
+    border-color: var(--wa-accent);
+}
+
+.carousel-arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.preview-slides {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    height: 200px;
+}
+
+.preview-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-slide.active {
+    opacity: 1;
+    z-index: 1;
+}
+
+.preview-slide img,
+.preview-slide video {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+.preview-slide .slide-number {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.preview-slide .remove-slide {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 59, 48, 0.9);
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.preview-slide .remove-slide:hover {
+    background: rgba(255, 59, 48, 1);
+    transform: scale(1.1);
+}
+
+.preview-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.preview-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--wa-border);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.preview-indicator.active {
+    background: var(--wa-accent);
+    width: 24px;
+    border-radius: 4px;
+}
+
+.preview-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--wa-border);
+}
+
+.preview-info #previewCount {
+    font-size: 12px;
+    color: var(--wa-text-muted);
+}
+
+.clear-all {
+    background: transparent;
+    border: none;
+    color: var(--wa-red);
+    cursor: pointer;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+
+.clear-all:hover {
+    background: rgba(255, 59, 48, 0.1);
+    border-radius: 6px;
+}
+
+.input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.attach-btn, .emoji-btn {
+    background: transparent;
+    border: none;
+    color: var(--wa-text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 8px;
+}
+
+.attach-btn:hover, .emoji-btn:hover { color: var(--wa-text); }
+
+#messageInput {
+    flex: 1;
+    padding: 12px 16px;
+    background: var(--wa-bg);
+    border: none;
+    border-radius: 24px;
+    color: var(--wa-text);
+    font-size: 14px;
+    outline: none;
 }
 
 #messageInput {
     flex: 1;
-    padding: 14px 18px;
-    border: 2px solid var(--border-color);
-    border-radius: 25px;
-    font-size: 14px;
-    background: var(--input-bg);
-    color: var(--twitter-dark);
+    padding: 12px 16px;
+    background: var(--wa-bg);
+    border: none;
+    border-radius: 20px;
+    color: var(--wa-text);
+    font-size: 15px;
     outline: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 #messageInput:focus {
-    border-color: var(--focus-border);
-    background: var(--card-bg);
-    box-shadow: 0 0 0 4px rgba(29, 161, 242, 0.15);
-    transform: translateY(-1px);
+    box-shadow: none;
 }
 
 .send-btn {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     border: none;
-    background: var(--twitter-blue);
+    background: var(--wa-accent);
     color: white;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(29, 161,242, 0.3);
+    font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
-.send-btn:hover {
-    background: #1A91DA;
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(29, 161, 242, 0.4);
+.send-btn:active,
+.send-btn:focus {
+    background: var(--wa-accent) !important;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
 }
 
-@keyframes messageSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-
-
-/* Enhanced Responsive Design */
-@media (max-width: 1024px) {
-    .chat-sidebar {
-        width: 320px;
-    }
-
-    .chat-header-main {
-        padding: 14px 16px;
-    }
-
-    .chat-user-info {
-        gap: 10px;
-    }
-
-    .chat-user-details h3 {
-        font-size: 15px;
-    }
-
-    .chat-actions {
-        gap: 10px;
-    }
-
-    .clear-chat-btn {
-        padding: 6px 14px;
-        font-size: 13px;
-    }
-
-    .clear-chat-btn i {
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 768px) {
-    .chat-page {
-        height: 100vh;
-        padding-top: 56px;
-    }
-
-    .chat-container {
-        flex-direction: column;
-        height: calc(100vh - 56px);
-    }
-
-    .chat-sidebar {
-        display: none;
-        position: fixed;
-        top: 56px;
-        left: 0;
-        width: 100%;
-        height: calc(100vh - 56px);
-        z-index: 1000;
-        background: var(--card-bg);
-        border-right: none;
-        border-top: 1px solid var(--border-color);
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-    }
-
-    .chat-sidebar.mobile-open {
-        transform: translateX(0);
-    }
-
-    .chat-main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    /* FIXED HEADER - Always below main header */
-    .chat-header-main {
-        position: fixed !important;
-        top: 56px !important;
-        left: 0 !important;
-        right: 0 !important;
-        z-index: 9998 !important;
-        padding: 12px 16px;
-        background: var(--card-bg);
-        border-bottom: 1px solid var(--border-color);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        flex-shrink: 0 !important;
-        min-height: 56px;
-        width: 100% !important;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.1) !important;
-    }
-
-    .chat-user-info {
-        margin-left: 2px;
-        gap: 10px;
-    }
-
-    .chat-user-details h3 {
-        font-size: 16px;
-        font-weight: 600;
-    }
-
-    .user-status {
-        font-size: 12px;
-    }
-
-    .chat-actions {
-        margin-left: auto;
-        gap: 8px;
-    }
-
-    .clear-chat-btn {
-        padding: 6px 12px;
-        font-size: 12px;
-        min-height: 32px;
-    }
-
-    .chat-messages {
-        flex: 1;
-        padding: 12px 16px;
-        padding-bottom: 80px;
-        overflow-y: auto;
-        background: var(--twitter-light);
-        margin-top: 56px;
-        height: calc(100vh - 180px);
-        min-height: 200px;
-    }
-
-    .message {
-        max-width: 85%;
-        margin-bottom: 8px;
-    }
-
-    .message-content {
-        font-size: 14px;
-        padding: 10px 14px;
-        border-radius: 16px;
-    }
-
-    .message-time {
-        font-size: 10px;
-        margin-top: 2px;
-    }
-
-    .message-delete {
-        width: 20px;
-        height: 20px;
-        font-size: 8px;
-    }
-
-    .chat-input {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        padding: 12px 16px !important;
-        padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
-        border-top: 1px solid var(--border-color) !important;
-        background: var(--card-bg) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
-        z-index: 9999 !important;
-        box-shadow: 0 -6px 20px rgba(0,0,0,0.15) !important;
-        width: 100% !important;
-    }
-
-    #messageInput {
-        padding: 12px 16px;
-        font-size: 16px;
-        border-radius: 20px;
-    }
-
-    #messageInput:focus {
-        border-color: var(--focus-border);
-    }
-
-    .send-btn {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-    }
-
-    .back-btn {
-        display: none;
-    }
-
-    .no-messages-chat {
-        padding: 40px 20px;
-        text-align: center;
-    }
-
-    .no-messages-chat p {
-        font-size: 14px;
-    }
-}
-
-@media (max-width: 480px) {
-    .chat-page {
-        height: calc(100vh - 56px);
-    }
-
-    .chat-sidebar {
-        top: 56px;
-        height: calc(100vh - 56px);
-    }
-
-    .chat-header-main {
-        padding: 10px 12px;
-    }
-
-    .chat-header-main::before {
-        left: 12px;
-        width: 28px;
-        height: 28px;
-    }
-
-    .chat-user-info {
-        margin-left: 2px;
-    }
-
-    .chat-user-details h3 {
-        font-size: 15px;
-    }
-
-    .chat-actions {
-        gap: 6px;
-    }
-
-    .clear-chat-btn {
-        padding: 5px 10px;
-        font-size: 11px;
-    }
-
-    .chat-messages {
-        padding: 10px 12px;
-        padding-bottom: 80px;
-    }
-
-    .message {
-        max-width: 90%;
-        margin-bottom: 6px;
-    }
-
-    .message-content {
-        font-size: 13px;
-        padding: 8px 12px;
-    }
-
-    .message-time {
-        font-size: 9px;
-    }
-
-    .chat-input {
-        padding: 10px 12px;
-    }
-
-    #messageInput {
-        padding: 10px 14px;
-        font-size: 16px;
-    }
-
-    .send-btn {
-        width: 36px;
-        height: 36px;
-    }
-
-    .no-messages-chat {
-        padding: 30px 15px;
-    }
-
-    .no-messages-chat p {
-        font-size: 13px;
-    }
-}
-
-@media (max-width: 360px) {
-    .chat-header-main {
-        padding: 8px 10px;
-    }
-
-    .chat-header-main::before {
-        left: 10px;
-        width: 24px;
-        height: 24px;
-    }
-
-    .chat-user-info {
-        margin-left: 2px;
-    }
-
-    .chat-user-details h3 {
-        font-size: 14px;
-    }
-
-    .chat-actions {
-        gap: 4px;
-    }
-
-    .clear-chat-btn {
-        padding: 4px 8px;
-        font-size: 10px;
-    }
-
-    .chat-messages {
-        padding: 8px 10px;
-        padding-bottom: 80px;
-    }
-
-    .message {
-        max-width: 95%;
-    }
-
-    .message-content {
-        font-size: 12px;
-        padding: 6px 10px;
-    }
-
-    .chat-input {
-        padding: 8px 10px;
-    }
-
-    #messageInput {
-        padding: 8px 12px;
-    }
-
-    .send-btn {
-        width: 32px;
-        height: 32px;
-    }
-}
-
-/* Touch-friendly interactions for mobile */
-@media (hover: none) and (pointer: coarse) {
-    .conversation-item {
-        min-height: 60px;
-        padding: 12px 16px;
-    }
-
-    .clear-chat-btn:hover {
-        transform: none;
-    }
-
-    .send-btn:hover {
-        transform: none;
-    }
-}
-
-/* Landscape orientation adjustments */
-@media (max-height: 500px) and (orientation: landscape) {
-    .chat-sidebar {
-        height: 100vh;
-        top: 0;
-    }
-
-    .chat-header-main {
-        padding: 8px 12px;
-    }
-
-    .chat-messages {
-        padding: 8px 12px;
-        max-height: calc(100vh - 120px);
-    }
-
-    .chat-input {
-        padding: 8px 12px;
-    }
-
-    .message {
-        max-width: 80%;
-        margin-bottom: 4px;
-    }
-
-    .message-content {
-        font-size: 13px;
-        padding: 6px 10px;
-    }
-}
-
-.no-conversations {
-    padding: 40px 20px;
-    text-align: center;
-    color: #6c757d;
-}
-
-.no-conversations i {
-    font-size: 48px;
-    margin-bottom: 16px;
-    display: block;
-    opacity: 0.5;
-}
-
-.no-conversations p {
-    margin: 8px 0;
-}
-
-/* Media Upload Styles */
-.input-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-}
-
-.media-btn {
-    width: 44px;
-    height: 44px;
-    border: none;
-    background: transparent;
-    color: var(--twitter-blue);
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    font-size: 20px;
-}
-
-.media-btn:hover {
-    background: rgba(29, 161, 242, 0.1);
-    transform: scale(1.05);
-}
-
-.media-preview {
-    margin-bottom: 12px;
-    border-radius: 12px;
-    overflow: hidden;
-    background: var(--hover-bg);
-    position: relative;
-    z-index: 10;
-}
-
-.media-preview-container {
-    position: relative;
-    display: inline-block;
-    max-width: 200px;
-    max-height: 200px;
-}
-
-.media-preview-container img,
-.media-preview-container video {
-    max-width: 200px;
-    max-height: 200px;
-    border-radius: 8px;
-    object-fit: cover;
-}
-
-.remove-media-btn {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 24px;
-    height: 24px;
-    border: none;
-    background: var(--error-color);
-    color: white;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-
-.remove-media-btn:hover {
-    background: #E0245E;
-    transform: scale(1.1);
-}
-
-/* Message Media Styles */
-.message-media {
-    margin-bottom: 8px;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.message-image {
-    max-width: 100%;
-    max-height: 300px;
-    min-width: 150px;
-    cursor: pointer;
-    border-radius: 12px;
-    object-fit: cover;
-    transition: transform 0.2s ease;
-}
-
-.message-image:hover {
-    transform: scale(1.02);
-}
-
-.message-video {
-    max-width: 100%;
-    max-height: 300px;
-    min-width: 200px;
-    border-radius: 12px;
-    background: #000;
-}
-
-/* Media Viewer Modal */
+/* Media Viewer */
 .media-viewer {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: rgba(0, 0, 0, 0.95);
     z-index: 99999;
     display: none;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
 }
 
-.media-viewer.active {
-    display: flex;
-}
+.media-viewer.active { display: flex; }
 
-.media-viewer-close {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 44px;
-    height: 44px;
-    border: none;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border-radius: 50%;
-    cursor: pointer;
+.viewer-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
-    transition: all 0.2s ease;
-}
-
-.media-viewer-close:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.media-viewer img {
     max-width: 90%;
-    max-height: 90%;
+    max-height: 90vh;
+}
+
+#viewerImage,
+#viewerVideo {
+    max-width: 90%;
+    max-height: 90vh;
     object-fit: contain;
     border-radius: 8px;
 }
 
-/* Media upload progress */
-.upload-progress {
+.viewer-close {
     position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-}
-
-.upload-progress-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Mobile styles for media */
-@media (max-width: 768px) {
-    .media-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-
-    /* Hide image preview on mobile - show count badge on send button instead */
-    .media-preview {
-        display: none !important;
-    }
-
-    /* Badge on send button for media count */
-    .send-btn.has-media {
-        position: relative;
-    }
-
-    .send-btn .media-count-badge {
-        position: absolute;
-        top: -6px;
-        right: -6px;
-        background: var(--error-color);
-        color: white;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        font-size: 11px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .message-image,
-    .message-video {
-        max-height: 250px;
-    }
-
-    .media-viewer-close {
-        top: 10px;
-        right: 10px;
-        width: 36px;
-        height: 36px;
-    }
-}
-
-/* Group Invite Card Styles */
-.group-invite-message {
-    max-width: 75% !important;
-}
-
-.group-invite-card {
-    background: linear-gradient(135deg, rgba(37, 211, 102, 0.1), rgba(18, 140, 126, 0.1));
-    border: 1px solid rgba(37, 211, 102, 0.3);
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    min-width: 200px;
-}
-
-.message.own .group-invite-card {
-    background: linear-gradient(135deg, rgba(37, 211, 102, 0.15), rgba(18, 140, 126, 0.15));
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-.group-invite-icon {
-    width: 50px;
-    height: 50px;
-    background: linear-gradient(135deg, #25d366, #128c7e);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
     color: white;
     font-size: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
 }
 
-.group-invite-content {
-    text-align: center;
+.viewer-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
 }
 
-.group-invite-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--twitter-dark);
-    margin-bottom: 4px;
-}
-
-.message.own .group-invite-title {
-    color: white;
-}
-
-.group-invite-text {
-    font-size: 13px;
-    color: var(--twitter-gray);
-}
-
-.message.own .group-invite-text {
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.accept-invite-btn {
-    background: linear-gradient(135deg, #25d366, #128c7e);
-    color: white;
+.viewer-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
     border: none;
-    padding: 10px 20px;
+    color: white;
+    font-size: 24px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.viewer-arrow.left { left: 30px; }
+.viewer-arrow.right { right: 30px; }
+
+.viewer-arrow:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.viewer-arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.viewer-counter {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 8px 16px;
     border-radius: 20px;
     font-size: 14px;
     font-weight: 600;
-    cursor: pointer;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 99998;
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+    justify-content: center;
 }
 
-.accept-invite-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+.modal-box {
+    background: var(--wa-panel);
+    width: 100%;
+    max-width: 420px;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
-.accept-invite-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
+.modal-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--wa-border);
 }
 
-.accept-invite-btn.joined {
-    background: var(--twitter-gray);
-    cursor: default;
+.modal-header h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--wa-text);
+    flex: 1;
+    text-align: center;
 }
 
-@media (max-width: 480px) {
-    .media-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
+.spacer { width: 36px; }
+
+.modal-body { padding: 16px; }
+
+.search-box {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.search-box i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--wa-text-muted);
+}
+
+.search-input {
+    width: 100%;
+    padding: 11px 14px 11px 42px;
+    background: var(--wa-bg);
+    border: none;
+    border-radius: 8px;
+    color: var(--wa-text);
+    font-size: 14px;
+    outline: none;
+}
+
+.search-input:focus { box-shadow: 0 0 0 2px var(--wa-accent); }
+
+/* Delete Message Modal */
+.delete-modal .modal-header h3 {
+    text-align: left;
+}
+
+.delete-modal .close-btn {
+    background: none;
+    border: none;
+    color: var(--wa-text-muted);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: 0.2s;
+}
+
+.delete-modal .close-btn:hover {
+    background: var(--wa-border);
+    color: var(--wa-text);
+}
+
+.delete-description {
+    color: var(--wa-text-muted);
+    font-size: 14px;
+    margin: 0 0 16px 0;
+}
+
+.delete-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: var(--wa-bg);
+    border: 1px solid var(--wa-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: left;
+}
+
+.delete-option:hover {
+    background: var(--wa-border);
+    border-color: var(--wa-text-muted);
+}
+
+.delete-option:last-child {
+    margin-bottom: 0;
+}
+
+.delete-option-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--wa-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.delete-option:nth-child(2) .delete-option-icon {
+    color: var(--wa-red);
+    background: rgba(241, 92, 109, 0.1);
+}
+
+.delete-option:nth-child(3) .delete-option-icon {
+    color: var(--wa-text-muted);
+    background: rgba(134, 150, 160, 0.1);
+}
+
+.delete-option-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.delete-option-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--wa-text);
+    margin-bottom: 4px;
+}
+
+.delete-option-desc {
+    font-size: 13px;
+    color: var(--wa-text-muted);
+    line-height: 1.4;
+}
+
+.results-list { max-height: 320px; overflow-y: auto; }
+
+.result-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.result-item:hover { background: var(--wa-panel-hover); }
+
+.result-item img, .result-item .avatar-fallback {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+
+.result-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.result-name { 
+    font-size: 14px; 
+    color: var(--wa-text); 
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.result-fullname {
+    font-size: 12px;
+    color: var(--wa-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    /* Show back button on mobile */
+    .back-btn-mobile {
+        display: flex;
     }
-    
-    .group-invite-card {
-        padding: 12px;
-        min-width: 180px;
+
+    .chat-sidebar {
+        position: fixed;
+        left: 0;
+        top: 64px;
+        bottom: 0;
+        width: 100%;
+        max-width: none;
+        z-index: 9999;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        margin-top: 0;
+        border-right: 1px solid var(--wa-border);
+        background: var(--wa-bg);
     }
-    
-    .group-invite-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-    
-    .group-invite-title {
-        font-size: 14px;
-    }
-    
-    .group-invite-text {
-        font-size: 12px;
-    }
-    
-    .accept-invite-btn {
-        padding: 8px 16px;
-        font-size: 13px;
+
+    .chat-sidebar.active { transform: translateX(0); }
+
+    /* Hide main website mobile nav on chat pages */
+    .mobile-nav, .app-layout ~ .mobile-nav {
+        display: none !important;
     }
 }
 
-    .media-preview-container {
-        max-width: 120px;
-        max-height: 120px;
+@media (max-width: 600px) {
+    .chat-page {
+        height: calc(100vh - 56px);
     }
 
-    .media-preview-container img,
-    .media-preview-container video {
-        max-width: 120px;
-        max-height: 120px;
+    .chat-header {
+        top: 64px;
+        height: 56px;
+        padding: 10px 14px;
     }
 
-    .message-image,
-    .message-video {
-        max-height: 200px;
-        min-width: 120px;
+    .chat-sidebar {
+        top: 120px;
+    }
+
+    .chat-main-content {
+        padding-top: 10px;
+        padding-bottom: 70px;
+    }
+
+    .chat-messages {
+        padding: 14px 10px;
+    }
+
+    .chat-input-area {
+        padding: 10px 12px;
+    }
+
+    /* Mobile message sizing */
+    .message { 
+        max-width: 88%;
+    }
+    
+    /* Ensure messages with short text don't stretch */
+    .message-content {
+        max-width: 100%;
+        padding: 8px 10px;
+    }
+    
+    /* Sender name smaller on mobile */
+    .sender-name {
+        font-size: 11px;
+        padding: 0 10px;
+    }
+    
+    /* Better media sizing on mobile */
+    .message-media img, 
+    .message-media video,
+    .media-grid-single img {
+        max-height: 180px;
+        max-width: 100%;
+    }
+    
+    .media-grid-two,
+    .media-grid-3,
+    .media-grid-4 {
+        max-width: 100%;
+    }
+    
+    /* Compact time and status on mobile */
+    .message-time {
+        font-size: 10px;
+        margin-top: 2px;
+    }
+    
+    .message.own .message-time i {
+        font-size: 9px;
+    }
+    
+    /* Delete button on mobile */
+    .delete-btn {
+        padding: 4px 8px;
+        font-size: 11px;
+        margin-top: 2px;
+    }
+
+    /* Hide main website mobile nav on chat pages */
+    .mobile-nav {
+        display: none !important;
+    }
+}
+
+/* Scrollbar styling */
+.chat-messages::-webkit-scrollbar { width: 6px; }
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--wa-border); border-radius: 3px; }
+
+.conv-list::-webkit-scrollbar { width: 6px; }
+.conv-list::-webkit-scrollbar-track { background: transparent; }
+.conv-list::-webkit-scrollbar-thumb { background: var(--wa-border); border-radius: 3px; }
+
+/* Tablet view optimization */
+@media (min-width: 601px) and (max-width: 900px) {
+    .message {
+        max-width: 70%;
+    }
+    
+    .message-media img,
+    .message-media video,
+    .media-grid-single img {
+        max-height: 220px;
     }
 }
 </style>
 
 <script>
-// Initialize polling for new messages
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Real-time messaging using polling');
-
-    // Update online status when user is active
-    updateOnlineStatus();
-    setInterval(updateOnlineStatus, 3000); // Update every 3 seconds
-
-    // Start polling for new messages
-    startMessagePolling();
-
-    // Scroll to bottom with a slight delay for mobile rendering
-    setTimeout(() => {
-        scrollToBottom(false); // Immediate scroll on load for mobile
-    }, 100);
-
-    // Focus on input only on desktop (avoid auto-zoom on mobile)
-    const messageInput = document.getElementById('messageInput');
-    const isMobile = window.innerWidth <= 768;
-    if (messageInput && !isMobile) {
-        messageInput.focus();
-    }
-
-    // Add mobile menu toggle functionality to the header (pseudo-element can't be selected directly)
-    const chatHeader = document.querySelector('.chat-header-main');
-    if (chatHeader) {
-        // Check if click is within the menu button area (left side)
-        chatHeader.addEventListener('click', function(event) {
-            const rect = chatHeader.getBoundingClientRect();
-            const clickX = event.clientX - rect.left;
-
-            // Menu button area is approximately the left 48px
-            if (clickX <= 48 && window.innerWidth <= 768) {
-                event.preventDefault();
-                toggleMobileSidebar();
-                return;
-            }
-
-            // Let other clicks pass through normally
-        });
-    }
-
-    // Close sidebar when clicking outside on mobile
-    document.addEventListener('click', function(event) {
-        const sidebar = document.querySelector('.chat-sidebar');
-        const chatHeader = document.querySelector('.chat-header-main');
-
-        if (window.innerWidth <= 768 &&
-            sidebar &&
-            sidebar.classList.contains('mobile-open') &&
-            !sidebar.contains(event.target) &&
-            chatHeader && !chatHeader.contains(event.target)) {
-                toggleMobileSidebar();
-        }
-    });
-});
-
-function sendMessage(event) {
-    event.preventDefault();
-
-    const input = document.getElementById('messageInput');
-    const content = input.value.trim();
-
-    if (!content) {
-        input.focus();
-        return;
-    }
-
-    // Disable input while sending
-    input.disabled = true;
-    document.getElementById('sendButton').disabled = true;
-
-    fetch(`{{ route('chat.store', $conversation) }}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-            content: content
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Add message immediately to chat
-            addMessageToChat({
-                id: data.message.id,
-                content: data.message.content,
-                created_at: new Date().toISOString(),
-                user: {
-                    id: {{ auth()->id() }},
-                    name: '{{ auth()->user()->name }}',
-                    avatar: '{{ auth()->user()->profile?->avatar }}'
-                }
-            });
-            input.value = '';
-        } else {
-            alert('Failed to send message. Please try again.');
-        }
-    })
-    .catch(error => {
-        console.error('Error sending message:', error);
-        alert('Error sending message. Please try again.');
-    })
-    .finally(() => {
-        input.disabled = false;
-        document.getElementById('sendButton').disabled = false;
-        // Focus input only on desktop after sending (avoid mobile keyboard)
-        const isMobile = window.innerWidth <= 768;
-        if (!isMobile) {
-            input.focus();
-        }
-    });
-}
-
-function addMessageToChat(event) {
-    const messagesContainer = document.getElementById('chatMessages');
-
-    // Remove "no messages" placeholder if it exists
-    const noMessagesPlaceholder = messagesContainer.querySelector('.no-messages-chat');
-    if (noMessagesPlaceholder) {
-        noMessagesPlaceholder.remove();
-    }
-
-    const messageDiv = document.createElement('div');
-    const isOwnMessage = event.user.id === {{ auth()->id() }};
-    messageDiv.className = `message ${isOwnMessage ? 'own' : 'other'}`;
-    messageDiv.setAttribute('data-message-id', event.id);
-
-    // Build avatar HTML for received messages
-    let avatarHtml = '';
-    if (!isOwnMessage && event.user) {
-        if (event.user.avatar) {
-            avatarHtml = `<div class="message-avatar">
-                <img src="/storage/${event.user.avatar}" alt="${event.user.name}">
-            </div>`;
-        } else {
-            avatarHtml = `<div class="message-avatar">
-                <div class="avatar-placeholder-small">
-                    <i class="fas fa-user"></i>
-                </div>
-            </div>`;
-        }
-    }
-
-    // Build username HTML for received messages
-    let usernameHtml = '';
-    if (!isOwnMessage && event.user) {
-        usernameHtml = `<div class="message-username">${event.user.name}</div>`;
-    }
-
-    // Build delete button HTML
-    let deleteButtonHtml = '';
-    if (isOwnMessage) {
-        deleteButtonHtml = `<button class="message-delete" onclick="deleteMessage(${event.id})" title="Delete">
-            <i class="fas fa-trash"></i>
-        </button>`;
-    }
-
-    // Build media HTML if present
-    let mediaHtml = '';
-    if (event.type === 'image' && event.media_path) {
-        mediaHtml = `<div class="message-media">
-            <img src="/storage/${event.media_path}" alt="Image" class="message-image" onclick="openMediaViewer(this.src)">
-        </div>`;
-    } else if (event.type === 'video' && event.media_path) {
-        mediaHtml = `<div class="message-media">
-            <video src="/storage/${event.media_path}" controls class="message-video"></video>
-        </div>`;
-    }
-
-    // Build message text
-    let messageText = '';
-    if (event.content) {
-        messageText = `<span class="message-text">${event.content}</span>`;
-    }
-
-    messageDiv.innerHTML = `
-        ${avatarHtml}
-        <div class="message-bubble">
-            ${usernameHtml}
-            <div class="message-content">
-                ${mediaHtml}
-                ${messageText}
-                <span class="message-time">${formatTime(event.created_at)}</span>
-            </div>
-            ${deleteButtonHtml}
-        </div>
-    `;
-
-    messagesContainer.appendChild(messageDiv);
-    scrollToBottom();
-}
-
-// Format time with AM/PM
-function formatTime(dateStr) {
-    const date = new Date(dateStr);
-    let hours = date.getHours();
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12; // the hour '0' should be '12'
-    return `${hours}:${minutes} ${ampm}`;
-}
-
-function scrollToBottom(smooth = true) {
-    const messagesContainer = document.getElementById('chatMessages');
-    if (!messagesContainer) return;
-
-    const scrollOptions = smooth ? { behavior: 'smooth', block: 'end', inline: 'nearest' } : { block: 'end', inline: 'nearest' };
-
-    // Use modern scrollIntoView for better mobile support
-    const lastMessage = messagesContainer.lastElementChild;
-    if (lastMessage) {
-        lastMessage.scrollIntoView(scrollOptions);
-    } else {
-        // Fallback to traditional scroll
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-}
-
-function startMessagePolling() {
-    // Check for new messages and message updates every 3 seconds
-    setInterval(() => {
-        // Poll for messages in current conversation
-        fetch(`{{ route('chat.messages', $conversation) }}`, {
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Handle new messages
-                if (data.messages && data.messages.length > 0) {
-                    console.log('New messages received:', data.messages.length);
-
-                    const existingMessageIds = Array.from(document.querySelectorAll('[data-message-id]'))
-                        .map(el => parseInt(el.getAttribute('data-message-id')));
-
-                    data.messages.forEach(message => {
-                        if (!existingMessageIds.includes(message.id)) {
-                            console.log('Adding new message:', message.id);
-                            addMessageToChat({
-                                id: message.id,
-                                content: message.content,
-                                created_at: message.created_at,
-                                user: message.sender
-                            });
-                        }
-                    });
-
-                    // Mark messages as read after displaying them
-                    markMessagesAsRead();
-                }
-
-                // Handle message updates (deletions, etc.) - removed auto-removal of deleted messages
-                // Deleted messages now stay visible with "message deleted" text
-            }
-        })
-        .catch(error => {
-            console.error('Error polling messages:', error);
-        });
-        
-        // Poll for new messages from OTHER conversations (for toast notifications)
-        pollForOtherChatMessages();
-    }, 3000); // Poll every 3 seconds
-}
-
-// Poll for messages from other conversations and show toast notifications
-function pollForOtherChatMessages() {
-    const currentConversationId = {{ $conversation->id }};
-    
-    fetch('/api/messages/new', {
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.new_messages && data.new_messages.length > 0) {
-            data.new_messages.forEach(msg => {
-                // Only show toast for messages from OTHER conversations
-                if (msg.conversation_id !== currentConversationId) {
-                    const senderName = msg.sender_name;
-                    const messagePreview = msg.content;
-                    const groupName = msg.group_name;
-                    
-                    let toastMessage;
-                    if (msg.is_group && groupName) {
-                        toastMessage = `${groupName} - ${senderName}: ${messagePreview}`;
-                    } else {
-                        toastMessage = `New message from ${senderName}: ${messagePreview}`;
-                    }
-                    
-                    // Show toast notification
-                    if (typeof showToast === 'function') {
-                        showToast(toastMessage, 'info', 5000);
-                    } else {
-                        // Fallback alert
-                        console.log('Toast:', toastMessage);
-                    }
-                }
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error polling for other chat messages:', error);
-    });
-}
-
-function markMessagesAsRead() {
-    fetch(`{{ route('chat.mark-read', $conversation) }}`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('Messages marked as read');
-        }
-    })
-    .catch(error => {
-        console.error('Error marking messages as read:', error);
-    });
-}
-
-// Handle enter key to send message
-document.getElementById('messageInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage(e);
-    }
-});
-
-function deleteMessage(messageId) {
-    if (!confirm('Are you sure you want to delete this message?')) {
-        return;
-    }
-
-    fetch(`/chat/message/${messageId}`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update the message to show "message deleted" with a remove button
-            const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
-            if (messageElement) {
-                messageElement.classList.add('deleted');
-                const contentElement = messageElement.querySelector('.message-content');
-                const metaElement = messageElement.querySelector('.message-meta');
-                const deleteButton = messageElement.querySelector('.message-delete');
-                
-                if (contentElement) {
-                    contentElement.innerHTML = '<em>message deleted</em>';
-                }
-                
-                // Replace delete button with remove button
-                if (deleteButton) {
-                    deleteButton.remove();
-                }
-                
-                // Add remove button to completely hide the message
-                if (metaElement) {
-                    const removeButton = document.createElement('button');
-                    removeButton.className = 'message-remove';
-                    removeButton.innerHTML = '<i class="fas fa-times"></i> Remove';
-                    removeButton.title = 'Remove from view';
-                    removeButton.onclick = function() {
-                        messageElement.remove();
-                    };
-                    metaElement.appendChild(removeButton);
-                }
-                
-                console.log('Message deleted successfully');
-            }
-        } else {
-            alert('Failed to delete message');
-        }
-    })
-    .catch(error => {
-        console.error('Error deleting message:', error);
-        alert('Error deleting message');
-    });
-}
-
-function toggleMobileSidebar() {
-    const sidebar = document.querySelector('.chat-sidebar');
-    if (sidebar) {
-        sidebar.classList.toggle('mobile-open');
-    }
-}
-
+// Sidebar toggle for mobile
 function toggleSidebar() {
-    const sidebar = document.querySelector('.chat-sidebar');
-    if (sidebar) {
-        sidebar.classList.toggle('open');
-    }
+    document.getElementById('chatSidebar').classList.toggle('active');
 }
 
-function clearChat() {
-    if (!confirm('Are you sure you want to delete ALL messages in this chat? This will remove messages from both you and the other person. This action cannot be undone.')) {
-        return;
-    }
-
-    fetch(`{{ route('chat.clear', $conversation) }}`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Remove ALL messages from the chat
-            const messagesContainer = document.getElementById('chatMessages');
-            const allMessages = messagesContainer.querySelectorAll('.message');
-
-            allMessages.forEach(message => {
-                message.remove();
-            });
-
-            console.log('Full chat cleared successfully');
-            // Show success toast
-            if (typeof showToast === 'function') {
-                showToast('Chat cleared successfully! All messages have been deleted.', 'success');
-            } else {
-                alert('Chat cleared successfully! All messages have been deleted.');
-            }
-        } else {
-            alert('Failed to clear chat');
-        }
-    })
-    .catch(error => {
-        console.error('Error clearing chat:', error);
-        alert('Error clearing chat');
+// Filter sidebar conversations
+function filterSidebarConversations(q) {
+    const items = document.querySelectorAll('#sidebarConvList .conversation-item');
+    const query = q.toLowerCase();
+    items.forEach(item => {
+        const name = item.getAttribute('data-name')?.toLowerCase() || '';
+        item.style.display = name.includes(query) ? 'flex' : 'none';
     });
 }
 
-// Update user's online status
-function updateOnlineStatus() {
-    fetch('/user/update-online-status', {
-        method: 'POST',
+// User search modal
+function showUserSearch() {
+    document.getElementById('userSearchModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('userSearch').focus(), 100);
+}
+
+function hideUserSearch() {
+    document.getElementById('userSearchModal').style.display = 'none';
+}
+
+// User search
+document.getElementById('userSearch')?.addEventListener('input', function() {
+    const query = this.value.trim();
+    const results = document.getElementById('userResults');
+    if (query.length < 2) { results.innerHTML = ''; return; }
+
+    fetch(`/api/search-users?q=${encodeURIComponent(query)}`, {
+        credentials: 'include',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'application/json'
         }
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
-        if (data.success) {
-            console.log('Online status updated');
+        if (data.success && data.users.length) {
+            results.innerHTML = data.users.map(u => `
+                <div class="result-item" onclick="startChat(${u.id})">
+                    <img src="${escapeHtml(u.avatar_url)}">
+                    <div class="result-info">
+                        <div class="result-name">${escapeHtml(u.username)}</div>
+                        ${u.name && u.name !== u.username ? `<div class="result-fullname">${escapeHtml(u.name)}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
         }
-    })
-    .catch(error => {
-        console.error('Error updating online status:', error);
     });
+});
+
+function escapeHtml(t) {
+    const d = document.createElement('div');
+    d.textContent = t || '';
+    return d.innerHTML;
 }
 
-// Poll other user's online status
-function startOnlineStatusPolling() {
-    @if($conversation->other_user)
-    setInterval(() => {
-        fetch('/user/{{ $conversation->other_user->name }}/online-status', {
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateOnlineIndicator(data.is_online);
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching online status:', error);
-        });
-    }, 3000); // Check every 3 seconds
-    @endif
-}
+function startChat(id) { window.location.href = '/chat/start/' + id; }
 
-function updateOnlineIndicator(isOnline) {
-    const statusElement = document.querySelector('.user-status');
-    if (statusElement) {
-        if (isOnline) {
-            statusElement.innerHTML = '<span style="display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-right: 6px;"></span>Online';
-            statusElement.style.color = '#22c55e';
-        } else {
-            statusElement.textContent = 'Offline';
-            statusElement.style.color = 'var(--text-muted)';
-        }
-    }
-}
-
-// Start polling for other user's online status
-startOnlineStatusPolling();
-
-// ============ Media Upload Functions ============
-
-let selectedMediaFile = null;
-
-function handleMediaSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Check file size (50MB max)
-    const maxSize = 50 * 1024 * 1024;
-    if (file.size > maxSize) {
-        alert('File size must be less than 50MB');
-        event.target.value = '';
-        return;
-    }
-
-    selectedMediaFile = file;
-
-    const mediaPreview = document.getElementById('mediaPreview');
-    const imagePreview = document.getElementById('imagePreview');
-    const videoPreview = document.getElementById('videoPreview');
-    const sendButton = document.getElementById('sendButton');
-
-    // Show preview
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            imagePreview.src = e.target.result;
-            imagePreview.style.display = 'block';
-            videoPreview.style.display = 'none';
-            mediaPreview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    } else if (file.type.startsWith('video/')) {
-        const url = URL.createObjectURL(file);
-        videoPreview.src = url;
-        videoPreview.style.display = 'block';
-        imagePreview.style.display = 'none';
-        mediaPreview.style.display = 'block';
-    }
-
-    // On mobile, add count badge to send button (WhatsApp style)
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-        sendButton.classList.add('has-media');
-        // Remove existing badge if any
-        const existingBadge = sendButton.querySelector('.media-count-badge');
-        if (existingBadge) {
-            existingBadge.remove();
-        }
-        // Add new badge with count 1
-        const badge = document.createElement('span');
-        badge.className = 'media-count-badge';
-        badge.textContent = '1';
-        sendButton.appendChild(badge);
-    }
-}
-
-function clearMediaPreview() {
-    selectedMediaFile = null;
-    const mediaPreview = document.getElementById('mediaPreview');
-    const imagePreview = document.getElementById('imagePreview');
-    const videoPreview = document.getElementById('videoPreview');
-    const mediaInput = document.getElementById('mediaInput');
-    const sendButton = document.getElementById('sendButton');
-
-    mediaPreview.style.display = 'none';
-    imagePreview.style.display = 'none';
-    videoPreview.style.display = 'none';
-    imagePreview.src = '';
-    videoPreview.src = '';
-    mediaInput.value = '';
-
-    // Remove media badge from send button on mobile
-    if (sendButton) {
-        sendButton.classList.remove('has-media');
-        const badge = sendButton.querySelector('.media-count-badge');
-        if (badge) {
-            badge.remove();
-        }
-    }
-}
-
-function openMediaViewer(src) {
-    const viewer = document.getElementById('mediaViewer');
-    const image = document.getElementById('mediaViewerImage');
-    image.src = src;
-    viewer.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeMediaViewer() {
-    const viewer = document.getElementById('mediaViewer');
-    viewer.classList.remove('active');
-    document.body.style.overflow = '';
-}
-
-// Override sendMessage to support media
-const originalSendMessage = sendMessage;
-sendMessage = function(event) {
-    event.preventDefault();
-
+// Send message
+function sendMessage(e) {
+    e.preventDefault();
     const input = document.getElementById('messageInput');
     const content = input.value.trim();
+    const hasMedia = selectedFiles.length > 0;
+    
+    if (!content && !hasMedia) return;
 
-    // Check if there's content or media to send
-    if (!content && !selectedMediaFile) {
-        input.focus();
-        return;
-    }
-
-    // If there's media, use FormData
-    if (selectedMediaFile) {
-        sendMediaMessage(content, selectedMediaFile);
-        return;
-    }
-
-    // Otherwise, send text message using the original function
-    sendTextMessage(content);
-};
-
-function sendTextMessage(content) {
-    const input = document.getElementById('messageInput');
-
-    // Disable input while sending
     input.disabled = true;
     document.getElementById('sendButton').disabled = true;
 
+    // If has media, send as FormData
+    if (hasMedia) {
+        sendMediaMessage(content, null);
+        return;
+    }
+
+    // Send text message
     fetch(`{{ route('chat.store', $conversation) }}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'application/json'
         },
-        body: JSON.stringify({
-            content: content
-        })
+        body: JSON.stringify({ content })
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
-            addMessageToChat({
+            const message = {
                 id: data.message.id,
                 content: data.message.content,
-                created_at: new Date().toISOString(),
+                created_at: data.message.created_at,
                 type: data.message.type,
                 media_path: data.message.media_path,
-                user: {
-                    id: {{ auth()->id() }},
-                    name: '{{ auth()->user()->name }}',
-                    avatar: '{{ auth()->user()->profile?->avatar }}'
-                }
-            });
+                sender_id: {{ auth()->id() }},
+                sender: {
+                    username: '{{ auth()->user()->username }}',
+                    avatar_url: '{{ auth()->user()->avatar_url }}'
+                },
+                read_at: null
+            };
+
+            addMessage(message);
+            if (window.RealTime && typeof window.RealTime.updateSidebarConversation === 'function') {
+                window.RealTime.updateSidebarConversation(message);
+            }
+
+            myLastMessageId = data.message.id;
+            lastMessageId = data.message.id;
             input.value = '';
-        } else {
-            alert('Failed to send message. Please try again.');
+
+            // Don't confirm delivery - sender can't confirm their own message
+            // Recipient will confirm delivery when they receive the message
         }
     })
-    .catch(error => {
-        console.error('Error sending message:', error);
-        alert('Error sending message. Please try again.');
-    })
+    .catch(() => {})
     .finally(() => {
         input.disabled = false;
         document.getElementById('sendButton').disabled = false;
-        const isMobile = window.innerWidth <= 768;
-        if (!isMobile) {
-            input.focus();
-        }
+        // Don't refocus - keep keyboard state as is
     });
 }
 
+// Send media message (supports multiple files in one message)
 function sendMediaMessage(content, mediaFile) {
     const input = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
 
-    // Disable inputs while sending
-    input.disabled = true;
-    sendButton.disabled = true;
-
+    // Create FormData with all files
     const formData = new FormData();
     if (content) {
         formData.append('content', content);
     }
-    formData.append('media', mediaFile);
+
+    // Append ALL selected files
+    selectedFiles.forEach((file) => {
+        formData.append('media[]', file); // Array of files
+    });
 
     fetch(`{{ route('chat.store', $conversation) }}`, {
         method: 'POST',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'application/json'
         },
         body: formData
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
-        if (data.success) {
-            addMessageToChat({
+        if (data.success && data.message) {
+            const message = {
                 id: data.message.id,
                 content: data.message.content || '',
-                created_at: new Date().toISOString(),
+                created_at: data.message.created_at,
                 type: data.message.type,
                 media_path: data.message.media_path,
-                user: {
-                    id: {{ auth()->id() }},
-                    name: '{{ auth()->user()->name }}',
-                    avatar: '{{ auth()->user()->profile?->avatar }}'
-                }
-            });
+                sender_id: {{ auth()->id() }},
+                sender: {
+                    username: '{{ auth()->user()->username }}',
+                    avatar_url: '{{ auth()->user()->avatar_url }}'
+                },
+                read_at: null
+            };
+
+            // Add the message with all media
+            addMessage(message);
+            if (window.RealTime && typeof window.RealTime.updateSidebarConversation === 'function') {
+                window.RealTime.updateSidebarConversation(message);
+            }
+
+            myLastMessageId = data.message.id;
+            lastMessageId = data.message.id;
             input.value = '';
             clearMediaPreview();
         } else {
-            alert(data.error || 'Failed to send message. Please try again.');
+            alert(data.error || 'Failed to send media. Please try again.');
         }
     })
-    .catch(error => {
-        console.error('Error sending message:', error);
-        alert('Error sending message. Please try again.');
+    .catch(err => {
+        console.error('Error sending media:', err);
+        alert('Error sending media. Please try again.');
     })
     .finally(() => {
         input.disabled = false;
         sendButton.disabled = false;
-        const isMobile = window.innerWidth <= 768;
-        if (!isMobile) {
-            input.focus();
-        }
+        // Don't refocus - keep keyboard state as is
     });
 }
 
-// Note: addMessageToChat already handles all cases including media and group chats
+// Add message to chat
+function addMessage(msg) {
+    const container = document.getElementById('chatMessages');
+    const noMsg = container.querySelector('.no-messages');
+    if (noMsg) noMsg.remove();
 
-// Close media viewer on escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
+    const isOwn = msg.sender_id == {{ auth()->id() }};
+    const div = document.createElement('div');
+    div.className = `message ${isOwn ? 'own' : 'other'}`;
+    div.dataset.messageId = msg.id;
+
+    // Format time to match Blade's H:i format (24-hour, e.g., "23:45")
+    const date = new Date(msg.created_at);
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const time = `${hours}:${minutes}`;
+
+    // Build message HTML to match Blade template exactly
+    let avatarHtml = '';
+    let senderNameHtml = '';
+    let contentHtml = '';
+    let timeHtml = '';
+
+    // Avatar for other users
+    if (!isOwn && msg.sender) {
+        const username = msg.sender.username || 'U';
+        const avatar = `<img src="${escapeHtml(msg.sender.avatar_url)}" alt="${escapeHtml(username)}">`;
+        avatarHtml = `<div class="message-avatar">${avatar}</div>`;
+    }
+
+    // Sender name for other users
+    if (!isOwn && msg.sender) {
+        senderNameHtml = `<div class="sender-name">${escapeHtml(msg.sender.username || msg.sender.name || 'User')}</div>`;
+    }
+
+    // Handle system messages
+    if (msg.type === 'system') {
+        div.className = 'system-message';
+        div.innerHTML = `
+            <span class="system-text">${escapeHtml(msg.content)}</span>
+            <span class="system-time">${time}</span>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+        void div.offsetWidth;
+        return;
+    }
+
+    // Handle group invite messages
+    if (msg.type === 'group_invite' && msg.media_path) {
+        try {
+            const inviteData = typeof msg.media_path === 'string' ? JSON.parse(msg.media_path) : msg.media_path;
+            div.className = `message ${isOwn ? 'own' : 'other'} group-invite`;
+            div.innerHTML = `
+                ${!isOwn && msg.sender ? avatarHtml : ''}
+                <div class="message-bubble">
+                    ${!isOwn && msg.sender ? senderNameHtml : ''}
+                    <div class="invite-card">
+                        <div class="invite-icon"><i class="fas fa-users"></i></div>
+                        <div class="invite-content">
+                            <div class="invite-title">${escapeHtml(inviteData.group_name || 'Group')}</div>
+                            <div class="invite-text">${escapeHtml(msg.sender?.username || msg.sender?.name || 'Someone')} invited you to join</div>
+                        </div>
+                        ${!isOwn && inviteData.invite_link ? `<button class="accept-btn" onclick="acceptGroupInvite('${escapeHtml(inviteData.invite_link)}')"><i class="fas fa-check"></i> Join</button>` : ''}
+                    </div>
+                    <span class="message-time">${time}${isOwn ? '<i class="fas fa-check" title="Sent"></i>' : ''}</span>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            void div.offsetWidth;
+            return;
+        } catch (e) {
+            console.error('Error parsing group invite:', e);
+        }
+    }
+
+    // Handle multiple media files (JSON)
+    if (msg.media_path && msg.media_path.startsWith('[')) {
+        try {
+            const mediaItems = JSON.parse(msg.media_path);
+            if (Array.isArray(mediaItems) && mediaItems.length > 0) {
+                const displayCount = Math.min(mediaItems.length, 4);
+                const remainingCount = mediaItems.length - displayCount;
+
+                if (displayCount === 1) {
+                    const media = mediaItems[0];
+                    if (media.type === 'image') {
+                        contentHtml += `<div class="message-media-album"><div class="media-grid-single">
+                            <img src="/storage/${escapeHtml(media.path)}" onclick="openMediaViewerFromAlbum(this, ${msg.id}, 0)">
+                        </div></div>`;
+                    } else if (media.type === 'video') {
+                        contentHtml += `<div class="message-media-album"><div class="media-grid-single">
+                            <video src="/storage/${escapeHtml(media.path)}" onclick="openMediaViewerFromAlbum(this, ${msg.id}, 0)"></video>
+                        </div></div>`;
+                    }
+                } else if (displayCount === 2) {
+                    contentHtml += `<div class="message-media-album"><div class="media-grid-two">`;
+                    mediaItems.slice(0, 2).forEach((media, index) => {
+                        if (media.type === 'image') {
+                            contentHtml += `<img src="/storage/${escapeHtml(media.path)}" onclick="openMediaViewerFromAlbum(this, ${msg.id}, ${index})">`;
+                        } else if (media.type === 'video') {
+                            contentHtml += `<div class="media-item video">
+                                <video src="/storage/${escapeHtml(media.path)}"></video>
+                                <div class="media-overlay" onclick="openMediaViewerFromAlbum(this, ${msg.id}, ${index})">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>`;
+                        }
+                    });
+                    contentHtml += `</div></div>`;
+                } else {
+                    contentHtml += `<div class="message-media-album"><div class="media-grid-${displayCount}">`;
+                    mediaItems.slice(0, displayCount).forEach((media, index) => {
+                        if (media.type === 'image') {
+                            contentHtml += `<div class="media-item">
+                                <img src="/storage/${escapeHtml(media.path)}" onclick="openMediaViewerFromAlbum(this, ${msg.id}, ${index})">`;
+                            if (index === 3 && remainingCount > 0) {
+                                contentHtml += `<div class="media-overlay" onclick="openMediaViewerFromAlbum(this, ${msg.id}, 4)">
+                                    <span class="overlay-text">+${remainingCount}</span>
+                                </div>`;
+                            }
+                            contentHtml += `</div>`;
+                        } else if (media.type === 'video') {
+                            contentHtml += `<div class="media-item video">
+                                <video src="/storage/${escapeHtml(media.path)}"></video>
+                                <div class="media-overlay" onclick="openMediaViewerFromAlbum(this, ${msg.id}, ${index})">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>`;
+                        }
+                    });
+                    contentHtml += `</div></div>`;
+                }
+            }
+        } catch (e) {
+            console.error('Error parsing media_path:', e);
+        }
+    } else if (msg.type === 'image' && msg.media_path) {
+        contentHtml += `<div class="message-media"><img src="/storage/${escapeHtml(msg.media_path)}" alt="Image" onclick="openMediaViewer(this.src)"></div>`;
+    } else if (msg.type === 'video' && msg.media_path) {
+        contentHtml += `<div class="message-media"><video src="/storage/${escapeHtml(msg.media_path)}" controls></video></div>`;
+    }
+
+    // Text content with story reply detection
+    if (msg.content && msg.content.trim()) {
+        const isStoryReply = msg.content && msg.content.startsWith('📸 Reply to your story:');
+        if (isStoryReply) {
+            const storyReplyContent = msg.content.replace('📸 Reply to your story:', '').trim();
+            contentHtml += `<div class="story-reply-message">
+                <div class="story-reply-header">
+                    <span class="story-reply-label">Story Reply</span>
+                </div>
+                <div class="story-reply-content">${escapeHtml(storyReplyContent)}</div>
+            </div>`;
+        } else {
+            contentHtml += `<span class="text">${escapeHtml(msg.content)}</span>`;
+        }
+    }
+
+    // Time with read receipts for own messages
+    if (isOwn) {
+        timeHtml = `<span class="message-time">${time}<i class="fas fa-check" title="Sent"></i></span>`;
+    } else {
+        timeHtml = `<span class="message-time">${time}</span>`;
+    }
+
+    div.innerHTML = `
+        ${avatarHtml}
+        <div class="message-bubble">
+            ${senderNameHtml}
+            <div class="message-content">
+                ${contentHtml}${timeHtml}
+            </div>
+            ${isOwn ? `<button class="delete-btn" onclick="deleteMessage(${msg.id})"><i class="fas fa-trash"></i></button>` : ''}
+        </div>
+    `;
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+
+    // Apply RTL direction if message contains Arabic text
+    applyRTLIfArabic(div);
+
+    // Store media list for this message if it has multiple media
+    if (msg.media_path && msg.media_path.startsWith('[')) {
+        try {
+            const mediaItems = JSON.parse(msg.media_path);
+            if (Array.isArray(mediaItems)) {
+                const mediaList = mediaItems.map((media, i) => ({
+                    src: `/storage/${media.path}`,
+                    type: media.type
+                }));
+                messageMediaLists.set(msg.id.toString(), mediaList);
+            }
+        } catch (e) {
+            console.error('Error storing media list:', e);
+        }
+    }
+
+    // Trigger reflow to ensure animation plays
+    void div.offsetWidth;
+}
+
+// Media handling - support multiple files with carousel preview
+let selectedFiles = [];
+let currentPreviewIndex = 0;
+
+function handleMediaSelect(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    
+    // Add to selected files
+    selectedFiles = [...selectedFiles, ...files];
+    
+    // Show carousel preview
+    showCarouselPreview();
+}
+
+function showCarouselPreview() {
+    const preview = document.getElementById('mediaPreview');
+    const slidesContainer = document.getElementById('previewSlides');
+    const indicatorsContainer = document.getElementById('previewIndicators');
+    const countEl = document.getElementById('previewCount');
+    
+    if (!selectedFiles.length) {
+        preview.style.display = 'none';
+        return;
+    }
+    
+    preview.style.display = 'block';
+    slidesContainer.innerHTML = '';
+    indicatorsContainer.innerHTML = '';
+    
+    // Create slides
+    selectedFiles.forEach((file, index) => {
+        const slide = document.createElement('div');
+        slide.className = `preview-slide ${index === currentPreviewIndex ? 'active' : ''}`;
+        
+        const slideNumber = document.createElement('div');
+        slideNumber.className = 'slide-number';
+        slideNumber.textContent = `${index + 1} / ${selectedFiles.length}`;
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-slide';
+        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        removeBtn.onclick = () => removePreview(index);
+        
+        slide.appendChild(slideNumber);
+        slide.appendChild(removeBtn);
+        
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = document.createElement('img');
+                img.src = ev.target.result;
+                slide.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        } else if (file.type.startsWith('video/')) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const video = document.createElement('video');
+                video.src = ev.target.result;
+                video.controls = false;
+                slide.appendChild(video);
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        slidesContainer.appendChild(slide);
+        
+        // Create indicator
+        const indicator = document.createElement('div');
+        indicator.className = `preview-indicator ${index === currentPreviewIndex ? 'active' : ''}`;
+        indicator.onclick = () => goToPreview(index);
+        indicatorsContainer.appendChild(indicator);
+    });
+    
+    // Update count
+    countEl.textContent = `${currentPreviewIndex + 1} / ${selectedFiles.length}`;
+    
+    // Update arrow states
+    updateArrowStates();
+}
+
+function movePreview(direction) {
+    if (!selectedFiles.length) return;
+    
+    currentPreviewIndex += direction;
+    
+    // Wrap around
+    if (currentPreviewIndex < 0) {
+        currentPreviewIndex = selectedFiles.length - 1;
+    } else if (currentPreviewIndex >= selectedFiles.length) {
+        currentPreviewIndex = 0;
+    }
+    
+    updatePreviewDisplay();
+}
+
+function goToPreview(index) {
+    currentPreviewIndex = index;
+    updatePreviewDisplay();
+}
+
+function updatePreviewDisplay() {
+    const slides = document.querySelectorAll('.preview-slide');
+    const indicators = document.querySelectorAll('.preview-indicator');
+    const countEl = document.getElementById('previewCount');
+    
+    slides.forEach((slide, index) => {
+        slide.classList.toggle('active', index === currentPreviewIndex);
+    });
+    
+    indicators.forEach((indicator, index) => {
+        indicator.classList.toggle('active', index === currentPreviewIndex);
+    });
+    
+    countEl.textContent = `${currentPreviewIndex + 1} / ${selectedFiles.length}`;
+    
+    updateArrowStates();
+}
+
+function updateArrowStates() {
+    const arrows = document.querySelectorAll('.carousel-arrow');
+    if (selectedFiles.length <= 1) {
+        arrows.forEach(arrow => arrow.disabled = true);
+    } else {
+        arrows.forEach(arrow => arrow.disabled = false);
+    }
+}
+
+function removePreview(index) {
+    selectedFiles.splice(index, 1);
+    
+    // Adjust current index
+    if (currentPreviewIndex >= selectedFiles.length) {
+        currentPreviewIndex = Math.max(0, selectedFiles.length - 1);
+    }
+    
+    if (!selectedFiles.length) {
+        clearMediaPreview();
+    } else {
+        showCarouselPreview();
+    }
+    
+    if (!selectedFiles.length) {
+        document.getElementById('mediaInput').value = '';
+    }
+}
+
+function clearMediaPreview() {
+    selectedFiles = [];
+    currentPreviewIndex = 0;
+    document.getElementById('mediaPreview').style.display = 'none';
+    document.getElementById('previewSlides').innerHTML = '';
+    document.getElementById('previewIndicators').innerHTML = '';
+    document.getElementById('mediaInput').value = '';
+}
+
+// Media viewer with album navigation
+let currentMediaIndex = 0;
+let currentMediaList = [];
+
+// Store media lists by message ID for quick access
+const messageMediaLists = new Map();
+
+// Initialize media lists from existing messages
+document.addEventListener('DOMContentLoaded', () => {
+    
+
+    document.querySelectorAll('.message-media-album').forEach((album) => {
+        const messageId = album.dataset.messageId;
+
+        if (!messageId) {
+            return;
+        }
+
+        // Get all media from the embedded script tag
+        const scriptTag = album.querySelector('script.media-data');
+        let mediaList = [];
+        
+        if (scriptTag) {
+            try {
+                const allMedia = JSON.parse(scriptTag.textContent.trim());
+                mediaList = allMedia.map((media) => ({
+                    src: `/storage/${media.path}`,
+                    type: media.type
+                }));
+            } catch (e) {
+                console.error('❌ Failed to parse media JSON:', e);
+                console.error('Script content:', scriptTag.textContent);
+                return;
+            }
+        }
+
+        if (mediaList.length > 0) {
+            messageMediaLists.set(messageId.toString(), mediaList);
+        }
+    });
+
+    
+});
+
+function openMediaViewerFromAlbum(element, messageId, index = 0) {
+    const mediaList = messageMediaLists.get(messageId.toString());
+
+    if (mediaList && mediaList.length > 0) {
+        openMediaViewer(null, mediaList, index);
+    } else {
+        // Fallback for single image
+        if (element && element.tagName === 'IMG') {
+            openMediaViewer(element.src);
+        }
+    }
+}
+
+function openMediaViewer(src, mediaList = null, index = 0) {
+    const viewer = document.getElementById('mediaViewer');
+    const imgEl = document.getElementById('viewerImage');
+    const vidEl = document.getElementById('viewerVideo');
+    const counterEl = document.getElementById('viewerCounter');
+    
+    
+    
+    if (mediaList && mediaList.length > 0) {
+        // Opening from album - store the list
+        currentMediaList = mediaList;
+        currentMediaIndex = index;
+    } else {
+        // Opening single image
+        currentMediaList = [{src: src, type: 'image'}];
+        currentMediaIndex = 0;
+    }
+    
+    showCurrentMedia();
+    viewer.classList.add('active');
+}
+
+function showCurrentMedia() {
+    if (!currentMediaList[currentMediaIndex]) return;
+    
+    const media = currentMediaList[currentMediaIndex];
+    const imgEl = document.getElementById('viewerImage');
+    const vidEl = document.getElementById('viewerVideo');
+    const counterEl = document.getElementById('viewerCounter');
+    
+    if (media.type === 'video') {
+        imgEl.style.display = 'none';
+        vidEl.style.display = 'block';
+        vidEl.src = media.src;
+        vidEl.play();
+    } else {
+        vidEl.style.display = 'none';
+        vidEl.pause();
+        imgEl.style.display = 'block';
+        imgEl.src = media.src;
+    }
+    
+    // Update counter
+    counterEl.textContent = `${currentMediaIndex + 1} / ${currentMediaList.length}`;
+}
+
+function navigateMedia(direction, event) {
+    if (event) event.stopPropagation();
+    
+    if (currentMediaList.length <= 1) return;
+    
+    currentMediaIndex += direction;
+    
+    // Wrap around
+    if (currentMediaIndex < 0) {
+        currentMediaIndex = currentMediaList.length - 1;
+    } else if (currentMediaIndex >= currentMediaList.length) {
+        currentMediaIndex = 0;
+    }
+    
+    showCurrentMedia();
+}
+
+function closeMediaViewerOnOverlay(event) {
+    // Only close if clicking the overlay (not the content)
+    if (event && event.target !== event.currentTarget) return;
+    closeMediaViewer();
+}
+
+function closeMediaViewer() {
+    const viewer = document.getElementById('mediaViewer');
+    const vidEl = document.getElementById('viewerVideo');
+
+    vidEl.pause();
+    viewer.classList.remove('active');
+    currentMediaList = [];
+    currentMediaIndex = 0;
+}
+
+// Keyboard navigation for media viewer
+document.addEventListener('keydown', (e) => {
+    const viewer = document.getElementById('mediaViewer');
+    if (!viewer.classList.contains('active')) return;
+    
+    if (e.key === 'ArrowLeft') {
+        navigateMedia(-1);
+    } else if (e.key === 'ArrowRight') {
+        navigateMedia(1);
+    } else if (e.key === 'Escape') {
         closeMediaViewer();
     }
 });
 
-// ============ Group Invite Functions ============
+// Clear chat
+function clearChat() {
+    if (confirm('Clear all messages in this chat?')) {
+        fetch(`{{ route('chat.clear', $conversation) }}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            }
+        }).then(() => location.reload());
+    }
+}
 
-function acceptGroupInvite(inviteLink) {
-    const btn = event.target.closest('.accept-invite-btn');
-    if (btn.disabled) return;
-    
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining...';
-    
-    fetch(`/groups/accept-invite/${inviteLink}`, {
-        method: 'POST',
+// Delete message - show modal
+let messageToDeleteId = null;
+
+function deleteMessage(id) {
+    messageToDeleteId = id;
+    document.getElementById('deleteMessageModal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteMessageModal').style.display = 'none';
+    messageToDeleteId = null;
+}
+
+function confirmDelete(type) {
+    if (!messageToDeleteId) return;
+
+    // capture the id now so closing the modal (which nulls the variable)
+    // doesn't wipe it out before the fetch callback uses it.
+    const id = messageToDeleteId;
+
+    closeDeleteModal();
+
+    fetch(`/chat/message/${id}?type=${type}`, {
+        method: 'DELETE',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             'Accept': 'application/json'
         }
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
-            btn.innerHTML = '<i class="fas fa-check"></i> Joined!';
-            btn.classList.add('joined');
-            
-            // Show success toast
-            if (typeof showToast === 'function') {
-                showToast(data.message, 'success', 3000);
-            }
-            
-            // Redirect to group chat after 1.5 seconds
-            if (data.redirect) {
-                setTimeout(() => {
-                    window.location.href = data.redirect;
-                }, 1500);
-            }
-        } else {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check"></i> Accept & Join';
-            
-            if (typeof showToast === 'function') {
-                showToast(data.message || 'Failed to join group', 'error', 3000);
-            } else {
-                alert(data.message || 'Failed to join group');
-            }
+            handleDeleteMessage(data.deleted_message_id, data.delete_type, data.deleted_for);
         }
     })
-    .catch(error => {
-        console.error('Error accepting invite:', error);
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check"></i> Accept & Join';
-        
-        if (typeof showToast === 'function') {
-            showToast('Error accepting invite', 'error', 3000);
-        } else {
-            alert('Error accepting invite');
+    .catch(err => console.error('Delete failed:', err));
+}
+
+// Handle message deletion UI update
+function handleDeleteMessage(messageId, deleteType, deletedFor) {
+    const msgEl = document.querySelector(`.message[data-message-id="${messageId}"]`);
+    if (!msgEl) return;
+    
+    if (deleteType === 'everyone') {
+        // Show "message deleted" for everyone
+        msgEl.classList.add('deleted');
+        const content = msgEl.querySelector('.message-content');
+        if (content) {
+            content.innerHTML = '<em class="deleted-text">message deleted</em>';
+        }
+        // Remove delete button
+        const deleteBtn = msgEl.querySelector('.delete-btn');
+        if (deleteBtn) deleteBtn.remove();
+    } else {
+        // Delete for me only - hide the message
+        msgEl.style.display = 'none';
+    }
+}
+
+// Mark message as deleted in the UI (for realtime.js)
+function markMessageAsDeleted(id) {
+    const el = document.querySelector(`[data-message-id="${id}"]`);
+    if (el) {
+        const contentEl = el.querySelector('.message-content');
+        if (contentEl) {
+            contentEl.innerHTML = '<em class="deleted-text">message deleted</em>';
+            el.classList.add('deleted');
+        }
+        // Remove delete button
+        const deleteBtn = el.querySelector('.delete-btn');
+        if (deleteBtn) deleteBtn.remove();
+    }
+}
+
+// Group invite handling delegated to `public/js/realtime.js` (window.acceptGroupInvite)
+
+// Auto scroll to bottom on load and initialize
+document.addEventListener('DOMContentLoaded', () => {
+    window.conversationIsGroup = {{ $conversation->is_group ? 'true' : 'false' }};
+
+    @if(!$conversation->is_group && $conversation->other_user)
+        window.currentChatUserId = {{ $conversation->other_user->id }};
+    @endif
+
+    const container = document.getElementById('chatMessages');
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // Mark messages as read only when chat is actively viewed (delegated to RealTime)
+    if (window.RealTime && typeof window.RealTime.markMessagesAsRead === 'function') {
+        window.RealTime.markMessagesAsRead();
+    }
+
+    // Mark messages as read when window gains focus
+    window.addEventListener('focus', () => {
+        if (window.RealTime && typeof window.RealTime.markMessagesAsRead === 'function') {
+            window.RealTime.markMessagesAsRead();
+        }
+    });
+
+    // Update online status when leaving the page
+    window.addEventListener('beforeunload', () => {
+        navigator.sendBeacon('/user/online-status/offline', JSON.stringify({
+            _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }));
+    });
+
+    
+});
+
+// Delivery confirmations and read-marking delegated to RealTime.js
+
+// Get media preview text
+function getMediaPreviewText(type, isOwn) {
+    const prefix = isOwn ? 'You: ' : '';
+    switch(type) {
+        case 'image': return prefix + 'Sent an image';
+        case 'video': return prefix + 'Sent a video';
+        case 'audio': return prefix + 'Sent an audio';
+        case 'document': return prefix + 'Sent a document';
+        case 'gif': return prefix + 'Sent a GIF';
+        case 'sticker': return prefix + 'Sent a sticker';
+        case 'story_reply': return prefix + 'Replied to story';
+        default: return '';
+    }
+}
+
+// Sidebar conversation updates are handled by realtime.js
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeMediaViewer();
+        hideUserSearch();
+    }
+});
+
+// Auto-detect Arabic text in dynamically loaded messages
+function applyRTLIfArabic(element) {
+    const arabicPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u0590-\u05FF]/;
+    const textElements = element.querySelectorAll('.text');
+    textElements.forEach(el => {
+        const text = el.textContent || el.innerText || '';
+        if (arabicPattern.test(text)) {
+            el.setAttribute('dir', 'rtl');
+            el.style.direction = 'rtl';
+            el.style.textAlign = 'right';
         }
     });
 }
+
+// Set active conversation ID for notification filtering
+window.activeConversationId = {{ $conversation->id }};
 </script>
 @endsection

@@ -22,7 +22,7 @@ Route::get('/check-username/{username}', function ($username) {
     $currentUserId = auth()->id();
 
     // Check if username exists (exclude current user if editing profile)
-    $query = \App\Models\User::where('name', $username);
+    $query = \App\Models\User::where('username', $username);
 
     if ($currentUserId) {
         $query->where('id', '!=', $currentUserId);
@@ -42,16 +42,20 @@ Route::middleware('web')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('posts', PostController::class)->parameters([
-        'posts' => 'post:slug'
+    Route::apiResource('posts', PostController::class, [
+        'parameters' => ['posts' => 'post:slug'],
+        'names' => ['index' => 'api.posts.index', 'show' => 'api.posts.show', 'store' => 'api.posts.store', 'update' => 'api.posts.update', 'destroy' => 'api.posts.destroy', 'create' => 'api.posts.create', 'edit' => 'api.posts.edit']
     ]);
-    Route::post('/posts/{post}/like', [PostController::class, 'like'])->where('post', '[a-zA-Z0-9]{24}');
-    Route::apiResource('comments', CommentController::class)->except(['index', 'show']);
-    Route::post('/comments/{comment}/like', [CommentController::class, 'like']);
+    Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('api.posts.like')->where('post', '[a-zA-Z0-9]{24}');
+    Route::apiResource('comments', CommentController::class, [
+        'names' => ['store' => 'api.comments.store', 'destroy' => 'api.comments.destroy', 'update' => 'api.comments.update'],
+        'except' => ['index', 'show']
+    ]);
+    Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->name('api.comments.like');
     Route::get('/users/{user}', [UserController::class, 'show'])->where('user', '[a-zA-Z0-9_\- ]+');
     Route::post('/users/{user}/follow', [UserController::class, 'follow'])->where('user', '[a-zA-Z0-9_\- ]+');
     Route::get('/explore', [UserController::class, 'explore']);
-    Route::post('/password/change', [App\Http\Controllers\Api\PasswordController::class, 'change']);
+    Route::post('/password/change', [App\Http\Controllers\Api\PasswordController::class, 'change'])->name('api.password.change');
 
 });
 
