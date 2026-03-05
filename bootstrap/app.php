@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust proxies for proper header handling (Cloudflare, etc.)
         $middleware->trustProxies(at: '*');
 
+        // Log all requests with real IP and user agent (for tunnel monitoring)
+        $middleware->web(append: [
+            \App\Http\Middleware\LogRealTimeRequests::class,
+        ]);
+
         // Force HTTPS to prevent browser security warnings
         $middleware->web(append: [
             \App\Http\Middleware\ForceHttps::class,

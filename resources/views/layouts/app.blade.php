@@ -1212,9 +1212,9 @@
             @auth
             <nav class="nav-links">
                 <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
-                <a href="{{ route('explore') }}" class="{{ request()->routeIs('explore') ? 'active' : '' }}"><i class="fas fa-compass"></i> Explore</a>
+                <a href="{{ route('stories.index') }}" class="{{ request()->routeIs('stories.*') ? 'active' : '' }}"><i class="fas fa-circle-play"></i> Stories</a>
                 <a href="{{ route('chat.index') }}" class="{{ request()->routeIs('chat.*') ? 'active' : '' }}"><i class="fas fa-message"></i> Messages</a>
-                <a href="{{ route('ai.index') }}" class="{{ request()->routeIs('ai.*') ? 'active' : '' }}"><i class="fas fa-sparkles"></i> AI</a>
+                <a href="{{ route('ai.index') }}" class="{{ request()->routeIs('ai.*') ? 'active' : '' }}"><i class="fas fa-robot"></i> AI</a>
             </nav>
             @endauth
 
@@ -1280,13 +1280,13 @@
     <div class="dropdown-menu" id="userMenu">
         <a href="{{ route('users.show', auth()->user()) }}"><i class="fas fa-user"></i> Profile</a>
         <a href="{{ route('users.saved-posts') }}"><i class="fas fa-bookmark"></i> Saved</a>
-        <a href="{{ route('stories.index') }}"><i class="fas fa-circle-play"></i> Stories</a>
-        <a href="{{ route('ai.index') }}"><i class="fas fa-sparkles"></i> AI Assistant</a>
+        <a href="{{ route('explore') }}"><i class="fas fa-compass"></i> Explore Users</a>
+        <a href="{{ route('ai.index') }}"><i class="fas fa-robot"></i> AI Assistant</a>
         @if(auth()->user()->is_admin)
         <a href="{{ route('admin.dashboard') }}"><i class="fas fa-shield-alt"></i> Admin</a>
         @endif
         <div class="divider"></div>
-        <a href="{{ route('password.change') }}"><i class="fas fa-key"></i> Password</a>
+        <a href="{{ route('password.change') }}"><i class="fas fa-key"></i> Change Password</a>
         <button onclick="logout()" class="danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </div>
     @endauth
@@ -1301,7 +1301,7 @@
             <nav class="mobile-nav">
                 <div class="mobile-nav-inner">
                     <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
-                    <a href="{{ route('explore') }}" class="{{ request()->routeIs('explore') ? 'active' : '' }}"><i class="fas fa-compass"></i> Explore</a>
+                    <a href="{{ route('stories.index') }}" class="{{ request()->routeIs('stories.*') ? 'active' : '' }}"><i class="fas fa-circle-play"></i> Stories</a>
                     <a href="{{ route('chat.index') }}" class="{{ request()->routeIs('chat.*') ? 'active' : '' }}"><i class="fas fa-message"></i> Chat</a>
                     <a href="{{ route('users.show', auth()->user()) }}" class="{{ request()->routeIs('users.show') ? 'active' : '' }}"><i class="fas fa-user"></i> Profile</a>
                 </div>

@@ -46,7 +46,7 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
-html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+html { scroll-behavior: smooth; scroll-padding-top: 100px; }
 
 body{
     font-family:'Inter',sans-serif;
@@ -246,8 +246,8 @@ html[lang="ar"] .list-item {
     justify-content: center; align-items: center; text-align: center;
     background: transparent; padding: 0 20px; position: relative;
 }
-.fade-content h2 { font-size: clamp(3rem, 6vw, 5rem); font-weight: 700; margin-bottom: 20px; background: linear-gradient(135deg, var(--text-primary), #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; opacity: 0; transform: translateY(50px); }
-.fade-content p { font-size: clamp(1.2rem, 2vw, 1.5rem); color: var(--text-secondary); max-width: 600px; line-height: 1.5; opacity: 0; transform: translateY(30px); }
+.fade-content h2 { font-size: clamp(3rem, 6vw, 5rem); font-weight: 700; margin-bottom: 20px; background: linear-gradient(135deg, var(--text-primary), #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.fade-content p { font-size: clamp(1.2rem, 2vw, 1.5rem); color: var(--text-secondary); max-width: 600px; line-height: 1.5; }
 .carousel { position: relative; height: 120px; width: 100%; display: flex; justify-content: center; align-items: center; }
 .word-line { position: absolute; font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; opacity: 0.2; color: var(--text-primary); }
 .list-effect { display: flex; flex-direction: column; gap: 40px; width: 100%; max-width: 800px; text-align: left; padding-left: 10%; }
@@ -465,6 +465,16 @@ footer a:hover { color: var(--primary); }
         </div>
     </div>
 </section>
+<section class="pin-section" id="section-carousel">
+    <div class="pin-container">
+        <div class="carousel">
+            <div class="word-line" id="word1">Post.</div>
+            <div class="word-line" id="word2">Share.</div>
+            <div class="word-line" id="word3">Connect.</div>
+            <div class="word-line" id="word4">Belong.</div>
+        </div>
+    </div>
+</section>
 <section class="features-grid-section" id="section-features">
     <p class="section-label">Features</p>
     <h2 class="section-title">Everything you need. Nothing you don't.</h2>
@@ -507,7 +517,10 @@ footer a:hover { color: var(--primary); }
             <div class="card-icon" style="background:linear-gradient(135deg,#ec4899 0%,#f472b6 100%);">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><path d="M9 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/><path d="M15 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
             </div>
-            <h3 class="feature-card-title">AI Assistant</h3>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <h3 class="feature-card-title" style="margin:0;">AI Assistant</h3>
+                <span id="ai-badge" style="background:rgba(236,72,153,0.2);color:#f472b6;font-size:10px;padding:4px 8px;border-radius:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Menu-based</span>
+            </div>
             <p class="feature-card-desc">Smart tools to enhance your experience. Get help drafting posts, summarizing conversations, and discovering content that matters to you.</p>
         </div>
         <div class="card">
@@ -517,16 +530,6 @@ footer a:hover { color: var(--primary); }
             </div>
             <h3 class="feature-card-title">Privacy First</h3>
             <p class="feature-card-desc">Your data stays yours. No tracking, no selling to advertisers, no manipulation. We're funded by users, not by selling your attention.</p>
-        </div>
-    </div>
-</section>
-<section class="pin-section" id="section-carousel">
-    <div class="pin-container">
-        <div class="carousel">
-            <div class="word-line" id="word1">Post.</div>
-            <div class="word-line" id="word2">Share.</div>
-            <div class="word-line" id="word3">Connect.</div>
-            <div class="word-line" id="word4">Belong.</div>
         </div>
     </div>
 </section>
@@ -627,7 +630,7 @@ const englishContent = {
             { title: 'Stories', desc: 'Capture fleeting moments with ephemeral content that disappears after 24 hours. Share freely without the pressure of permanence.' },
             { title: 'Private Chat', desc: 'Real-time messaging with end-to-end encryption. Your conversations stay between you and your recipients—secure, fast, and private.' },
             { title: 'Groups', desc: 'Create or join communities around your interests. From hobby groups to professional networks, build spaces that bring people together.' },
-            { title: 'AI Assistant', desc: 'Smart tools to enhance your experience. Get help drafting posts, summarizing conversations, and discovering content that matters to you.' },
+            { title: 'AI Assistant', badge: 'Menu-based', desc: 'Smart tools to enhance your experience. Get help drafting posts, summarizing conversations, and discovering content that matters to you.' },
             { title: 'Privacy First', desc: 'Your data stays yours. No tracking, no selling to advertisers, no manipulation. We\'re funded by users, not by selling your attention.' }
         ]
     },
@@ -651,7 +654,7 @@ const arabicContent = {
             { title: 'القصص', desc: 'التقط اللحظات العابرة بمحتوى مؤقت يختفي بعد 24 ساعة. شارك بحرية بدون ضغط الديمومة.' },
             { title: 'الدردشة الخاصة', desc: 'مراسلة فورية مع تشفير كامل. محادثاتك تبقى بينك وبين المستلمين—آمنة، سريعة، وخاصة.' },
             { title: 'المجموعات', desc: 'أنشئ أو انضم لمجتمعات حول اهتماماتك. من مجموعات الهوايات إلى الشبكات المهنية، ابنِ مساحات تجمع الناس معًا.' },
-            { title: 'مساعد الذكاء الاصطناعي', desc: 'أدوات ذكية لتعزيز تجربتك. احصل على مساعدة في صياغة المنشورات، وتلخيص المحادثات، واكتشاف المحتوى الذي يهمك.' },
+            { title: 'مساعد الذكاء الاصطناعي', badge: 'قائم على القوائم', desc: 'أدوات ذكية لتعزيز تجربتك. احصل على مساعدة في صياغة المنشورات، وتلخيص المحادثات، واكتشاف المحتوى الذي يهمك.' },
             { title: 'الخصوصية أولاً', desc: 'بياناتك تبقى لك. لا تتبع، لا بيع للمعلنين، لا تلاعب. نحن ممولون من المستخدمين، لا من بيع انتباهك.' }
         ]
     },
@@ -747,6 +750,11 @@ function updateContentForLanguage(lang) {
     document.querySelectorAll('.feature-card-desc').forEach((el, i) => {
         el.textContent = content.features.cards[i].desc;
     });
+    // Update AI Assistant badge if it exists
+    const aiBadge = document.getElementById('ai-badge');
+    if (aiBadge && content.features.cards[4].badge) {
+        aiBadge.textContent = content.features.cards[4].badge;
+    }
     document.querySelector('.list-title').textContent = content.listTitle;
     document.querySelectorAll('.list-item span:last-child').forEach((el, i) => {
         el.textContent = content.list[i];
@@ -777,14 +785,19 @@ ScrollTrigger.refresh();
 
 
 // Hero fade in - Nexus title first, then subtitle
-gsap.to('#nexus-title', { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.2 });
-gsap.to('.hero-content h2', { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.6 });
+gsap.to('#nexus-title', { opacity: 1, y: 0, duration: 1, delay: 0.2 });
+gsap.to('.hero-content h2', { opacity: 1, y: 0, duration: 1, delay: 0.6 });
 
-// Section 1: Fade & Slide - Works in both languages
-gsap.timeline({
-    scrollTrigger: { trigger:'#section-fade', start:'top top', end:'+=100%', pin:true, scrub:0.5, anticipatePin:1 }
-}).to('.e1-title', { opacity:1, y:0, duration:1 }, 0)
-  .to('.e1-desc', { opacity:1, y:0, duration:1 }, 0.3);
+// Section 1: "Built for Real Connections" - simple fade on scroll (from opacity 0 to 1)
+gsap.from('#section-fade .fade-content', {
+    opacity: 0,
+    duration: 0.8,
+    scrollTrigger: {
+        trigger: '#section-fade',
+        start: 'top 85%',
+        once: true
+    }
+});
 
 // Section 2: Word Carousel - Works in both languages
 const words = ['#word1','#word2','#word3','#word4'];
@@ -816,12 +829,12 @@ let typewriterTl = null;
 function initTypewriter() {
     let typeEl = document.querySelector('.e12-type');
     if (!typeEl) return;
-    
+
     // Get current language and text
     const currentLang = document.documentElement.getAttribute('lang') || 'en';
     const content = currentLang === 'ar' ? arabicContent : englishContent;
     const originalText = content.type;
-    
+
     // Clear and rebuild spans
     typeEl.innerHTML = '';
     let chars = originalText.split('');
@@ -840,21 +853,21 @@ function createTypewriterAnimation() {
     if (typewriterTl) {
         typewriterTl.kill();
     }
-    
-    typewriterTl = gsap.timeline({ 
-        scrollTrigger: { 
-            trigger:'#section-type', 
-            start:'top top', 
-            end:'+=300%', 
-            pin:true, 
-            scrub:0.5, 
-            anticipatePin:1 
-        } 
-    }).to('.e12-type span', { 
-        opacity:1, 
-        duration:0.05, 
-        stagger:0.02, 
-        ease:'none' 
+
+    typewriterTl = gsap.timeline({
+        scrollTrigger: {
+            trigger:'#section-type',
+            start:'top top',
+            end:'+=300%',
+            pin:true,
+            scrub:0.5,
+            anticipatePin:1
+        }
+    }).to('.e12-type span', {
+        opacity:1,
+        duration:0.05,
+        stagger:0.02,
+        ease:'none'
     }, 0);
 }
 
@@ -867,7 +880,7 @@ let growingTl = gsap.timeline({
     scrollTrigger: {
         trigger: '#section-growing',
         start: 'top top',
-        end: '+=300%',
+        end: '+=150%',
         scrub: true,
         pin: true
     }
@@ -876,7 +889,8 @@ let growingTl = gsap.timeline({
 growingTl.to('#section-growing .text-line', {
     opacity: 1,
     y: -20,
-    stagger: 1
+    stagger: 0.5,
+    duration: 0.5
 });
 
 // CTA Section - Works in both languages
@@ -901,38 +915,22 @@ if (menuToggle && navLinks) {
     });
 }
 
-// Close menu when clicking a link
+// Close menu when clicking a link - Simple scroll without ScrollTrigger interference
 document.querySelectorAll('.nav-links a').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
         navLinks.classList.remove('active');
 
         const targetId = link.getAttribute('href');
-
-        // Disable ScrollTrigger to prevent animations during scroll
-        ScrollTrigger.getAll().forEach(trigger => trigger.disable());
-
-        // Scroll to target section
         const targetSection = document.querySelector(targetId);
+
         if (targetSection) {
-            // Get nav height dynamically (changes on mobile vs desktop)
-            const nav = document.querySelector('nav');
-            const navHeight = nav ? nav.offsetHeight : 80;
-            
-            // Calculate position with offset for nav
+            const navHeight = 80;
             const targetPosition = targetSection.offsetTop - navHeight;
 
-            window.scrollTo({
-                top: targetPosition,
-                behavior: 'smooth'
-            });
+            // Simple smooth scroll - let GSAP handle itself
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
         }
-
-        // Re-enable ScrollTrigger after scroll completes
-        setTimeout(() => {
-            ScrollTrigger.getAll().forEach(trigger => trigger.enable());
-            ScrollTrigger.refresh();
-        }, 1000);
     });
 });
 
