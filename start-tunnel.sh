@@ -132,6 +132,9 @@ rm -f "$TUNNEL_LOG"
 # Clear log and start visitor monitor
 > storage/logs/realtime-requests.log
 
+# Initialize request counter
+REQUEST_COUNT=0
+
 echo ""
 echo -e "${GREEN}${BOLD}Tunnel is running!${NC}"
 echo ""
@@ -145,21 +148,27 @@ echo ""
 
 # Start visitor monitor
 (
+    REQUEST_COUNT=0
     tail -n 5 -F storage/logs/realtime-requests.log 2>/dev/null | while IFS= read -r line; do
         [ -n "$line" ] || continue
-        
+
+        # Increment counter
+        REQUEST_COUNT=$((REQUEST_COUNT + 1))
+
         ts=$(echo "$line" | jq -r '.timestamp // ""' 2>/dev/null)
         ip=$(echo "$line" | jq -r '.ip // ""' 2>/dev/null)
         method=$(echo "$line" | jq -r '.method // ""' 2>/dev/null)
         path=$(echo "$line" | jq -r '.path // ""' 2>/dev/null)
         city=$(echo "$line" | jq -r '.city // ""' 2>/dev/null)
         country=$(echo "$line" | jq -r '.country // ""' 2>/dev/null)
-        lat=$(echo "$line" | jq -r '.latitude // ""' 2>/dev/null)
-        lon=$(echo "$line" | jq -r '.longitude // ""' 2>/dev/null)
+        lat=$(echo "$line" | jq -r '.lat // ""' 2>/dev/null)
+        lon=$(echo "$line" | jq -r '.lon // ""' 2>/dev/null)
         device=$(echo "$line" | jq -r '.device // ""' 2>/dev/null)
         browser=$(echo "$line" | jq -r '.browser // ""' 2>/dev/null)
         cfcountry=$(echo "$line" | jq -r '.cf_ip_country // ""' 2>/dev/null)
-        
+        username=$(echo "$line" | jq -r '.username // ""' 2>/dev/null)
+        useremail=$(echo "$line" | jq -r '.user_email // ""' 2>/dev/null)
+
         case "$method" in
             GET) mc="\033[0;32m" ;;
             POST) mc="\033[0;33m" ;;
@@ -167,12 +176,16 @@ echo ""
             DELETE) mc="\033[0;31m" ;;
             *) mc="\033[0;37m" ;;
         esac
-        
+
         loc="$city, $country"
         [ "$city" = "Unknown" ] || [ -z "$city" ] && loc="$country"
         [ -n "$lat" ] && [ "$lat" != "null" ] && loc="$loc ($lat, $lon)"
-        
-        echo -e "[$ts]  $ip - ${mc}$method${NC} - $path"
+
+        # Display with request number, IP and username
+        echo -e "${BOLD}${REQUEST_COUNT}${NC} - ${BOLD}$ip${NC}"
+        [ -n "$username" ] && [ "$username" != "null" ] && [ -n "$useremail" ] && [ "$useremail" != "null" ] && echo -e "   ${BOLD}$username${NC} - $useremail"
+        [ -n "$username" ] && [ "$username" != "null" ] && [ -z "$useremail" ] && echo -e "   ${BOLD}$username${NC}"
+        echo -e "   ${mc}$method${NC} - $path"
         echo -e "   $loc"
         echo -e "   $device | $browser"
         [ -n "$cfcountry" ] && [ "$cfcountry" != "null" ] && echo -e "   Country: $cfcountry"

@@ -87,9 +87,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Auto-create profile for new users
         static::created(function ($user) {
-            if (!$user->profile) {
-                $user->profile()->create();
-            }
+            // Use firstOrCreate to prevent duplicate profile creation
+            $user->profile()->firstOrCreate([]);
         });
     }
 

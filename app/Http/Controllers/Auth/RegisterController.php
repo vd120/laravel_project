@@ -63,6 +63,7 @@ class RegisterController extends Controller
                 'string',
                 'email',
                 'max:255',
+                'unique:users,email',
                 function ($attribute, $value, $fail) use ($disposableEmailDomains) {
                     $domain = strtolower(substr(strrchr($value, "@"), 1));
                     if (in_array($domain, $disposableEmailDomains)) {
@@ -119,6 +120,7 @@ class RegisterController extends Controller
         ], [
             'username.min' => 'Username must be at least 3 characters long.',
             'username.regex' => 'Username can only contain letters, numbers, underscores, and hyphens.',
+            'email.unique' => 'This email address is already registered. Please login or use a different email.',
         ]);
 
         $user = User::create([
@@ -129,8 +131,7 @@ class RegisterController extends Controller
             'email_verified_at' => null, // Explicitly set to null for verification
         ]);
 
-        // Create a basic profile for the user
-        $user->profile()->create([]);
+        // Profile will be auto-created by User model's created event
 
         // Generate and send verification code
         $verificationCode = $user->generateVerificationCode();

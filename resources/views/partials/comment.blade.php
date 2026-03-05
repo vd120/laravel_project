@@ -419,34 +419,58 @@
         margin: 0;
         padding: 14px 0;
     }
-    
+
     .comment-item.nested {
-        margin-left: 12px;
-        padding-left: 12px;
+        margin-left: 8px;
+        padding-left: 8px;
+        border-left-width: 1px;
     }
 
     .comment-item.level-1 {
-        margin-left: 12px;
+        margin-left: 8px;
     }
 
     .comment-item.level-2 {
-        margin-left: 24px;
+        margin-left: 12px;
     }
 
     .comment-item.level-3 {
-        margin-left: 36px;
+        margin-left: 16px;
     }
 
     .comment-item.level-4 {
-        margin-left: 48px;
+        margin-left: 20px;
     }
 
     .comment-item.level-5 {
-        margin-left: 60px;
+        margin-left: 24px;
     }
 
     .comment-content {
         padding-left: 0;
+    }
+
+    .comment-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .comment-avatar-placeholder {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .comment-name {
+        font-size: 13px;
+    }
+
+    .comment-content p {
+        font-size: 13px;
+    }
+
+    .comment-time {
+        font-size: 10px;
     }
 
     .comment-actions-bar {
@@ -505,7 +529,7 @@
     .cancel-reply {
         padding: 10px;
         min-height: 44px;
-        margin-left: 44px;
+        margin-left: 36px;
     }
 
     /* Disable hover effects on mobile */

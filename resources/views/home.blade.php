@@ -235,6 +235,48 @@ html[lang="ar"] .list-item {
 .hero-cta-btn-primary:hover{transform:scale(1.05);box-shadow:0 15px 40px rgba(255,255,255,0.2);}
 .hero-cta-btn-secondary{background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);}
 .hero-cta-btn-secondary:hover{background:rgba(255,255,255,0.15);}
+
+/* Scroll Arrow */
+.scroll-arrow {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeInArrow 1s ease 1.5s forwards;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.scroll-arrow svg {
+    width: 28px;
+    height: 28px;
+    color: var(--text-primary);
+    opacity: 0.7;
+    animation: bounceArrow 2s infinite;
+}
+
+.scroll-arrow span {
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+@keyframes fadeInArrow {
+    to { opacity: 1; }
+}
+
+@keyframes bounceArrow {
+    0%, 100% { transform: translateY(0); opacity: 0.5; }
+    50% { transform: translateY(8px); opacity: 1; }
+}
+
 .pin-section {
     height: 100vh;
     width: 100%;
@@ -376,6 +418,16 @@ footer a:hover { color: var(--primary); }
     #themeToggle { width: 36px; height: 36px; }
     #themeToggle svg { width: 18px; height: 18px; }
     .lang-toggle { padding: 6px 10px; font-size: 12px; }
+    .scroll-arrow {
+        bottom: 110px;
+    }
+    .scroll-arrow svg {
+        width: 24px;
+        height: 24px;
+    }
+    .scroll-arrow span {
+        font-size: 11px;
+    }
     .nav-links {
         position: absolute;
         top: 100%;
@@ -455,6 +507,13 @@ footer a:hover { color: var(--primary); }
     <div class="hero-content">
         <h1 id="nexus-title">Nexus</h1>
         <h2>Connect. Share. Belong. Experience social media as it should be—authentic, private, and yours.</h2>
+    </div>
+    <div class="scroll-arrow" onclick="scrollToSection()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14"/>
+            <path d="M19 12l-7 7-7-7"/>
+        </svg>
+        <span>Scroll to explore</span>
     </div>
 </section>
 <section class="pin-section" id="section-fade">
@@ -620,6 +679,7 @@ let currentLang = localStorage.getItem('lang') || 'en';
 
 const englishContent = {
     hero: { title: 'Nexus', subtitle: 'Connect. Share. Belong. Experience social media as it should be—authentic, private, and yours.' },
+    scrollArrow: 'Scroll to explore',
     fade: { title: 'Built for Real Connections', desc: 'Nexus brings together everything you need to connect, share, and build community. No algorithms feeding you outrage. No ads selling your attention. Just genuine interaction with the people who matter.' },
     carousel: { word1: 'Post.', word2: 'Share.', word3: 'Connect.', word4: 'Belong.' },
     features: {
@@ -643,9 +703,10 @@ const englishContent = {
 };
 
 const arabicContent = {
-    hero: { title: 'Nexus', subtitle: 'تواصل. شارك. انتمِ. اختبر وسائل التواصل كما يجب أن تكون—أصيلة، خاصة، ولك وحدك.' },
-    fade: { title: 'صُمم للتواصل الحقيقي', desc: 'Nexus يجمع كل ما تحتاجه للتواصل وبناء المجتمع. لا خوارزميات تثير غضبك. لا إعلانات تبيع انتباهك. فقط تفاعل حقيقي مع الأشخاص الذين يهتمون لأمرهم.' },
-    carousel: { word1: 'انشر.', word2: 'شارك.', word3: 'تواصل.', word4: 'انتمِ.' },
+    hero: { title: 'Nexus', subtitle: 'تواصل. شارك. اِنتَمِ. اختبر وسائل التواصل كما يجب أن تكون—أصيلة، خاصة، ولك وحدك.' },
+    scrollArrow: 'مرر للاستكشاف',
+    fade: { title: 'صُمِّمَ للتواصل الحقيقي', desc: 'Nexus يجمع كل ما تحتاجه للتواصل وبناء المجتمع. لا خوارزميات تثير غضبك. لا إعلانات تبيع انتباهك. فقط تفاعل حقيقي مع الأشخاص الذين يهتمون لأمرهم.' },
+    carousel: { word1: 'انشر.', word2: 'شارك.', word3: 'تواصل.', word4: 'اِنتَمِ.' },
     features: {
         label: 'المميزات',
         title: 'كل ما تحتاجه. بدون أي زوائد.',
@@ -663,7 +724,7 @@ const arabicContent = {
     blur: 'خصوصيتك.<br>محمية.',
     type: 'Nexus مبني على اعتقاد بسيط: وسائل التواصل يجب أن تجمع الناس، لا أن تفرقهم. لا خوارزميات تقرر ما ترى. لا إعلانات تقاطع لحظاتك. فقط أنت، منشوراتك، قصصك، ومجتمعك. مرحبًا بك في وسائل التواصل كما يجب أن تكون.',
     cta: { title: 'مجتمعك ينتظرك.', desc: 'انضم إلى Nexus اليوم واختبر وسائل التواصل كما يجب أن تكون.', btn1: 'ابدأ مجانًا', btn2: 'تسجيل الدخول' },
-    footer: { copyright: '© 2026 Nexus. صُمم للتواصل الأصيل.' }
+    footer: { copyright: '© 2026 Nexus. صُمِّمَ للتواصل الأصيل.' }
 };
 
 // Theme toggle functionality
@@ -736,6 +797,7 @@ function updateContentForLanguage(lang) {
     const content = lang === 'ar' ? arabicContent : englishContent;
     document.querySelector('#nexus-title').textContent = content.hero.title;
     document.querySelector('.hero-content h2').textContent = content.hero.subtitle;
+    document.querySelector('.scroll-arrow span').textContent = content.scrollArrow;
     document.querySelector('.e1-title').textContent = content.fade.title;
     document.querySelector('.e1-desc').textContent = content.fade.desc;
     document.getElementById('word1').textContent = content.carousel.word1;
@@ -933,6 +995,16 @@ document.querySelectorAll('.nav-links a').forEach(link => {
         }
     });
 });
+
+// Scroll arrow click handler
+function scrollToSection() {
+    const firstSection = document.getElementById('section-fade');
+    if (firstSection) {
+        const navHeight = 80;
+        const targetPosition = firstSection.offsetTop - navHeight;
+        window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+    }
+}
 
 });
 </script>

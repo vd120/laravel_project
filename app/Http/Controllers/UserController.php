@@ -59,7 +59,7 @@ class UserController extends Controller
                 'user_id' => $user->id,
                 'type' => 'follow',
                 'data' => [
-                    'follower_username' => $currentUser->username,
+                    'follower_name' => $currentUser->username,
                     'follower_id' => $currentUser->id
                 ],
                 'related_type' => \App\Models\Follow::class,

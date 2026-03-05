@@ -101,6 +101,52 @@
             color:#000000;
         }
 
+        /* Action buttons - match login page header */
+        #themeToggle {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 18px;
+        }
+        [data-theme="light"] #themeToggle {
+            border-color: rgba(0, 0, 0, 0.2);
+            color: #111111;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 8px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        [data-theme="light"] .back-btn {
+            border-color: rgba(0, 0, 0, 0.2);
+            color: #111111;
+        }
+        [data-theme="light"] .back-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
         /* PAGE WRAP */
         .page{
             min-height:100vh;
@@ -350,13 +396,13 @@
     <div class="nav-container">
         <a href="{{ route('home') }}" class="nav-brand">Nexus</a>
         <div style="display: flex; align-items: center; gap: 12px;">
-            <button type="button" onclick="toggleTheme()" style="background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 8px; border-radius: 50%;">
+            <button type="button" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
                 <i class="fas fa-moon" id="theme-icon"></i>
             </button>
             @if(auth()->check())
-                <a href="{{ route('users.show', auth()->user()) }}" class="nav-link">← Back to Profile</a>
+                <a href="{{ route('users.show', auth()->user()) }}" class="back-btn">← Back</a>
             @else
-                <a href="{{ route('login') }}" class="nav-link">← Back to Login</a>
+                <a href="{{ route('login') }}" class="back-btn">← Back</a>
             @endif
         </div>
     </div>

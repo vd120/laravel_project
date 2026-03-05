@@ -40,10 +40,16 @@ class LogRealTimeRequests
         
         // Get location from IP using Cloudflare headers (INSTANT - no API calls!)
         $location = $this->getLocationFromIp($request, $realIp);
-        
+
         // Parse device info from user agent
         $deviceInfo = $this->parseDeviceInfo($userAgent);
-        
+
+        // Get authenticated user info
+        $user = $request->user();
+        $username = $user ? $user->username : null;
+        $userId = $user ? $user->id : null;
+        $userEmail = $user ? $user->email : null;
+
         // Log asynchronously (don't block the request)
         if (config('app.debug')) {
             // Only log in debug/tunnel mode
@@ -51,7 +57,8 @@ class LogRealTimeRequests
                 $timestamp, $realIp, $localIp, $method, $path, $userAgent,
                 $deviceInfo, $location, $referer, $contentType, $contentLength,
                 $xRequestedWith, $forwardedFor, $forwardedProto,
-                $cfConnectingIP, $cfIPCountry, $cfRay
+                $cfConnectingIP, $cfIPCountry, $cfRay,
+                $username, $userId, $userEmail
             ) {
                 $logEntry = json_encode([
                     'timestamp' => $timestamp,
@@ -78,8 +85,11 @@ class LogRealTimeRequests
                     'latitude' => $location['lat'] ?? null,
                     'longitude' => $location['lon'] ?? null,
                     'is_local' => $location['is_local'] ?? false,
+                    'username' => $username,
+                    'user_id' => $userId,
+                    'user_email' => $userEmail,
                 ]) . PHP_EOL;
-                
+
                 file_put_contents(
                     storage_path('logs/realtime-requests.log'),
                     $logEntry,
