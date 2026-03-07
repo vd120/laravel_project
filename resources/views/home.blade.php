@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nexus — Your Social Platform</title>
-
-<!-- Preconnect to external resources -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://fonts.googleapis.com">
@@ -17,7 +15,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔷</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>">
 <style>
 :root{
     --primary:#5e60ce;
@@ -86,16 +84,35 @@ nav{
     position:fixed;
     top:0;
     width:100%;
-    padding:20px 40px;
+    padding:12px 40px;
     backdrop-filter:blur(20px);
     -webkit-backdrop-filter:blur(20px);
-    background:var(--nav-bg);
+    background:transparent;
     z-index:1000;
     display:flex;
     justify-content:center;
-    border-bottom:1px solid var(--nav-border);
+    border-bottom:none;
+    will-change: auto;
+    contain: layout style;
 }
-.nav-container{max-width:1200px;width:100%;display:flex;justify-content:space-between;align-items:center;}
+.nav-container{
+    max-width:1200px;
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(40px) saturate(150%);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 100px;
+    padding: 10px 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+    will-change: auto;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    contain: layout style;
+}
 nav a{color:var(--text-primary);text-decoration:none;font-size:14px;font-weight:500;opacity:0.8;transition:opacity 0.3s;}
 nav a:hover{opacity:1}
 .nav-brand{font-weight:700;font-size:20px;opacity:1;}
@@ -247,7 +264,7 @@ html[lang="ar"] .list-item {
     align-items: center;
     gap: 8px;
     opacity: 0;
-    animation: fadeInArrow 1s ease 1.5s forwards;
+    animation: fadeInArrow 0.5s ease 0.5s forwards;
     cursor: pointer;
     z-index: 10;
 }
@@ -277,6 +294,85 @@ html[lang="ar"] .list-item {
     50% { transform: translateY(8px); opacity: 1; }
 }
 
+/* Intro Shape Animation */
+.intro-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    background: var(--bg-main);
+    animation: introFadeOut 0.8s ease forwards 1.5s;
+    pointer-events: none;
+}
+
+.intro-shape {
+    position: relative;
+    width: 500px;
+    height: 180px;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 726 252.17'%3E%3Cpath d='M483.92 0S481.38 24.71 466 40.11c-11.74 11.74-24.09 12.66-40.26 15.07-9.42 1.41-29.7 3.77-34.81-.79-2.37-2.11-3-21-3.22-27.62-.21-6.92-1.36-16.52-2.82-18-.75 3.06-2.49 11.53-3.09 13.61S378.49 34.3 378 36a85.13 85.13 0 0 0-30.09 0c-.46-1.67-3.17-11.48-3.77-13.56s-2.34-10.55-3.09-13.61c-1.45 1.45-2.61 11.05-2.82 18-.21 6.67-.84 25.51-3.22 27.62-5.11 4.56-25.38 2.2-34.8.79-16.16-2.47-28.51-3.39-40.21-15.13C244.57 24.71 242 0 242 0H0s69.52 22.74 97.52 68.59c16.56 27.11 14.14 58.49 9.92 74.73C170 140 221.46 140 273 158.57c69.23 24.93 83.2 76.19 90 93.6 6.77-17.41 20.75-68.67 90-93.6 51.54-18.56 103-18.59 165.56-15.25-4.21-16.24-6.63-47.62 9.93-74.73C656.43 22.74 726 0 726 0z'/%3E%3C/svg%3E") no-repeat center;
+    -webkit-mask-size: contain;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 726 252.17'%3E%3Cpath d='M483.92 0S481.38 24.71 466 40.11c-11.74 11.74-24.09 12.66-40.26 15.07-9.42 1.41-29.7 3.77-34.81-.79-2.37-2.11-3-21-3.22-27.62-.21-6.92-1.36-16.52-2.82-18-.75 3.06-2.49 11.53-3.09 13.61S378.49 34.3 378 36a85.13 85.13 0 0 0-30.09 0c-.46-1.67-3.17-11.48-3.77-13.56s-2.34-10.55-3.09-13.61c-1.45 1.45-2.61 11.05-2.82 18-.21 6.67-.84 25.51-3.22 27.62-5.11 4.56-25.38 2.2-34.8.79-16.16-2.47-28.51-3.39-40.21-15.13C244.57 24.71 242 0 242 0H0s69.52 22.74 97.52 68.59c16.56 27.11 14.14 58.49 9.92 74.73C170 140 221.46 140 273 158.57c69.23 24.93 83.2 76.19 90 93.6 6.77-17.41 20.75-68.67 90-93.6 51.54-18.56 103-18.59 165.56-15.25-4.21-16.24-6.63-47.62 9.93-74.73C656.43 22.74 726 0 726 0z'/%3E%3C/svg%3E") no-repeat center;
+    mask-size: contain;
+    transform: scale(0.8);
+    opacity: 0;
+    animation: introScale 1.5s ease forwards 0.3s;
+}
+
+.intro-shape::before {
+    content: '';
+    position: absolute;
+    width: 0%;
+    height: 100%;
+    background: var(--text-primary);
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    animation: introFill 1.5s ease forwards 0.3s;
+}
+
+.intro-shape::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: 0 0 0 0 var(--text-primary);
+    animation: introGlow 2s ease forwards 0.5s;
+}
+
+@keyframes introScale {
+    to {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+@keyframes introFill {
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes introGlow {
+    0% {
+        box-shadow: 0 0 0 0 var(--text-primary);
+    }
+    100% {
+        box-shadow: 0 -13px 56px 12px rgba(255,255,255,0.67);
+    }
+}
+
+@keyframes introFadeOut {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+
 .pin-section {
     height: 100vh;
     width: 100%;
@@ -293,7 +389,7 @@ html[lang="ar"] .list-item {
 .carousel { position: relative; height: 120px; width: 100%; display: flex; justify-content: center; align-items: center; }
 .word-line { position: absolute; font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; opacity: 0.2; color: var(--text-primary); }
 .list-effect { display: flex; flex-direction: column; gap: 40px; width: 100%; max-width: 800px; text-align: left; padding-left: 10%; }
-.list-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; color: var(--text-primary); margin-bottom: 30px; text-align: center; width: 100%; }
+.list-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; color: var(--text-primary); margin-bottom: 30px; text-align: center; width: 100%; opacity: 0; transform: translateY(30px); }
 .list-item { display: flex; align-items: center; gap: 20px; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 500; color: var(--text-primary); opacity: 0; transform: translateX(-30px); }
 .list-bullet { width: 12px; height: 12px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 15px var(--primary); }
 .blur-text { font-size: clamp(3rem, 7vw, 5.5rem); font-weight: 700; filter: blur(15px); opacity: 0; color: var(--text-primary); text-align: center; line-height: 1.1; }
@@ -410,7 +506,18 @@ footer a { color: var(--text-secondary); transition: color 0.3s ease; }
 footer a:hover { color: var(--primary); }
 
 @media(max-width:768px){
-    nav{padding:15px 20px}
+    nav{padding:10px 16px}
+    .nav-container {
+        padding: 8px 16px;
+        border-radius: 80px;
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(40px) saturate(150%);
+        -webkit-backdrop-filter: blur(40px) saturate(150%);
+        border: 1px solid rgba(255,255,255,0.1);
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        contain: layout style;
+    }
     .hero-cta{flex-direction:column;align-items:center}
     .list-effect { padding: 0 20px; }
     .cta-buttons { flex-direction: column; align-items: center; }
@@ -434,9 +541,9 @@ footer a:hover { color: var(--primary); }
         left: 0;
         width: 100%;
         flex-direction: column;
-        background: rgba(0,0,0,0.85);
-        backdrop-filter: blur(30px) saturate(180%);
-        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        background: rgba(0,0,0,0.92);
+        backdrop-filter: blur(20px) saturate(150%);
+        -webkit-backdrop-filter: blur(20px) saturate(150%);
         padding: 25px 20px;
         gap: 15px;
         opacity: 0;
@@ -445,9 +552,12 @@ footer a:hover { color: var(--primary); }
         transition: all 0.3s ease;
         border-top: 1px solid var(--nav-border);
         border-bottom: 1px solid var(--nav-border);
+        will-change: auto;
     }
     [data-theme="light"] .nav-links {
-        background: rgba(255,255,255,0.85);
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(20px) saturate(150%);
+        -webkit-backdrop-filter: blur(20px) saturate(150%);
     }
     html[lang="ar"] .nav-links {
         text-align: right;
@@ -476,6 +586,11 @@ footer a:hover { color: var(--primary); }
 </style>
 </head>
 <body>
+
+<!-- Intro Animation -->
+<div class="intro-wrapper">
+    <div class="intro-shape"></div>
+</div>
 
 <div class="animated-bg"></div>
 <nav>
@@ -875,11 +990,12 @@ words.forEach((sel, i) => {
 
 // Section 3: Staggered List - Works in both languages (RTL handled by CSS)
 gsap.timeline({ scrollTrigger: { trigger:'#section-list', start:'top top', end:'+=100%', pin:true, scrub:0.5, anticipatePin:1 } })
-    .to('.e4-item1', { opacity:1, x:0, duration:0.5 }, 0)
-    .to('.e4-item2', { opacity:1, x:0, duration:0.5 }, 0.2)
-    .to('.e4-item3', { opacity:1, x:0, duration:0.5 }, 0.4)
-    .to('.e4-item4', { opacity:1, x:0, duration:0.5 }, 0.6)
-    .to('.e4-item5', { opacity:1, x:0, duration:0.5 }, 0.8);
+    .to('.list-title', { opacity:1, y:0, duration:0.5 }, 0)
+    .to('.e4-item1', { opacity:1, x:0, duration:0.5 }, 0.2)
+    .to('.e4-item2', { opacity:1, x:0, duration:0.5 }, 0.4)
+    .to('.e4-item3', { opacity:1, x:0, duration:0.5 }, 0.6)
+    .to('.e4-item4', { opacity:1, x:0, duration:0.5 }, 0.8)
+    .to('.e4-item5', { opacity:1, x:0, duration:0.5 }, 1);
 
 // Section 4: Blur Reveal - Works in both languages
 gsap.timeline({ scrollTrigger: { trigger:'#section-blur', start:'top top', end:'+=100%', pin:true, scrub:0.5, anticipatePin:1 } })
