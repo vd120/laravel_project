@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Blocked Users')
+@section('title', __('users.blocked_users'))
 
 @section('content')
 <style>
@@ -54,9 +54,9 @@
             <a href="{{ route('home') }}" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h1><i class="fas fa-ban"></i> Blocked Users</h1>
+            <h1><i class="fas fa-ban"></i> {{ __('users.blocked_users') }}</h1>
         </div>
-        <p>You have blocked {{ $blocked->count() }} user{{ $blocked->count() !== 1 ? 's' : '' }}</p>
+        <p>{{ trans_choice('users.you_have_blocked', $blocked->count(), ['count' => $blocked->count()]) }}</p>
     </div>
 
     <div class="users-grid">
@@ -70,19 +70,19 @@
                     <div class="user-name">{{ $block->blocked->username }}</div>
                 </a>
                 <div class="user-meta">
-                    <span class="blocked-badge"><i class="fas fa-ban"></i> Blocked</span>
-                    <span>Blocked on {{ $block->created_at->format('M d, Y') }}</span>
+                    <span class="blocked-badge"><i class="fas fa-ban"></i> {{ __('users.blocked') }}</span>
+                    <span>{{ __('users.blocked_on', ['date' => $block->created_at->format('M d, Y')]) }}</span>
                 </div>
             </div>
             <button class="btn btn-ghost" onclick="blockedPageUnblock(this, '{{ $block->blocked->username }}')">
-                <i class="fas fa-unlock"></i> Unblock
+                <i class="fas fa-unlock"></i> {{ __('users.unblock') }}
             </button>
         </div>
         @empty
         <div class="empty-state">
             <i class="fas fa-shield-alt"></i>
-            <h3>No blocked users</h3>
-            <p style="color: var(--text-muted);">You haven't blocked anyone yet.</p>
+            <h3>{{ __('users.no_blocked_users') }}</h3>
+            <p style="color: var(--text-muted);">{{ __('users.no_blocked_users_yet') }}</p>
         </div>
         @endforelse
     </div>
@@ -90,7 +90,7 @@
 
 <script>
 function blockedPageUnblock(btn, username) {
-    if (!confirm('Unblock this user?')) return;
+    if (!confirm({!! json_encode(__('users.unblock_this_user')) !!})) return;
     const originalHtml = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.disabled = true;

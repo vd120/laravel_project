@@ -38,7 +38,7 @@ class NotificationController extends Controller
         $notification->markAsRead();
 
         return response()->json([
-            'message' => 'Notification marked as read',
+            'message' => __('messages.notification_marked_as_read'),
             'notification' => $notification
         ]);
     }
@@ -51,7 +51,7 @@ class NotificationController extends Controller
         Auth::user()->notifications()->unread()->update(['read_at' => now()]);
 
         return response()->json([
-            'message' => 'All notifications marked as read'
+            'message' => __('messages.all_notifications_marked_as_read')
         ]);
     }
 
@@ -64,7 +64,7 @@ class NotificationController extends Controller
         $notification->delete();
 
         return response()->json([
-            'message' => 'Notification deleted'
+            'message' => __('messages.notification_deleted')
         ]);
     }
 

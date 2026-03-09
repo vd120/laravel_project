@@ -148,7 +148,7 @@ class StoryController extends Controller
             'expires_at' => now()->addHours(24),
         ]);
 
-        return redirect()->route('stories.index')->with('success', 'Story posted successfully!');
+        return redirect()->route('stories.index')->with('success', __('messages.story_posted'));
     }
 
     public function show(User $user, Story $story, Request $request)
@@ -349,7 +349,7 @@ class StoryController extends Controller
         if (request()->expectsJson() || request()->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Story deleted successfully'
+                'message' => __('messages.story_deleted')
             ]);
         }
 

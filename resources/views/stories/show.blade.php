@@ -494,7 +494,7 @@
                 </div>
                 <div class="story-header-actions">
                     @if($user->id === auth()->id())
-                        <button class="story-delete" onclick="deleteStory('{{ $stories->first()->slug }}')" title="Delete story">
+                        <button class="story-delete" onclick="deleteStory('{{ $stories->first()->slug }}')" title="{{ __('messages.delete_story') }}">
                             <i class="fas fa-trash"></i>
                         </button>
                     @endif
@@ -534,7 +534,7 @@
             <!-- Controls -->
             <div class="story-controls">
                 @if($user->id === auth()->id())
-                    <a href="{{ route('stories.viewers', [$user, $stories->first()]) }}" class="control-btn viewers-btn" title="View who watched">
+                    <a href="{{ route('stories.viewers', [$user, $stories->first()]) }}" class="control-btn viewers-btn" title="{{ __('messages.view_who_watched') }}">
                         <i class="fas fa-eye"></i>
                         <span>{{ $stories->first()->storyViews->count() ?? 0 }}</span>
                     </a>
@@ -545,13 +545,13 @@
                 <!-- Message Input - Only show if not viewing own story -->
                 @if($user->id !== auth()->id())
                 <div class="story-message-input-wrapper">
-                    <input type="text" class="story-message-input" id="story-message" placeholder="Send message..." onkeypress="handleMessageKeypress(event)">
+                    <input type="text" class="story-message-input" id="story-message" placeholder="{{ __('messages.send_message') }}" onkeypress="handleMessageKeypress(event)">
                     <button class="story-send-btn" onclick="sendStoryMessage()" id="story-send-btn">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                     <div class="story-sending-indicator" id="story-sending-indicator" style="display: none;">
                         <i class="fas fa-spinner fa-spin"></i>
-                        <span>Sending reply...</span>
+                        <span>{{ __('messages.sending_reply') }}</span>
                     </div>
                 </div>
                 @endif
@@ -926,7 +926,7 @@
         }
 
         function deleteStory(storySlug) {
-            if (!confirm('Are you sure you want to delete this story?')) return;
+            if (!confirm('{{ __('messages.delete_story_confirm') }}')) return;
 
             const username = '{{ $user->username }}';
             fetch('/stories/' + username + '/' + storySlug, {
@@ -947,19 +947,21 @@
             .catch(error => {
                 console.error('Error:', error);
                 if (typeof showToast === 'function') {
-                    showToast('Failed to delete story', 'error');
+                    const t = window.chatTranslations || {};
+                    showToast(t.failed_to_delete_story || 'Failed to delete story', 'error');
                 }
             });
         }
 
         function timeAgo(date) {
             const seconds = Math.floor((new Date() - date) / 1000);
-            if (seconds < 60) return 'Just now';
+            const t = window.chatTranslations || {};
+            if (seconds < 60) return t.just_now || 'Just now';
             const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return minutes + 'm ago';
+            if (minutes < 60) return minutes + (t.minutes_ago_short || 'm ago');
             const hours = Math.floor(minutes / 60);
-            if (hours < 24) return hours + 'h ago';
-            return Math.floor(hours / 24) + 'd ago';
+            if (hours < 24) return hours + (t.hours_ago_short || 'h ago');
+            return Math.floor(hours / 24) + (t.days_ago_short || 'd ago');
         }
 
         function handleMessageKeypress(e) {
@@ -1004,8 +1006,9 @@
 
                 if (!data.success) {
                     // Handle error
+                    const t = window.chatTranslations || {};
                     if (typeof showToast === 'function') {
-                        showToast(data.error || 'Failed to send message', 'error');
+                        showToast(data.error || (t.failed_to_send_message || 'Failed to send message'), 'error');
                     }
                     sendBtn.style.display = 'flex';
                     sendingIndicator.style.display = 'none';
@@ -1042,19 +1045,22 @@
                             time: Date.now()
                         }));
 
+                        const t = window.chatTranslations || {};
                         if (typeof showToast === 'function') {
-                            showToast('Reply sent to ' + storyAuthorName + ' 📸', 'success', 5000);
+                            showToast(t.story_shared_success || 'Story shared successfully', 'success', 5000);
                         }
                     } else {
+                        const t = window.chatTranslations || {};
                         if (typeof showToast === 'function') {
-                            showToast('Failed to send message', 'error', 5000);
+                            showToast(t.failed_to_send_message || 'Failed to send message', 'error', 5000);
                         }
                     }
                 }
             } catch (error) {
                 console.error('Error:', error);
+                const t = window.chatTranslations || {};
                 if (typeof showToast === 'function') {
-                    showToast('Failed to send message', 'error', 5000);
+                    showToast(t.failed_to_send_message || 'Failed to send message', 'error', 5000);
                 }
             }
 

@@ -87,10 +87,10 @@ class UserController extends Controller
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot block admin users'
+                    'message' => __('messages.cannot_block_admin')
                 ], 403);
             }
-            return back()->with('error', 'Cannot block admin users');
+            return back()->with('error', __('messages.cannot_block_admin'));
         }
 
         if (auth()->user()->isBlocking($user)) {
@@ -107,7 +107,7 @@ class UserController extends Controller
             return response()->json([
                 'success' => true,
                 'blocking' => $isBlocking,
-                'message' => $isBlocking ? 'User blocked successfully' : 'User unblocked successfully'
+                'message' => $isBlocking ? __('messages.user_blocked') : __('messages.user_unblocked')
             ]);
         }
 
@@ -228,6 +228,11 @@ class UserController extends Controller
         $user = auth()->user();
 
         $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
             'username' => [
                 'required',
                 'string',
@@ -258,6 +263,7 @@ class UserController extends Controller
 
         // Update user basic information
         $user->update([
+            'name' => $request->name,
             'username' => $request->username,
             'email' => $request->email,
         ]);
@@ -325,7 +331,7 @@ class UserController extends Controller
         // Refresh the user with updated profile data
         $user->load('profile');
 
-        return redirect()->route('users.show', $user)->with('success', 'Profile updated successfully!');
+        return redirect()->route('users.show', $user)->with('success', __('messages.profile_updated'));
     }
 
     public function deleteAvatar()
@@ -342,10 +348,10 @@ class UserController extends Controller
             // Remove from database
             $user->profile->update(['avatar' => null]);
 
-            return response()->json(['success' => true, 'message' => 'Avatar deleted successfully']);
+            return response()->json(['success' => true, 'message' => __('messages.avatar_deleted')]);
         }
 
-        return response()->json(['success' => false, 'message' => 'No avatar to delete'], 400);
+        return response()->json(['success' => false, 'message' => __('messages.no_avatar_to_delete')], 400);
     }
 
     public function deleteCoverImage()
@@ -362,10 +368,10 @@ class UserController extends Controller
             // Remove from database
             $user->profile->update(['cover_image' => null]);
 
-            return response()->json(['success' => true, 'message' => 'Cover image deleted successfully']);
+            return response()->json(['success' => true, 'message' => __('messages.cover_deleted')]);
         }
 
-        return response()->json(['success' => false, 'message' => 'No cover image to delete'], 400);
+        return response()->json(['success' => false, 'message' => __('messages.no_cover_to_delete')], 400);
     }
 
     public function deleteAccount(Request $request)
@@ -463,7 +469,7 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Your account has been permanently deleted.'
+                'message' => __('messages.account_deleted')
             ]);
 
         } catch (\Exception $e) {
@@ -478,7 +484,7 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete account. Please try again or contact support.'
+                'message' => __('messages.account_delete_failed')
             ], 500);
         }
     }
@@ -491,7 +497,7 @@ class UserController extends Controller
         $user = auth()->user();
 
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+            return response()->json(['success' => false, 'message' => __('messages.unauthenticated')], 401);
         }
 
         // Update last active timestamp and set online status
@@ -515,7 +521,7 @@ class UserController extends Controller
         $user = auth()->user();
 
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+            return response()->json(['success' => false, 'message' => __('messages.unauthenticated')], 401);
         }
 
         // Set user as offline
@@ -537,7 +543,7 @@ class UserController extends Controller
         $user = User::find($userId);
 
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+            return response()->json(['success' => false, 'message' => __('messages.user_not_found')], 404);
         }
 
         // Consider user offline if last active more than 2 minutes ago
@@ -553,7 +559,7 @@ class UserController extends Controller
             'user_id' => $userId,
             'is_online' => $isOnline,
             'last_active' => $user->last_active ? \Carbon\Carbon::parse($user->last_active)->toISOString() : null,
-            'last_active_human' => $user->last_active ? \Carbon\Carbon::parse($user->last_active)->diffForHumans() : null
+            'last_active_human' => $user->last_active ? __('chat.last_active') . ' ' . \Carbon\Carbon::parse($user->last_active)->diffForHumans() : null
         ]);
     }
 
@@ -574,16 +580,16 @@ class UserController extends Controller
 
         foreach ($users as $user) {
             $isOnline = $user->is_online && $user->last_active && $user->last_active->diffInSeconds(now()) < 120;
-            
+
             // Mark for update if still marked online but inactive
             if (!$isOnline && $user->is_online) {
                 $usersToUpdate[] = $user->id;
             }
-            
+
             $statuses[$user->id] = [
                 'is_online' => $isOnline,
                 'last_active' => $user->last_active ? \Carbon\Carbon::parse($user->last_active)->toISOString() : null,
-                'last_active_human' => $user->last_active ? \Carbon\Carbon::parse($user->last_active)->diffForHumans() : null
+                'last_active_human' => $user->last_active ? __('chat.last_active') . ' ' . \Carbon\Carbon::parse($user->last_active)->diffForHumans() : null
             ];
         }
 
@@ -613,7 +619,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not found'
+                'message' => __('messages.user_not_found')
             ], 404);
         }
     }
@@ -667,7 +673,7 @@ class UserController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => 'logged_out',
-                'message' => 'User is not authenticated',
+                'message' => __('messages.unauthenticated'),
                 'redirect' => route('login.view')
             ]);
         }
@@ -685,10 +691,10 @@ class UserController extends Controller
             auth()->logout();
             request()->session()->invalidate();
             request()->session()->regenerateToken();
-            
+
             return response()->json([
                 'status' => 'suspended',
-                'message' => 'Your account has been suspended',
+                'message' => __('messages.account_suspended_api'),
                 'redirect' => route('auth.suspended')
             ], 403);
         }
@@ -697,7 +703,7 @@ class UserController extends Controller
         if (!$user->hasVerifiedEmail()) {
             return response()->json([
                 'status' => 'unverified',
-                'message' => 'Please verify your email',
+                'message' => __('messages.please_verify_email_api'),
                 'redirect' => route('verification.notice')
             ], 403);
         }
@@ -717,7 +723,7 @@ class UserController extends Controller
 
                 return response()->json([
                     'status' => 'concurrent_login',
-                    'message' => 'Your account is logged in from another device. For security, this session has been logged out.',
+                    'message' => __('messages.concurrent_session'),
                     'redirect' => route('login.view')
                 ], 403);
             }
@@ -731,7 +737,7 @@ class UserController extends Controller
         
         return response()->json([
             'status' => 'active',
-            'message' => 'Account is active'
+            'message' => __('messages.account_active')
         ]);
     }
 }

@@ -18,7 +18,7 @@ class NotificationController extends Controller
             if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'User not authenticated'
+                    'message' => __('messages.unauthenticated')
                 ], 401);
             }
 
@@ -139,7 +139,7 @@ class NotificationController extends Controller
             if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'User not authenticated'
+                    'message' => __('messages.unauthenticated')
                 ], 401);
             }
 
@@ -165,7 +165,7 @@ class NotificationController extends Controller
         if ($notification->user_id !== auth()->id()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
+                'message' => __('messages.unauthorized')
             ], 403);
         }
 
@@ -201,7 +201,7 @@ class NotificationController extends Controller
             if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'User not authenticated'
+                    'message' => __('messages.unauthenticated')
                 ], 401);
             }
 
@@ -213,7 +213,7 @@ class NotificationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'All notifications deleted successfully',
+                'message' => __('messages.notifications_cleared'),
                 'deleted_count' => $deletedCount,
                 'total_count' => $totalCount,
                 'unread_count' => 0
@@ -233,7 +233,7 @@ class NotificationController extends Controller
         if ($notification->user_id !== auth()->id()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
+                'message' => __('messages.unauthorized')
             ], 403);
         }
 
@@ -261,7 +261,7 @@ class NotificationController extends Controller
             if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'User not authenticated'
+                    'message' => __('messages.unauthenticated')
                 ], 401);
             }
 

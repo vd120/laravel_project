@@ -243,35 +243,36 @@
             const msg = conv.latest_message;
             const isMyMessage = msg.sender_id == window.RealTimeConfig.userId;
             const msgType = msg.type || 'text';
-            
+
             let messageIcon = '';
             let messagePreview = '';
-            
+            const t = window.chatTranslations || {};
+
             switch (msgType) {
-                case 'image': messageIcon = '📷 '; messagePreview = isMyMessage ? 'You sent a photo' : 'Sent a photo'; break;
-                case 'video': messageIcon = '🎥 '; messagePreview = isMyMessage ? 'You sent a video' : 'Sent a video'; break;
-                case 'audio': messageIcon = '🎤 '; messagePreview = isMyMessage ? 'You sent an audio' : 'Sent an audio'; break;
-                case 'document': messageIcon = '📎 '; messagePreview = isMyMessage ? 'You sent a document' : 'Sent a document'; break;
-                case 'gif': messageIcon = 'GIF '; messagePreview = isMyMessage ? 'You sent a GIF' : 'Sent a GIF'; break;
-                case 'sticker': messageIcon = '⭐ '; messagePreview = isMyMessage ? 'You sent a sticker' : 'Sent a sticker'; break;
-                case 'story_reply': messageIcon = '📸 '; messagePreview = isMyMessage ? 'You replied to story' : 'Replied to your story'; break;
+                case 'image': messageIcon = '📷 '; messagePreview = isMyMessage ? (t.you_sent_photo || 'You sent a photo') : (t.sent_photo || 'Sent a photo'); break;
+                case 'video': messageIcon = '🎥 '; messagePreview = isMyMessage ? (t.you_sent_video || 'You sent a video') : (t.sent_video || 'Sent a video'); break;
+                case 'audio': messageIcon = '🎤 '; messagePreview = isMyMessage ? (t.you_sent_audio || 'You sent an audio') : (t.sent_audio || 'Sent an audio'); break;
+                case 'document': messageIcon = '📎 '; messagePreview = isMyMessage ? (t.you_sent_document || 'You sent a document') : (t.sent_document || 'Sent a document'); break;
+                case 'gif': messageIcon = 'GIF '; messagePreview = isMyMessage ? (t.you_sent_gif || 'You sent a GIF') : (t.sent_gif || 'Sent a GIF'); break;
+                case 'sticker': messageIcon = '⭐ '; messagePreview = isMyMessage ? (t.you_sent_sticker || 'You sent a sticker') : (t.sent_sticker || 'Sent a sticker'); break;
+                case 'story_reply': messageIcon = '📸 '; messagePreview = isMyMessage ? (t.you_replied_to_story || 'You replied to story') : (t.replied_to_story || 'Replied to your story'); break;
                 default: messagePreview = msg.content || '';
             }
-            
+
             if (isMyMessage && msgType !== 'story_reply') {
-                messagePreview = 'You: ' + messagePreview;
+                messagePreview = (t.you || 'You') + ': ' + messagePreview;
             }
-            
+
             let statusIcon = '';
             if (isMyMessage) {
-                statusIcon = msg.read_at 
-                    ? '<i class="fas fa-check-double read-status read"></i> ' 
+                statusIcon = msg.read_at
+                    ? '<i class="fas fa-check-double read-status read"></i> '
                     : '<i class="fas fa-check read-status sent"></i> ';
             }
-            
+
             previewHtml = `${statusIcon}<span class="preview-text ${previewClass}">${escapeHtml(messageIcon + messagePreview)}</span>`;
         } else {
-            previewHtml = `<span class="preview-text">Start a conversation</span>`;
+            previewHtml = `<span class="preview-text">${t.start_a_conversation || 'Start a conversation'}</span>`;
         }
 
         // Build unread badge
@@ -288,9 +289,10 @@
         // Build online status text for non-group chats
         let onlineStatusHtml = '';
         if (!isGroup && conv.other_user) {
+            const t = window.chatTranslations || {};
             const isOnline = conv.other_user.is_online && conv.other_user.last_active &&
                 (new Date().getTime() - new Date(conv.other_user.last_active).getTime()) < 120000;
-            onlineStatusHtml = `<span class="online-status-text ${isOnline ? 'online' : 'offline'}" data-user-id="${conv.other_user.id}">${isOnline ? '• Online' : ''}</span>`;
+            onlineStatusHtml = `<span class="online-status-text ${isOnline ? 'online' : 'offline'}" data-user-id="${conv.other_user.id}">${isOnline ? '• ' + (t.online || 'Online') : ''}</span>`;
         }
 
         // Create the conversation item HTML
@@ -349,40 +351,41 @@
                 const content = conv.latest_message.content || '';
                 const isMyMessage = conv.latest_message.sender_id == window.RealTimeConfig.userId;
                 const isRead = conv.latest_message.read_at;
-                
+
                 let messageIcon = '';
                 let messagePreview = '';
-                
+                const t = window.chatTranslations || {};
+
                 // Handle different message types
                 switch (msgType) {
                     case 'image':
                         messageIcon = '📷 ';
-                        messagePreview = isMyMessage ? 'You sent a photo' : 'Sent a photo';
+                        messagePreview = isMyMessage ? (t.you_sent_photo || 'You sent a photo') : (t.sent_photo || 'Sent a photo');
                         break;
                     case 'video':
                         messageIcon = '🎥 ';
-                        messagePreview = isMyMessage ? 'You sent a video' : 'Sent a video';
+                        messagePreview = isMyMessage ? (t.you_sent_video || 'You sent a video') : (t.sent_video || 'Sent a video');
                         break;
                     case 'audio':
                         messageIcon = '🎤 ';
-                        messagePreview = isMyMessage ? 'You sent an audio' : 'Sent an audio';
+                        messagePreview = isMyMessage ? (t.you_sent_audio || 'You sent an audio') : (t.sent_audio || 'Sent an audio');
                         break;
                     case 'document':
                         messageIcon = '📎 ';
-                        messagePreview = isMyMessage ? 'You sent a document' : 'Sent a document';
+                        messagePreview = isMyMessage ? (t.you_sent_document || 'You sent a document') : (t.sent_document || 'Sent a document');
                         break;
                     case 'gif':
                         messageIcon = 'GIF ';
-                        messagePreview = isMyMessage ? 'You sent a GIF' : 'Sent a GIF';
+                        messagePreview = isMyMessage ? (t.you_sent_gif || 'You sent a GIF') : (t.sent_gif || 'Sent a GIF');
                         break;
                     case 'sticker':
                         messageIcon = '⭐ ';
-                        messagePreview = isMyMessage ? 'You sent a sticker' : 'Sent a sticker';
+                        messagePreview = isMyMessage ? (t.you_sent_sticker || 'You sent a sticker') : (t.sent_sticker || 'Sent a sticker');
                         break;
                     case 'story_reply':
                         messageIcon = '📸 ';
                         const storyContent = content.replace('📸 Reply to your story:', '').trim();
-                        messagePreview = isMyMessage ? 'You replied to story' : 'Replied to your story';
+                        messagePreview = isMyMessage ? (t.you_replied_to_story || 'You replied to story') : (t.replied_to_story || 'Replied to your story');
                         if (storyContent) {
                             messagePreview += ': ' + storyContent.substring(0, 25);
                         }
@@ -391,10 +394,10 @@
                         messagePreview = content;
                         break;
                 }
-                
+
                 // Add "You: " prefix for own messages (except story replies)
                 if (isMyMessage && msgType !== 'story_reply') {
-                    messagePreview = 'You: ' + messagePreview;
+                    messagePreview = (t.you || 'You') + ': ' + messagePreview;
                 }
                 
                 // Add status icon for own messages
@@ -1352,17 +1355,18 @@
     }
 
     function updateUserOnlineIndicator(userId, isOnline, lastActiveHuman = null) {
+        const t = window.chatTranslations || {};
         // Update online status text for specific user in chat list
         const statusTexts = document.querySelectorAll(`.online-status-text[data-user-id="${userId}"]`);
         statusTexts.forEach(statusText => {
             if (isOnline) {
                 statusText.className = 'online-status-text online';
-                statusText.textContent = '• Online';
-                statusText.title = 'Online';
+                statusText.textContent = '• ' + (t.online || 'Online');
+                statusText.title = t.online || 'Online';
             } else {
                 statusText.className = 'online-status-text offline';
-                statusText.textContent = '• Offline';
-                statusText.title = lastActiveHuman ? `Last active ${lastActiveHuman}` : 'Offline';
+                statusText.textContent = '• ' + (t.offline || 'Offline');
+                statusText.title = lastActiveHuman || (t.offline || 'Offline');
             }
         });
 
@@ -1375,12 +1379,12 @@
                 chatUserStatus.classList.add('online');
                 chatUserStatus.style.color = 'var(--wa-green)';
                 if (statusDot) statusDot.style.background = 'var(--wa-green)';
-                if (statusText) statusText.textContent = 'Online';
+                if (statusText) statusText.textContent = t.online || 'Online';
             } else {
                 chatUserStatus.classList.remove('online');
                 chatUserStatus.style.color = 'var(--wa-text-muted)';
                 if (statusDot) statusDot.style.background = 'var(--wa-text-muted)';
-                if (statusText) statusText.textContent = lastActiveHuman ? `Last active ${lastActiveHuman}` : 'Offline';
+                if (statusText) statusText.textContent = lastActiveHuman || (t.offline || 'Offline');
             }
         }
     }
@@ -1477,26 +1481,26 @@
         window.RealTimeConfig.active = false;
 
         // Determine message and toast type based on status
-        let toastMessage = message || 'Your account status has changed';
+        let toastMessage = message || window.chatTranslations.account_status_changed;
         let toastType = 'error';
 
         switch (status) {
             case 'suspended':
-                toastMessage = 'Your account has been suspended by an administrator';
+                toastMessage = window.chatTranslations.account_suspended_message;
                 break;
             case 'unverified':
-                toastMessage = 'Please verify your email address to continue';
+                toastMessage = window.chatTranslations.please_verify_email_message;
                 toastType = 'warning';
                 break;
             case 'concurrent_login':
-                toastMessage = 'Your account is logged in from another device. For security, this session has been logged out.';
+                toastMessage = window.chatTranslations.concurrent_login_message;
                 toastType = 'warning';
                 break;
             case 'logged_out':
-                toastMessage = 'You have been logged out';
+                toastMessage = window.chatTranslations.logged_out_message;
                 break;
             case 'deleted':
-                toastMessage = 'Your account has been deleted';
+                toastMessage = window.chatTranslations.account_deleted_message;
                 break;
         }
 
@@ -1730,15 +1734,16 @@
     }
 
     function getMediaPreviewText(type, isOwn) {
-        const prefix = isOwn ? 'You: ' : '';
+        const t = window.chatTranslations || {};
+        const prefix = (t.you || 'You') + ': ';
         switch(type) {
-            case 'image': return prefix + 'Sent an image';
-            case 'video': return prefix + 'Sent a video';
-            case 'audio': return prefix + 'Sent an audio';
-            case 'document': return prefix + 'Sent a document';
-            case 'gif': return prefix + 'Sent a GIF';
-            case 'sticker': return prefix + 'Sent a sticker';
-            case 'story_reply': return prefix + 'Replied to story';
+            case 'image': return prefix + (t.sent_an_image || 'Sent an image');
+            case 'video': return prefix + (t.sent_a_video || 'Sent a video');
+            case 'audio': return prefix + (t.sent_an_audio || 'Sent an audio');
+            case 'document': return prefix + (t.sent_a_document || 'Sent a document');
+            case 'gif': return prefix + (t.sent_a_gif || 'Sent a GIF');
+            case 'sticker': return prefix + (t.sent_a_sticker || 'Sent a sticker');
+            case 'story_reply': return prefix + (t.replied_to_story || 'Replied to story');
             default: return '';
         }
     }

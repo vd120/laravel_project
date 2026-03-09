@@ -10,6 +10,7 @@ use App\Http\Controllers\AiController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Route;
 
 // Explicit route binding for Story model to use slug
@@ -20,6 +21,9 @@ Route::bind('story', function ($value) {
 Route::get('/dashboard', function () {
     return redirect('/');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+// Language switch route (placed early to avoid conflicts)
+Route::get('/lang/{locale}', [LanguageController::class, 'switch'])->name('language.switch')->middleware('web');
 
 Route::middleware('guest')->group(function () {
     Route::get('login', function () {

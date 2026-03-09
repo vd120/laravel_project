@@ -1,40 +1,35 @@
 @extends('layouts.app')
 
-@section('title', $user->username . ' - Followers')
+@section('title', $user->username . ' - ' . __('users.followers'))
 
 @section('content')
 <style>
-.users-list-container { max-width: 680px; margin: 0 auto; }
+.users-list-container { max-width: 680px; margin: 0 auto; padding: 0 12px; }
 .page-header { margin-bottom: 24px; display: flex; flex-direction: column; gap: 8px; }
 .page-header-top { display: flex; align-items: center; gap: 12px; }
 .back-btn {
     display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;
     background: var(--surface); border: 1px solid var(--border); border-radius: 50%; color: var(--text);
-    text-decoration: none; transition: all var(--transition); flex-shrink: 0;
+    text-decoration: none; flex-shrink: 0;
 }
-.back-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
-.page-header h1 { font-size: 24px; font-weight: 800; color: var(--text); margin: 0; }
-.page-header p { color: var(--text-muted); font-size: 14px; margin: 0; }
+.page-header h1 { font-size: 20px; font-weight: 800; color: var(--text); margin: 0; display: flex; align-items: center; gap: 8px; }
+.page-header p { color: var(--text-muted); font-size: 13px; margin: 0; }
 
-/* Button styles */
 .btn-follow {
-    padding: 6px 16px; border-radius: 16px; font-size: 13px; font-weight: 600;
-    cursor: pointer; transition: all var(--transition); border: none; min-width: 80px;
+    padding: 8px 14px; border-radius: 16px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none; min-width: 70px; white-space: nowrap;
 }
 .btn-follow.primary { background: var(--primary); color: white; }
-.btn-follow.primary:hover { background: #7c3aed; }
 .btn-follow.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
-.btn-follow.secondary:hover { border-color: var(--primary); color: var(--primary); }
 
 .users-grid { display: flex; flex-direction: column; gap: 12px; }
 .user-card {
-    display: flex; align-items: center; gap: 16px; padding: 16px 20px;
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-    transition: all var(--transition);
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+    gap: 12px; padding: 14px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius-lg);
 }
-.user-card:hover { border-color: var(--primary); }
 .user-avatar {
-    width: 36px; height: 36px; border-radius: 50%; overflow: hidden;
+    width: 42px; height: 42px; border-radius: 50%; overflow: hidden;
     background: linear-gradient(135deg, var(--primary), var(--secondary)); flex-shrink: 0;
 }
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -42,12 +37,13 @@
     width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
     font-size: 12px; font-weight: 700; color: white;
 }
-.user-info { flex: 1; min-width: 0; }
+.user-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .user-info a { text-decoration: none; }
-.user-name { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-name { font-size: 14px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .user-name:hover { color: var(--primary); }
-.user-meta { font-size: 13px; color: var(--text-muted); }
-.user-actions { display: flex; gap: 8px; }
+.user-meta { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-meta span { direction: ltr; }
+.user-actions { display: flex; gap: 8px; flex-shrink: 0; }
 
 .empty-state { text-align: center; padding: 60px 20px; }
 .empty-state i { font-size: 64px; color: var(--text-muted); margin-bottom: 20px; opacity: 0.5; }
@@ -59,9 +55,9 @@
             <a href="{{ route('users.show', $user) }}" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h1><i class="fas fa-users"></i> Followers</h1>
+            <h1><i class="fas fa-users"></i> {{ __('users.followers') }}</h1>
         </div>
-        <p>{{ $user->username }} has {{ $followers->count() }} follower{{ $followers->count() !== 1 ? 's' : '' }}</p>
+        <p>{{ trans_choice('users.followers_count', $followers->count(), ['count' => $followers->count()]) }}</p>
     </div>
 
     <div class="users-grid">
@@ -72,15 +68,15 @@
             </a>
             <div class="user-info">
                 <a href="{{ route('users.show', $follower->follower) }}">
-                    <div class="user-name">{{ $follower->follower->username }}</div>
+                    <div class="user-name">{{ $follower->follower->name }}</div>
                 </a>
-                <div class="user-meta">@ {{ $follower->follower->username }}</div>
+                <div class="user-meta"><span dir="ltr" style="display: inline-block;">@ {{ $follower->follower->username }}</span></div>
             </div>
             <div class="user-actions">
                 @if(auth()->check() && auth()->id() !== $follower->follower->id)
                     @php $isFollowing = in_array($follower->follower->id, $followingIds); @endphp
                     <button class="btn btn-sm {{ $isFollowing ? '' : 'btn-primary' }}" onclick="followersPageToggleFollow(this, '{{ $follower->follower->username }}')" data-following="{{ $isFollowing ? 'true' : 'false' }}">
-                        {{ $isFollowing ? 'Following' : 'Follow' }}
+                        {{ $isFollowing ? __('users.following') : __('users.follow') }}
                     </button>
                 @endif
             </div>
@@ -88,8 +84,8 @@
         @empty
         <div class="empty-state">
             <i class="fas fa-users"></i>
-            <h3>No followers yet</h3>
-            <p style="color: var(--text-muted);">When people follow {{ $user->username }}, they'll appear here.</p>
+            <h3>{{ __('users.no_followers_yet') }}</h3>
+            <p style="color: var(--text-muted);">{{ __('users.no_followers_yet_desc', ['username' => $user->username]) }}</p>
         </div>
         @endforelse
     </div>

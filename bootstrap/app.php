@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust proxies for proper header handling (Cloudflare, etc.)
         $middleware->trustProxies(at: '*');
 
+        // Set locale for multilingual support
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
+        ]);
+
         // Log all requests with real IP and user agent (for tunnel monitoring)
         $middleware->web(append: [
             \App\Http\Middleware\LogRealTimeRequests::class,

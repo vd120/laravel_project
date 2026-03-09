@@ -14,7 +14,7 @@ class EmailVerificationNotificationController extends Controller
     public function store(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return back()->with('already_verified', 'Your email is already verified!');
+            return back()->with('already_verified', __('messages.email_already_verified'));
         }
 
         // Generate and send new verification code
@@ -23,7 +23,7 @@ class EmailVerificationNotificationController extends Controller
         // Send verification code via email using the professional template
         \Illuminate\Support\Facades\Mail::to($request->user()->email)->send(new \App\Mail\VerificationCodeMail($request->user(), $verificationCode));
 
-        return back()->with('message', 'New verification code sent!');
+        return back()->with('message', __('messages.verification_code_sent'));
     }
 
     /**
@@ -38,16 +38,16 @@ class EmailVerificationNotificationController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return redirect()->route('login')->withErrors(['code' => 'User not found.']);
+            return redirect()->route('login')->withErrors(['code' => __('errors.user_not_found')]);
         }
 
         if ($user->verifyCode($request->code)) {
             // Log the user in
             Auth::login($user);
 
-            return redirect('/')->with('message', 'Email verified successfully! Welcome to the platform.');
+            return redirect('/')->with('message', __('messages.email_verified_success'));
         }
 
-        return back()->withErrors(['code' => 'Invalid or expired verification code.']);
+        return back()->withErrors(['code' => __('auth.invalid_verification_code')]);
     }
 }

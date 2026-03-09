@@ -1,13 +1,20 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Profile')
+@section('title', __('users.edit_profile'))
 
 @section('content')
 <style>
 .edit-profile-container { max-width: 680px; margin: 0 auto; }
 .edit-header { margin-bottom: 32px; }
-.edit-header h1 { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
-.edit-header p { color: var(--text-muted); font-size: 14px; }
+.page-header-top { display: flex; align-items: center; gap: 12px; }
+.back-btn {
+    display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 50%; color: var(--text);
+    text-decoration: none; transition: all var(--transition); flex-shrink: 0;
+}
+.back-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+.edit-header h1 { font-size: 24px; font-weight: 800; color: var(--text); margin: 0; }
+.edit-header p { color: var(--text-muted); font-size: 14px; margin: 0; }
 
 .edit-card { 
     background: var(--surface); border: 1px solid var(--border); 
@@ -80,8 +87,13 @@
 
 <div class="edit-profile-container">
     <div class="edit-header">
-        <h1>Edit Profile</h1>
-        <p>Update your personal information and preferences</p>
+        <div class="page-header-top">
+            <a href="{{ route('users.show', $user) }}" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1>{{ __('users.edit_profile') }}</h1>
+        </div>
+        <p>{{ __('users.update_profile_desc') }}</p>
     </div>
 
     <form action="{{ route('profile.update', $user) }}" method="POST" enctype="multipart/form-data">
@@ -89,17 +101,17 @@
 
         {{-- Avatar & Cover --}}
         <div class="edit-card">
-            <h3><i class="fas fa-images"></i> Profile Images</h3>
-            
+            <h3><i class="fas fa-images"></i> {{ __('users.profile_images') }}</h3>
+
             <div class="form-group">
-                <label>Profile Picture</label>
+                <label>{{ __('users.profile_picture') }}</label>
                 <div class="image-upload">
                     <div class="image-preview">
                         <img src="{{ $user->avatar_url }}" alt="Avatar" id="avatar-preview">
                     </div>
                     <div class="image-upload-actions">
                         <label class="upload-btn">
-                            <i class="fas fa-camera"></i> Change Avatar
+                            <i class="fas fa-camera"></i> {{ __('users.change_avatar') }}
                             <input type="file" name="avatar" class="file-input" accept="image/*" onchange="previewImage(this, 'avatar-preview')">
                         </label>
                         <button type="button" class="btn btn-ghost" onclick="deleteAvatar()" style="margin-left: 8px;">
@@ -110,7 +122,7 @@
             </div>
 
             <div class="form-group">
-                <label>Cover Image</label>
+                <label>{{ __('users.cover_image') }}</label>
                 <div class="image-upload">
                     <div class="image-preview cover">
                         @if($user->profile && $user->profile->cover_image)
@@ -121,7 +133,7 @@
                     </div>
                     <div class="image-upload-actions">
                         <label class="upload-btn">
-                            <i class="fas fa-image"></i> Change Cover
+                            <i class="fas fa-image"></i> {{ __('users.change_cover') }}
                             <input type="file" name="cover_image" class="file-input" accept="image/*" onchange="previewImage(this, 'cover-preview')">
                         </label>
                         @if($user->profile && $user->profile->cover_image)
@@ -136,11 +148,11 @@
 
         {{-- Basic Info --}}
         <div class="edit-card">
-            <h3><i class="fas fa-user"></i> Basic Information</h3>
+            <h3><i class="fas fa-user"></i> {{ __('users.basic_info') }}</h3>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="username">Username</label>
+                    <label for="username">{{ __('users.username') }}</label>
                     @php
                         $canChangeUsername = auth()->user()->canChangeUsername();
                         $cooldownRemaining = auth()->user()->getUsernameChangeCooldownRemaining();
@@ -153,86 +165,86 @@
                             </span>
                         </div>
                     @endif
-                    <input type="text" 
-                           name="username" 
+                    <input type="text"
+                           name="username"
                            id="username"
-                           class="form-input" 
+                           class="form-input"
                            value="{{ old('username', $user->username) }}"
                            required
                            minlength="3"
                            maxlength="50"
                            pattern="[a-zA-Z0-9_\-]+"
-                           title="Username can only contain letters, numbers, underscores, and hyphens"
+                           title="{{ __('messages.username_validation') }}"
                            {{ !$canChangeUsername && !auth()->user()->is_admin ? 'disabled' : '' }}>
                     @if(!$canChangeUsername && !auth()->user()->is_admin)
                         <input type="hidden" name="username" value="{{ $user->username }}">
                         <span style="font-size: 12px; color: var(--text-muted);">
-                            <i class="fas fa-info-circle"></i> Username can be changed every 3 days. Admins can change anytime.
+                            <i class="fas fa-info-circle"></i> {{ __('users.username_cooldown_info') }}
                         </span>
                     @endif
                     @error('username')<span style="color: var(--accent); font-size: 13px;">{{ $message }}</span>@enderror
                 </div>
                 <div class="form-group">
-                    <label>Full Name</label>
+                    <label>{{ __('users.full_name') }}</label>
                     <input type="text" name="name" class="form-input" value="{{ old('name', $user->name) }}" required>
                     @error('name')<span style="color: var(--accent); font-size: 13px;">{{ $message }}</span>@enderror
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
+                    <label>{{ __('users.email') }}</label>
                     <input type="email" name="email" class="form-input" value="{{ old('email', $user->email) }}" required>
                     @error('email')<span style="color: var(--accent); font-size: 13px;">{{ $message }}</span>@enderror
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Bio <span>(max 500 characters)</span></label>
+                <label>{{ __('users.bio_label') }} <span>({{ __('users.bio_max') }})</span></label>
                 <textarea name="bio" class="form-textarea" maxlength="500">{{ old('bio', $user->profile->bio ?? '') }}</textarea>
             </div>
 
             <div class="form-group">
-                <label>About <span>(max 1000 characters)</span></label>
+                <label>{{ __('users.about_label') }} <span>({{ __('users.about_max') }})</span></label>
                 <textarea name="about" class="form-textarea" maxlength="1000">{{ old('about', $user->profile->about ?? '') }}</textarea>
             </div>
         </div>
 
         {{-- Additional Info --}}
         <div class="edit-card">
-            <h3><i class="fas fa-info-circle"></i> Additional Details</h3>
-            
+            <h3><i class="fas fa-info-circle"></i> {{ __('users.additional_details') }}</h3>
+
             <div class="form-row">
                 <div class="form-group">
-                    <label>Location</label>
+                    <label>{{ __('users.location') }}</label>
                     <input type="text" name="location" class="form-input" value="{{ old('location', $user->profile->location ?? '') }}">
                 </div>
                 <div class="form-group">
-                    <label>Website</label>
+                    <label>{{ __('users.website') }}</label>
                     <input type="url" name="website" class="form-input" value="{{ old('website', $user->profile->website ?? '') }}" placeholder="https://example.com">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>Occupation</label>
+                    <label>{{ __('users.occupation') }}</label>
                     <input type="text" name="occupation" class="form-input" value="{{ old('occupation', $user->profile->occupation ?? '') }}">
                 </div>
                 <div class="form-group">
-                    <label>Phone</label>
+                    <label>{{ __('users.phone') }}</label>
                     <input type="text" name="phone" class="form-input" value="{{ old('phone', $user->profile->phone ?? '') }}">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>Gender</label>
+                    <label>{{ __('users.gender') }}</label>
                     <select name="gender" class="form-select">
-                        <option value="">Select</option>
-                        <option value="male" {{ (old('gender', $user->profile->gender ?? '') == 'male') ? 'selected' : '' }}>Male</option>
-                        <option value="female" {{ (old('gender', $user->profile->gender ?? '') == 'female') ? 'selected' : '' }}>Female</option>
-                        <option value="other" {{ (old('gender', $user->profile->gender ?? '') == 'other') ? 'selected' : '' }}>Other</option>
+                        <option value="">{{ __('users.select') }}</option>
+                        <option value="male" {{ (old('gender', $user->profile->gender ?? '') == 'male') ? 'selected' : '' }}>{{ __('users.male') }}</option>
+                        <option value="female" {{ (old('gender', $user->profile->gender ?? '') == 'female') ? 'selected' : '' }}>{{ __('users.female') }}</option>
+                        <option value="other" {{ (old('gender', $user->profile->gender ?? '') == 'other') ? 'selected' : '' }}>{{ __('users.other') }}</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Birth Date</label>
+                    <label>{{ __('users.birth_date') }}</label>
                     <input type="date" name="birth_date" class="form-input" value="{{ old('birth_date', $user->profile->birth_date ?? '') }}">
                 </div>
             </div>
@@ -240,30 +252,30 @@
 
         {{-- Privacy --}}
         <div class="edit-card">
-            <h3><i class="fas fa-lock"></i> Privacy Settings</h3>
-            
+            <h3><i class="fas fa-lock"></i> {{ __('users.privacy_settings') }}</h3>
+
             <label class="form-checkbox">
                 <input type="checkbox" name="is_private" value="1" {{ (old('is_private', $user->profile->is_private ?? false)) ? 'checked' : '' }}>
                 <div class="form-checkbox-text">
-                    <strong>Private Account</strong>
-                    <span>Only your followers can see your posts and profile details</span>
+                    <strong>{{ __('users.private_account') }}</strong>
+                    <span>{{ __('users.private_account_desc') }}</span>
                 </div>
             </label>
         </div>
 
         {{-- Actions --}}
         <div class="form-actions">
-            <a href="{{ route('users.show', $user) }}" class="btn btn-ghost">Cancel</a>
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+            <a href="{{ route('users.show', $user) }}" class="btn btn-ghost">{{ __('users.cancel') }}</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> {{ __('users.save_changes') }}</button>
         </div>
     </form>
 
     {{-- Danger Zone --}}
     <div class="danger-zone">
-        <h4><i class="fas fa-exclamation-triangle"></i> Danger Zone</h4>
-        <p>Once you delete your account, there is no going back. Please be certain.</p>
+        <h4><i class="fas fa-exclamation-triangle"></i> {{ __('users.danger_zone') }}</h4>
+        <p>{{ __('users.danger_zone_desc') }}</p>
         <button type="button" class="btn" style="background: var(--accent); color: white;" onclick="confirmDeleteAccount()">
-            <i class="fas fa-trash"></i> Delete Account
+            <i class="fas fa-trash"></i> {{ __('users.delete_account') }}
         </button>
     </div>
 </div>
@@ -287,8 +299,8 @@ function previewImage(input, previewId) {
 }
 
 function deleteAvatar() {
-    if (!confirm('Delete your profile picture?')) return;
-    
+    if (!confirm({!! json_encode(__('users.delete_avatar_confirm')) !!})) return;
+
     fetch('{{ route("profile.delete-avatar") }}', {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
@@ -298,14 +310,14 @@ function deleteAvatar() {
         if (data.success) {
             location.reload();
         } else {
-            alert(data.message || 'Failed to delete avatar');
+            alert(data.message || {!! json_encode(__('users.failed_delete_avatar')) !!});
         }
     });
 }
 
 function deleteCover() {
-    if (!confirm('Delete your cover image?')) return;
-    
+    if (!confirm({!! json_encode(__('users.delete_cover_confirm')) !!})) return;
+
     fetch('{{ route("profile.delete-cover") }}', {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
@@ -315,15 +327,15 @@ function deleteCover() {
         if (data.success) {
             location.reload();
         } else {
-            alert(data.message || 'Failed to delete cover image');
+            alert(data.message || {!! json_encode(__('users.failed_delete_cover')) !!});
         }
     });
 }
 
 function confirmDeleteAccount() {
-    if (!confirm('WARNING: This will permanently delete your account and all data. Are you sure?')) return;
-    if (!confirm('This action cannot be undone. Type "DELETE" to confirm.')) return;
-    
+    if (!confirm({!! json_encode(__('users.delete_account_warning')) !!})) return;
+    if (!confirm({!! json_encode(__('users.delete_account_final')) !!})) return;
+
     fetch('{{ route("profile.delete-account") }}', {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
@@ -333,7 +345,7 @@ function confirmDeleteAccount() {
         if (data.success) {
             window.location.href = '{{ route("home") }}';
         } else {
-            alert(data.message || 'Failed to delete account');
+            alert(data.message || {!! json_encode(__('users.failed_delete_account')) !!});
         }
     });
 }
@@ -346,7 +358,7 @@ function updateCooldownTimer() {
     let seconds = parseInt(timerElement.getAttribute('data-seconds'));
 
     if (seconds <= 0) {
-        timerElement.textContent = 'You can change your username now!';
+        timerElement.textContent = {!! json_encode(__('users.can_change_now')) !!};
         timerElement.style.color = '#22c55e'; // green
         // Enable the username field
         const usernameInput = document.getElementById('username');
@@ -363,16 +375,17 @@ function updateCooldownTimer() {
 
     let timeString = '';
     if (days > 0) {
-        timeString = `${days}d ${hours}h ${minutes}m ${secs}s remaining`;
+        timeString = `${days}d ${hours}h ${minutes}m ${secs}s`;
     } else if (hours > 0) {
-        timeString = `${hours}h ${minutes}m ${secs}s remaining`;
+        timeString = `${hours}h ${minutes}m ${secs}s`;
     } else if (minutes > 0) {
-        timeString = `${minutes}m ${secs}s remaining`;
+        timeString = `${minutes}m ${secs}s`;
     } else {
-        timeString = `${secs}s remaining`;
+        timeString = `${secs}s`;
     }
 
-    timerElement.textContent = timeString;
+    const remainingText = {!! json_encode(__('users.time_remaining')) !!}.replace(':time', timeString);
+    timerElement.textContent = remainingText;
 
     // Update the data attribute
     timerElement.setAttribute('data-seconds', seconds - 1);

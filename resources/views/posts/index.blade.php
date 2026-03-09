@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Home')
+@section('title', __('messages.home'))
 
 @section('content')
 <style>
@@ -227,7 +227,7 @@ body.light-theme .btn-primary:hover {
 
 <div class="feed-container">
     @if(session('verified'))
-        <script>showToast('Email verified successfully! Welcome to the platform.', 'success');</script>
+        <script>showToast('{{ __('messages.email_verified_success_toast') }}', 'success');</script>
     @endif
 
     @auth
@@ -235,9 +235,9 @@ body.light-theme .btn-primary:hover {
     @if($followedUsersWithStories->count() > 0 || $myStories->count() > 0)
     <div class="stories-section">
         <div class="stories-header">
-            <h3>Stories</h3>
+            <h3>{{ __('messages.stories') }}</h3>
             <a href="{{ route('stories.index') }}" class="btn btn-ghost" style="padding: 6px 12px; font-size: 13px;">
-                <i class="fas fa-external-link-alt"></i> View All
+                <i class="fas fa-external-link-alt"></i> {{ __('messages.view_all_stories') }}
             </a>
         </div>
         <div class="stories-scroll">
@@ -251,7 +251,7 @@ body.light-theme .btn-primary:hover {
                             <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->username }}">
                         </div>
                     </div>
-                    <div class="story-name">Your story</div>
+                    <div class="story-name">{{ __('messages.your_story') }}</div>
                 </div>
             @else
             <div class="story-item create" onclick="window.location.href='{{ route('stories.create') }}'" style="position: relative;">
@@ -261,7 +261,7 @@ body.light-theme .btn-primary:hover {
                         <div class="add-icon"><i class="fas fa-plus"></i></div>
                     </div>
                 </div>
-                <div class="story-name">Create</div>
+                <div class="story-name">{{ __('messages.create_story') }}</div>
             </div>
             @endif
 
@@ -290,19 +290,19 @@ body.light-theme .btn-primary:hover {
             <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="create-post-avatar">
             <span class="create-post-author">{{ auth()->user()->name }}</span>
         </div>
-        <textarea id="post-content" placeholder="What's on your mind?"></textarea>
+        <textarea id="post-content" placeholder="{{ __('messages.whats_on_your_mind') }}"></textarea>
         <div class="post-actions">
             <div class="post-actions-left">
                 <label for="media" class="post-action-btn" style="cursor: pointer;">
-                    <i class="fas fa-image"></i> <span>Photo</span>
+                    <i class="fas fa-image"></i> <span>{{ __('messages.photo') }}</span>
                 </label>
                 <input type="file" id="media" accept="image/*,video/*" multiple style="display: none;" onchange="previewMedia(this)">
                 <button type="button" class="privacy-btn" id="privacy-btn" onclick="togglePrivacy()">
-                    <i class="fas fa-globe" id="privacy-icon"></i> <span id="privacy-text">Public</span>
+                    <i class="fas fa-globe" id="privacy-icon"></i> <span id="privacy-text">{{ __('messages.public') }}</span>
                 </button>
             </div>
             <button type="button" class="btn btn-primary" onclick="submitPost()">
-                Post
+                {{ __('messages.post') }}
             </button>
         </div>
         <input type="hidden" id="is-private" value="0">
@@ -319,19 +319,19 @@ body.light-theme .btn-primary:hover {
         @empty
             <div class="empty-state">
                 <i class="fas fa-newspaper"></i>
-                <h3>No posts yet</h3>
-                <p>Be the first to share something!</p>
+                <h3>{{ __('messages.no_posts_yet') }}</h3>
+                <p>{{ __('messages.be_first_to_post') }}</p>
             </div>
         @endforelse
     </div>
 
     @guest
     <div class="guest-cta">
-        <h3>Join the Community</h3>
-        <p>Sign up to post, like, comment, and connect with others.</p>
+        <h3>{{ __('messages.join_community') }}</h3>
+        <p>{{ __('messages.sign_up_to_post') }}</p>
         <div style="display: flex; gap: 12px; justify-content: center;">
-            <a href="{{ route('register') }}" class="btn btn-primary">Sign Up</a>
-            <a href="{{ route('login') }}" class="btn">Sign In</a>
+            <a href="{{ route('register') }}" class="btn btn-primary">{{ __('messages.sign_up') }}</a>
+            <a href="{{ route('login') }}" class="btn">{{ __('messages.sign_in') }}</a>
         </div>
     </div>
     @endguest
@@ -346,16 +346,16 @@ function togglePrivacy() {
     const icon = document.getElementById('privacy-icon');
     const text = document.getElementById('privacy-text');
     const input = document.getElementById('is-private');
-    
+
     if (btn.classList.contains('active')) {
         btn.classList.remove('active');
         icon.className = 'fas fa-globe';
-        text.textContent = 'Public';
+        text.textContent = (window.chatTranslations && window.chatTranslations.public) || 'Public';
         input.value = '0';
     } else {
         btn.classList.add('active');
         icon.className = 'fas fa-lock';
-        text.textContent = 'Private';
+        text.textContent = (window.chatTranslations && window.chatTranslations.private) || 'Private';
         input.value = '1';
     }
 }
@@ -385,12 +385,12 @@ function renderMediaPreviews() {
     }
     
     container.style.display = 'block';
-    
+
     // Add clear all button
     const clearAllBtn = document.createElement('button');
     clearAllBtn.type = 'button';
     clearAllBtn.id = 'clear-all-media-btn';
-    clearAllBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Clear All';
+    clearAllBtn.innerHTML = '<i class="fas fa-trash-alt"></i> ' + ((window.chatTranslations && window.chatTranslations.clear_all) || 'Clear All');
     clearAllBtn.onclick = clearAllMedia;
     clearAllBtn.style.cssText = `
         padding: 8px 16px; background: rgba(220,38,38,0.1); color: #dc2626; 
@@ -447,8 +447,8 @@ function renderMediaPreviews() {
 
 function clearAllMedia() {
     if (uploadedFiles.length === 0) return;
-    if (!confirm('Remove all uploaded media?')) return;
-    
+    if (!confirm('{{ __('messages.remove_all_media_confirm') }}')) return;
+
     uploadedFiles = [];
     updateFileInput();
     renderMediaPreviews();
@@ -482,7 +482,7 @@ function submitPost() {
     const mediaFiles = document.getElementById('media').files;
 
     if (!content && mediaFiles.length === 0) {
-        showToast('Please enter content or add media', 'error');
+        showToast('{{ __('messages.please_enter_content_or_media') }}', 'error');
         return;
     }
 
@@ -495,7 +495,7 @@ function submitPost() {
     // Show loading state
     const submitBtn = document.querySelector('button[onclick="submitPost()"]');
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ __('messages.posting') }}';
     submitBtn.disabled = true;
 
     fetch('/posts', {
@@ -509,17 +509,17 @@ function submitPost() {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            showToast('Post created!', 'success');
+            showToast('{{ __('messages.post_created_toast') }}', 'success');
             // Reload page to show new post
             setTimeout(() => location.reload(), 500);
         } else {
-            showToast(data.message || 'Failed to create post', 'error');
+            showToast(data.message || '{{ __('messages.failed_to_create_post') }}', 'error');
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
         }
     })
     .catch(() => {
-        showToast('Error creating post', 'error');
+        showToast('{{ __('messages.error_creating_post') }}', 'error');
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     });

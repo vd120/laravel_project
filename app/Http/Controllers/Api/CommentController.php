@@ -42,7 +42,7 @@ class CommentController extends Controller
     public function update(Request $request, Comment $comment)
     {
         if ($comment->user_id !== auth()->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => __('messages.unauthorized')], 403);
         }
 
         $request->validate([
@@ -72,11 +72,11 @@ class CommentController extends Controller
     public function destroy(Comment $comment)
     {
         if ($comment->user_id !== auth()->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => __('messages.unauthorized')], 403);
         }
 
         $comment->delete();
-        return response()->json(['message' => 'Comment deleted']);
+        return response()->json(['message' => __('messages.comment_deleted')]);
     }
 
     public function like(Comment $comment)

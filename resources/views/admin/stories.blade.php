@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Stories - Admin Panel')
+@section('title', __('admin.manage_stories') . ' - Admin Panel')
 
 @section('content')
 <div class="admin-page">
@@ -11,12 +11,12 @@
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
-                <h1>Stories</h1>
-                <p>Manage and moderate user stories</p>
+                <h1>{{ __('admin.stories') }}</h1>
+                <p>{{ __('admin.manage_stories_subtitle') }}</p>
             </div>
         </div>
         <div class="header-stats">
-            <span class="total-badge">{{ $stories->total() }} Total</span>
+            <span class="total-badge">{{ $stories->total() }} {{ __('admin.total') }}</span>
         </div>
     </div>
 
@@ -25,11 +25,11 @@
         <div class="search-form">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="search-input" value="{{ request('search') }}" placeholder="Search stories by username..." autocomplete="off">
+                <input type="text" id="search-input" value="{{ request('search') }}" placeholder="{{ __('admin.search_stories') }}" autocomplete="off">
             </div>
             @if(request('search'))
             <a href="{{ route('admin.stories') }}" class="clear-btn">
-                <i class="fas fa-times"></i> Clear
+                <i class="fas fa-times"></i> {{ __('admin.clear') }}
             </a>
             @endif
         </div>
@@ -42,23 +42,23 @@
         <div class="story-card">
             <div class="story-media">
                 @if($story->media_type === 'image')
-                    <img src="{{ asset('storage/' . $story->media_path) }}" alt="Story" class="story-img">
+                    <img src="{{ asset('storage/' . $story->media_path) }}" alt="{{ __('admin.stories') }}" class="story-img">
                 @elseif($story->media_type === 'video')
                     <video class="story-video" muted>
                         <source src="{{ asset('storage/' . $story->media_path) }}" type="video/mp4">
                     </video>
                 @endif
                 <div class="story-overlay">
-                    <form method="POST" action="{{ route('admin.stories.delete', $story) }}" onsubmit="return confirm('Delete this story?')">
+                    <form method="POST" action="{{ route('admin.stories.delete', $story) }}" onsubmit="return confirm('{{ __('admin.delete_story_confirm') }}')">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="delete-btn" title="Delete">
+                        <button type="submit" class="delete-btn" title="{{ __('admin.delete') }}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
                 </div>
             </div>
-            
+
             <div class="story-info">
                 <div class="story-user">
                     <div class="user-avatar">
@@ -69,7 +69,7 @@
                         <span class="story-time">{{ $story->created_at->diffForHumans() }}</span>
                     </div>
                 </div>
-                
+
                 @if($story->content)
                 <div class="story-content">
                     <p>{{ Str::limit($story->content, 80) }}</p>
@@ -100,8 +100,8 @@
         <div class="empty-icon">
             <i class="fas fa-circle-notch"></i>
         </div>
-        <h3>No stories found</h3>
-        <p>No stories match your search criteria.</p>
+        <h3>{{ __('admin.no_stories_found') }}</h3>
+        <p>{{ __('admin.no_stories_match') }}</p>
     </div>
     @endif
 </div>

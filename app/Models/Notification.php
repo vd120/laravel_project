@@ -109,14 +109,14 @@ class Notification extends Model
      */
     private function getMessageNotificationMessage(): string
     {
-        $sender = $this->data['sender_username'] ?? 'Someone';
+        $sender = $this->data['sender_username'] ?? __('chat.user');
         $preview = $this->data['message_preview'] ?? '';
         $messageType = $this->data['message_type'] ?? 'text';
 
         // Check if this is a story reply
         if (str_starts_with($preview, '📸 Reply to your story:')) {
             $preview = trim(str_replace('📸 Reply to your story:', '', $preview));
-            return "{$sender} replied on your story: {$preview}";
+            return __('notifications.story_reply_message', ['sender' => $sender, 'preview' => $preview]);
         }
 
         // For media messages, show "username: sent an image/video/etc"
@@ -133,8 +133,8 @@ class Notification extends Model
      */
     private function getLikeNotificationMessage(): string
     {
-        $liker = $this->data['liker_name'] ?? 'Someone';
-        return "{$liker} liked your post";
+        $liker = $this->data['liker_name'] ?? __('chat.user');
+        return __('notifications.liked_your_post', ['user' => $liker]);
     }
 
     /**
@@ -142,8 +142,8 @@ class Notification extends Model
      */
     private function getCommentNotificationMessage(): string
     {
-        $commenter = $this->data['commenter_name'] ?? 'Someone';
-        return "{$commenter} commented on your post";
+        $commenter = $this->data['commenter_name'] ?? __('chat.user');
+        return __('notifications.commented_on_your_post', ['user' => $commenter]);
     }
 
     /**
@@ -151,8 +151,8 @@ class Notification extends Model
      */
     private function getFollowNotificationMessage(): string
     {
-        $follower = $this->data['follower_name'] ?? 'Someone';
-        return "{$follower} started following you";
+        $follower = $this->data['follower_name'] ?? __('chat.user');
+        return __('notifications.new_follower', ['user' => $follower]);
     }
 
     /**
@@ -160,16 +160,16 @@ class Notification extends Model
      */
     private function getMentionNotificationMessage(): string
     {
-        $mentioner = $this->data['mentioner_name'] ?? 'Someone';
+        $mentioner = $this->data['mentioner_name'] ?? __('chat.user');
         $mentionableType = $this->data['mentionable_type'] ?? 'post';
 
         if ($mentionableType === 'App\\Models\\Post') {
-            return "{$mentioner} mentioned you in a post";
+            return __('notifications.mentioned_you_in_post', ['user' => $mentioner]);
         } elseif ($mentionableType === 'App\\Models\\Comment') {
-            return "{$mentioner} mentioned you in a comment";
+            return __('notifications.mentioned_you_in_comment', ['user' => $mentioner]);
         }
 
-        return "{$mentioner} mentioned you";
+        return __('notifications.mentioned_you', ['user' => $mentioner]);
     }
 
     /**
@@ -178,20 +178,20 @@ class Notification extends Model
     private function getGroupInviteNotificationMessage(): string
     {
         if (empty($this->data) || !is_array($this->data)) {
-            return 'You received a group invite';
+            return __('notifications.invited_to_group_generic');
         }
-        
+
         $inviter = $this->data['inviter_username'] ?? null;
         $groupName = $this->data['group_name'] ?? null;
-        
+
         // If data is not loaded yet, return generic message
         if (!$inviter && !$groupName) {
-            return 'You received a group invite';
+            return __('notifications.invited_to_group_generic');
         }
-        
-        $inviterText = $inviter ?? 'Someone';
-        $groupNameText = $groupName ?? 'a group';
 
-        return "{$inviterText} invited you to join the group \"{$groupNameText}\"";
+        $inviterText = $inviter ?? __('chat.someone');
+        $groupNameText = $groupName ?? __('chat.group');
+
+        return __('notifications.invited_to_group', ['user' => $inviterText, 'group' => $groupNameText]);
     }
 }

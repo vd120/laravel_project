@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Search')
+@section('title', __('users.search'))
 
 @section('content')
 <style>
-.search-container { max-width: 680px; margin: 0 auto; }
+.search-container { max-width: 680px; margin: 0 auto; padding: 0 12px; }
 
 .search-box {
     position: relative; margin-bottom: 32px;
@@ -12,7 +12,7 @@
 .search-input {
     width: 100%; padding: 16px 20px 16px 56px; font-size: 16px;
     border: 1px solid var(--border); border-radius: var(--radius-lg);
-    background: var(--surface); color: var(--text); transition: all var(--transition);
+    background: var(--surface); color: var(--text);
 }
 .search-input:focus {
     outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
@@ -23,18 +23,16 @@
 }
 
 .search-results { display: flex; flex-direction: column; gap: 12px; }
-.user-card { 
+.user-card {
     display: flex; align-items: center; gap: 16px; padding: 16px 20px;
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-    transition: all var(--transition);
 }
-.user-card:hover { border-color: var(--primary); }
-.user-avatar { 
+.user-avatar {
     width: 56px; height: 56px; border-radius: 50%; overflow: hidden;
     background: linear-gradient(135deg, var(--primary), var(--secondary)); flex-shrink: 0;
 }
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.user-avatar .placeholder { 
+.user-avatar .placeholder {
     width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
     font-size: 20px; font-weight: 700; color: white;
 }
@@ -43,32 +41,49 @@
 .user-name { font-size: 16px; font-weight: 600; color: var(--text); }
 .user-name:hover { color: var(--primary); }
 .user-meta { font-size: 13px; color: var(--text-muted); }
+.user-meta span { direction: ltr; }
 
 .empty-state { text-align: center; padding: 60px 20px; }
 .empty-state i { font-size: 64px; color: var(--text-muted); margin-bottom: 20px; opacity: 0.5; }
 
-.recent-searches { margin-bottom: 32px; }
-.recent-searches h3 { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; }
-.search-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-.search-tag {
-    display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px;
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-full);
-    color: var(--text); font-size: 14px; cursor: pointer; transition: all var(--transition);
+/* Mobile Responsive */
+@media (max-width: 480px) {
+    .search-container { padding: 0 8px; }
+    .search-input { font-size: 15px; padding: 14px 16px 14px 50px; }
+    .search-icon { left: 16px; font-size: 16px; }
+    .user-card {
+        display: grid !important;
+        grid-template-columns: auto 1fr !important;
+        grid-template-rows: auto auto !important;
+        gap: 10px !important;
+        padding: 12px !important;
+    }
+    .user-avatar {
+        grid-row: 1 / 3 !important;
+        grid-column: 1 !important;
+        width: 48px !important;
+        height: 48px !important;
+    }
+    .user-info {
+        grid-row: 1 !important;
+        grid-column: 2 !important;
+    }
+    .user-name { font-size: 15px !important; }
+    .user-meta { font-size: 13px !important; }
 }
-.search-tag:hover { border-color: var(--primary); color: var(--primary); }
 </style>
 
 <div class="search-container">
     <div class="search-box">
         <i class="fas fa-search search-icon"></i>
-        <input type="text" id="search-input" class="search-input" placeholder="Search users..." autocomplete="off">
+        <input type="text" id="search-input" class="search-input" placeholder="{{ __('users.search_users_placeholder') }}" autocomplete="off">
     </div>
 
     <div id="search-results" class="search-results">
         <div class="empty-state">
             <i class="fas fa-search"></i>
-            <h3>Search for users</h3>
-            <p style="color: var(--text-muted);">Type a username to find people.</p>
+            <h3>{{ __('users.search_for_users') }}</h3>
+            <p style="color: var(--text-muted);">{{ __('users.type_to_search') }}</p>
         </div>
     </div>
 </div>
@@ -77,24 +92,31 @@
 let searchTimeout;
 const searchInput = document.getElementById('search-input');
 const resultsContainer = document.getElementById('search-results');
+const searchForUsersText = {!! json_encode(__('users.search_for_users')) !!};
+const typeAtLeast2Text = {!! json_encode(__('users.type_at_least_2')) !!};
+const searchingText = {!! json_encode(__('users.searching')) !!};
+const noUsersFoundText = {!! json_encode(__('users.no_users_found')) !!};
+const tryDifferentSearchText = {!! json_encode(__('users.try_different_search')) !!};
+const searchFailedText = {!! json_encode(__('users.search_failed')) !!};
+const pleaseTryAgainText = {!! json_encode(__('users.please_try_again')) !!};
 
 searchInput.addEventListener('input', (e) => {
     clearTimeout(searchTimeout);
     const query = e.target.value.trim();
-    
+
     if (query.length < 2) {
         resultsContainer.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-search"></i>
-                <h3>Search for users</h3>
-                <p style="color: var(--text-muted);">Type at least 2 characters.</p>
+                <h3>${searchForUsersText}</h3>
+                <p style="color: var(--text-muted);">${typeAtLeast2Text}</p>
             </div>
         `;
         return;
     }
-    
-    resultsContainer.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Searching...</p></div>';
-    
+
+    resultsContainer.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>' + searchingText + '</p></div>';
+
     searchTimeout = setTimeout(() => {
         fetch(`/api/search-users?q=${encodeURIComponent(query)}`, {
             credentials: 'include',
@@ -112,7 +134,7 @@ searchInput.addEventListener('input', (e) => {
                             <a href="/users/${user.username}">
                                 <div class="user-name">${escapeHtml(user.name)}</div>
                             </a>
-                            <div class="user-meta">@${escapeHtml(user.username)}</div>
+                            <div class="user-meta"><span dir="ltr" style="display: inline-block;">@${escapeHtml(user.username)}</span></div>
                         </div>
                     </div>
                 `).join('');
@@ -120,8 +142,8 @@ searchInput.addEventListener('input', (e) => {
                 resultsContainer.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-user-slash"></i>
-                        <h3>No users found</h3>
-                        <p style="color: var(--text-muted);">Try a different search term.</p>
+                        <h3>${noUsersFoundText}</h3>
+                        <p style="color: var(--text-muted);">${tryDifferentSearchText}</p>
                     </div>
                 `;
             }
@@ -130,8 +152,8 @@ searchInput.addEventListener('input', (e) => {
             resultsContainer.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-circle"></i>
-                    <h3>Search failed</h3>
-                    <p style="color: var(--text-muted);">Please try again.</p>
+                    <h3>${searchFailedText}</h3>
+                    <p style="color: var(--text-muted);">${pleaseTryAgainText}</p>
                 </div>
             `;
         });

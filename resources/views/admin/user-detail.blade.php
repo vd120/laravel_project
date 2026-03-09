@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'User Details - Admin Panel')
+@section('title', __('admin.user_profile') . ' - Admin Panel')
 
 @section('content')
 <div class="admin-page">
@@ -11,13 +11,13 @@
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
-                <h1>User Profile</h1>
-                <p>View and manage user details</p>
+                <h1>{{ __('admin.user_profile') }}</h1>
+                <p>{{ __('admin.user_profile_subtitle') }}</p>
             </div>
         </div>
         <div class="header-actions">
             <a href="{{ route('admin.users.edit', $user) }}" class="action-btn edit">
-                <i class="fas fa-edit"></i> Edit
+                <i class="fas fa-edit"></i> {{ __('admin.edit_user') }}
             </a>
         </div>
     </div>
@@ -29,13 +29,13 @@
                 <img src="{{ $user->avatar_url }}" alt="">
             </div>
             @if($user->is_suspended)
-            <div class="suspended-badge" style="right: 130px;"><i class="fas fa-ban"></i> Suspended</div>
+            <div class="suspended-badge" style="right: 130px;"><i class="fas fa-ban"></i> {{ __('admin.suspended') }}</div>
             @endif
             @if($user->is_admin)
-            <div class="admin-badge"><i class="fas fa-crown"></i> Admin</div>
+            <div class="admin-badge"><i class="fas fa-crown"></i> {{ __('admin.admin_badge') }}</div>
             @endif
         </div>
-        
+
         <div class="user-card-body">
             <h2>{{ $user->username }}</h2>
             @if($user->name)
@@ -43,9 +43,9 @@
             @endif
             <div class="user-status">
                 @if($user->profile && $user->profile->is_private)
-                <span class="status-badge private"><i class="fas fa-lock"></i> Private</span>
+                <span class="status-badge private"><i class="fas fa-lock"></i> {{ __('admin.private_badge') }}</span>
                 @else
-                <span class="status-badge public"><i class="fas fa-globe"></i> Public</span>
+                <span class="status-badge public"><i class="fas fa-globe"></i> {{ __('admin.public_badge') }}</span>
                 @endif
             </div>
 
@@ -62,9 +62,9 @@
                     <i class="fas fa-envelope"></i>
                     <span>{{ $user->email }}</span>
                     @if($user->hasVerifiedEmail())
-                    <span class="verification-badge verified"><i class="fas fa-check-circle"></i> Verified</span>
+                    <span class="verification-badge verified"><i class="fas fa-check-circle"></i> {{ __('admin.verified') }}</span>
                     @else
-                    <span class="verification-badge unverified"><i class="fas fa-exclamation-circle"></i> Unverified</span>
+                    <span class="verification-badge unverified"><i class="fas fa-exclamation-circle"></i> {{ __('admin.unverified') }}</span>
                     @endif
                 </div>
                 @if($user->profile && $user->profile->location)
@@ -81,7 +81,7 @@
                 @endif
                 <div class="meta-item">
                     <i class="fas fa-calendar-alt"></i>
-                    <span>Joined {{ $user->created_at->format('M j, Y') }}</span>
+                    <span>{{ __('admin.joined_label') }} {{ $user->created_at->format('M j, Y') }}</span>
                 </div>
             </div>
 
@@ -101,7 +101,7 @@
             </div>
             <div class="stat-info">
                 <span class="stat-value">{{ $user->posts->count() }}</span>
-                <span class="stat-label">Posts</span>
+                <span class="stat-label">{{ __('admin.posts_count') }}</span>
             </div>
         </div>
 
@@ -111,7 +111,7 @@
             </div>
             <div class="stat-info">
                 <span class="stat-value">{{ $user->followers->count() }}</span>
-                <span class="stat-label">Followers</span>
+                <span class="stat-label">{{ __('admin.followers') }}</span>
             </div>
         </div>
 
@@ -121,7 +121,7 @@
             </div>
             <div class="stat-info">
                 <span class="stat-value">{{ $user->follows->count() }}</span>
-                <span class="stat-label">Following</span>
+                <span class="stat-label">{{ __('admin.following') }}</span>
             </div>
         </div>
 
@@ -131,7 +131,7 @@
             </div>
             <div class="stat-info">
                 <span class="stat-value">{{ $user->stories->count() }}</span>
-                <span class="stat-label">Stories</span>
+                <span class="stat-label">{{ __('admin.stories_count') }}</span>
             </div>
         </div>
     </div>
@@ -139,9 +139,9 @@
     {{-- Tabs --}}
     <div class="content-tabs">
         <div class="tab-buttons">
-            <button class="tab-btn active" data-tab="posts">Posts</button>
-            <button class="tab-btn" data-tab="comments">Comments</button>
-            <button class="tab-btn" data-tab="stories">Stories</button>
+            <button class="tab-btn active" data-tab="posts">{{ __('admin.posts') }}</button>
+            <button class="tab-btn" data-tab="comments">{{ __('admin.comments_tab') }}</button>
+            <button class="tab-btn" data-tab="stories">{{ __('admin.stories') }}</button>
         </div>
 
         <div id="posts-tab" class="tab-content active">
@@ -150,13 +150,13 @@
                 @foreach($user->posts->take(10) as $post)
                 <div class="item-card">
                     <div class="item-content">
-                        <p>{{ Str::limit($post->content ?? 'Media post', 150) }}</p>
+                        <p>{{ Str::limit($post->content ?? __('admin.media_post'), 150) }}</p>
                     </div>
                     <div class="item-meta">
                         <span><i class="fas fa-heart"></i> {{ $post->likes->count() }}</span>
                         <span><i class="fas fa-comment"></i> {{ $post->comments->count() }}</span>
                         <span>{{ $post->created_at->diffForHumans() }}</span>
-                        <a href="/posts/{{ $post->slug }}" target="_blank" class="view-link">View <i class="fas fa-external-link-alt"></i></a>
+                        <a href="/posts/{{ $post->slug }}" target="_blank" class="view-link">{{ __('admin.view_post') }} <i class="fas fa-external-link-alt"></i></a>
                     </div>
                 </div>
                 @endforeach
@@ -164,7 +164,7 @@
             @else
             <div class="empty-state">
                 <i class="fas fa-pen-square"></i>
-                <p>No posts yet</p>
+                <p>{{ __('admin.no_posts_yet') }}</p>
             </div>
             @endif
         </div>
@@ -179,9 +179,9 @@
                     </div>
                     <div class="item-meta">
                         <span><i class="fas fa-heart"></i> {{ $comment->likes->count() }}</span>
-                        <span>On {{ $comment->post->user->name }}'s post</span>
+                        <span>{{ __('admin.on_post') }} {{ $comment->post->user->name }}{{ __('admin.post_owner') }}</span>
                         <span>{{ $comment->created_at->diffForHumans() }}</span>
-                        <a href="/posts/{{ $comment->post->slug }}" target="_blank" class="view-link">View <i class="fas fa-external-link-alt"></i></a>
+                        <a href="/posts/{{ $comment->post->slug }}" target="_blank" class="view-link">{{ __('admin.view_post') }} <i class="fas fa-external-link-alt"></i></a>
                     </div>
                 </div>
                 @endforeach
@@ -189,7 +189,7 @@
             @else
             <div class="empty-state">
                 <i class="fas fa-comments"></i>
-                <p>No comments yet</p>
+                <p>{{ __('admin.no_comments_yet') }}</p>
             </div>
             @endif
         </div>
@@ -215,7 +215,7 @@
             @else
             <div class="empty-state">
                 <i class="fas fa-circle-notch"></i>
-                <p>No stories yet</p>
+                <p>{{ __('admin.no_stories_yet') }}</p>
             </div>
             @endif
         </div>
@@ -444,6 +444,8 @@
     gap: 10px;
     font-size: 14px;
     color: var(--text-muted);
+    direction: ltr;
+    text-align: left;
 }
 
 .meta-item i {

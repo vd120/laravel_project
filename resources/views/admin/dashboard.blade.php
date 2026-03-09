@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Admin Dashboard - Nexus')
+@section('title', __('admin.dashboard') . ' - Nexus')
 
 @section('content')
 <div class="admin-dashboard">
@@ -9,9 +9,9 @@
         <div class="admin-header-content">
             <div class="admin-title">
                 <i class="fas fa-shield-alt"></i>
-                <h1>Admin Dashboard</h1>
+                <h1>{{ __('admin.dashboard') }}</h1>
             </div>
-            <p class="admin-subtitle">Monitor and manage your platform</p>
+            <p class="admin-subtitle">{{ __('admin.dashboard_subtitle') }}</p>
         </div>
     </div>
 
@@ -24,7 +24,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ number_format($stats['total_users']) }}</span>
-                    <span class="stat-label">Total Users</span>
+                    <span class="stat-label">{{ __('admin.total_users') }}</span>
                 </div>
             </div>
 
@@ -34,7 +34,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ number_format($stats['total_posts']) }}</span>
-                    <span class="stat-label">Total Posts</span>
+                    <span class="stat-label">{{ __('admin.total_posts') }}</span>
                 </div>
             </div>
 
@@ -44,7 +44,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ number_format($stats['total_comments']) }}</span>
-                    <span class="stat-label">Comments</span>
+                    <span class="stat-label">{{ __('admin.comments') }}</span>
                 </div>
             </div>
 
@@ -54,7 +54,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ number_format($stats['total_stories']) }}</span>
-                    <span class="stat-label">Stories</span>
+                    <span class="stat-label">{{ __('admin.stories') }}</span>
                 </div>
             </div>
         </div>
@@ -66,7 +66,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ number_format($stats['total_follows']) }}</span>
-                    <span class="stat-label">Follows</span>
+                    <span class="stat-label">{{ __('admin.follows') }}</span>
                 </div>
             </div>
 
@@ -76,7 +76,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ number_format($stats['total_blocks']) }}</span>
-                    <span class="stat-label">Blocks</span>
+                    <span class="stat-label">{{ __('admin.blocks') }}</span>
                 </div>
             </div>
 
@@ -86,7 +86,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ number_format($stats['admin_users']) }}</span>
-                    <span class="stat-label">Admins</span>
+                    <span class="stat-label">{{ __('admin.admins') }}</span>
                 </div>
             </div>
 
@@ -96,7 +96,7 @@
                 </div>
                 <div class="stat-info">
                     <span class="stat-value">{{ number_format($stats['private_profiles']) }}</span>
-                    <span class="stat-label">Private</span>
+                    <span class="stat-label">{{ __('admin.private_profiles') }}</span>
                 </div>
             </div>
         </div>
@@ -106,28 +106,28 @@
     <div class="section">
         <h2 class="section-title">
             <i class="fas fa-bolt"></i>
-            Quick Actions
+            {{ __('admin.quick_actions') }}
         </h2>
         <div class="actions-row">
             <a href="{{ route('admin.users') }}" class="action-btn">
                 <div class="action-icon"><i class="fas fa-users-cog"></i></div>
-                <span>Users</span>
+                <span>{{ __('admin.users') }}</span>
             </a>
             <a href="{{ route('admin.posts') }}" class="action-btn">
                 <div class="action-icon"><i class="fas fa-images"></i></div>
-                <span>Posts</span>
+                <span>{{ __('admin.posts') }}</span>
             </a>
             <a href="{{ route('admin.comments') }}" class="action-btn">
                 <div class="action-icon"><i class="fas fa-comments"></i></div>
-                <span>Comments</span>
+                <span>{{ __('admin.comments') }}</span>
             </a>
             <a href="{{ route('admin.stories') }}" class="action-btn">
                 <div class="action-icon"><i class="fas fa-camera"></i></div>
-                <span>Stories</span>
+                <span>{{ __('admin.stories') }}</span>
             </a>
             <a href="#" onclick="showCreateAdminModal()" class="action-btn highlight">
                 <div class="action-icon"><i class="fas fa-user-plus"></i></div>
-                <span>New Admin</span>
+                <span>{{ __('admin.new_admin') }}</span>
             </a>
         </div>
     </div>
@@ -136,12 +136,12 @@
     <div class="section">
         <h2 class="section-title">
             <i class="fas fa-clock"></i>
-            Recent Activity
+            {{ __('admin.recent_activity') }}
         </h2>
         <div class="activity-grid">
             <div class="activity-card">
                 <div class="activity-header">
-                    <h3>New Users</h3>
+                    <h3>{{ __('admin.new_users') }}</h3>
                     <span class="badge">{{ $stats['recent_users']->count() }}</span>
                 </div>
                 <div class="activity-list">
@@ -159,14 +159,14 @@
                         </a>
                     </div>
                     @empty
-                    <div class="empty-activity">No users yet</div>
+                    <div class="empty-activity">{{ __('admin.no_users_yet') }}</div>
                     @endforelse
                 </div>
             </div>
 
             <div class="activity-card">
                 <div class="activity-header">
-                    <h3>Latest Posts</h3>
+                    <h3>{{ __('admin.latest_posts') }}</h3>
                     <span class="badge">{{ $stats['recent_posts']->count() }}</span>
                 </div>
                 <div class="activity-list">
@@ -177,14 +177,14 @@
                         </div>
                         <div class="activity-details">
                             <span class="activity-name">{{ $post->user->username }}</span>
-                            <span class="activity-time">{{ Str::limit($post->content ?? 'Media post', 30) }}</span>
+                            <span class="activity-time">{{ Str::limit($post->content ?? __('admin.media_post'), 30) }}</span>
                         </div>
                         <a href="{{ route('admin.posts') }}" class="activity-link">
                             <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                     @empty
-                    <div class="empty-activity">No posts yet</div>
+                    <div class="empty-activity">{{ __('admin.no_posts_yet') }}</div>
                     @endforelse
                 </div>
             </div>
@@ -196,7 +196,7 @@
 <div id="create-admin-modal" class="modal-overlay" style="display: none;">
     <div class="modal-box">
         <div class="modal-top">
-            <h3><i class="fas fa-user-shield"></i> Create Admin</h3>
+            <h3><i class="fas fa-user-shield"></i> {{ __('admin.create_admin') }}</h3>
             <button class="modal-close-btn" onclick="hideCreateAdminModal()">
                 <i class="fas fa-times"></i>
             </button>
@@ -204,24 +204,24 @@
         <form method="POST" action="{{ route('admin.create-admin') }}">
             @csrf
             <div class="form-row">
-                <label>Full Name</label>
-                <input type="text" name="name" required minlength="1" maxlength="255" placeholder="Enter full name">
+                <label>{{ __('admin.full_name') }}</label>
+                <input type="text" name="name" required minlength="1" maxlength="255" placeholder="{{ __('admin.full_name') }}">
             </div>
             <div class="form-row">
-                <label>Username</label>
-                <input type="text" name="username" required minlength="3" maxlength="50" autocomplete="username" placeholder="Enter username">
+                <label>{{ __('admin.username') }}</label>
+                <input type="text" name="username" required minlength="3" maxlength="50" autocomplete="username" placeholder="{{ __('admin.username') }}">
             </div>
             <div class="form-row">
-                <label>Email</label>
-                <input type="email" name="email" required placeholder="Enter email address" autocomplete="email">
+                <label>{{ __('admin.email') }}</label>
+                <input type="email" name="email" required placeholder="{{ __('admin.email') }}" autocomplete="email">
             </div>
             <div class="form-row">
-                <label>Password</label>
-                <input type="password" name="password" required minlength="8" autocomplete="current-password" placeholder="Min 8 characters">
+                <label>{{ __('admin.password') }}</label>
+                <input type="password" name="password" required minlength="8" autocomplete="current-password" placeholder="{{ __('admin.min_8_characters') }}">
             </div>
             <div class="form-buttons">
-                <button type="button" class="btn-cancel" onclick="hideCreateAdminModal()">Cancel</button>
-                <button type="submit" class="btn-submit">Create Admin</button>
+                <button type="button" class="btn-cancel" onclick="hideCreateAdminModal()">{{ __('admin.cancel') }}</button>
+                <button type="submit" class="btn-submit">{{ __('admin.create') }}</button>
             </div>
         </form>
     </div>

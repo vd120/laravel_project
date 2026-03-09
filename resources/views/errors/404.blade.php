@@ -45,7 +45,7 @@
     </style>
 </head>
 <body>
-    <h1>Not Found</h1>
-    <button onclick="history.back()">Back</button>
+    <h1>Page Not Found</h1>
+    <button onclick="history.back()">Go Back</button>
 </body>
 </html>

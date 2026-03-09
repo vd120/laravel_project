@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
@@ -8,7 +8,8 @@
     <title>@yield('title', 'Nexus')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    {{-- Inter font for English, Cairo for Arabic --}}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <style>
         /* ============================================
@@ -122,17 +123,29 @@
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Noto Sans Arabic', 'Tahoma', 'Arial', sans-serif; 
-            -webkit-font-smoothing: antialiased; 
+        html {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Noto Sans Arabic', 'Tahoma', 'Arial', sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
-        body { 
-            font-size: 14px; 
-            line-height: 1.6; 
-            color: var(--text); 
-            background: var(--bg); 
-            min-height: 100vh; 
-            overflow-x: hidden; 
+        body {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           HEADER - Always LTR (for consistency)
+           ============================================ */
+        .header,
+        .header-inner,
+        .nav-links,
+        .user-actions,
+        .language-switcher {
+            direction: ltr !important;
+            text-align: left !important;
         }
 
         /* Header — Same as Login/Register Pages */
@@ -917,9 +930,8 @@
             padding: 10px 20px; font-size: 14px; font-weight: 600;
             border-radius: var(--radius); border: 1px solid var(--border);
             background: var(--surface); color: var(--text);
-            cursor: pointer; text-decoration: none; transition: all var(--transition);
+            cursor: pointer; text-decoration: none;
         }
-        .btn:hover { background: var(--surface-hover); border-color: var(--primary); }
 
         .btn-primary {
             background: var(--primary);
@@ -1119,7 +1131,6 @@
             .notif-action-btn:hover { background: var(--surface-hover); color: var(--text-muted); border-color: var(--border); }
             .notif-action-btn.danger:hover { background: var(--surface-hover); border-color: var(--border); }
             .notif-item-btn:hover { background: var(--surface-hover); color: var(--text-muted); border-color: var(--border); }
-            .btn:hover { background: var(--surface); border-color: var(--border); }
             .btn-primary:hover { background: var(--primary); }
         }
         @media (max-width: 480px) {
@@ -1127,9 +1138,47 @@
             .logo { font-size: 17px; }
             .nav-user-btn span { max-width: 80px; font-size: 12px; }
             .nav-user-btn { padding: 4px 8px 4px 4px; }
+            .nav-user-btn .user-avatar { width: 28px !important; height: 28px !important; }
             .nav-action-btn { width: 36px; height: 36px; font-size: 16px; }
             #toast-container { right: 10px; left: 10px; max-width: none; bottom: 80px; }
             #backToTopBtn { width: 40px; height: 40px; bottom: 90px; right: 15px; font-size: 18px; }
+
+            /* Global Mobile Responsive - User Cards */
+            .users-list-container { padding: 0 8px !important; }
+            .page-header h1 { font-size: 18px !important; }
+            .page-header p { font-size: 12px !important; }
+            .user-card {
+                display: grid !important;
+                grid-template-columns: auto 1fr !important;
+                grid-template-rows: auto auto !important;
+                gap: 10px !important;
+                padding: 12px !important;
+            }
+            .user-card .user-avatar, .user-avatar-section .user-avatar {
+                grid-row: 1 / 3 !important;
+                grid-column: 1 !important;
+                width: 48px !important;
+                height: 48px !important;
+            }
+            .user-info {
+                grid-row: 1 !important;
+                grid-column: 2 !important;
+                min-width: 0 !important;
+            }
+            .user-actions, .user-card-actions {
+                grid-row: 2 !important;
+                grid-column: 2 !important;
+                justify-content: flex-start !important;
+            }
+            .user-name { font-size: 15px !important; }
+            .user-meta, .profile-username { font-size: 13px !important; direction: ltr !important; text-align: left !important; }
+            .btn-follow, .follow-btn, .unblock-btn, .block-btn {
+                padding: 8px 16px !important;
+                font-size: 13px !important;
+                min-width: auto !important;
+                width: 100% !important;
+                max-width: 140px !important;
+            }
         }
 
         /* Toast Notifications */
@@ -1211,15 +1260,19 @@
 
             @auth
             <nav class="nav-links">
-                <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
-                <a href="{{ route('stories.index') }}" class="{{ request()->routeIs('stories.*') ? 'active' : '' }}"><i class="fas fa-circle-play"></i> Stories</a>
-                <a href="{{ route('chat.index') }}" class="{{ request()->routeIs('chat.*') ? 'active' : '' }}"><i class="fas fa-message"></i> Messages</a>
-                <a href="{{ route('ai.index') }}" class="{{ request()->routeIs('ai.*') ? 'active' : '' }}"><i class="fas fa-robot"></i> AI</a>
+                <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}"><i class="fas fa-home"></i> {{ __('navigation.home') }}</a>
+                <a href="{{ route('stories.index') }}" class="{{ request()->routeIs('stories.*') ? 'active' : '' }}"><i class="fas fa-circle-play"></i> {{ __('navigation.stories') }}</a>
+                <a href="{{ route('chat.index') }}" class="{{ request()->routeIs('chat.*') ? 'active' : '' }}"><i class="fas fa-message"></i> {{ __('navigation.messages') }}</a>
+                <a href="{{ route('ai.index') }}" class="{{ request()->routeIs('ai.*') ? 'active' : '' }}"><i class="fas fa-robot"></i> {{ __('navigation.ai_assistant') }}</a>
             </nav>
             @endauth
 
             <div class="user-actions">
-                <button class="nav-action-btn" onclick="toggleTheme()" title="Toggle theme">
+                @guest
+                @include('layouts.language')
+                @endguest
+
+                <button class="nav-action-btn" onclick="toggleTheme()" title="{{ __('messages.theme') }}">
                     <i class="fas fa-sun" id="theme-icon"></i>
                 </button>
 
@@ -1243,8 +1296,8 @@
 
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">@csrf</form>
                 @else
-                <a href="{{ route('login') }}" class="nav-action-btn">Sign In</a>
-                <a href="{{ route('register') }}" class="nav-action-btn primary">Sign Up</a>
+                <a href="{{ route('login') }}" class="nav-action-btn">{{ __('auth.sign_in') }}</a>
+                <a href="{{ route('register') }}" class="nav-action-btn primary">{{ __('auth.sign_up') }}</a>
                 @endauth
             </div>
         </div>
@@ -1256,43 +1309,277 @@
     <!-- Notification Dropdown - Simple Modern Design -->
     <div class="dropdown-menu notif-panel" id="notifMenu">
         <div class="notif-header">
-            <h3>Notifications</h3>
+            <h3>{{ __('navigation.notifications') }}</h3>
             <div class="notif-header-actions">
-                <button class="notif-action-btn" onclick="markAllRead(); return false;" title="Mark all as read">
+                <button class="notif-action-btn" onclick="markAllRead(); return false;" title="{{ __('notifications.mark_all_read') }}">
                     <i class="fas fa-check"></i>
-                    <span>Read all</span>
+                    <span>{{ __('notifications.mark_all_read') }}</span>
                 </button>
-                <button class="notif-action-btn danger" onclick="clearAllNotifications(); return false;" title="Clear all">
+                <button class="notif-action-btn danger" onclick="clearAllNotifications(); return false;" title="{{ __('notifications.clear_all') }}">
                     <i class="fas fa-trash"></i>
-                    <span>Clear</span>
+                    <span>{{ __('notifications.clear_all') }}</span>
                 </button>
             </div>
         </div>
         <div class="notif-list" id="notif-list">
             <div class="notif-empty">
                 <i class="fas fa-bell-slash"></i>
-                <p>No notifications</p>
+                <p>{{ __('notifications.no_notifications') }}</p>
             </div>
         </div>
     </div>
 
     <!-- User Menu Dropdown - outside header for proper z-index -->
     <div class="dropdown-menu" id="userMenu">
-        <a href="{{ route('users.show', auth()->user()) }}"><i class="fas fa-user"></i> Profile</a>
-        <a href="{{ route('users.saved-posts') }}"><i class="fas fa-bookmark"></i> Saved</a>
-        <a href="{{ route('explore') }}"><i class="fas fa-compass"></i> Explore Users</a>
-        <a href="{{ route('ai.index') }}"><i class="fas fa-robot"></i> AI Assistant</a>
+        <a href="{{ route('users.show', auth()->user()) }}"><i class="fas fa-user"></i> {{ __('navigation.profile') }}</a>
+        <a href="{{ route('users.saved-posts') }}"><i class="fas fa-bookmark"></i> {{ __('navigation.saved_posts') }}</a>
+        <a href="{{ route('explore') }}"><i class="fas fa-compass"></i> {{ __('navigation.explore') }}</a>
+        <a href="{{ route('ai.index') }}"><i class="fas fa-robot"></i> {{ __('navigation.ai_assistant') }}</a>
         @if(auth()->user()->is_admin)
-        <a href="{{ route('admin.dashboard') }}"><i class="fas fa-shield-alt"></i> Admin</a>
+        <a href="{{ route('admin.dashboard') }}"><i class="fas fa-shield-alt"></i> {{ __('navigation.admin_panel') }}</a>
         @endif
         <div class="divider"></div>
-        <a href="{{ route('password.change') }}"><i class="fas fa-key"></i> Change Password</a>
-        <button onclick="logout()" class="danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        
+        <!-- Language Switcher -->
+        <div class="language-switcher" style="position: relative; display: block; width: 100%;">
+            <button
+                type="button"
+                class="language-option"
+                onclick="toggleLanguageDropdown()"
+                aria-label="{{ __('messages.language') }}"
+                aria-haspopup="true"
+                aria-expanded="false"
+                style="
+                    width: 100%;
+                    justify-content: space-between;
+                    background: transparent;
+                    border: none;
+                    cursor: pointer;
+                "
+            >
+                <span style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 18px;">🌐</span>
+                    <span>{{ __('messages.language') }}</span>
+                </span>
+                <span style="opacity: 0.6; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                    @if(app()->getLocale() === 'ar')
+                        العربية
+                    @else
+                        English
+                    @endif
+                    <svg style="width: 14px; height: 14px; transition: transform 0.2s;" id="user-lang-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </span>
+            </button>
+
+            {{-- Dropdown Menu --}}
+            <div
+                id="user-language-dropdown"
+                class="language-dropdown"
+                style="
+                    display: none;
+                    position: absolute;
+                    bottom: 100%;
+                    left: 0;
+                    margin-bottom: 8px;
+                    min-width: 200px;
+                    background: inherit;
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(0, 0, 0, 0.05);
+                    border-radius: 12px;
+                    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+                    z-index: 1001;
+                    overflow: hidden;
+                    padding: 8px;
+                    direction: ltr !important;
+                "
+            >
+                <div style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); margin-bottom: 4px;">
+                    <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                        {{ __('messages.select_language') }}
+                    </span>
+                </div>
+                @php
+                    $supportedLocales = \App\Http\Controllers\LanguageController::getSupportedLocales();
+                @endphp
+                @foreach($supportedLocales as $locale => $details)
+                    <a
+                        href="#"
+                        onclick="switchLanguage('{{ $locale }}'); return false;"
+                        class="language-option {{ app()->getLocale() === $locale ? 'active' : '' }}"
+                        data-locale="{{ $locale }}"
+                        style="
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            padding: 12px 14px;
+                            border-radius: 8px;
+                            text-decoration: none;
+                            color: {{ app()->getLocale() === $locale ? '#5e60ce' : 'inherit' }};
+                            transition: all 0.2s;
+                            margin-bottom: 2px;
+                        "
+                        onmouseover="this.style.background='rgba(0,0,0,0.05)'"
+                        onmouseout="if(!this.classList.contains('active')) this.style.background='inherit'"
+                    >
+                        <span style="font-size: 20px;">{{ $details['flag'] }}</span>
+                        <div style="display: flex; flex-direction: column; flex: 1;">
+                            <span style="font-size: 14px; font-weight: 500;">{{ $details['native_name'] }}</span>
+                            @if($details['name'] !== $details['native_name'])
+                                <span style="font-size: 11px; opacity: 0.6;">{{ $details['name'] }}</span>
+                            @endif
+                        </div>
+                        @if(app()->getLocale() === $locale)
+                            <svg style="width: 18px; height: 18px; color: #5e60ce;" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        @endif
+                    </a>
+                @endforeach
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        <a href="{{ route('password.change') }}"><i class="fas fa-key"></i> {{ __('messages.change_password') }}</a>
+        <button onclick="logout()" class="danger"><i class="fas fa-sign-out-alt"></i> {{ __('navigation.logout') }}</button>
     </div>
     @endauth
 
     <main class="app-layout">
         <div class="main-content">
+            <script>
+                // Global chat translations for JavaScript - MUST be before content yield
+                window.chatTranslations = {
+                    you: '{{ __('chat.you') }}',
+                    online: '{{ __('chat.online') }}',
+                    offline: '{{ __('chat.offline') }}',
+                    last_active: '{{ __('chat.last_active') }}',
+                    you_sent_photo: '{{ __('chat.you_sent_photo') }}',
+                    you_sent_video: '{{ __('chat.you_sent_video') }}',
+                    you_sent_audio: '{{ __('chat.you_sent_audio') }}',
+                    you_sent_document: '{{ __('chat.you_sent_document') }}',
+                    you_sent_gif: '{{ __('chat.you_sent_gif') }}',
+                    you_sent_sticker: '{{ __('chat.you_sent_sticker') }}',
+                    you_replied_to_story: '{{ __('chat.you_replied_to_story') }}',
+                    sent_photo: '{{ __('chat.sent_photo') }}',
+                    sent_video: '{{ __('chat.sent_video') }}',
+                    sent_audio: '{{ __('chat.sent_audio') }}',
+                    sent_document: '{{ __('chat.sent_document') }}',
+                    sent_gif: '{{ __('chat.sent_gif') }}',
+                    sent_sticker: '{{ __('chat.sent_sticker') }}',
+                    replied_to_story: '{{ __('chat.replied_to_story') }}',
+                    sent_an_image: '{{ __('chat.sent_an_image') }}',
+                    sent_a_video: '{{ __('chat.sent_a_video') }}',
+                    sent_an_audio: '{{ __('chat.sent_an_audio') }}',
+                    sent_a_document: '{{ __('chat.sent_a_document') }}',
+                    sent_a_gif: '{{ __('chat.sent_a_gif') }}',
+                    sent_a_sticker: '{{ __('chat.sent_a_sticker') }}',
+                    start_a_conversation: '{{ __('chat.start_a_conversation') }}',
+                    message_deleted: '{{ __('chat.message_deleted') }}',
+                    failed_to_send_media: '{{ __('chat.failed_to_send_media') }}',
+                    error_sending_media: '{{ __('chat.error_sending_media') }}',
+                    group: '{{ __('chat.group') }}',
+                    invited_you_to_join: '{{ __('chat.invited_you_to_join') }}',
+                    join: '{{ __('chat.join') }}',
+                    sent: '{{ __('chat.sent') }}',
+                    story_reply: '{{ __('chat.story_reply') }}',
+                    seen: '{{ __('chat.seen') }}',
+                    attach: '{{ __('chat.attach') }}',
+                    type_a_message: '{{ __('chat.type_a_message') }}',
+                    send: '{{ __('chat.send') }}',
+                    close: '{{ __('chat.close') }}',
+                    previous: '{{ __('chat.previous') }}',
+                    next: '{{ __('chat.next') }}',
+                    remove_all: '{{ __('chat.remove_all') }}',
+                    delete_message: '{{ __('chat.delete_message') }}',
+                    delete_for_everyone: '{{ __('chat.delete_for_everyone') }}',
+                    delete_for_me: '{{ __('chat.delete_for_me') }}',
+                    delete_message_desc: '{{ __('chat.delete_message_desc') }}',
+                    delete_for_everyone_desc: '{{ __('chat.delete_for_everyone_desc') }}',
+                    delete_for_me_desc: '{{ __('chat.delete_for_me_desc') }}',
+                    confirm_delete: '{{ __('chat.confirm_delete') }}',
+                    is_typing: '{{ __('chat.is_typing') }}',
+                    typing: '{{ __('chat.typing') }}',
+                    user: '{{ __('chat.user') }}',
+                    someone: '{{ __('chat.someone') }}',
+                    add_photo: '{{ __('chat.add_photo') }}',
+                    new_group: '{{ __('chat.new_group') }}',
+                    new_message: '{{ __('chat.new_message') }}',
+                    search_or_start_chat: '{{ __('chat.search_or_start_chat') }}',
+                    search_contacts: '{{ __('chat.search_contacts') }}',
+                    no_messages_yet: '{{ __('chat.no_messages_yet') }}',
+                    start_new_conversation: '{{ __('chat.start_new_conversation') }}',
+                    start_conversation: '{{ __('chat.start_conversation') }}',
+                    nexus_web: '{{ __('chat.nexus_web') }}',
+                    welcome_message: '{{ __('chat.welcome_message') }}',
+                    end_to_end_encrypted: '{{ __('chat.end_to_end_encrypted') }}',
+                    start_chat: '{{ __('chat.start_chat') }}',
+                    members_count: '{{ __('chat.members_count') }}',
+                    member_count: '{{ __('chat.member_count') }}',
+                    edit: '{{ __('chat.edit') }}',
+                    clear_chat: '{{ __('chat.clear_chat') }}',
+                    save_changes: '{{ __('chat.save_changes') }}',
+                    cancel: '{{ __('chat.cancel') }}',
+                    create: '{{ __('chat.create') }}',
+                    reply: '{{ __('chat.reply') }}',
+                    write_a_reply: '{{ __('chat.write_a_reply') }}',
+                    delete_comment: '{{ __('chat.delete_comment') }}',
+                    show_reply: '{{ __('chat.show_reply') }}',
+                    show_replies: '{{ __('chat.show_replies') }}',
+                    hide_comments: '{{ __('chat.hide_comments') }}',
+                    like_comments_prompt: '{{ __('chat.like_comments_prompt') }}',
+                    reply_comments_prompt: '{{ __('chat.reply_comments_prompt') }}',
+                    delete_post: '{{ __('chat.delete_post') }}',
+                    follow: '{{ __('chat.follow') }}',
+                    following: '{{ __('chat.following') }}',
+                    private: '{{ __('chat.private') }}',
+                    public: '{{ __('chat.public') }}',
+                    show_more: '{{ __('chat.show_more') }}',
+                    show_less: '{{ __('chat.show_less') }}',
+                    save_post: '{{ __('chat.save_post') }}',
+                    saved_post: '{{ __('chat.saved_post') }}',
+                    share: '{{ __('chat.share') }}',
+                    write_a_comment: '{{ __('chat.write_a_comment') }}',
+                    login_to_comment: '{{ __('chat.login_to_comment') }}',
+                    login: '{{ __('chat.login') }}',
+                    show_more_comments: '{{ __('chat.show_more_comments') }}',
+                    like_posts_prompt: '{{ __('chat.like_posts_prompt') }}',
+                    save_posts_prompt: '{{ __('chat.save_posts_prompt') }}',
+                    clear_all: '{{ __('chat.clear_all') }}',
+                    sent_toast: '{{ __('messages.sent') }}',
+                    mark_as_read: '{{ __('messages.mark_as_read') }}',
+                    delete_toast: '{{ __('messages.delete') }}',
+                    delete_story: '{{ __('messages.delete_story') }}',
+                    view_who_watched: '{{ __('messages.view_who_watched') }}',
+                    username_validation: '{{ __('messages.username_validation') }}',
+                    post_saved_success: '{{ __('messages.post_saved_success') }}',
+                    post_removed_from_saved: '{{ __('messages.post_removed_from_saved') }}',
+                    no_likes_yet: '{{ __('messages.no_likes_yet') }}',
+                    could_not_load_likers: '{{ __('messages.could_not_load_likers') }}',
+                    post_link_copied: '{{ __('messages.post_link_copied') }}',
+                    failed_to_copy_link: '{{ __('messages.failed_to_copy_link') }}',
+                    account_suspended_message: '{{ __('messages.account_suspended_message') }}',
+                    please_verify_email_message: '{{ __('messages.please_verify_email_message') }}',
+                    concurrent_login_message: '{{ __('messages.concurrent_login_message') }}',
+                    logged_out_message: '{{ __('messages.logged_out_message') }}',
+                    account_deleted_message: '{{ __('messages.account_deleted_message') }}',
+                    account_status_changed: '{{ __('messages.account_status_changed') }}',
+                    story_deleted_success: '{{ __('messages.story_deleted_success') }}',
+                    failed_to_delete_story: '{{ __('messages.failed_to_delete_story') }}',
+                    failed_to_send_message: '{{ __('messages.failed_to_send_message') }}',
+                    story_shared_success: '{{ __('messages.story_shared_success') }}',
+                    likes: '{{ __('messages.likes') }}',
+                    comments_count: '{{ __('messages.comments_count') }}',
+                    just_now: '{{ __('messages.just_now') }}',
+                    minutes_ago_short: '{{ __('messages.minutes_ago_short') }}',
+                    hours_ago_short: '{{ __('messages.hours_ago_short') }}',
+                    days_ago_short: '{{ __('messages.days_ago_short') }}',
+                    story: '{{ __('messages.story') }}',
+                    send_message: '{{ __('messages.send_message') }}',
+                    story_deleted_toast: '{{ __('messages.story_deleted_toast') }}',
+                };
+            </script>
             @yield('content')
         </div>
     </main>
@@ -1300,10 +1587,10 @@
     @auth
             <nav class="mobile-nav">
                 <div class="mobile-nav-inner">
-                    <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}"><i class="fas fa-home"></i> Home</a>
-                    <a href="{{ route('stories.index') }}" class="{{ request()->routeIs('stories.*') ? 'active' : '' }}"><i class="fas fa-circle-play"></i> Stories</a>
-                    <a href="{{ route('chat.index') }}" class="{{ request()->routeIs('chat.*') ? 'active' : '' }}"><i class="fas fa-message"></i> Chat</a>
-                    <a href="{{ route('users.show', auth()->user()) }}" class="{{ request()->routeIs('users.show') ? 'active' : '' }}"><i class="fas fa-user"></i> Profile</a>
+                    <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}"><i class="fas fa-home"></i> {{ __('navigation.home') }}</a>
+                    <a href="{{ route('stories.index') }}" class="{{ request()->routeIs('stories.*') ? 'active' : '' }}"><i class="fas fa-circle-play"></i> {{ __('navigation.stories') }}</a>
+                    <a href="{{ route('chat.index') }}" class="{{ request()->routeIs('chat.*') ? 'active' : '' }}"><i class="fas fa-message"></i> {{ __('navigation.messages') }}</a>
+                    <a href="{{ route('users.show', auth()->user()) }}" class="{{ request()->routeIs('users.show') ? 'active' : '' }}"><i class="fas fa-user"></i> {{ __('navigation.profile') }}</a>
                 </div>
             </nav>
     @endauth
@@ -1375,9 +1662,19 @@
         function closeAllDropdowns() {
             document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
             document.getElementById('dropdownOverlay').classList.remove('active');
+            
+            // Close user language dropdown
+            const userLangDropdown = document.getElementById('user-language-dropdown');
+            const userLangArrow = document.getElementById('user-lang-arrow');
+            const userLangToggle = document.querySelector('#userMenu .language-option');
+            if (userLangDropdown && userLangDropdown.style.display === 'block') {
+                userLangDropdown.style.display = 'none';
+                if (userLangArrow) userLangArrow.style.transform = 'rotate(0deg)';
+                if (userLangToggle) userLangToggle.setAttribute('aria-expanded', 'false');
+            }
         }
 
-        function logout() { if (confirm('Sign out?')) document.getElementById('logout-form').submit(); }
+        function logout() { if (confirm('{{ __('auth.sign_out_confirm') }}')) document.getElementById('logout-form').submit(); }
 
         function showToast(message, type = 'info', duration = 3000) {
             const container = document.getElementById('toast-container');
@@ -1412,7 +1709,7 @@
                 if (data.unread_count > 0) { badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count; badge.style.display = 'flex'; }
                 else { badge.style.display = 'none'; }
                 if (!data.notifications || data.notifications.length === 0) {
-                    list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications</p></div>`;
+                    list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>{{ __('notifications.no_notifications') }}</p></div>`;
                     return;
                 }
                 list.innerHTML = data.notifications.map(n => {
@@ -1430,8 +1727,8 @@
                             <span class="notif-time">${timeAgo}</span>
                         </div>
                         <div class="notif-item-actions">
-                            ${!n.read_at ? `<button class="notif-item-btn" onclick="markAsRead(${n.id}); return false;" title="Mark as read"><i class="fas fa-check"></i></button>` : ''}
-                            <button class="notif-item-btn delete" onclick="dismissNotification(${n.id}); return false;" title="Delete"><i class="fas fa-trash"></i></button>
+                            ${!n.read_at ? `<button class="notif-item-btn" onclick="markAsRead(${n.id}); return false;" title="${window.chatTranslations.mark_as_read}"><i class="fas fa-check"></i></button>` : ''}
+                            <button class="notif-item-btn delete" onclick="dismissNotification(${n.id}); return false;" title="${window.chatTranslations.delete}"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 `}).join('');
@@ -1454,7 +1751,7 @@
                 // Update actions to show only delete button
                 const actionsDiv = notifItem.querySelector('.notif-item-actions');
                 if (actionsDiv) {
-                    actionsDiv.innerHTML = `<button class="notif-item-btn delete" onclick="dismissNotification(${id}); return false;" title="Delete"><i class="fas fa-trash"></i></button>`;
+                    actionsDiv.innerHTML = `<button class="notif-item-btn delete" onclick="dismissNotification(${id}); return false;" title="${window.chatTranslations.delete}"><i class="fas fa-trash"></i></button>`;
                 }
 
                 // Update badge immediately
@@ -1494,7 +1791,7 @@
                 const id = item.getAttribute('data-id');
                 const actionsDiv = item.querySelector('.notif-item-actions');
                 if (actionsDiv && id) {
-                    actionsDiv.innerHTML = `<button class="notif-item-btn delete" onclick="dismissNotification(${id}); return false;" title="Delete"><i class="fas fa-trash"></i></button>`;
+                    actionsDiv.innerHTML = `<button class="notif-item-btn delete" onclick="dismissNotification(${id}); return false;" title="${window.chatTranslations.delete}"><i class="fas fa-trash"></i></button>`;
                 }
             });
             document.getElementById('notif-badge').style.display = 'none';
@@ -1624,7 +1921,7 @@
             // Clear UI immediately
             const notifList = document.getElementById('notif-list');
             if (notifList) {
-                notifList.innerHTML = '<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications</p></div>';
+                notifList.innerHTML = '<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>{{ __('notifications.no_notifications') }}</p></div>';
             }
             document.getElementById('notif-badge').style.display = 'none';
 
@@ -1642,11 +1939,65 @@
                 window.currentUserId = {{ auth()->id() }};
             }
             document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllDropdowns(); });
-            
+
             // Auto-detect Arabic text and apply RTL direction
             applyRTLToArabicText();
         });
-        
+
+        // User Menu Language Dropdown Functions
+        function toggleLanguageDropdown() {
+            const dropdown = document.getElementById('user-language-dropdown');
+            const arrow = document.getElementById('user-lang-arrow');
+            const toggle = document.querySelector('#userMenu .language-option');
+
+            if (!dropdown) return;
+
+            const isVisible = dropdown.style.display === 'block';
+
+            if (isVisible) {
+                dropdown.style.display = 'none';
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+                if (toggle) toggle.setAttribute('aria-expanded', 'false');
+            } else {
+                dropdown.style.display = 'block';
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+                if (toggle) toggle.setAttribute('aria-expanded', 'true');
+            }
+        }
+
+        function switchLanguage(locale) {
+            // Show loading indicator (reuse existing if available)
+            const loading = document.getElementById('language-loading');
+            if (loading) {
+                loading.style.display = 'flex';
+            }
+
+            // Close dropdown
+            toggleLanguageDropdown();
+
+            // Navigate to language switch route with current URL as return
+            const currentPath = window.location.pathname + window.location.search;
+            window.location.href = '/lang/' + locale + '?return=' + encodeURIComponent(currentPath);
+        }
+
+        // Close user language dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenu = document.getElementById('userMenu');
+            const userLangSwitcher = userMenu?.querySelector('.language-switcher');
+            
+            if (userLangSwitcher && !userLangSwitcher.contains(event.target)) {
+                const dropdown = document.getElementById('user-language-dropdown');
+                const arrow = document.getElementById('user-lang-arrow');
+                const toggle = document.querySelector('#userMenu .language-option');
+
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                    arrow.style.transform = 'rotate(0deg)';
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+
         /**
          * Detect Arabic/Persian/Hebrew text and apply RTL direction
          */

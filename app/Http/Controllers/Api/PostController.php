@@ -95,7 +95,7 @@ class PostController extends Controller
 
         // Ensure at least content or media is provided
         if (!$request->filled('content') && !$request->hasFile('media')) {
-            return response()->json(['message' => 'Please provide either text content or media.'], 422);
+            return response()->json(['message' => __('messages.provide_content_or_media')], 422);
         }
 
         $postData = $request->only('content');
@@ -155,7 +155,7 @@ class PostController extends Controller
     public function update(Request $request, Post $post)
     {
         if ($post->user_id !== auth()->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => __('messages.unauthorized')], 403);
         }
 
         $request->validate([
@@ -185,7 +185,7 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         if ($post->user_id !== auth()->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return response()->json(['message' => __('messages.unauthorized')], 403);
         }
 
         $post->delete();

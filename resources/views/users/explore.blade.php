@@ -1,16 +1,20 @@
 @extends('layouts.app')
 
+@section('title', __('users.explore_users'))
+
 @section('content')
-<div class="explore-page">
+<div class="explore-page"
+     data-search-error="{{ __('users.search_error') }}"
+     data-searching="{{ __('users.searching') }}">
     <div class="page-header">
-        <h1>Explore Users</h1>
+        <h1>{{ __('users.explore_users') }}</h1>
         <a href="{{ route('home') }}" class="back-link">
             <i class="fas fa-arrow-left"></i>
-            <span>Back to feed</span>
+            <span>{{ __('users.back_to_feed') }}</span>
         </a>
     </div>
 
-    
+
     <div class="search-section">
         <div class="search-container">
             <div class="search-input-wrapper">
@@ -18,7 +22,7 @@
                 <input type="text"
                        id="user-search"
                        class="search-input"
-                       placeholder="Search users by name or username..."
+                       placeholder="{{ __('users.search_users_placeholder') }}"
                        autocomplete="off">
                 <button type="button" class="search-clear" id="search-clear" style="display: none;">
                     <i class="fas fa-times"></i>
@@ -27,11 +31,11 @@
             <div class="search-results" id="search-results" style="display: none;">
                 <div class="search-loading" id="search-loading" style="display: none;">
                     <i class="fas fa-spinner fa-spin"></i>
-                    <span>Searching...</span>
+                    <span>{{ __('users.searching') }}</span>
                 </div>
                 <div class="search-empty" id="search-empty" style="display: none;">
                     <i class="fas fa-search"></i>
-                    <span>No users found</span>
+                    <span>{{ __('users.no_users_found') }}</span>
                 </div>
                 <div class="search-list" id="search-list"></div>
             </div>
@@ -54,21 +58,21 @@
                                 <a href="{{ route('users.show', $user) }}">{{ $user->username }}</a>
                                 @if($user->is_suspended)
                                     <span class="suspension-badge">
-                                        <i class="fas fa-exclamation-triangle"></i> Suspended
+                                        <i class="fas fa-exclamation-triangle"></i> {{ __('users.suspended') }}
                                     </span>
                                 @endif
                                 @if($user->profile && $user->profile->is_private)
                                     <span class="privacy-badge private">
-                                        <i class="fas fa-lock"></i> Private
+                                        <i class="fas fa-lock"></i> {{ __('users.private') }}
                                     </span>
                                 @endif
                                 @if(auth()->user()->isBlocking($user))
                                     <span class="block-indicator blocked-by-you">
-                                        <i class="fas fa-ban"></i> Blocked
+                                        <i class="fas fa-ban"></i> {{ __('users.blocked') }}
                                     </span>
                                 @elseif($user->isBlocking(auth()->user()))
                                     <span class="block-indicator blocked-you">
-                                        <i class="fas fa-user-slash"></i> Blocking you
+                                        <i class="fas fa-user-slash"></i> {{ __('users.blocking_you') }}
                                     </span>
                                 @endif
                             </h3>
@@ -79,20 +83,20 @@
                         @endif
 
                         <div class="user-stats">
-                            <span class="stat-item"><strong data-user-followers="{{ $user->id }}">{{ $user->followers_count ?? 0 }}</strong> Followers</span>
-                            <span class="stat-item"><strong data-user-following="{{ $user->id }}">{{ $user->follows_count ?? 0 }}</strong> Following</span>
+                            <span class="stat-item"><strong data-user-followers="{{ $user->id }}">{{ $user->followers_count ?? 0 }}</strong> {{ __('users.followers') }}</span>
+                            <span class="stat-item"><strong data-user-following="{{ $user->id }}">{{ $user->follows_count ?? 0 }}</strong> {{ __('users.following') }}</span>
                         </div>
                     </div>
 
                     <div class="user-card-actions">
                         @if(in_array($user->id, $blockedByCurrentUser))
                             <div class="action-buttons">
-                                <button type="button" class="btn unblock-btn" data-username="{{ $user->username }}" onclick="exploreToggleBlock(this, '{{ $user->username }}')">Unblock</button>
+                                <button type="button" class="btn unblock-btn" data-username="{{ $user->username }}" onclick="exploreToggleBlock(this, '{{ $user->username }}')">{{ __('users.unblock') }}</button>
                             </div>
                         @elseif(in_array($user->id, $blockedCurrentUser))
                             <div class="cannot-interact">
                                 <i class="fas fa-ban"></i>
-                                <span>Blocked</span>
+                                <span>{{ __('users.blocked') }}</span>
                             </div>
                         @else
                             @php $isUserFollowing = in_array($user->id, $followingIds); @endphp
@@ -101,9 +105,9 @@
                                         class="btn follow-btn {{ $isUserFollowing ? 'following' : '' }}"
                                         data-username="{{ $user->username }}"
                                         onclick="exploreToggleFollow(this, '{{ $user->username }}')">
-                                    {{ $isUserFollowing ? 'Following' : 'Follow' }}
+                                    {{ $isUserFollowing ? __('users.following') : __('users.follow') }}
                                 </button>
-                                <button type="button" class="btn block-btn" data-username="{{ $user->username }}" onclick="exploreToggleBlock(this, '{{ $user->username }}')">Block</button>
+                                <button type="button" class="btn block-btn" data-username="{{ $user->username }}" onclick="exploreToggleBlock(this, '{{ $user->username }}')">{{ __('users.block') }}</button>
                             </div>
                         @endif
                     </div>
@@ -121,8 +125,8 @@
             <div class="empty-icon">
                 <i class="fas fa-users"></i>
             </div>
-            <h3>No users to explore</h3>
-            <p>Check back later for new users!</p>
+            <h3>{{ __('users.no_users_to_explore') }}</h3>
+            <p>{{ __('users.check_back_later') }}</p>
         </div>
     @endif
 </div>
@@ -155,11 +159,6 @@
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.back-link:hover {
-    color: var(--twitter-dark);
 }
 
 .back-link i {
@@ -201,7 +200,6 @@
     background: var(--input-bg);
     color: var(--twitter-dark);
     outline: none;
-    transition: all 0.3s ease;
     font-family: inherit;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
@@ -222,18 +220,12 @@
     cursor: pointer;
     padding: 6px;
     border-radius: 50%;
-    transition: all 0.2s ease;
     font-size: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 28px;
     height: 28px;
-}
-
-.search-clear:hover {
-    background: var(--twitter-light);
-    color: var(--twitter-dark);
 }
 
 .search-results {
@@ -276,16 +268,11 @@
     gap: 12px;
     padding: 12px 16px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
     border-bottom: 1px solid var(--border-color);
 }
 
 .search-user-item:last-child {
     border-bottom: none;
-}
-
-.search-user-item:hover {
-    background: var(--twitter-light);
 }
 
 .search-user-avatar {
@@ -355,12 +342,7 @@
     background: var(--card-bg);
     border-radius: 16px;
     border: 1px solid var(--border-color);
-    transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.user-card:hover {
-    border-color: var(--focus-border);
 }
 
 .user-avatar-section {
@@ -543,7 +525,6 @@
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
     min-height: 28px;
     display: flex;
     align-items: center;
@@ -570,13 +551,6 @@
 .block-btn {
     background: #dc3545;
     color: white;
-}
-
-.follow-btn:hover,
-.unblock-btn:hover,
-.block-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .action-buttons {
@@ -646,50 +620,81 @@
 
     .page-header h1 {
         margin: 0 0 8px 0;
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 700;
         color: var(--twitter-dark);
     }
-    
-    /* Smaller username on mobile */
-    .user-name {
-        font-size: 13px;
-    }
-    
-    .user-name a {
-        max-width: 160px; /* Shorter on mobile */
-    }
-}
 
-@media (max-width: 360px) {
     .user-card {
-        flex-direction: column;
-        align-items: stretch;
+        display: grid !important;
+        grid-template-columns: auto 1fr !important;
+        grid-template-rows: auto auto !important;
+        gap: 10px !important;
+        padding: 12px !important;
     }
 
     .user-avatar-section {
-        align-self: center;
-        margin-bottom: 8px;
+        grid-row: 1 / 3 !important;
+        grid-column: 1 !important;
+    }
+
+    .user-avatar, .user-avatar-placeholder {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .user-content {
+        grid-row: 1 !important;
+        grid-column: 2 !important;
+        min-width: 0 !important;
     }
 
     .user-card-actions {
-        margin-top: 12px;
-        min-width: unset;
+        grid-row: 2 !important;
+        grid-column: 2 !important;
+        min-width: unset !important;
+        margin-top: 0 !important;
     }
 
     .action-buttons {
-        flex-direction: row;
-        gap: 8px;
+        flex-direction: row !important;
+        gap: 8px !important;
     }
 
     .action-buttons .follow-btn,
-    .action-buttons .block-btn {
-        flex: 1;
+    .action-buttons .block-btn,
+    .action-buttons .unblock-btn {
+        flex: 1 !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+
+    .user-name {
+        font-size: 15px !important;
+    }
+
+    .user-name a {
+        max-width: none !important;
+    }
+
+    .user-bio {
+        font-size: 13px !important;
+    }
+
+    .user-stats {
+        font-size: 12px !important;
+    }
+
+    .follow-btn,
+    .unblock-btn,
+    .block-btn {
+        padding: 8px 16px !important;
+        font-size: 13px !important;
     }
 
     .cannot-interact {
-        flex-direction: row;
-        justify-content: center;
+        flex-direction: row !important;
+        justify-content: center !important;
     }
 }
 </style>
@@ -742,6 +747,10 @@ function exploreToggleBlock(btn, username) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    const explorePage = document.querySelector('.explore-page');
+    const searchErrorText = explorePage?.getAttribute('data-search-error') || 'Search error';
+    const searchingText = explorePage?.getAttribute('data-searching') || 'Searching...';
+
     const searchInput = document.getElementById('user-search');
     const searchResults = document.getElementById('search-results');
     const searchList = document.getElementById('search-list');
@@ -835,7 +844,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Search error:', error);
             searchLoading.style.display = 'none';
             searchEmpty.style.display = 'flex';
-            searchEmpty.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Search error</span>';
+            searchEmpty.innerHTML = `<i class="fas fa-exclamation-triangle"></i><span>${searchErrorText}</span>`;
         });
     }
 

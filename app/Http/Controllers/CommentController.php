@@ -55,7 +55,7 @@ class CommentController extends Controller
             return response()->json([
                 'success' => true,
                 'comment' => $commentData,
-                'message' => 'Comment posted successfully'
+                'message' => __('messages.comment_posted')
             ]);
         }
 

@@ -8,18 +8,18 @@
                     @if(auth()->id() !== $post->user->id)
                         @php $isFollowing = auth()->user()->isFollowing($post->user); @endphp
                         <button type="button" class="quick-follow-btn {{ $isFollowing ? 'following' : '' }}" onclick="quickFollow('{{ $post->user->username }}', this)" data-following="{{ $isFollowing ? 'true' : 'false' }}">
-                            <span>{{ $isFollowing ? 'Following' : 'Follow' }}</span>
+                            <span>{{ $isFollowing ? __('messages.following') : __('messages.follow') }}</span>
                         </button>
                     @endif
                 @endauth
                 <span class="post-time">{{ $post->created_at->diffForHumans() }}</span>
             </div>
             @if($post->is_private)
-                <span class="privacy-badge"><i class="fas fa-lock"></i> Private</span>
+                <span class="privacy-badge"><i class="fas fa-lock"></i> {{ __('messages.private') }}</span>
             @endif
         </div>
         @if($post->user_id === auth()->id())
-            <button type="button" class="delete-post-btn" onclick="deletePost('{{ $post->slug }}', this)" title="Delete post">
+            <button type="button" class="delete-post-btn" onclick="deletePost('{{ $post->slug }}', this)" title="{{ __('messages.delete_post') }}">
                 <i class="fas fa-trash"></i>
             </button>
         @endif
@@ -43,8 +43,8 @@
             </p>
             @if($shouldTruncate)
                 <button type="button" class="show-more-btn" onclick="togglePostContent(this)">
-                    <span class="show-more-text">Show more</span>
-                    <span class="show-less-text" style="display: none;">Show less</span>
+                    <span class="show-more-text">{{ __('messages.show_more') }}</span>
+                    <span class="show-less-text" style="display: none;">{{ __('messages.show_less') }}</span>
                 </button>
             @endif
         </div>
@@ -97,21 +97,21 @@
             </button>
             <button type="button" class="action-btn save-btn {{ $post->savedBy(auth()->user()) ? 'saved' : '' }}" onclick="toggleSave('{{ $post->slug }}', this)">
                 <i class="fas fa-bookmark"></i>
-                <span>{{ $post->savedBy(auth()->user()) ? 'Saved' : 'Save' }}</span>
+                <span>{{ $post->savedBy(auth()->user()) ? __('messages.saved_post') : __('messages.save_post') }}</span>
             </button>
         @else
-            <button type="button" class="action-btn" onclick="showLoginModal('like', 'Like posts to show your support!')">
+            <button type="button" class="action-btn" onclick="showLoginModal('like', '{{ __('messages.like_posts_prompt') }}')">
                 <i class="fas fa-heart"></i>
                 <span>{{ $post->likes->count() }}</span>
             </button>
-            <button type="button" class="action-btn" onclick="showLoginModal('save', 'Save posts to access later!')">
+            <button type="button" class="action-btn" onclick="showLoginModal('save', '{{ __('messages.save_posts_prompt') }}')">
                 <i class="fas fa-bookmark"></i>
-                <span>Save</span>
+                <span>{{ __('messages.save_post') }}</span>
             </button>
         @endif
         <button type="button" class="action-btn" onclick="copyPostLink('{{ $post->slug }}')">
             <i class="fas fa-share"></i>
-            <span>Share</span>
+            <span>{{ __('messages.share') }}</span>
         </button>
         <button type="button" class="action-btn likers-btn" onclick="showLikers('{{ $post->slug }}')">
             <i class="fas fa-users"></i>
@@ -120,18 +120,18 @@
     </div>
 
     <div class="post-comments-section">
-        <h4>Comments ({{ $post->comments->count() }})</h4>
+        <h4>{{ __('messages.comments_count', ['count' => $post->comments->count()]) }}</h4>
         
         @if(auth()->check())
             <div class="comment-form">
-                <textarea id="comment-content-{{ $post->slug }}" placeholder="Write a comment..." maxlength="5000"></textarea>
+                <textarea id="comment-content-{{ $post->slug }}" placeholder="{{ __('messages.write_a_comment') }}" maxlength="5000"></textarea>
                 <button type="button" onclick="submitComment('{{ $post->slug }}', {{ $post->id }})">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
         @else
             <div class="guest-message">
-                <p><a href="{{ route('login') }}">Login</a> to comment</p>
+                <p><a href="{{ route('login') }}">{{ __('messages.login') }}</a> {{ __('messages.to_comment') }}</p>
             </div>
         @endif
 
@@ -149,7 +149,7 @@
             @if($hasMore)
                 <div class="show-more-comments">
                     <button type="button" onclick="toggleComments({{ $post->id }}, true)">
-                        Show {{ $sortedComments->count() - 2 }} more comments
+                        {{ __('messages.show_more_comments', ['count' => $sortedComments->count() - 2]) }}
                     </button>
                 </div>
                 <div class="hidden-comments" id="hidden-comments-{{ $post->id }}" style="display: none;">
@@ -157,7 +157,7 @@
                         @include('partials.comment', ['comment' => $comment])
                     @endforeach
                     <button type="button" class="hide-comments" onclick="toggleComments({{ $post->id }}, false)">
-                        Hide comments
+                        {{ __('messages.hide_comments') }}
                     </button>
                 </div>
             @endif
@@ -1448,12 +1448,12 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
         .then(data => {
             if (data.saved) {
                 btn.classList.add('saved');
-                btn.querySelector('span').textContent = 'Saved';
-                showToast('Post saved successfully', 'success');
+                btn.querySelector('span').textContent = window.chatTranslations.saved_post;
+                showToast(window.chatTranslations.post_saved_success, 'success');
             } else {
                 btn.classList.remove('saved');
-                btn.querySelector('span').textContent = 'Save';
-                showToast('Post removed from saved', 'info');
+                btn.querySelector('span').textContent = window.chatTranslations.save_post;
+                showToast(window.chatTranslations.post_removed_from_saved, 'info');
             }
         })
         .catch(error => console.error('Error:', error));
@@ -1465,7 +1465,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
         // Use Clipboard API if available (HTTPS / localhost)
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(() => {
-                showToast('Link copied to clipboard!', 'success');
+                showToast(window.chatTranslations.post_link_copied, 'success');
             }).catch(() => {
                 fallbackCopy(url);
             });
@@ -1485,12 +1485,12 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
             const ok = document.execCommand('copy');
             document.body.removeChild(ta);
             if (ok) {
-                showToast('Link copied to clipboard!', 'success');
+                showToast(window.chatTranslations.post_link_copied, 'success');
             } else {
-                showToast('Copy failed — please copy manually: ' + text, 'error');
+                showToast(window.chatTranslations.failed_to_copy_link, 'error');
             }
         } catch (e) {
-            showToast('Copy failed — please copy manually: ' + text, 'error');
+            showToast(window.chatTranslations.failed_to_copy_link, 'error');
         }
     }
 
@@ -1505,12 +1505,12 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
             if (data.success && data.likers && data.likers.length > 0) {
                 showLikersModal(data.likers);
             } else {
-                showToast('No likes yet', 'info');
+                showToast(window.chatTranslations.no_likes_yet, 'info');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showToast('Could not load likers', 'error');
+            showToast(window.chatTranslations.could_not_load_likers, 'error');
         });
     }
 
@@ -1554,7 +1554,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
             border-bottom: 1px solid var(--border, #2a2a2a);
         `;
         header.innerHTML = `
-            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text);">Likes (${likers.length})</h3>
+            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text);">${window.chatTranslations.likes} (${likers.length})</h3>
             <button onclick="document.getElementById('likers-modal').remove()" style="background: none; border: none; color: var(--text-muted, #86868b); font-size: 24px; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
         `;
 
@@ -1656,7 +1656,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                                         <span class="comment-time">Just now</span>
                                     </div>
                                 </div>
-                                <button type="button" class="delete-comment-btn" onclick="deleteComment(${data.comment.id}, this)" title="Delete comment">
+                                <button type="button" class="delete-comment-btn" onclick="deleteComment(${data.comment.id}, this)" title="${window.chatTranslations.delete_comment}">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
@@ -1670,17 +1670,17 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                                 </button>
                                 <button type="button" class="comment-action-btn" onclick="toggleReplyForm(${data.comment.id})">
                                     <i class="fas fa-reply"></i>
-                                    <span>Reply</span>
+                                    <span>${window.chatTranslations.reply}</span>
                                 </button>
                             </div>
                             <div class="reply-form" id="reply-form-${data.comment.id}" style="display: none;">
                                 <div class="reply-input-wrapper">
-                                    <textarea id="reply-content-${data.comment.id}" placeholder="Write a reply..." maxlength="5000"></textarea>
+                                    <textarea id="reply-content-${data.comment.id}" placeholder="${window.chatTranslations.write_a_reply}" maxlength="5000"></textarea>
                                     <button type="button" onclick="submitReply(${data.comment.id}, ${postId})">
                                         <i class="fas fa-paper-plane"></i>
                                     </button>
                                 </div>
-                                <button type="button" class="cancel-reply" onclick="toggleReplyForm(${data.comment.id})">Cancel</button>
+                                <button type="button" class="cancel-reply" onclick="toggleReplyForm(${data.comment.id})">${window.chatTranslations.cancel}</button>
                             </div>
                         </div>
                     `;
@@ -1861,7 +1861,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                                         <span class="comment-time">Just now</span>
                                     </div>
                                 </div>
-                                <button type="button" class="delete-comment-btn" onclick="deleteComment(${data.comment.id}, this)" title="Delete comment">
+                                <button type="button" class="delete-comment-btn" onclick="deleteComment(${data.comment.id}, this)" title="${window.chatTranslations.delete_comment}">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
@@ -1876,19 +1876,19 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                                 ${showReplyBtn ? `
                                 <button type="button" class="comment-action-btn" onclick="toggleReplyForm(${data.comment.id})">
                                     <i class="fas fa-reply"></i>
-                                    <span>Reply</span>
+                                    <span>${window.chatTranslations.reply}</span>
                                 </button>
                                 ` : ''}
                             </div>
                             ${showReplyBtn ? `
                             <div class="reply-form" id="reply-form-${data.comment.id}" style="display: none;">
                                 <div class="reply-input-wrapper">
-                                    <textarea id="reply-content-${data.comment.id}" placeholder="Write a reply..." maxlength="5000"></textarea>
+                                    <textarea id="reply-content-${data.comment.id}" placeholder="${window.chatTranslations.write_a_reply}" maxlength="5000"></textarea>
                                     <button type="button" onclick="submitReply(${data.comment.id}, ${postId})">
                                         <i class="fas fa-paper-plane"></i>
                                     </button>
                                 </div>
-                                <button type="button" class="cancel-reply" onclick="toggleReplyForm(${data.comment.id})">Cancel</button>
+                                <button type="button" class="cancel-reply" onclick="toggleReplyForm(${data.comment.id})">${window.chatTranslations.cancel}</button>
                             </div>
                             ` : ''}
                         </div>
@@ -2035,7 +2035,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                     icon.classList.remove('fa-user-plus');
                     icon.classList.add('fa-user-minus');
                 }
-                if (text) text.textContent = 'Following';
+                if (text) text.textContent = window.chatTranslations.following;
                 btn.setAttribute('data-following', 'true');
             } else {
                 btn.classList.remove('following');
@@ -2045,7 +2045,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                     icon.classList.remove('fa-user-minus');
                     icon.classList.add('fa-user-plus');
                 }
-                if (text) text.textContent = 'Follow';
+                if (text) text.textContent = window.chatTranslations.follow;
                 btn.setAttribute('data-following', 'false');
             }
         })

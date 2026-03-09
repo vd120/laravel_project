@@ -684,12 +684,12 @@
                 @endif
                 <div class="group-details">
                     <h1>{{ $group->name }}</h1>
-                    <span class="group-meta">{{ $group->members->count() }} members</span>
+                    <span class="group-meta">{{ __('chat.members_count', ['count' => $group->members->count()]) }}</span>
                 </div>
             </div>
             @if($group->isAdmin(auth()->user()))
                 <div class="header-actions">
-                    <a href="{{ route('groups.edit', $group->slug) }}" class="action-btn" title="Edit Group">
+                    <a href="{{ route('groups.edit', $group->slug) }}" class="action-btn" title="{{ __('chat.edit') }}">
                         <i class="fas fa-edit"></i>
                     </a>
                 </div>
@@ -707,7 +707,7 @@
         <div class="invite-section">
             <div class="invite-header">
                 <i class="fas fa-link"></i>
-                <span>Invite via link</span>
+                <span>{{ __('chat.invite_via_link') }}</span>
             </div>
             <div class="invite-link-box">
                 <input type="text" readonly value="{{ url('/join/' . $group->invite_link) }}" id="inviteLink">
@@ -719,7 +719,7 @@
             <form action="{{ route('groups.regenerate-invite', $group->slug) }}" method="POST" class="regenerate-form">
                 @csrf
                 <button type="submit" class="regenerate-btn" onclick="return confirm('Generate a new invite link? The old link will stop working.')">
-                    <i class="fas fa-sync-alt"></i> Reset link
+                    <i class="fas fa-sync-alt"></i> {{ __('chat.edit') }}
                 </button>
             </form>
             @endif
@@ -730,11 +730,11 @@
         <div class="quick-invite-section">
             <div class="quick-invite-header">
                 <i class="fas fa-paper-plane"></i>
-                <span>Quick Invite</span>
+                <span>{{ __('chat.quick_invite') }}</span>
             </div>
-            <p class="quick-invite-desc">Send group invites directly to your friends. They'll receive a notification to join.</p>
+            <p class="quick-invite-desc">{{ __('chat.quick_invite_desc') }}</p>
             <button class="quick-invite-btn" onclick="showQuickInviteModal()">
-                <i class="fas fa-user-plus"></i> Send Invites
+                <i class="fas fa-user-plus"></i> {{ __('chat.send_invites') }}
             </button>
         </div>
         @endif
@@ -742,10 +742,10 @@
         <!-- Members Section -->
         <div class="members-section">
             <div class="members-header">
-                <h2>Members</h2>
+                <h2>{{ __('chat.members') }}</h2>
                 @if($group->isAdmin(auth()->user()))
                     <button class="add-member-btn" onclick="showAddMemberModal()">
-                        <i class="fas fa-user-plus"></i> Add Member
+                        <i class="fas fa-user-plus"></i> {{ __('chat.add_member') }}
                     </button>
                 @endif
             </div>
@@ -759,20 +759,20 @@
                     </div>
                     <div class="member-info">
                         <span class="member-name">{{ $member->user->name }}</span>
-                        <span class="member-role admin">Group Admin</span>
+                        <span class="member-role admin">{{ __('chat.group_admin') }}</span>
                     </div>
                     @if($member->user->id !== auth()->id() && $group->isAdmin(auth()->user()))
                         <div class="member-actions">
                             <form action="{{ route('groups.remove-admin', [$group->slug, $member->user->id]) }}" method="POST" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="demote-btn" title="Remove Admin" onclick="return confirm('Remove admin privileges from this user?')">
+                                <button type="submit" class="demote-btn" title="{{ __('chat.demote') }}" onclick="return confirm('{{ __('chat.remove_admin_confirm') }}')">
                                     <i class="fas fa-user-minus"></i>
                                 </button>
                             </form>
                             <form action="{{ route('groups.remove-member', [$group->slug, $member->user->id]) }}" method="POST" style="display:inline;">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="remove-btn" onclick="return confirm('Remove this admin from group?')">
+                                <button type="submit" class="remove-btn" onclick="return confirm('{{ __('chat.remove_admin_from_group_confirm') }}')">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </form>
@@ -789,19 +789,19 @@
                     </div>
                     <div class="member-info">
                         <span class="member-name">{{ $member->user->name }}</span>
-                        <span class="member-role">Member</span>
+                        <span class="member-role">{{ __('chat.member') }}</span>
                     </div>
                     @if($group->isAdmin(auth()->user()))
                         <div class="member-actions">
                             <form action="{{ route('groups.make-admin', [$group->slug, $member->user->id]) }}" method="POST" style="display:inline;">
                                 @csrf
-                                <button type="submit" class="promote-btn" title="Make Admin" onclick="return confirm('Make {{ $member->user->name }} an admin?')">
+                                <button type="submit" class="promote-btn" title="{{ __('chat.promote') }}" onclick="return confirm('{{ __('chat.make_admin_confirm', ['name' => $member->user->name]) }}')">
                                     <i class="fas fa-crown"></i>
                                 </button>
                             </form>
                             <form action="{{ route('groups.remove-member', [$group->slug, $member->user->id]) }}" method="POST" style="display:inline;">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="remove-btn" onclick="return confirm('Remove this member?')">
+                                <button type="submit" class="remove-btn" onclick="return confirm('{{ __('chat.remove_member_confirm') }}')">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </form>
@@ -815,18 +815,18 @@
         <!-- Leave/Delete Group Section -->
         <div class="danger-section">
             @if($group->isAdmin(auth()->user()) && $group->admins->count() === 1)
-                <p class="warning-text">You are the only admin. Transfer admin rights or delete the group.</p>
-                <form action="{{ route('groups.destroy', $group->slug) }}" method="POST" onsubmit="return confirm('Delete this group? This cannot be undone.')">
+                <p class="warning-text">{{ __('chat.only_admin_warning') }}</p>
+                <form action="{{ route('groups.destroy', $group->slug) }}" method="POST" onsubmit="return confirm('{{ __('chat.delete_group_confirm_admin') }}')">
                     @csrf @method('DELETE')
                     <button type="submit" class="delete-group-btn">
-                        <i class="fas fa-trash"></i> Delete Group
+                        <i class="fas fa-trash"></i> {{ __('chat.delete_group') }}
                     </button>
                 </form>
             @else
-                <form action="{{ route('groups.remove-member', [$group->slug, auth()->id()]) }}" method="POST" onsubmit="return confirm('Leave this group?')">
+                <form action="{{ route('groups.remove-member', [$group->slug, auth()->id()]) }}" method="POST" onsubmit="return confirm('{{ __('chat.leave_group_confirm') }}')">
                     @csrf @method('DELETE')
                     <button type="submit" class="leave-group-btn">
-                        <i class="fas fa-sign-out-alt"></i> Leave Group
+                        <i class="fas fa-sign-out-alt"></i> {{ __('chat.leave_group') }}
                     </button>
                 </form>
             @endif
@@ -838,7 +838,7 @@
 <div id="addMemberModal" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Add Members</h3>
+            <h3>{{ __('chat.add_members_modal_title') }}</h3>
             <button type="button" class="close-modal" onclick="hideAddMemberModal()">
                 <i class="fas fa-times"></i>
             </button>
@@ -847,7 +847,7 @@
             @csrf
             <div class="modal-body">
                 <div class="search-users">
-                    <input type="text" placeholder="Search friends..." id="memberSearch" oninput="searchFriends(this.value)">
+                    <input type="text" placeholder="{{ __('chat.search_friends') }}" id="memberSearch" oninput="searchFriends(this.value)">
                 </div>
                 <div id="friendsList" class="friends-list">
                     @php
@@ -865,8 +865,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-cancel" onclick="hideAddMemberModal()">Cancel</button>
-                <button type="submit" class="btn-add">Add Selected</button>
+                <button type="button" class="btn-cancel" onclick="hideAddMemberModal()">{{ __('chat.cancel') }}</button>
+                <button type="submit" class="btn-add">{{ __('chat.add_selected') }}</button>
             </div>
         </form>
     </div>
@@ -876,7 +876,7 @@
 <div id="quickInviteModal" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
-            <h3><i class="fas fa-paper-plane"></i> Quick Invite</h3>
+            <h3><i class="fas fa-paper-plane"></i> {{ __('chat.quick_invite_modal_title') }}</h3>
             <button type="button" class="close-modal" onclick="hideQuickInviteModal()">
                 <i class="fas fa-times"></i>
             </button>
@@ -884,9 +884,9 @@
         <form action="{{ route('groups.quick-invite', $group->slug) }}" method="POST">
             @csrf
             <div class="modal-body">
-                <p class="invite-info">Select friends to invite. They'll receive a notification with a link to join the group.</p>
+                <p class="invite-info">{{ __('chat.select_friends_invite') }}</p>
                 <div class="search-users">
-                    <input type="text" placeholder="Search friends..." id="inviteSearch" oninput="searchInviteFriends(this.value)">
+                    <input type="text" placeholder="{{ __('chat.search_friends') }}" id="inviteSearch" oninput="searchInviteFriends(this.value)">
                 </div>
                 <div id="inviteFriendsList" class="friends-list">
                     @php
@@ -900,7 +900,7 @@
                                 <img src="{{ $friend->avatar_url }}" alt="{{ $friend->name }}">
                                 <span>{{ $friend->name }}</span>
                                 @if($group->hasMember($friend))
-                                    <span class="member-badge"><i class="fas fa-check"></i> Member</span>
+                                    <span class="member-badge"><i class="fas fa-check"></i> {{ __('chat.already_member') }}</span>
                                 @endif
                             </div>
                         </label>
@@ -908,16 +908,16 @@
                     @else
                         <div class="no-friends-message">
                             <i class="fas fa-user-friends"></i>
-                            <p>You're not following anyone yet.</p>
-                            <a href="{{ route('explore') }}" class="explore-link">Explore Users</a>
+                            <p>{{ __('chat.not_following_anyone') }}</p>
+                            <a href="{{ route('explore') }}" class="explore-link">{{ __('chat.explore_users') }}</a>
                         </div>
                     @endif
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-cancel" onclick="hideQuickInviteModal()">Cancel</button>
+                <button type="button" class="btn-cancel" onclick="hideQuickInviteModal()">{{ __('chat.cancel') }}</button>
                 <button type="submit" class="btn-send-invite">
-                    <i class="fas fa-paper-plane"></i> Send Invites
+                    <i class="fas fa-paper-plane"></i> {{ __('chat.send_invites') }}
                 </button>
             </div>
         </form>

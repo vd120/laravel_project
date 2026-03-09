@@ -89,7 +89,7 @@ class GroupController extends Controller
         ]);
 
         return redirect()->route('chat.show', $conversation)
-            ->with('success', 'Group created successfully!');
+            ->with('success', __('messages.group_created'));
     }
 
     /**
@@ -162,7 +162,7 @@ class GroupController extends Controller
         }
 
         return redirect()->route('groups.show', $group->slug)
-            ->with('success', 'Group updated successfully!');
+            ->with('success', __('messages.group_updated'));
     }
 
     /**
@@ -203,7 +203,7 @@ class GroupController extends Controller
         }
 
         return redirect()->route('groups.show', $group->slug)
-            ->with('success', $added . ' member(s) added successfully!');
+            ->with('success', __('messages.members_added', ['count' => $added]));
     }
 
     /**
@@ -221,7 +221,7 @@ class GroupController extends Controller
         // Can't remove the last admin
         if ($group->isAdmin($user) && $group->admins()->count() === 1) {
             return redirect()->route('groups.show', $group->slug)
-                ->with('error', 'Cannot remove the last admin. Transfer admin rights first.');
+                ->with('error', __('messages.cannot_remove_last_admin'));
         }
 
         // Create system message before removing
@@ -263,11 +263,11 @@ class GroupController extends Controller
         // If member removed themselves
         if (auth()->id() === $user->id) {
             return redirect()->route('chat.index')
-                ->with('success', 'You left the group.');
+                ->with('success', __('messages.left_group'));
         }
 
         return redirect()->route('groups.show', $group->slug)
-            ->with('success', 'Member removed successfully!');
+            ->with('success', __('messages.member_removed'));
     }
 
     /**
@@ -310,7 +310,7 @@ class GroupController extends Controller
         $group->conversation->update(['last_message_at' => now()]);
 
         return redirect()->route('groups.show', $group->slug)
-            ->with('success', $user->username . ' is now an admin!');
+            ->with('success', __('messages.admin_promoted', ['username' => $user->username]));
     }
 
     /**
@@ -328,13 +328,13 @@ class GroupController extends Controller
         // Can't remove admin from yourself
         if (auth()->id() === $user->id) {
             return redirect()->route('groups.show', $group->slug)
-                ->with('error', 'You cannot remove your own admin privileges.');
+                ->with('error', __('messages.cannot_remove_own_admin'));
         }
 
         // Can't remove the last admin
         if ($group->admins()->count() === 1) {
             return redirect()->route('groups.show', $group->slug)
-                ->with('error', 'Cannot remove the last admin.');
+                ->with('error', __('messages.cannot_remove_last_admin'));
         }
 
         $member = $group->members()->where('user_id', $user->id)->first();
@@ -356,7 +356,7 @@ class GroupController extends Controller
         $group->conversation->update(['last_message_at' => now()]);
 
         return redirect()->route('groups.show', $group->slug)
-            ->with('success', $user->username . ' is no longer an admin.');
+            ->with('success', __('messages.admin_demoted', ['username' => $user->username]));
     }
 
     /**
@@ -375,7 +375,7 @@ class GroupController extends Controller
         $group->delete();
 
         return redirect()->route('chat.index')
-            ->with('success', 'Group deleted successfully!');
+            ->with('success', __('messages.group_deleted'));
     }
 
     /**
@@ -400,7 +400,7 @@ class GroupController extends Controller
         // Check if user is already a member
         if ($group->hasMember(auth()->user())) {
             return redirect()->route('chat.show', $group->conversation)
-                ->with('info', 'You are already a member of this group.');
+                ->with('info', __('messages.already_in_group'));
         }
 
         // Add user to group
@@ -419,7 +419,7 @@ class GroupController extends Controller
         ]);
 
         return redirect()->route('chat.show', $group->conversation)
-            ->with('success', 'You joined the group successfully!');
+            ->with('success', __('messages.joined_group'));
     }
 
     /**
@@ -438,7 +438,7 @@ class GroupController extends Controller
         ]);
 
         return redirect()->route('groups.show', $group->slug)
-            ->with('success', 'Invite link regenerated successfully!');
+            ->with('success', __('messages.invite_link_regenerated'));
     }
 
     /**
@@ -540,7 +540,7 @@ class GroupController extends Controller
         if ($group->hasMember(auth()->user())) {
             return response()->json([
                 'success' => false,
-                'message' => 'You are already a member of this group.'
+                'message' => __('messages.already_in_group')
             ]);
         }
 
@@ -593,7 +593,7 @@ class GroupController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'You have joined the group!',
+            'message' => __('messages.joined_group'),
             'redirect' => route('chat.show', $group->conversation)
         ]);
     }

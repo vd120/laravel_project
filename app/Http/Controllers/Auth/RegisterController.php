@@ -150,6 +150,6 @@ class RegisterController extends Controller
         // Store user ID in session for verification process
         session(['pending_verification_user_id' => $user->id]);
 
-        return redirect()->route('verification.notice')->with('message', 'Registration successful! Please check your email for a 6-digit verification code.');
+        return redirect()->route('verification.notice')->with('message', __('messages.registration_successful'));
     }
 }

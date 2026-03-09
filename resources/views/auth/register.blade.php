@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Create Account — Nexus</title>
+    <title>{{ __('auth.create_account') }} — Nexus</title>
 
-    <!-- same fonts & icons as login -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
     <style>
@@ -48,7 +47,7 @@
             min-height:100vh;
         }
 
-        /* NAV — identical to login */
+        /* Base Styles */
         nav{
             position:fixed;
             top:0;
@@ -388,6 +387,37 @@
         @media(max-width:480px){
             .login-card{padding:35px 25px}
             .login-title{font-size:30px}
+            /* Mobile Header */
+            .nav-container {
+                padding: 8px 16px;
+                gap: 8px;
+            }
+            .nav-brand {
+                font-size: 16px;
+            }
+            /* Hide language text on mobile, show only icon */
+            .language-switcher .current-locale,
+            .language-switcher .lang-divider,
+            .language-switcher .lang-alt {
+                display: none;
+            }
+            .language-switcher {
+                padding: 6px 10px !important;
+            }
+            .language-switcher span:first-child {
+                font-size: 16px !important;
+            }
+            #themeToggle {
+                width: 36px;
+                height: 36px;
+            }
+            .back-btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            .back-btn span {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -404,19 +434,19 @@
     <div class="nav-container">
         <a href="{{ route('home') }}" class="nav-brand">Nexus</a>
         <div style="display: flex; align-items: center; gap: 12px;">
-            <button type="button" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
+            @include('layouts.language')
+            <button type="button" id="themeToggle" onclick="toggleTheme()" title="{{ __('messages.theme') }}">
                 <i class="fas fa-moon" id="theme-icon"></i>
             </button>
-            <a href="{{ route('home') }}" class="back-btn">← Back</a>
+            <a href="{{ route('home') }}" class="back-btn">← {{ __('messages.back') }}</a>
         </div>
     </div>
 </nav>
 
 <div class="page">
     <div class="login-card">
-        <!-- register header (adapted from login style) -->
-        <h1 class="login-title">Create Account</h1>
-        <p class="login-sub">Join us and start connecting.</p>
+        <h1 class="login-title">{{ __('auth.create_account') }}</h1>
+        <p class="login-sub">{{ __('auth.join_us') }}</p>
 
         <!-- validation errors (same as register page) -->
         @if ($errors->any())
@@ -433,23 +463,23 @@
 
             <!-- full name field -->
             <div class="field">
-                <label for="name">Full Name</label>
+                <label for="name">{{ __('auth.full_name') }}</label>
                 <input type="text" name="name" id="name"
                     value="{{ old('name') }}"
-                    placeholder="Enter your full name"
+                    placeholder="{{ __('auth.enter_full_name') }}"
                     required autocomplete="name">
                 @error('name')<div class="field-error">{{ $message }}</div>@enderror
             </div>
 
             <!-- username field (with status) -->
             <div class="field">
-                <label for="username">Username</label>
+                <label for="username">{{ __('auth.username') }}</label>
                 <input type="text" name="username" id="username"
                     value="{{ old('username') }}"
-                    placeholder="Choose a username"
+                    placeholder="{{ __('auth.choose_username') }}"
                     required minlength="3" maxlength="50"
                     pattern="[a-zA-Z0-9_\-]+"
-                    title="Username can only contain letters, numbers, underscores, and hyphens"
+                    title="{{ __('auth.username_requirements') }}"
                     autocomplete="username">
                 <div class="field-status" id="username-status"></div>
                 @error('username')<div class="field-error">{{ $message }}</div>@enderror
@@ -457,20 +487,20 @@
 
             <!-- email field -->
             <div class="field">
-                <label for="email">Email Address</label>
+                <label for="email">{{ __('auth.email') }}</label>
                 <input type="email" name="email" id="email"
                     value="{{ old('email') }}"
-                    placeholder="you@example.com"
+                    placeholder="{{ __('auth.email_placeholder') }}"
                     required autocomplete="email">
                 @error('email')<div class="field-error">{{ $message }}</div>@enderror
             </div>
 
             <!-- password field + strength meter -->
             <div class="field">
-                <label for="password">Password</label>
+                <label for="password">{{ __('auth.password') }}</label>
                 <div class="password-wrap">
                     <input type="password" name="password" id="password"
-                        placeholder="Create a password"
+                        placeholder="{{ __('auth.create_password') }}"
                         required autocomplete="new-password">
                     <button type="button" class="toggle-pw" onclick="togglePw('password','eye-icon')">
                         <i class="fas fa-eye" id="eye-icon"></i>
@@ -483,10 +513,10 @@
 
             <!-- confirm password + match status -->
             <div class="field">
-                <label for="password_confirmation">Confirm Password</label>
+                <label for="password_confirmation">{{ __('auth.confirm_password') }}</label>
                 <div class="password-wrap">
                     <input type="password" name="password_confirmation" id="password_confirmation"
-                        placeholder="Repeat your password"
+                        placeholder="{{ __('auth.repeat_password') }}"
                         required autocomplete="new-password">
                     <button type="button" class="toggle-pw" onclick="togglePw('password_confirmation','conf-eye-icon')">
                         <i class="fas fa-eye" id="conf-eye-icon"></i>
@@ -495,21 +525,21 @@
                 <div class="field-status" id="match-status"></div>
             </div>
 
-            <!-- terms checkbox (exactly as original) -->
+            <!-- terms checkbox -->
             <div class="terms-row">
                 <input type="checkbox" name="terms" id="terms" value="1" required>
-                <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                <label for="terms">{{ __('auth.i_agree') }} <a href="#">{{ __('auth.terms_of_service') }}</a> {{ __('auth.and') }} <a href="#">{{ __('auth.privacy_policy') }}</a></label>
             </div>
 
-            <!-- submit button (styled like login's primary) -->
+            <!-- submit button -->
             <button type="submit" class="btn btn-primary">
-                Create Account <i class="fas fa-arrow-right"></i>
+                {{ __('auth.create_account_button') }} <i class="fas fa-arrow-right"></i>
             </button>
         </form>
 
-        <div class="divider">or continue with</div>
+        <div class="divider">{{ __('auth.or') }}</div>
 
-        <!-- google button (same as login) -->
+        <!-- google button -->
         <a href="{{ route('login.google') }}" class="btn-google">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -517,11 +547,11 @@
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            Continue with Google
+            {{ __('auth.continue_with_google') }}
         </a>
 
         <div class="card-footer">
-            Already have an account? <a href="{{ route('login') }}">Sign in</a>
+            {{ __('auth.already_have_account') }} <a href="{{ route('login') }}">{{ __('auth.sign_in') }}</a>
         </div>
     </div>
 </div>
@@ -560,11 +590,16 @@
         if (/[^A-Za-z0-9]/.test(val)) score++;
 
         const level = score <= 2 ? 'weak' : score === 3 ? 'medium' : score === 4 ? 'strong' : 'very-strong';
-        const label = { weak: 'Weak', medium: 'Medium', strong: 'Strong', 'very-strong': 'Very Strong' }[level];
+        const labelMap = {
+            'weak': '{{ __('auth.weak') }}',
+            'medium': '{{ __('auth.medium') }}',
+            'strong': '{{ __('auth.strong') }}',
+            'very-strong': '{{ __('auth.very_strong') }}'
+        };
 
         fill.className = 'strength-fill ' + level;
         lbl.className = 'strength-label ' + level;
-        lbl.textContent = label;
+        lbl.textContent = labelMap[level];
         checkMatch();
     });
 
@@ -577,10 +612,10 @@
         if (!conf.length) { div.textContent = ''; div.className = 'field-status'; return; }
 
         if (pass === conf) {
-            div.textContent = '✓ Passwords match';
+            div.textContent = '{{ __('auth.passwords_match') }}';
             div.className = 'field-status matching';
         } else {
-            div.textContent = '✗ Passwords do not match';
+            div.textContent = '{{ __('auth.passwords_not_match') }}';
             div.className = 'field-status not-matching';
         }
     }
@@ -596,12 +631,12 @@
         if (!username.length) { status.textContent = ''; status.className = 'field-status'; return; }
 
         if (username.length < 3) {
-            status.textContent = 'Min. 3 characters required';
+            status.textContent = '{{ __('auth.min_3_characters') }}';
             status.className = 'field-status warning';
             return;
         }
 
-        status.textContent = 'Checking…';
+        status.textContent = '{{ __('auth.checking') }}';
         status.className = 'field-status checking';
 
         usernameTimer = setTimeout(function() {
@@ -610,10 +645,10 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.available) {
-                        status.textContent = '✓ Available';
+                        status.textContent = '{{ __('auth.username_available') }}';
                         status.className = 'field-status available';
                     } else {
-                        status.textContent = '✗ Already taken';
+                        status.textContent = '{{ __('auth.username_taken') }}';
                         status.className = 'field-status taken';
                     }
                 })

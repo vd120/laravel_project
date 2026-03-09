@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Comments - Admin Panel')
+@section('title', __('admin.manage_comments') . ' - Admin Panel')
 
 @section('content')
 <div class="admin-page">
@@ -11,12 +11,12 @@
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
-                <h1>Comments</h1>
-                <p>Manage and moderate user comments</p>
+                <h1>{{ __('admin.comments') }}</h1>
+                <p>{{ __('admin.manage_comments_subtitle') }}</p>
             </div>
         </div>
         <div class="header-stats">
-            <span class="total-badge">{{ $comments->total() }} Total</span>
+            <span class="total-badge">{{ $comments->total() }} {{ __('admin.total') }}</span>
         </div>
     </div>
 
@@ -25,11 +25,11 @@
         <div class="search-form">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="search-input" value="{{ request('search') }}" placeholder="Search comments..." autocomplete="off">
+                <input type="text" id="search-input" value="{{ request('search') }}" placeholder="{{ __('admin.search_comments') }}" autocomplete="off">
             </div>
             @if(request('search'))
             <a href="{{ route('admin.comments') }}" class="clear-btn">
-                <i class="fas fa-times"></i> Clear
+                <i class="fas fa-times"></i> {{ __('admin.clear') }}
             </a>
             @endif
         </div>
@@ -51,7 +51,7 @@
                         <span class="comment-time">{{ $comment->created_at->diffForHumans() }}</span>
                     </div>
                 </div>
-                
+
                 <div class="comment-body">
                     <p>{!! app(\App\Services\MentionService::class)->convertMentionsToLinks($comment->content) !!}</p>
                 </div>
@@ -59,23 +59,23 @@
                 <div class="comment-meta">
                     <div class="meta-item">
                         <i class="fas fa-heart"></i>
-                        <span>{{ $comment->likes->count() }} likes</span>
+                        <span>{{ $comment->likes->count() }} {{ __('admin.likes') }}</span>
                     </div>
                     <div class="meta-item">
                         <i class="fas fa-user"></i>
-                        <span>Post by {{ $comment->post->user->username }}</span>
+                        <span>{{ __('admin.post_by') }} {{ $comment->post->user->username }}</span>
                     </div>
                     <a href="/posts/{{ $comment->post->slug }}" target="_blank" class="view-post-link">
-                        <i class="fas fa-external-link-alt"></i> View Post
+                        <i class="fas fa-external-link-alt"></i> {{ __('admin.view_post_link') }}
                     </a>
                 </div>
             </div>
 
             <div class="comment-actions">
-                <form method="POST" action="{{ route('admin.comments.delete', $comment) }}" onsubmit="return confirm('Delete this comment?')">
+                <form method="POST" action="{{ route('admin.comments.delete', $comment) }}" onsubmit="return confirm('{{ __('admin.delete_comment_confirm') }}')">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="delete-btn" title="Delete">
+                    <button type="submit" class="delete-btn" title="{{ __('admin.delete') }}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </form>
@@ -93,8 +93,8 @@
         <div class="empty-icon">
             <i class="fas fa-comments"></i>
         </div>
-        <h3>No comments found</h3>
-        <p>No comments match your search criteria.</p>
+        <h3>{{ __('admin.no_comments_found') }}</h3>
+        <p>{{ __('admin.no_comments_match') }}</p>
     </div>
     @endif
 </div>

@@ -219,7 +219,7 @@ class PostController extends Controller
             return response()->json([
                 'success' => true,
                 'post' => $post,
-                'message' => 'Post created successfully'
+                'message' => __('messages.post_created')
             ]);
         }
 
@@ -413,11 +413,11 @@ class PostController extends Controller
 
         // Check if user can view the post (privacy and blocks)
         if ($post->is_private && !$user->isFollowing($post->user) && $post->user_id !== $user->id) {
-            return response()->json(['success' => false, 'message' => 'Cannot view likers of private post']);
+            return response()->json(['success' => false, 'message' => __('messages.cannot_view_private_post')]);
         }
 
         if ($user->isBlocking($post->user) || $post->user->isBlocking($user)) {
-            return response()->json(['success' => false, 'message' => 'Cannot view likers due to blocking restrictions']);
+            return response()->json(['success' => false, 'message' => __('messages.blocking_restriction')]);
         }
 
         // Get users who liked this post

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nexus — Your Social Platform</title>
+<title>Nexus — {{ __('home.your_social_platform') }}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://fonts.googleapis.com">
@@ -14,8 +14,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔷</text></svg>">
 <style>
 :root{
     --primary:#5e60ce;
@@ -53,6 +52,10 @@ body{
     overflow-x:hidden;
     -webkit-font-smoothing:antialiased;
     transition: background 0.3s ease, color 0.3s ease;
+}
+
+html[lang="ar"] body {
+    font-family: 'Cairo', 'Inter', sans-serif;
 }
 
 .menu-toggle {
@@ -142,58 +145,26 @@ nav a:hover{opacity:1}
     background: rgba(0,0,0,0.05);
 }
 
-.lang-toggle {
-    background:transparent;
-    border:1px solid rgba(255,255,255,0.2);
-    border-radius:20px;
-    padding:8px 14px;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    gap:6px;
-    transition:all 0.3s ease;
-    color: var(--text-primary);
-    font-size:13px;
-    font-weight:600;
-}
-.lang-toggle:hover {
-    background: rgba(255,255,255,0.1);
-    border-color: rgba(255,255,255,0.3);
-}
-[data-theme="light"] .lang-toggle {
-    border-color: rgba(0,0,0,0.2);
-}
-[data-theme="light"] .lang-toggle:hover {
-    background: rgba(0,0,0,0.05);
-}
-.lang-divider {
-    opacity: 0.5;
-    font-weight: 300;
-}
-.lang-alt {
-    opacity: 0.7;
-    font-family: 'Arial', sans-serif;
+/* RTL Support */
+/* Header/Nav always LTR for consistency */
+nav, .nav-container, .nav-links, .language-switcher {
+    direction: ltr !important;
 }
 
-/* RTL Support */
 html[lang="ar"] {
     direction: rtl;
-    font-family: 'Cairo', 'Inter', sans-serif;
 }
-html[lang="ar"] body {
-    font-family: 'Cairo', 'Inter', sans-serif;
-}
-html[lang="ar"] .nav-links {
-    text-align: right;
-}
+
+/* Content sections - RTL for Arabic */
 html[lang="ar"] .hero h2,
+html[lang="ar"] .fade-content,
 html[lang="ar"] .fade-content p,
 html[lang="ar"] .cta-desc,
+html[lang="ar"] .card,
 html[lang="ar"] .card p,
-html[lang="ar"] .typewriter,
+html[lang="ar"] .footer-content,
 html[lang="ar"] footer {
-    direction: rtl;
-    unicode-bidi: embed;
+    direction: rtl !important;
 }
 html[lang="ar"] .list-effect {
     text-align: right;
@@ -202,6 +173,9 @@ html[lang="ar"] .list-effect {
 }
 html[lang="ar"] .list-item {
     flex-direction: row-reverse;
+}
+html[lang="ar"] .feature-grid {
+    direction: rtl;
 }
 
 @media(max-width:768px){
@@ -393,19 +367,6 @@ html[lang="ar"] .list-item {
 .list-item { display: flex; align-items: center; gap: 20px; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 500; color: var(--text-primary); opacity: 0; transform: translateX(-30px); }
 .list-bullet { width: 12px; height: 12px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 15px var(--primary); }
 .blur-text { font-size: clamp(3rem, 7vw, 5.5rem); font-weight: 700; filter: blur(15px); opacity: 0; color: var(--text-primary); text-align: center; line-height: 1.1; }
-.typewriter {
-    font-size: clamp(1.4rem, 2.5vw, 2rem);
-    font-weight: 400;
-    color: var(--text-primary);
-    font-family: 'Inter', monospace;
-    letter-spacing: 0.01em;
-    max-width: 800px;
-    line-height: 1.6;
-    text-align: center;
-}
-.typewriter span {
-    display: inline;
-}
 
 /* Growing Section Styles */
 #section-growing .text-line {
@@ -439,6 +400,18 @@ html[lang="ar"] .list-item {
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.1em;
+}
+
+/* Section Type (Typewriter) Styles */
+#section-type .text-line {
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    font-weight: 400;
+    color: var(--text-primary);
+    opacity: 0;
+    margin: 8px 0;
+    text-align: center;
+    max-width: 800px;
+    line-height: 1.6;
 }
 
 .features-grid-section {
@@ -583,6 +556,100 @@ footer a:hover { color: var(--primary); }
         background: rgba(0,0,0,0.05);
     }
 }
+
+/* Language Switcher Styles - Match login/register pages */
+.language-switcher {
+    position: relative;
+    display: inline-block;
+}
+.language-toggle {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 8px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.language-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+[data-theme="light"] .language-toggle {
+    border-color: rgba(0, 0, 0, 0.2);
+}
+[data-theme="light"] .language-toggle:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+.language-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    min-width: 160px;
+    background: rgba(22, 22, 22, 0.98);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    overflow: hidden;
+    padding: 8px;
+    direction: ltr !important;
+}
+[data-theme="light"] .language-dropdown {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+.language-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+}
+.language-option:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+[data-theme="light"] .language-option:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+.language-option.active {
+    color: #5e60ce;
+}
+.language-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Mobile - Hide language text, show only icon */
+@media(max-width: 480px) {
+    .language-switcher .current-locale,
+    .language-switcher .lang-divider,
+    .language-switcher .lang-alt {
+        display: none;
+    }
+    .language-switcher {
+        padding: 6px 10px !important;
+    }
+    .language-switcher span:first-child {
+        font-size: 16px !important;
+    }
+}
 </style>
 </head>
 <body>
@@ -597,18 +664,14 @@ footer a:hover { color: var(--primary); }
     <div class="nav-container">
         <a href="/" class="nav-brand">Nexus</a>
         <div style="display:flex;align-items:center;gap:20px;">
-            <button id="langToggle" class="lang-toggle" title="Switch language">
-                <span class="lang-current">EN</span>
-                <span class="lang-divider">|</span>
-                <span class="lang-alt">ع</span>
-            </button>
-            <button id="themeToggle" title="Toggle theme">
+            @include('layouts.language')
+            <button id="themeToggle" title="{{ __('home.toggle_theme') }}">
                 <svg class="theme-icon sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                 <svg class="theme-icon moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             </button>
             <div class="nav-links" id="navLinks">
-                <a href="#section-features" data-en="Features" data-ar="المميزات">Features</a>
-                <a href="#section-cta" data-en="Join" data-ar="انضم">Join</a>
+                <a href="#section-features" data-en="Features" data-ar="المميزات">{{ app()->getLocale() === 'ar' ? 'المميزات' : 'Features' }}</a>
+                <a href="#section-cta" data-en="Join" data-ar="انضم">{{ app()->getLocale() === 'ar' ? 'انضم' : 'Join' }}</a>
             </div>
             <div class="menu-toggle" id="menuToggle">
                 <span></span>
@@ -620,38 +683,38 @@ footer a:hover { color: var(--primary); }
 </nav>
 <section class="hero">
     <div class="hero-content">
-        <h1 id="nexus-title">Nexus</h1>
-        <h2>Connect. Share. Belong. Experience social media as it should be—authentic, private, and yours.</h2>
+        <h1 id="nexus-title">{{ __('home.nexus') }}</h1>
+        <h2>{{ __('home.connect_share_belong') }}</h2>
     </div>
     <div class="scroll-arrow" onclick="scrollToSection()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 5v14"/>
             <path d="M19 12l-7 7-7-7"/>
         </svg>
-        <span>Scroll to explore</span>
+        <span>{{ __('home.scroll_to_explore') }}</span>
     </div>
 </section>
 <section class="pin-section" id="section-fade">
     <div class="pin-container">
         <div class="fade-content">
-            <h2 class="e1-title">Built for Real Connections</h2>
-            <p class="e1-desc">Nexus brings together everything you need to connect, share, and build community. No algorithms feeding you outrage. No ads selling your attention. Just genuine interaction with the people who matter.</p>
+            <h2 class="e1-title">{{ __('home.built_for_real_connections') }}</h2>
+            <p class="e1-desc">{{ __('home.nexus_brings_together') }}</p>
         </div>
     </div>
 </section>
 <section class="pin-section" id="section-carousel">
     <div class="pin-container">
         <div class="carousel">
-            <div class="word-line" id="word1">Post.</div>
-            <div class="word-line" id="word2">Share.</div>
-            <div class="word-line" id="word3">Connect.</div>
-            <div class="word-line" id="word4">Belong.</div>
+            <div class="word-line" id="word1">{{ __('home.post') }}</div>
+            <div class="word-line" id="word2">{{ __('home.share') }}</div>
+            <div class="word-line" id="word3">{{ __('home.connect') }}</div>
+            <div class="word-line" id="word4">{{ __('home.belong') }}</div>
         </div>
     </div>
 </section>
 <section class="features-grid-section" id="section-features">
-    <p class="section-label">Features</p>
-    <h2 class="section-title">Everything you need. Nothing you don't.</h2>
+    <p class="section-label">{{ __('home.features') }}</p>
+    <h2 class="section-title">{{ __('home.everything_you_need') }}</h2>
 
     <div class="feature-grid">
         <div class="card">
@@ -659,32 +722,32 @@ footer a:hover { color: var(--primary); }
             <div class="card-icon" style="background:linear-gradient(135deg,#a855f7 0%,#d946ef 100%);">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
             </div>
-            <h3 class="feature-card-title">Posts</h3>
-            <p class="feature-card-desc">Share your thoughts, updates, and moments with your network. A chronological feed that shows what matters to you—no manipulation, no hidden agendas.</p>
+            <h3 class="feature-card-title">{{ __('home.posts') }}</h3>
+            <p class="feature-card-desc">{{ __('home.posts_desc') }}</p>
         </div>
         <div class="card">
             <div class="card-glow"></div>
             <div class="card-icon" style="background:linear-gradient(135deg,#10b981 0%,#34d399 100%);">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
             </div>
-            <h3 class="feature-card-title">Stories</h3>
-            <p class="feature-card-desc">Capture fleeting moments with ephemeral content that disappears after 24 hours. Share freely without the pressure of permanence.</p>
+            <h3 class="feature-card-title">{{ __('home.stories') }}</h3>
+            <p class="feature-card-desc">{{ __('home.stories_desc') }}</p>
         </div>
         <div class="card">
             <div class="card-glow"></div>
             <div class="card-icon" style="background:linear-gradient(135deg,#10b981 0%,#34d399 100%);">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             </div>
-            <h3 class="feature-card-title">Private Chat</h3>
-            <p class="feature-card-desc">Real-time messaging with end-to-end encryption. Your conversations stay between you and your recipients—secure, fast, and private.</p>
+            <h3 class="feature-card-title">{{ __('home.private_chat') }}</h3>
+            <p class="feature-card-desc">{{ __('home.private_chat_desc') }}</p>
         </div>
         <div class="card">
             <div class="card-glow"></div>
             <div class="card-icon" style="background:linear-gradient(135deg,#3b82f6 0%,#60a5fa 100%);">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </div>
-            <h3 class="feature-card-title">Groups</h3>
-            <p class="feature-card-desc">Create or join communities around your interests. From hobby groups to professional networks, build spaces that bring people together.</p>
+            <h3 class="feature-card-title">{{ __('home.groups') }}</h3>
+            <p class="feature-card-desc">{{ __('home.groups_desc') }}</p>
         </div>
         <div class="card">
             <div class="card-glow"></div>
@@ -692,74 +755,74 @@ footer a:hover { color: var(--primary); }
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><path d="M9 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/><path d="M15 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                <h3 class="feature-card-title" style="margin:0;">AI Assistant</h3>
-                <span id="ai-badge" style="background:rgba(236,72,153,0.2);color:#f472b6;font-size:10px;padding:4px 8px;border-radius:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Menu-based</span>
+                <h3 class="feature-card-title" style="margin:0;">{{ __('home.ai_assistant') }}</h3>
+                <span id="ai-badge" style="background:rgba(236,72,153,0.2);color:#f472b6;font-size:10px;padding:4px 8px;border-radius:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">{{ __('home.menu_based') }}</span>
             </div>
-            <p class="feature-card-desc">Smart tools to enhance your experience. Get help drafting posts, summarizing conversations, and discovering content that matters to you.</p>
+            <p class="feature-card-desc">{{ __('home.ai_assistant_desc') }}</p>
         </div>
         <div class="card">
             <div class="card-glow"></div>
             <div class="card-icon" style="background:linear-gradient(135deg,#f59e0b 0%,#fbbf24 100%);">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
-            <h3 class="feature-card-title">Privacy First</h3>
-            <p class="feature-card-desc">Your data stays yours. No tracking, no selling to advertisers, no manipulation. We're funded by users, not by selling your attention.</p>
+            <h3 class="feature-card-title">{{ __('home.privacy_first') }}</h3>
+            <p class="feature-card-desc">{{ __('home.privacy_first_desc') }}</p>
         </div>
     </div>
 </section>
 <section class="pin-section" id="section-list">
     <div class="pin-container">
-        <h2 class="list-title" data-en="Why Choose Nexus?" data-ar="لماذا تختار Nexus؟">Why Choose Nexus?</h2>
+        <h2 class="list-title" data-en="Why Choose Nexus?" data-ar="لماذا تختار Nexus؟">{{ __('home.why_choose_nexus') }}</h2>
         <div class="list-effect">
-            <div class="list-item e4-item1"><span class="list-bullet"></span><span>No Ads. Ever.</span></div>
-            <div class="list-item e4-item2"><span class="list-bullet"></span><span>Chronological Feed</span></div>
-            <div class="list-item e4-item3"><span class="list-bullet"></span><span>Your Data, Your Control</span></div>
-            <div class="list-item e4-item4"><span class="list-bullet"></span><span>End-to-End Encryption</span></div>
-            <div class="list-item e4-item5"><span class="list-bullet"></span><span>Community-Driven</span></div>
+            <div class="list-item e4-item1"><span class="list-bullet"></span><span>{{ __('home.no_ads') }}</span></div>
+            <div class="list-item e4-item2"><span class="list-bullet"></span><span>{{ __('home.chronological_feed') }}</span></div>
+            <div class="list-item e4-item3"><span class="list-bullet"></span><span>{{ __('home.your_data_your_control') }}</span></div>
+            <div class="list-item e4-item4"><span class="list-bullet"></span><span>{{ __('home.end_to_end_encryption') }}</span></div>
+            <div class="list-item e4-item5"><span class="list-bullet"></span><span>{{ __('home.community_driven') }}</span></div>
         </div>
     </div>
 </section>
 <section class="pin-section" id="section-blur">
     <div class="pin-container">
-        <div class="blur-text e6-blur">Your Privacy.<br>Protected.</div>
+        <div class="blur-text e6-blur">{!! __('home.your_privacy_protected') !!}</div>
     </div>
 </section>
 <section class="pin-section" id="section-type">
     <div class="pin-container">
-        <div class="typewriter e12-type">Nexus is built on a simple belief: social media should bring people together, not drive them apart. No algorithms deciding what you see. No ads interrupting your moments. Just you, your posts, your stories, and your community. Welcome to social media as it should be.</div>
+        <div class="text-line e12-type">{{ __('home.nexus_is_built') }}</div>
     </div>
 </section>
 <section class="pin-section" id="section-growing">
     <div class="pin-container">
-        <div class="text-line growing-title" data-en="Join Our Rapidly Growing Community" data-ar="انضم إلى مجتمعنا سريع النمو">Join Our Rapidly Growing Community</div>
+        <div class="text-line growing-title" data-en="Join Our Rapidly Growing Community" data-ar="انضم إلى مجتمعنا سريع النمو">{{ __('home.join_our_rapidly_growing_community') }}</div>
         <div class="text-line stat-row">
             <span class="stat-number" data-en="+50K" data-ar="+50 ألف">+50K</span>
-            <span class="stat-label" data-en="Users" data-ar="مستخدم">Users</span>
+            <span class="stat-label" data-en="Users" data-ar="مستخدم">{{ __('home.users') }}</span>
         </div>
         <div class="text-line stat-row">
             <span class="stat-number" data-en="+120K" data-ar="+120 ألف">+120K</span>
-            <span class="stat-label" data-en="Posts" data-ar="منشور">Posts</span>
+            <span class="stat-label" data-en="Posts" data-ar="منشور">{{ __('home.posts') }}</span>
         </div>
         <div class="text-line stat-row">
             <span class="stat-number" data-en="+85K" data-ar="+85 ألف">+85K</span>
-            <span class="stat-label" data-en="Stories" data-ar="قصة">Stories</span>
+            <span class="stat-label" data-en="Stories" data-ar="قصة">{{ __('home.stories') }}</span>
         </div>
     </div>
 </section>
 <section class="cta-section" id="section-cta">
     <div class="cta-content">
-        <h2 class="cta-title">Your community awaits.</h2>
-        <p class="cta-desc">Join Nexus today and experience social media done right.</p>
+        <h2 class="cta-title">{{ __('home.your_community_awaits') }}</h2>
+        <p class="cta-desc">{{ __('home.join_nexus_today') }}</p>
         <div class="cta-buttons">
-            <a href="/register" class="cta-btn cta-btn-primary">Get Started Free</a>
-            <a href="/login" class="cta-btn cta-btn-secondary">Sign In</a>
+            <a href="/register" class="cta-btn cta-btn-primary">{{ __('home.get_started_free') }}</a>
+            <a href="/login" class="cta-btn cta-btn-secondary">{{ __('home.sign_in') }}</a>
         </div>
     </div>
 </section>
 
 <footer>
     <div class="footer-content">
-        <p>© 2026 Nexus. Built for authentic connections.</p>
+        <p>© 2026 Nexus. {{ __('home.built_for_authentic_connections') }}</p>
         <div style="display:flex;justify-content:center;gap:20px;margin-top:20px;flex-wrap:wrap;">
             <a href="https://github.com/vd120/laravel_project" target="_blank" rel="noopener noreferrer" style="color:var(--text-secondary);text-decoration:none;font-size:14px;display:flex;align-items:center;gap:8px;font-weight:500;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
@@ -767,7 +830,7 @@ footer a:hover { color: var(--primary); }
             </a>
             <a href="mailto:socialapp.noreply@gmail.com" style="color:var(--text-secondary);text-decoration:none;font-size:14px;display:flex;align-items:center;gap:8px;font-weight:500;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
-                Contact Support
+                {{ __('home.contact_support') }}
             </a>
         </div>
     </div>
@@ -788,59 +851,6 @@ const navLinks = document.getElementById('navLinks');
 const themeToggle = document.getElementById('themeToggle');
 const sunIcon = themeToggle.querySelector('.sun');
 const moonIcon = themeToggle.querySelector('.moon');
-const langToggle = document.getElementById('langToggle');
-const langCurrent = langToggle?.querySelector('.lang-current');
-let currentLang = localStorage.getItem('lang') || 'en';
-
-const englishContent = {
-    hero: { title: 'Nexus', subtitle: 'Connect. Share. Belong. Experience social media as it should be—authentic, private, and yours.' },
-    scrollArrow: 'Scroll to explore',
-    fade: { title: 'Built for Real Connections', desc: 'Nexus brings together everything you need to connect, share, and build community. No algorithms feeding you outrage. No ads selling your attention. Just genuine interaction with the people who matter.' },
-    carousel: { word1: 'Post.', word2: 'Share.', word3: 'Connect.', word4: 'Belong.' },
-    features: {
-        label: 'Features',
-        title: 'Everything you need. Nothing you don\'t.',
-        cards: [
-            { title: 'Posts', desc: 'Share your thoughts, updates, and moments with your network. A chronological feed that shows what matters to you—no manipulation, no hidden agendas.' },
-            { title: 'Stories', desc: 'Capture fleeting moments with ephemeral content that disappears after 24 hours. Share freely without the pressure of permanence.' },
-            { title: 'Private Chat', desc: 'Real-time messaging with end-to-end encryption. Your conversations stay between you and your recipients—secure, fast, and private.' },
-            { title: 'Groups', desc: 'Create or join communities around your interests. From hobby groups to professional networks, build spaces that bring people together.' },
-            { title: 'AI Assistant', badge: 'Menu-based', desc: 'Smart tools to enhance your experience. Get help drafting posts, summarizing conversations, and discovering content that matters to you.' },
-            { title: 'Privacy First', desc: 'Your data stays yours. No tracking, no selling to advertisers, no manipulation. We\'re funded by users, not by selling your attention.' }
-        ]
-    },
-    listTitle: 'Why Choose Nexus?',
-    list: ['No Ads. Ever.', 'Chronological Feed', 'Your Data, Your Control', 'End-to-End Encryption', 'Community-Driven'],
-    blur: 'Your Privacy.<br>Protected.',
-    type: 'Nexus is built on a simple belief: social media should bring people together, not drive them apart. No algorithms deciding what you see. No ads interrupting your moments. Just you, your posts, your stories, and your community. Welcome to social media as it should be.',
-    cta: { title: 'Your community awaits.', desc: 'Join Nexus today and experience social media done right.', btn1: 'Get Started Free', btn2: 'Sign In' },
-    footer: { copyright: '© 2026 Nexus. Built for authentic connections.' }
-};
-
-const arabicContent = {
-    hero: { title: 'Nexus', subtitle: 'تواصل. شارك. اِنتَمِ. اختبر وسائل التواصل كما يجب أن تكون—أصيلة، خاصة، ولك وحدك.' },
-    scrollArrow: 'مرر للاستكشاف',
-    fade: { title: 'صُمِّمَ للتواصل الحقيقي', desc: 'Nexus يجمع كل ما تحتاجه للتواصل وبناء المجتمع. لا خوارزميات تثير غضبك. لا إعلانات تبيع انتباهك. فقط تفاعل حقيقي مع الأشخاص الذين يهتمون لأمرهم.' },
-    carousel: { word1: 'انشر.', word2: 'شارك.', word3: 'تواصل.', word4: 'اِنتَمِ.' },
-    features: {
-        label: 'المميزات',
-        title: 'كل ما تحتاجه. بدون أي زوائد.',
-        cards: [
-            { title: 'المنشورات', desc: 'شارك أفكارك وتحديثاتك ولحظاتك مع شبكتك. خلاصة زمنية تعرض ما يهمك حقًا—بدون تلاعب أو أجندات خفية.' },
-            { title: 'القصص', desc: 'التقط اللحظات العابرة بمحتوى مؤقت يختفي بعد 24 ساعة. شارك بحرية بدون ضغط الديمومة.' },
-            { title: 'الدردشة الخاصة', desc: 'مراسلة فورية مع تشفير كامل. محادثاتك تبقى بينك وبين المستلمين—آمنة، سريعة، وخاصة.' },
-            { title: 'المجموعات', desc: 'أنشئ أو انضم لمجتمعات حول اهتماماتك. من مجموعات الهوايات إلى الشبكات المهنية، ابنِ مساحات تجمع الناس معًا.' },
-            { title: 'مساعد الذكاء الاصطناعي', badge: 'قائم على القوائم', desc: 'أدوات ذكية لتعزيز تجربتك. احصل على مساعدة في صياغة المنشورات، وتلخيص المحادثات، واكتشاف المحتوى الذي يهمك.' },
-            { title: 'الخصوصية أولاً', desc: 'بياناتك تبقى لك. لا تتبع، لا بيع للمعلنين، لا تلاعب. نحن ممولون من المستخدمين، لا من بيع انتباهك.' }
-        ]
-    },
-    listTitle: 'لماذا تختار Nexus؟',
-    list: ['بدون إعلانات. أبدًا.', 'خلاصة زمنية', 'بياناتك، تحت سيطرتك', 'تشفير كامل', 'مدعوم من المجتمع'],
-    blur: 'خصوصيتك.<br>محمية.',
-    type: 'Nexus مبني على اعتقاد بسيط: وسائل التواصل يجب أن تجمع الناس، لا أن تفرقهم. لا خوارزميات تقرر ما ترى. لا إعلانات تقاطع لحظاتك. فقط أنت، منشوراتك، قصصك، ومجتمعك. مرحبًا بك في وسائل التواصل كما يجب أن تكون.',
-    cta: { title: 'مجتمعك ينتظرك.', desc: 'انضم إلى Nexus اليوم واختبر وسائل التواصل كما يجب أن تكون.', btn1: 'ابدأ مجانًا', btn2: 'تسجيل الدخول' },
-    footer: { copyright: '© 2026 Nexus. صُمِّمَ للتواصل الأصيل.' }
-};
 
 // Theme toggle functionality
 function updateThemeIcons(theme) {
@@ -869,92 +879,6 @@ if (themeToggle) {
         localStorage.setItem('theme', newTheme);
         updateThemeIcons(newTheme);
     });
-}
-
-// Language toggle click handler
-if (langToggle) {
-    langToggle.addEventListener('click', function() {
-        const newLang = currentLang === 'en' ? 'ar' : 'en';
-        // Save current scroll position and language preference
-        localStorage.setItem('lang', newLang);
-        localStorage.setItem('scrollPosition', window.scrollY);
-        // Reload page to apply language change with fresh animations
-        window.location.reload();
-    });
-}
-
-function updateLanguage(lang) {
-    currentLang = lang;
-    localStorage.setItem('lang', lang);
-    document.documentElement.setAttribute('lang', lang);
-
-    // Update toggle button
-    if (langCurrent) {
-        if (lang === 'ar') {
-            langCurrent.textContent = 'ع';
-            langToggle.querySelector('.lang-alt').textContent = 'EN';
-        } else {
-            langCurrent.textContent = 'EN';
-            langToggle.querySelector('.lang-alt').textContent = 'ع';
-        }
-    }
-
-    // Update all elements with data-en/data-ar attributes
-    document.querySelectorAll('[data-en][data-ar]').forEach(el => {
-        el.textContent = el.getAttribute(`data-${lang}`);
-    });
-
-    // Update specific sections
-    updateContentForLanguage(lang);
-}
-
-function updateContentForLanguage(lang) {
-    const content = lang === 'ar' ? arabicContent : englishContent;
-    document.querySelector('#nexus-title').textContent = content.hero.title;
-    document.querySelector('.hero-content h2').textContent = content.hero.subtitle;
-    document.querySelector('.scroll-arrow span').textContent = content.scrollArrow;
-    document.querySelector('.e1-title').textContent = content.fade.title;
-    document.querySelector('.e1-desc').textContent = content.fade.desc;
-    document.getElementById('word1').textContent = content.carousel.word1;
-    document.getElementById('word2').textContent = content.carousel.word2;
-    document.getElementById('word3').textContent = content.carousel.word3;
-    document.getElementById('word4').textContent = content.carousel.word4;
-    document.querySelector('.section-label').textContent = content.features.label;
-    document.querySelector('.section-title').textContent = content.features.title;
-    document.querySelectorAll('.feature-card-title').forEach((el, i) => {
-        el.textContent = content.features.cards[i].title;
-    });
-    document.querySelectorAll('.feature-card-desc').forEach((el, i) => {
-        el.textContent = content.features.cards[i].desc;
-    });
-    // Update AI Assistant badge if it exists
-    const aiBadge = document.getElementById('ai-badge');
-    if (aiBadge && content.features.cards[4].badge) {
-        aiBadge.textContent = content.features.cards[4].badge;
-    }
-    document.querySelector('.list-title').textContent = content.listTitle;
-    document.querySelectorAll('.list-item span:last-child').forEach((el, i) => {
-        el.textContent = content.list[i];
-    });
-    document.querySelector('.e6-blur').innerHTML = content.blur;
-    document.querySelector('.e12-type').textContent = content.type;
-    document.querySelector('.cta-title').textContent = content.cta.title;
-    document.querySelector('.cta-desc').textContent = content.cta.desc;
-    document.querySelector('.cta-btn-primary').textContent = content.cta.btn1;
-    document.querySelector('.cta-btn-secondary').textContent = content.cta.btn2;
-    document.querySelector('footer p').textContent = content.footer.copyright;
-}
-
-// Initialize language
-updateLanguage(currentLang);
-
-// Restore scroll position after language change
-const savedScrollPosition = localStorage.getItem('scrollPosition');
-if (savedScrollPosition) {
-    setTimeout(() => {
-        window.scrollTo(0, parseInt(savedScrollPosition));
-        localStorage.removeItem('scrollPosition');
-    }, 100);
 }
 
 // Refresh ScrollTrigger to ensure all triggers are calculated
@@ -1001,57 +925,20 @@ gsap.timeline({ scrollTrigger: { trigger:'#section-list', start:'top top', end:'
 gsap.timeline({ scrollTrigger: { trigger:'#section-blur', start:'top top', end:'+=100%', pin:true, scrub:0.5, anticipatePin:1 } })
     .to('.e6-blur', { opacity:1, filter:'blur(0px)', duration:1, ease:'power2.out' }, 0);
 
-// Section 5: Typewriter - Works in both languages
-let typewriterTl = null;
-
-function initTypewriter() {
-    let typeEl = document.querySelector('.e12-type');
-    if (!typeEl) return;
-
-    // Get current language and text
-    const currentLang = document.documentElement.getAttribute('lang') || 'en';
-    const content = currentLang === 'ar' ? arabicContent : englishContent;
-    const originalText = content.type;
-
-    // Clear and rebuild spans
-    typeEl.innerHTML = '';
-    let chars = originalText.split('');
-    chars.forEach((c, index) => {
-        let span = document.createElement('span');
-        span.innerText = c;
-        span.style.opacity = '0';
-        span.style.display = 'inline';
-        typeEl.appendChild(span);
-    });
-}
-
-// Create typewriter animation
-function createTypewriterAnimation() {
-    // Kill existing animation if any
-    if (typewriterTl) {
-        typewriterTl.kill();
+// Section 5: Typewriter - Fade animation (same as Growing section)
+gsap.timeline({
+    scrollTrigger: {
+        trigger:'#section-type',
+        start:'top top',
+        end:'+=150%',
+        scrub:true,
+        pin:true
     }
-
-    typewriterTl = gsap.timeline({
-        scrollTrigger: {
-            trigger:'#section-type',
-            start:'top top',
-            end:'+=300%',
-            pin:true,
-            scrub:0.5,
-            anticipatePin:1
-        }
-    }).to('.e12-type span', {
-        opacity:1,
-        duration:0.05,
-        stagger:0.02,
-        ease:'none'
-    }, 0);
-}
-
-// Initialize on page load
-initTypewriter();
-createTypewriterAnimation();
+}).to('#section-type .text-line', {
+    opacity: 1,
+    y: -20,
+    duration: 0.5
+});
 
 // Growing Section - Stats - Works in both languages
 let growingTl = gsap.timeline({
@@ -1084,7 +971,7 @@ if (menuToggle && navLinks) {
         e.stopPropagation();
         navLinks.classList.toggle('active');
     });
-    
+
     // Close menu when clicking outside
     document.addEventListener('click', function(e) {
         if (!navLinks.contains(e.target) && !menuToggle.contains(e.target)) {

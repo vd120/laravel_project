@@ -323,9 +323,9 @@ class ChatController extends Controller
         // Can't start conversation with yourself
         if ($user->id === auth()->id()) {
             if (request()->expectsJson()) {
-                return response()->json(['error' => 'You cannot start a conversation with yourself.'], 400);
+                return response()->json(['error' => __('messages.cannot_chat_with_self')], 400);
             }
-            return redirect()->back()->with('error', 'You cannot start a conversation with yourself.');
+            return redirect()->back()->with('error', __('messages.cannot_chat_with_self'));
         }
 
         // Check if conversation already exists

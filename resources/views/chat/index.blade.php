@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Messages')
+@section('title', __('chat.messages'))
 
 @section('content')
 <style>
@@ -29,10 +29,10 @@
                     <span class="username-text">{{ auth()->user()->username }}</span>
                 </div>
                 <div class="header-actions">
-                    <a href="{{ route('groups.create') }}" class="icon-btn" title="New Group">
+                    <a href="{{ route('groups.create') }}" class="icon-btn" title="{{ __('chat.new_group') }}">
                         <i class="fas fa-users"></i>
                     </a>
-                    <button class="icon-btn" onclick="showUserSearch()" title="New Message">
+                    <button class="icon-btn" onclick="showUserSearch()" title="{{ __('chat.new_message') }}">
                         <i class="fas fa-message"></i>
                     </button>
                 </div>
@@ -42,7 +42,7 @@
             <div class="search-bar">
                 <div class="search-input-wrapper">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search or start new chat" id="sidebarSearch" oninput="filterSidebarConversations(this.value)">
+                    <input type="text" placeholder="{{ __('chat.search_or_start_chat') }}" id="sidebarSearch" oninput="filterSidebarConversations(this.value)">
                 </div>
             </div>
 
@@ -68,32 +68,32 @@
                         switch ($latestMessage->type) {
                             case 'image':
                                 $messageIcon = '📷 ';
-                                $messagePreview = $isOwn ? 'You sent a photo' : 'Sent a photo';
+                                $messagePreview = $isOwn ? __('chat.you_sent_photo') : __('chat.sent_photo');
                                 break;
                             case 'video':
                                 $messageIcon = '🎥 ';
-                                $messagePreview = $isOwn ? 'You sent a video' : 'Sent a video';
+                                $messagePreview = $isOwn ? __('chat.you_sent_video') : __('chat.sent_video');
                                 break;
                             case 'audio':
                                 $messageIcon = '🎤 ';
-                                $messagePreview = $isOwn ? 'You sent an audio' : 'Sent an audio';
+                                $messagePreview = $isOwn ? __('chat.you_sent_audio') : __('chat.sent_audio');
                                 break;
                             case 'document':
                                 $messageIcon = '📎 ';
-                                $messagePreview = $isOwn ? 'You sent a document' : 'Sent a document';
+                                $messagePreview = $isOwn ? __('chat.you_sent_document') : __('chat.sent_document');
                                 break;
                             case 'gif':
                                 $messageIcon = 'GIF ';
-                                $messagePreview = $isOwn ? 'You sent a GIF' : 'Sent a GIF';
+                                $messagePreview = $isOwn ? __('chat.you_sent_gif') : __('chat.sent_gif');
                                 break;
                             case 'sticker':
                                 $messageIcon = '⭐ ';
-                                $messagePreview = $isOwn ? 'You sent a sticker' : 'Sent a sticker';
+                                $messagePreview = $isOwn ? __('chat.you_sent_sticker') : __('chat.sent_sticker');
                                 break;
                             case 'story_reply':
                                 $messageIcon = '📸 ';
                                 $content = trim(str_replace('📸 Reply to your story:', '', $content));
-                                $messagePreview = $isOwn ? 'You replied to story' : 'Replied to your story';
+                                $messagePreview = $isOwn ? __('chat.you_replied_to_story') : __('chat.replied_to_story');
                                 if (!empty($content)) {
                                     $messagePreview .= ': ' . Str::limit($content, 25);
                                 }
@@ -105,12 +105,12 @@
 
                         // Add "You: " prefix for own messages (except story replies)
                         if ($isOwn && $latestMessage->type !== 'story_reply') {
-                            $messagePreview = 'You: ' . $messagePreview;
+                            $messagePreview = __('chat.you').': ' . $messagePreview;
                         }
                     }
 
                     if (empty($messagePreview)) {
-                        $messagePreview = '👋 Start a conversation';
+                        $messagePreview = __('chat.start_a_conversation');
                     }
                 @endphp
                 <a href="{{ route('chat.show', $conv) }}" class="conversation-item {{ $conv->id === ($conversation->id ?? null) ? 'active' : '' }} {{ $conv->unread_count > 0 ? 'unread' : '' }}" data-name="{{ $displayName }}" data-user-id="{{ $isGroup ? '' : ($conv->other_user?->id ?? '') }}" data-conversation-slug="{{ $conv->slug }}">
@@ -139,7 +139,7 @@
                                     @endif
                                 </span>
                                 @if(!$isGroup && $conv->other_user)
-                                    <span class="typing-indicator-inline" style="display: none; color: #25d366; font-size: 11px; font-style: italic; margin-left: 6px;">typing...</span>
+                                    <span class="typing-indicator-inline" style="display: none; color: #25d366; font-size: 11px; font-style: italic; margin-left: 6px;">{{ __('chat.typing') }}</span>
                                 @endif
                             </div>
                             <span class="conv-time">@if($conv->last_message_at){{ \Carbon\Carbon::parse($conv->last_message_at)->format('H:i') }}@endif</span>
@@ -151,24 +151,24 @@
                                 @endif
                                 @if($latestMessage)
                                     @if($latestMessage->type === 'image')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent an image</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_an_image') }}</span>
                                     @elseif($latestMessage->type === 'video')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a video</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_a_video') }}</span>
                                     @elseif($latestMessage->type === 'audio')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent an audio</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_an_audio') }}</span>
                                     @elseif($latestMessage->type === 'document')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a document</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_a_document') }}</span>
                                     @elseif($latestMessage->type === 'gif')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a GIF</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_a_gif') }}</span>
                                     @elseif($latestMessage->type === 'sticker')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a sticker</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_a_sticker') }}</span>
                                     @elseif($latestMessage->type === 'story_reply')
                                         <span class="preview-text">{{ $messagePreview }}</span>
                                     @else
                                         <span class="preview-text">{{ $messageIcon }}{{ $messagePreview }}</span>
                                     @endif
                                 @else
-                                    <span class="preview-text">👋 Start a conversation</span>
+                                    <span class="preview-text">{{ __('chat.start_a_conversation') }}</span>
                                 @endif
                             </p>
                             @if($conv->unread_count > 0)
@@ -180,8 +180,8 @@
                 @empty
                 <div class="empty-state">
                     <div class="empty-icon"><i class="fas fa-comments"></i></div>
-                    <h3>No messages yet</h3>
-                    <p>Start a new conversation</p>
+                    <h3>{{ __('chat.no_messages_yet') }}</h3>
+                    <p>{{ __('chat.start_new_conversation') }}</p>
                 </div>
                 @endforelse
             </div>
@@ -195,14 +195,14 @@
                         <path fill="currentColor" d="M12.001 2.002c-5.522 0-9.999 4.477-9.999 9.999 0 1.752.451 3.397 1.244 4.848L2.001 21.998l5.298-1.392c1.396.761 2.987 1.196 4.702 1.196 5.522 0 9.999-4.477 9.999-9.999s-4.477-9.999-9.999-9.999zm0 18.181c-1.496 0-2.896-.394-4.114-1.086l-.294-.168-3.049.802.815-2.972-.192-.305c-.762-1.212-1.166-2.613-1.166-4.053 0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z"/>
                     </svg>
                 </div>
-                <h1>Nexus Web</h1>
-                <p>Send and receive messages without needing to keep your phone connected.</p>
-                <p class="small-text">End-to-end encrypted</p>
+                <h1>{{ __('chat.nexus_web') }}</h1>
+                <p>{{ __('chat.welcome_message') }}</p>
+                <p class="small-text">{{ __('chat.end_to_end_encrypted') }}</p>
             </div>
             <div class="welcome-footer">
-                <button class="icon-btn large" onclick="showUserSearch()" title="Start new chat">
+                <button class="icon-btn large" onclick="showUserSearch()" title="{{ __('chat.start_chat') }}">
                     <i class="fas fa-message"></i>
-                    <span>Start Chat</span>
+                    <span>{{ __('chat.start_chat') }}</span>
                 </button>
             </div>
         </main>
@@ -213,13 +213,13 @@
         <div class="modal-container">
             <div class="modal-header">
                 <button class="back-btn" onclick="hideUserSearch()"><i class="fas fa-arrow-left"></i></button>
-                <h3>New Chat</h3>
+                <h3>{{ __('chat.new_chat') }}</h3>
                 <div class="modal-spacer"></div>
             </div>
             <div class="modal-body">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="userSearch" placeholder="Search contacts..." class="search-field">
+                    <input type="text" id="userSearch" placeholder="{{ __('chat.search_contacts') }}" class="search-field">
                 </div>
                 <div id="userResults" class="search-results"></div>
             </div>
@@ -1065,6 +1065,35 @@
 
     function startChat(userId) { window.location.href = '/chat/start/' + userId; }
     function startChatWithUser(userId) { window.location.href = '/chat/start/' + userId; }
+
+    // Translation strings for JavaScript (realtime.js)
+    window.chatTranslations = {
+        you: '{{ __('chat.you') }}',
+        online: '{{ __('chat.online') }}',
+        offline: '{{ __('chat.offline') }}',
+        last_active: '{{ __('chat.last_active') }}',
+        you_sent_photo: '{{ __('chat.you_sent_photo') }}',
+        you_sent_video: '{{ __('chat.you_sent_video') }}',
+        you_sent_audio: '{{ __('chat.you_sent_audio') }}',
+        you_sent_document: '{{ __('chat.you_sent_document') }}',
+        you_sent_gif: '{{ __('chat.you_sent_gif') }}',
+        you_sent_sticker: '{{ __('chat.you_sent_sticker') }}',
+        you_replied_to_story: '{{ __('chat.you_replied_to_story') }}',
+        sent_photo: '{{ __('chat.sent_photo') }}',
+        sent_video: '{{ __('chat.sent_video') }}',
+        sent_audio: '{{ __('chat.sent_audio') }}',
+        sent_document: '{{ __('chat.sent_document') }}',
+        sent_gif: '{{ __('chat.sent_gif') }}',
+        sent_sticker: '{{ __('chat.sent_sticker') }}',
+        replied_to_story: '{{ __('chat.replied_to_story') }}',
+        sent_an_image: '{{ __('chat.sent_an_image') }}',
+        sent_a_video: '{{ __('chat.sent_a_video') }}',
+        sent_an_audio: '{{ __('chat.sent_an_audio') }}',
+        sent_a_document: '{{ __('chat.sent_a_document') }}',
+        sent_a_gif: '{{ __('chat.sent_a_gif') }}',
+        sent_a_sticker: '{{ __('chat.sent_a_sticker') }}',
+        start_a_conversation: '{{ __('chat.start_a_conversation') }}',
+    };
 
     document.addEventListener('DOMContentLoaded', () => {
         // Realtime.js will auto-initialize

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Posts - Admin Panel')
+@section('title', __('admin.manage_posts') . ' - Admin Panel')
 
 @section('content')
 <div class="admin-page">
@@ -11,12 +11,12 @@
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
-                <h1>Posts</h1>
-                <p>Manage and moderate user posts</p>
+                <h1>{{ __('admin.posts') }}</h1>
+                <p>{{ __('admin.manage_posts_subtitle') }}</p>
             </div>
         </div>
         <div class="header-stats">
-            <span class="total-badge">{{ $posts->total() }} Total</span>
+            <span class="total-badge">{{ $posts->total() }} {{ __('admin.total') }}</span>
         </div>
     </div>
 
@@ -25,11 +25,11 @@
         <div class="search-form">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="search-input" value="{{ request('search') }}" placeholder="Search posts..." autocomplete="off">
+                <input type="text" id="search-input" value="{{ request('search') }}" placeholder="{{ __('admin.search_posts') }}" autocomplete="off">
             </div>
             @if(request('search'))
             <a href="{{ route('admin.posts') }}" class="clear-btn">
-                <i class="fas fa-times"></i> Clear
+                <i class="fas fa-times"></i> {{ __('admin.clear') }}
             </a>
             @endif
         </div>
@@ -53,7 +53,7 @@
                     <span class="private-badge"><i class="fas fa-lock"></i></span>
                     @endif
                 </div>
-                
+
                 <div class="post-content">
                     @if($post->content)
                         <p>{{ Str::limit($post->content, 250) }}</p>
@@ -65,7 +65,7 @@
                     @if($post->media->count() === 1)
                         @php $media = $post->media->first(); @endphp
                         @if($media->media_type === 'image')
-                            <img src="{{ asset('storage/' . $media->media_path) }}" alt="Post media" class="single-media">
+                            <img src="{{ asset('storage/' . $media->media_path) }}" alt="{{ __('admin.media_post') }}" class="single-media">
                         @elseif($media->media_type === 'video')
                             <video class="single-media" controls muted>
                                 <source src="{{ asset('storage/' . $media->media_path) }}" type="video/mp4">
@@ -96,16 +96,16 @@
                         <span>{{ $post->comments->count() }}</span>
                     </div>
                     <a href="/posts/{{ $post->slug }}" target="_blank" class="view-link">
-                        <i class="fas fa-external-link-alt"></i> View
+                        <i class="fas fa-external-link-alt"></i> {{ __('admin.view_post') }}
                     </a>
                 </div>
             </div>
 
             <div class="post-actions">
-                <form method="POST" action="{{ route('admin.posts.delete', $post) }}" onsubmit="return confirm('Delete this post?')">
+                <form method="POST" action="{{ route('admin.posts.delete', $post) }}" onsubmit="return confirm('{{ __('admin.delete_post_confirm') }}')">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="delete-btn" title="Delete">
+                    <button type="submit" class="delete-btn" title="{{ __('admin.delete') }}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </form>
@@ -123,8 +123,8 @@
         <div class="empty-icon">
             <i class="fas fa-images"></i>
         </div>
-        <h3>No posts found</h3>
-        <p>No posts match your search criteria.</p>
+        <h3>{{ __('admin.no_posts_found') }}</h3>
+        <p>{{ __('admin.no_posts_match') }}</p>
     </div>
     @endif
 </div>

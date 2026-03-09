@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>Sign In — Nexus</title>
+<title>{{ __('auth.sign_in') }} — Nexus</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
 <style>
@@ -46,7 +46,7 @@ body{
     min-height:100vh;
 }
 
-/* NAV — Same as landing */
+/* Base Styles */
 nav{
     position:fixed;
     top:0;
@@ -336,6 +336,37 @@ nav{
 @media(max-width:480px){
     .login-card{padding:35px 25px}
     .login-title{font-size:30px}
+    /* Mobile Header */
+    .nav-container {
+        padding: 8px 16px;
+        gap: 8px;
+    }
+    .nav-brand {
+        font-size: 16px;
+    }
+    /* Hide language text on mobile, show only icon */
+    .language-switcher .current-locale,
+    .language-switcher .lang-divider,
+    .language-switcher .lang-alt {
+        display: none;
+    }
+    .language-switcher {
+        padding: 6px 10px !important;
+    }
+    .language-switcher span:first-child {
+        font-size: 16px !important;
+    }
+    #themeToggle {
+        width: 36px;
+        height: 36px;
+    }
+    .back-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    .back-btn span {
+        display: none;
+    }
 }
 </style>
 </head>
@@ -351,10 +382,11 @@ nav{
     <div class="nav-container">
         <a href="{{ route('home') }}" class="nav-brand">Nexus</a>
         <div style="display: flex; align-items: center; gap: 12px;">
-            <button type="button" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
+            @include('layouts.language')
+            <button type="button" id="themeToggle" onclick="toggleTheme()" title="{{ __('messages.theme') }}">
                 <i class="fas fa-moon" id="theme-icon"></i>
             </button>
-            <a href="{{ route('home') }}" class="back-btn">← Back</a>
+            <a href="{{ route('home') }}" class="back-btn">← {{ __('messages.back') }}</a>
         </div>
     </div>
 </nav>
@@ -364,32 +396,32 @@ nav{
         @if(session('suspended'))
             <div class="field-error" style="margin-bottom: 20px; text-align: center;">
                 <i class="fas fa-exclamation-triangle"></i>
-                Your account has been suspended. Please contact support.
+                {{ __('auth.account_suspended') }}
             </div>
         @endif
-        
+
         @if(session('concurrent_login'))
             <div class="field-error" style="margin-bottom: 20px; text-align: center;">
                 <i class="fas fa-shield-alt"></i>
-                Your account was accessed from another device. Please log in again.
+                {{ __('auth.concurrent_login') }}
             </div>
         @endif
-        
+
         @if(session('account_deleted'))
             <div class="field-error" style="margin-bottom: 20px; text-align: center;">
                 <i class="fas fa-user-slash"></i>
-                Your account has been deleted.
+                {{ __('auth.account_deleted') }}
             </div>
         @endif
-        
-        <h1 class="login-title">Welcome Back</h1>
-        <p class="login-sub">Sign in to continue your journey.</p>
+
+        <h1 class="login-title">{{ __('auth.welcome_back') }}</h1>
+        <p class="login-sub">{{ __('auth.sign_in_to_continue') }}</p>
 
         <form method="POST" action="{{ route('login') }}">
             @csrf
 
             <div class="field">
-                <label>Email Address</label>
+                <label>{{ __('auth.email_address') }}</label>
                 <input type="email" name="email" value="{{ old('email') }}" required autocomplete="email">
                 @error('email')
                     <div class="field-error">{{ $message }}</div>
@@ -397,7 +429,7 @@ nav{
             </div>
 
             <div class="field">
-                <label>Password</label>
+                <label>{{ __('auth.password') }}</label>
                 <div class="password-wrap">
                     <input type="password" name="password" id="password" required autocomplete="current-password">
                     <button type="button" class="toggle-pw" onclick="togglePassword()">
@@ -411,20 +443,19 @@ nav{
 
             <div class="extras">
                 <label>
-                    <input type="checkbox" name="remember" value="1"> Remember me
+                    <input type="checkbox" name="remember" value="1"> {{ __('auth.remember_me') }}
                 </label>
                 @if(Route::has('password.request'))
-                    <a href="{{ route('password.request') }}">Forgot password?</a>
+                    <a href="{{ route('password.request') }}">{{ __('auth.forgot_password') }}</a>
                 @endif
-                <!-- Removed duplicate hardcoded link that caused double forgot link -->
             </div>
 
             <button type="submit" class="btn btn-primary">
-                Sign In
+                {{ __('auth.sign_in_button') }}
             </button>
         </form>
 
-        <div class="divider">or continue with</div>
+        <div class="divider">{{ __('auth.or_continue_with') }}</div>
 
         <a href="{{ route('login.google') }}" class="btn-google">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -433,12 +464,12 @@ nav{
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            Continue with Google
+            {{ __('auth.continue_with_google') }}
         </a>
 
         <div class="card-footer">
-            Don't have an account?
-            <a href="{{ route('register') }}">Sign up</a>
+            {{ __('auth.dont_have_account') }}
+            <a href="{{ route('register') }}">{{ __('auth.sign_up') }}</a>
         </div>
     </div>
 </div>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Stories')
+@section('title', __('messages.stories'))
 
 @section('content')
 @if(session('success'))
@@ -13,16 +13,16 @@
 
 <div class="stories-page">
     <div class="page-header">
-        <h1>Stories</h1>
+        <h1>{{ __('messages.stories') }}</h1>
         <a href="{{ route('stories.create') }}" class="btn-primary">
             <i class="fas fa-plus"></i>
-            Create Story
+            {{ __('messages.create_story') }}
         </a>
     </div>
 
     @if($myStories->count() > 0)
     <div class="story-section">
-        <h3>Your Stories</h3>
+        <h3>{{ __('messages.your_stories') }}</h3>
         <div class="stories-grid">
             @php
             // Group stories by user and get the latest one
@@ -59,7 +59,7 @@
 
     @if($followedUsersWithStories->count() > 0)
     <div class="story-section">
-        <h3>Friends' Stories</h3>
+        <h3>{{ __('messages.friends_stories') }}</h3>
         <div class="stories-grid">
             @foreach($followedUsersWithStories as $user)
             @php
@@ -95,9 +95,9 @@
     @if($myStories->count() === 0 && $followedUsersWithStories->count() === 0)
     <div class="empty-state">
         <i class="fas fa-camera"></i>
-        <h3>No Stories Yet</h3>
-        <p>Be the first to share a story with your friends!</p>
-        <a href="{{ route('stories.create') }}" class="btn-primary">Create Your First Story</a>
+        <h3>{{ __('messages.no_stories') }}</h3>
+        <p>{{ __('messages.be_first_to_create') }}</p>
+        <a href="{{ route('stories.create') }}" class="btn-primary">{{ __('messages.create_one') }}</a>
     </div>
     @endif
 </div>
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (localStorage.getItem('story_deleted') === 'true') {
         localStorage.removeItem('story_deleted');
         if (typeof showToast === 'function') {
-            showToast('Story deleted successfully', 'success');
+            showToast(window.chatTranslations.story_deleted_toast || 'Story deleted successfully', 'success');
         }
     }
 });

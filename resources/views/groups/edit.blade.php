@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Group: ' . $group->name)
+@section('title', __('chat.edit_group') . ': ' . $group->name)
 
 @section('content')
 <div class="group-edit-page">
     <div class="edit-header">
         <a href="{{ route('groups.show', $group->slug) }}" class="back-link">
-            <i class="fas fa-arrow-left"></i> Back to Group
+            <i class="fas fa-arrow-left"></i> {{ __('chat.back_to_group') }}
         </a>
-        <h1>Edit Group</h1>
+        <h1>{{ __('chat.edit_group') }}</h1>
     </div>
 
     <form action="{{ route('groups.update', $group) }}" method="POST" enctype="multipart/form-data" class="edit-form">
@@ -16,30 +16,30 @@
         @method('PUT')
 
         <div class="form-section">
-            <h3>Group Info</h3>
+            <h3>{{ __('chat.group_info') }}</h3>
 
             <div class="form-group">
-                <label for="name">Group Name</label>
+                <label for="name">{{ __('chat.group_name') }}</label>
                 <input type="text" id="name" name="name" value="{{ old('name', $group->name) }}" required>
             </div>
 
             <div class="form-group">
-                <label for="description">Description</label>
+                <label for="description">{{ __('chat.description') }}</label>
                 <textarea id="description" name="description" rows="4">{{ old('description', $group->description) }}</textarea>
             </div>
 
             <div class="form-group">
-                <label for="avatar">Group Avatar</label>
+                <label for="avatar">{{ __('chat.group_avatar') }}</label>
                 <input type="file" id="avatar" name="avatar" accept="image/*">
                 @if($group->avatar)
-                    <p class="current-file">Current: <img src="{{ asset('storage/' . $group->avatar) }}" alt="Current avatar" class="current-avatar"></p>
+                    <p class="current-file">{{ __('chat.current') }}: <img src="{{ asset('storage/' . $group->avatar) }}" alt="Current avatar" class="current-avatar"></p>
                 @endif
             </div>
         </div>
 
         <div class="form-section">
-            <h3>Group Members</h3>
-            <p class="section-desc">Manage who is in this group</p>
+            <h3>{{ __('chat.group_members') }}</h3>
+            <p class="section-desc">{{ __('chat.manage_members_desc') }}</p>
 
             <div class="members-list">
                 @foreach($group->members as $member)
@@ -48,7 +48,7 @@
                             <img src="{{ $member->user->avatar_url }}" alt="{{ $member->user->name }}" class="member-avatar">
                             <span class="member-name">{{ $member->user->name }}</span>
                             @if($member->is_admin)
-                                <span class="admin-badge">Admin</span>
+                                <span class="admin-badge">{{ __('chat.admin') }}</span>
                             @endif
                         </div>
                         @if($member->user_id !== auth()->id())
@@ -61,27 +61,27 @@
             </div>
 
             <div class="add-members">
-                <h4>Add Members</h4>
+                <h4>{{ __('chat.add_members') }}</h4>
                 <div class="search-users">
-                    <input type="text" id="userSearch" placeholder="Search users by name..." oninput="searchUsers(this.value)">
+                    <input type="text" id="userSearch" placeholder="{{ __('chat.search_users') }}" oninput="searchUsers(this.value)">
                     <div id="searchResults" class="search-results"></div>
                 </div>
             </div>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="{{ route('groups.show', $group) }}" class="btn">Cancel</a>
+            <button type="submit" class="btn btn-primary">{{ __('chat.save_changes') }}</button>
+            <a href="{{ route('groups.show', $group) }}" class="btn">{{ __('chat.cancel') }}</a>
         </div>
     </form>
 
     <div class="danger-zone">
-        <h3>Danger Zone</h3>
-        <p>Once you delete a group, there is no going back. Please be certain.</p>
-        <form action="{{ route('groups.destroy', $group) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this group? This cannot be undone.');">
+        <h3>{{ __('chat.danger_zone') }}</h3>
+        <p>{{ __('chat.danger_zone_desc') }}</p>
+        <form action="{{ route('groups.destroy', $group) }}" method="POST" onsubmit="return confirm('{{ __('chat.delete_group_confirm') }}');">
             @csrf
             @method('DELETE')
-            <button type="submit" class="btn btn-danger">Delete Group</button>
+            <button type="submit" class="btn btn-danger">{{ __('chat.delete_group') }}</button>
         </form>
     </div>
 </div>

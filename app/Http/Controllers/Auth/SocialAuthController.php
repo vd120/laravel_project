@@ -76,7 +76,7 @@ class SocialAuthController extends Controller
                 session(['pending_verification_user_id' => $user->id]);
 
                 // Redirect to verification page
-                return redirect()->route('verification.notice')->with('message', 'Please verify your email to continue.');
+                return redirect()->route('verification.notice')->with('message', __('messages.please_verify_email'));
             }
 
             // Case 2: User exists but email is NOT verified (email_verified_at is null)
@@ -85,25 +85,25 @@ class SocialAuthController extends Controller
                 session(['pending_verification_user_id' => $user->id]);
 
                 // Redirect to verification page
-                return redirect()->route('verification.notice')->with('message', 'Please verify your email to continue.');
+                return redirect()->route('verification.notice')->with('message', __('messages.please_verify_email'));
             }
 
             // Case 3: User exists and email IS verified - log in and redirect to home
-            
+
             // Check if user is suspended
             if ($user->is_suspended) {
                 return redirect()->route('login')->with('suspended', true);
             }
-            
+
             Auth::login($user);
 
             // Regenerate session
             request()->session()->regenerate();
 
-            return redirect()->intended('/')->with('message', 'Welcome back, ' . $user->username . '!');
+            return redirect()->intended('/')->with('message', __('messages.welcome_back', ['username' => $user->username]));
         } catch (\Exception $e) {
             \Log::error('Google OAuth Error: ' . $e->getMessage());
-            return redirect()->route('login')->withErrors(['email' => 'Unable to login with Google. Please try again.']);
+            return redirect()->route('login')->withErrors(['email' => __('auth.google_login_error')]);
         }
     }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Create Story')
+@section('title', __('messages.create_story'))
 
 @section('content')
 @if(session('success'))
@@ -13,10 +13,10 @@
 
 <div class="create-story-page">
     <div class="page-header">
-        <h1>Create Story</h1>
+        <h1>{{ __('messages.create_story') }}</h1>
         <a href="{{ route('stories.index') }}" class="btn-secondary">
             <i class="fas fa-arrow-left"></i>
-            Cancel
+            {{ __('messages.cancel') }}
         </a>
     </div>
 
@@ -28,36 +28,36 @@
                 <label for="media" class="upload-label">
                     <div class="upload-placeholder" id="upload-placeholder">
                         <i class="fas fa-cloud-upload-alt"></i>
-                        <span>Click to upload image or video</span>
-                        <small>Max 50MB • JPG, PNG, GIF, MP4</small>
+                        <span>{{ __('messages.click_to_upload') }}</span>
+                        <small>{{ __('messages.max_50mb') }}</small>
                     </div>
                     <input type="file" id="media" name="media" accept="image/*,video/*" required onchange="previewMedia(this)">
                 </label>
 
                 <div class="media-preview" id="media-preview" style="display: none;">
-                    <img id="image-preview" src="" alt="Preview" style="display: none;">
+                    <img id="image-preview" src="" alt="{{ __('messages.story') }}" style="display: none;">
                     <div id="video-container" style="display: none;">
                         <video id="video-preview" controls></video>
                         <div class="video-trimmer" id="video-trimmer">
                             <div class="trim-info">
-                                <span>Trim Video (max 60 seconds)</span>
+                                <span>{{ __('messages.trim_video') }}</span>
                                 <span id="trim-duration">0s</span>
                             </div>
                             <div class="trim-controls">
                                 <div class="trim-input-group">
-                                    <label>Start:</label>
+                                    <label>{{ __('messages.trim_start') }}</label>
                                     <input type="range" id="trim-start" min="0" max="60" step="0.1" value="0" oninput="updateTrimRange()">
                                     <span id="trim-start-time">0:00</span>
                                 </div>
                                 <div class="trim-input-group">
-                                    <label>End:</label>
+                                    <label>{{ __('messages.trim_end') }}</label>
                                     <input type="range" id="trim-end" min="0" max="60" step="0.1" value="60" oninput="updateTrimRange()">
                                     <span id="trim-end-time">1:00</span>
                                 </div>
                             </div>
                             <div class="trim-preview">
                                 <button type="button" class="btn-trim-preview" onclick="previewTrim()">
-                                    <i class="fas fa-play"></i> Preview Trim
+                                    <i class="fas fa-play"></i> {{ __('messages.preview_trim') }}
                                 </button>
                             </div>
                         </div>
@@ -69,15 +69,15 @@
             </div>
 
             <div class="form-group">
-                <label for="content">Caption (optional)</label>
-                <textarea name="content" id="content" rows="3" maxlength="5000" placeholder="Add a caption to your story..."></textarea>
+                <label for="content">{{ __('messages.caption_optional') }}</label>
+                <textarea name="content" id="content" rows="3" maxlength="5000" placeholder="{{ __('messages.add_caption') }}"></textarea>
                 <span class="char-count" id="char-count">0/280</span>
             </div>
 
             <div class="form-actions">
                 <button type="submit" class="btn-primary" id="submit-btn" disabled>
                     <i class="fas fa-paper-plane"></i>
-                    Post Story
+                    {{ __('messages.post_story') }}
                 </button>
             </div>
         </form>

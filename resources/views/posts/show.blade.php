@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Post by ' . $post->user->username)
+@section('title', __('messages.post_detail_page'))
 
 @section('content')
 <div class="post-detail-page">
     <div class="page-header">
         <a href="{{ url()->previous() }}" class="back-link">
             <i class="fas fa-arrow-left"></i>
-            Back
+            {{ __('messages.back') }}
         </a>
-        <h1>Post</h1>
+        <h1>{{ __('messages.post_detail_page') }}</h1>
     </div>
 
     <div class="post-container">

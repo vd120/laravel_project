@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Users - Admin Panel')
+@section('title', __('admin.manage_users') . ' - Admin Panel')
 
 @section('content')
 <div class="admin-page">
@@ -11,12 +11,12 @@
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
-                <h1>Users</h1>
-                <p>Manage and moderate platform users</p>
+                <h1>{{ __('admin.users') }}</h1>
+                <p>{{ __('admin.manage_users_subtitle') }}</p>
             </div>
         </div>
         <div class="header-stats">
-            <span class="total-badge">{{ $users->total() }} Total</span>
+            <span class="total-badge">{{ $users->total() }} {{ __('admin.total') }}</span>
         </div>
     </div>
 
@@ -25,16 +25,16 @@
         <div class="search-form">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="search-input" value="{{ request('search') }}" placeholder="Search users..." autocomplete="off">
+                <input type="text" id="search-input" value="{{ request('search') }}" placeholder="{{ __('admin.search_users') }}" autocomplete="off">
             </div>
             <select id="filter-select" class="filter-select">
-                <option value="">All Users</option>
-                <option value="admin" {{ request('admin_filter') === 'admin' ? 'selected' : '' }}>Admins Only</option>
-                <option value="user" {{ request('admin_filter') === 'user' ? 'selected' : '' }}>Regular Users</option>
+                <option value="">{{ __('admin.all_users') }}</option>
+                <option value="admin" {{ request('admin_filter') === 'admin' ? 'selected' : '' }}>{{ __('admin.admins_only') }}</option>
+                <option value="user" {{ request('admin_filter') === 'user' ? 'selected' : '' }}>{{ __('admin.regular_users') }}</option>
             </select>
             @if(request('search') || request('admin_filter'))
             <a href="{{ route('admin.users') }}" class="clear-btn">
-                <i class="fas fa-times"></i> Clear
+                <i class="fas fa-times"></i> {{ __('admin.clear') }}
             </a>
             @endif
         </div>
@@ -44,12 +44,12 @@
     @if($users->count() > 0)
     <div class="users-table">
         <div class="table-header-row">
-            <div class="col-user">User</div>
-            <div class="col-email">Email</div>
-            <div class="col-role">Role</div>
-            <div class="col-status">Status</div>
-            <div class="col-joined">Joined</div>
-            <div class="col-actions">Actions</div>
+            <div class="col-user">{{ __('admin.user') }}</div>
+            <div class="col-email">{{ __('admin.email') }}</div>
+            <div class="col-role">{{ __('admin.role') }}</div>
+            <div class="col-status">{{ __('admin.status') }}</div>
+            <div class="col-joined">{{ __('admin.joined') }}</div>
+            <div class="col-actions">{{ __('admin.actions') }}</div>
         </div>
 
         @foreach($users as $user)
@@ -70,34 +70,34 @@
             <div class="col-email">{{ $user->email }}</div>
             <div class="col-role">
                 @if($user->is_admin)
-                <span class="badge admin">Admin</span>
+                <span class="badge admin">{{ __('admin.admin_badge') }}</span>
                 @else
-                <span class="badge user">User</span>
+                <span class="badge user">{{ __('admin.user_badge') }}</span>
                 @endif
             </div>
             <div class="col-status">
                 @if($user->is_suspended)
-                <span class="badge suspended">Suspended</span>
+                <span class="badge suspended">{{ __('admin.suspended') }}</span>
                 @elseif($user->profile && $user->profile->is_private)
-                <span class="badge private">Private</span>
+                <span class="badge private">{{ __('admin.private_badge') }}</span>
                 @else
-                <span class="badge active">Active</span>
+                <span class="badge active">{{ __('admin.active') }}</span>
                 @endif
             </div>
             <div class="col-joined">{{ $user->created_at->format('M j, Y') }}</div>
             <div class="col-actions">
                 <div class="action-buttons">
-                    <a href="{{ route('admin.users.show', $user) }}" class="action-btn view" title="View">
+                    <a href="{{ route('admin.users.show', $user) }}" class="action-btn view" title="{{ __('admin.view') }}">
                         <i class="fas fa-eye"></i>
                     </a>
-                    <a href="{{ route('admin.users.edit', $user) }}" class="action-btn edit" title="Edit">
+                    <a href="{{ route('admin.users.edit', $user) }}" class="action-btn edit" title="{{ __('admin.edit') }}">
                         <i class="fas fa-edit"></i>
                     </a>
                     @if($user->id !== auth()->id() && !$user->is_admin)
-                    <form method="POST" action="{{ route('admin.users.delete', $user) }}" onsubmit="return confirm('Delete this user?')">
+                    <form method="POST" action="{{ route('admin.users.delete', $user) }}" onsubmit="return confirm('{{ __('admin.delete_user_confirm') }}')">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="action-btn delete" title="Delete">
+                        <button type="submit" class="action-btn delete" title="{{ __('admin.delete') }}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
@@ -117,8 +117,8 @@
         <div class="empty-icon">
             <i class="fas fa-users"></i>
         </div>
-        <h3>No users found</h3>
-        <p>No users match your search criteria.</p>
+        <h3>{{ __('admin.no_users_found') }}</h3>
+        <p>{{ __('admin.no_users_match') }}</p>
     </div>
     @endif
 </div>
@@ -460,24 +460,24 @@
     .table-header-row {
         display: none;
     }
-    
+
     .table-row {
         grid-template-columns: 1fr;
         gap: 12px;
         padding: 20px;
     }
-    
+
     .col-user { order: 1; }
     .col-email { order: 2; }
     .col-role { order: 3; }
     .col-status { order: 4; }
     .col-joined { order: 5; }
     .col-actions { order: 6; justify-content: flex-start; }
-    
-    .col-email::before { content: 'Email: '; color: var(--text-muted); font-size: 12px; }
-    .col-role::before { content: 'Role: '; color: var(--text-muted); font-size: 12px; }
-    .col-status::before { content: 'Status: '; color: var(--text-muted); font-size: 12px; }
-    .col-joined::before { content: 'Joined: '; color: var(--text-muted); font-size: 12px; }
+
+    .col-email::before { content: '{{ __('admin.email') }}: '; color: var(--text-muted); font-size: 12px; }
+    .col-role::before { content: '{{ __('admin.role') }}: '; color: var(--text-muted); font-size: 12px; }
+    .col-status::before { content: '{{ __('admin.status') }}: '; color: var(--text-muted); font-size: 12px; }
+    .col-joined::before { content: '{{ __('admin.joined') }}: '; color: var(--text-muted); font-size: 12px; }
 }
 
 @media (max-width: 768px) {

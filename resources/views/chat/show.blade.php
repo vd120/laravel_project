@@ -42,10 +42,10 @@ $chatTitle = $conversation->is_group
                     <span class="username-text">{{ auth()->user()->username }}</span>
                 </div>
                 <div class="header-actions">
-                    <a href="{{ route('groups.create') }}" class="icon-btn" title="New Group">
+                    <a href="{{ route('groups.create') }}" class="icon-btn" title="{{ __('chat.new_group') }}">
                         <i class="fas fa-users"></i>
                     </a>
-                    <button class="icon-btn" onclick="showUserSearch()" title="New Message">
+                    <button class="icon-btn" onclick="showUserSearch()" title="{{ __('chat.new_message') }}">
                         <i class="fas fa-message"></i>
                     </button>
                 </div>
@@ -54,7 +54,7 @@ $chatTitle = $conversation->is_group
             <div class="search-bar">
                 <div class="search-input-wrapper">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search or start new chat" id="sidebarSearch" oninput="filterSidebarConversations(this.value)">
+                    <input type="text" placeholder="{{ __('chat.search_or_start_chat') }}" id="sidebarSearch" oninput="filterSidebarConversations(this.value)">
                 </div>
             </div>
             <div class="conversations-list" id="sidebarConvList">
@@ -85,32 +85,32 @@ $chatTitle = $conversation->is_group
                         switch ($latestMessage->type) {
                             case 'image':
                                 $messageIcon = '📷 ';
-                                $messagePreview = $isOwn ? 'You sent a photo' : 'Sent a photo';
+                                $messagePreview = $isOwn ? __('chat.you_sent_photo') : __('chat.sent_photo');
                                 break;
                             case 'video':
                                 $messageIcon = '🎥 ';
-                                $messagePreview = $isOwn ? 'You sent a video' : 'Sent a video';
+                                $messagePreview = $isOwn ? __('chat.you_sent_video') : __('chat.sent_video');
                                 break;
                             case 'audio':
                                 $messageIcon = '🎤 ';
-                                $messagePreview = $isOwn ? 'You sent an audio' : 'Sent an audio';
+                                $messagePreview = $isOwn ? __('chat.you_sent_audio') : __('chat.sent_audio');
                                 break;
                             case 'document':
                                 $messageIcon = '📎 ';
-                                $messagePreview = $isOwn ? 'You sent a document' : 'Sent a document';
+                                $messagePreview = $isOwn ? __('chat.you_sent_document') : __('chat.sent_document');
                                 break;
                             case 'gif':
                                 $messageIcon = 'GIF ';
-                                $messagePreview = $isOwn ? 'You sent a GIF' : 'Sent a GIF';
+                                $messagePreview = $isOwn ? __('chat.you_sent_gif') : __('chat.sent_gif');
                                 break;
                             case 'sticker':
                                 $messageIcon = '⭐ ';
-                                $messagePreview = $isOwn ? 'You sent a sticker' : 'Sent a sticker';
+                                $messagePreview = $isOwn ? __('chat.you_sent_sticker') : __('chat.sent_sticker');
                                 break;
                             case 'story_reply':
                                 $messageIcon = '📸 ';
                                 $content = trim(str_replace('📸 Reply to your story:', '', $content));
-                                $messagePreview = $isOwn ? 'You replied to story' : 'Replied to your story';
+                                $messagePreview = $isOwn ? __('chat.you_replied_to_story') : __('chat.replied_to_story');
                                 if (!empty($content)) {
                                     $messagePreview .= ': ' . Str::limit($content, 25);
                                 }
@@ -122,12 +122,12 @@ $chatTitle = $conversation->is_group
 
                         // Add "You: " prefix for own messages (except story replies)
                         if ($isOwn && $latestMessage->type !== 'story_reply') {
-                            $messagePreview = 'You: ' . $messagePreview;
+                            $messagePreview = __('chat.you').': ' . $messagePreview;
                         }
                     }
 
                     if (empty($messagePreview)) {
-                        $messagePreview = '👋 Start a conversation';
+                        $messagePreview = __('chat.start_a_conversation');
                     }
                 @endphp
                 <a href="{{ route('chat.show', $conv) }}" class="conversation-item {{ $conv->id === $conversation->id ? 'active' : '' }} {{ $conv->unread_count > 0 ? 'unread' : '' }}" data-name="{{ $displayName }}" data-user-id="{{ $isGroup ? '' : ($conv->other_user?->id ?? '') }}" data-conversation-slug="{{ $conv->slug }}">
@@ -153,7 +153,7 @@ $chatTitle = $conversation->is_group
                                     @endif
                                 </span>
                                 @if(!$isGroup && $conv->other_user)
-                                    <span class="typing-indicator-inline" style="display: none; color: #25d366; font-size: 11px; font-style: italic; margin-left: 6px;">typing...</span>
+                                    <span class="typing-indicator-inline" style="display: none; color: #25d366; font-size: 11px; font-style: italic; margin-left: 6px;">{{ __('chat.typing') }}</span>
                                 @endif
                             </div>
                             <span class="conv-time">@if($conv->last_message_at){{ \Carbon\Carbon::parse($conv->last_message_at)->format('H:i') }}@endif</span>
@@ -165,24 +165,24 @@ $chatTitle = $conversation->is_group
                                 @endif
                                 @if($latestMessage)
                                     @if($latestMessage->type === 'image')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent an image</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_an_image') }}</span>
                                     @elseif($latestMessage->type === 'video')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a video</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_a_video') }}</span>
                                     @elseif($latestMessage->type === 'audio')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent an audio</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_an_audio') }}</span>
                                     @elseif($latestMessage->type === 'document')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a document</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_a_document') }}</span>
                                     @elseif($latestMessage->type === 'gif')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a GIF</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_a_gif') }}</span>
                                     @elseif($latestMessage->type === 'sticker')
-                                        <span class="preview-text">{{ $isOwn ? 'You: ' : '' }}Sent a sticker</span>
+                                        <span class="preview-text">{{ $isOwn ? __('chat.you').': ' : '' }}{{ __('chat.sent_a_sticker') }}</span>
                                     @elseif($latestMessage->type === 'story_reply')
                                         <span class="preview-text">{{ $messagePreview }}</span>
                                     @else
                                         <span class="preview-text">{{ $messagePreview }}</span>
                                     @endif
                                 @else
-                                    <span class="preview-text">👋 Start a conversation</span>
+                                    <span class="preview-text">{{ __('chat.start_a_conversation') }}</span>
                                 @endif
                             </p>
                             @if($conv->unread_count > 0)
@@ -194,8 +194,8 @@ $chatTitle = $conversation->is_group
                 @empty
                 <div class="empty-state">
                     <div class="empty-icon"><i class="fas fa-comments"></i></div>
-                    <h3>No messages yet</h3>
-                    <p>Start a new conversation</p>
+                    <h3>{{ __('chat.no_messages_yet') }}</h3>
+                    <p>{{ __('chat.start_new_conversation') }}</p>
                 </div>
                 @endforelse
             </div>
@@ -212,7 +212,7 @@ $chatTitle = $conversation->is_group
                         <a href="{{ route('groups.show', $conversation->group) }}" class="chat-avatar-link">
                             <div class="chat-avatar">
                                 @if($conversation->group && $conversation->group->avatar)
-                                    <img src="{{ asset('storage/' . $conversation->group->avatar) }}" alt="Group">
+                                    <img src="{{ asset('storage/' . $conversation->group->avatar) }}" alt="{{ __('chat.group') }}">
                                 @else
                                     <div class="avatar-fallback"><i class="fas fa-users"></i></div>
                                 @endif
@@ -220,8 +220,8 @@ $chatTitle = $conversation->is_group
                         </a>
                         <a href="{{ route('groups.show', $conversation->group) }}" class="chat-details-link">
                             <div class="chat-details">
-                                <h3>{{ $conversation->group->name ?? $conversation->display_name ?? 'Group' }}</h3>
-                                <span class="status">{{ $conversation->group->members->count() ?? 0 }} members</span>
+                                <h3>{{ $conversation->group->name ?? $conversation->display_name ?? __('chat.group') }}</h3>
+                                <span class="status">{{ __('chat.member_count', ['count' => $conversation->group->members->count() ?? 0]) }}</span>
                             </div>
                         </a>
                     @else
@@ -233,19 +233,19 @@ $chatTitle = $conversation->is_group
                             @endif
                         </div>
                         <div class="chat-details">
-                            <h3>{{ $conversation->other_user->username ?? 'User' }}</h3>
+                            <h3>{{ $conversation->other_user->username ?? __('chat.user') }}</h3>
                             <span class="status" id="chat-user-status" data-user-id="{{ $conversation->other_user->id ?? '' }}">
                                 <span class="status-dot"></span>
-                                <span class="status-text">Offline</span>
+                                <span class="status-text">{{ __('chat.offline') }}</span>
                             </span>
                         </div>
                     @endif
                 </div>
                 <div class="chat-actions">
                     @if($conversation->is_group)
-                        <a href="{{ route('groups.show', $conversation->group) }}" class="action-btn"><i class="fas fa-info-circle"></i></a>
+                        <a href="{{ route('groups.show', $conversation->group) }}" class="action-btn" title="{{ __('chat.group') }}"><i class="fas fa-info-circle"></i></a>
                     @else
-                        <button class="action-btn" onclick="clearChat()"><i class="fas fa-trash"></i></button>
+                        <button class="action-btn" onclick="clearChat()" title="{{ __('chat.clear_chat') }}"><i class="fas fa-trash"></i></button>
                     @endif
                 </div>
             </header>
@@ -273,20 +273,20 @@ $chatTitle = $conversation->is_group
                                 <div class="invite-card">
                                     <div class="invite-icon"><i class="fas fa-users"></i></div>
                                     <div class="invite-content">
-                                        <div class="invite-title">{{ $inviteData['group_name'] ?? 'Group' }}</div>
-                                        <div class="invite-text">{{ $message->sender->username ?? $message->sender->name ?? 'Someone' }} invited you to join</div>
+                                        <div class="invite-title">{{ $inviteData['group_name'] ?? __('chat.group') }}</div>
+                                        <div class="invite-text">{{ $message->sender->username ?? $message->sender->name ?? __('chat.someone') }} {{ __('chat.invited_you_to_join') }}</div>
                                     </div>
                                     @if(!$message->is_mine && ($inviteData['invite_link'] ?? null))
-                                        <button class="accept-btn" onclick="acceptGroupInvite('{{ $inviteData['invite_link'] }}')"><i class="fas fa-check"></i> Join</button>
+                                        <button class="accept-btn" onclick="acceptGroupInvite('{{ $inviteData['invite_link'] }}')"><i class="fas fa-check"></i> {{ __('chat.join') }}</button>
                                     @endif
                                 </div>
                                 <span class="message-time">
                                     {{ $message->created_at->format('H:i') }}
                                     @if($message->is_mine)
                                         @if($message->read_at)
-                                            <i class="fas fa-check-double read" title="Seen"></i>
+                                            <i class="fas fa-check-double read" title="{{ __('chat.seen') }}"></i>
                                         @else
-                                            <i class="fas fa-check" title="Sent"></i>
+                                            <i class="fas fa-check" title="{{ __('chat.sent') }}"></i>
                                         @endif
                                     @endif
                                 </span>
@@ -305,7 +305,7 @@ $chatTitle = $conversation->is_group
                                 @endif
                                 <div class="message-content">
                                     @if($message->trashed())
-                                        <em class="deleted-text">message deleted</em>
+                                        <em class="deleted-text">{{ __('chat.message_deleted') }}</em>
                                     @else
                                         @php
                                             // Handle multiple media files (stored as JSON)
@@ -404,7 +404,7 @@ $chatTitle = $conversation->is_group
                                             @if($isStoryReply)
                                                 <div class="story-reply-message">
                                                     <div class="story-reply-header">
-                                                        <span class="story-reply-label">Story Reply</span>
+                                                        <span class="story-reply-label">{{ __('chat.story_reply') }}</span>
                                                     </div>
                                                     <div class="story-reply-content">{{ $storyReplyContent }}</div>
                                                 </div>
@@ -418,16 +418,16 @@ $chatTitle = $conversation->is_group
                                         @if($message->is_mine)
                                             @if($message->read_at)
                                                 {{-- 2 blue checks - message read/seen --}}
-                                                <i class="fas fa-check-double read" title="Seen"></i>
+                                                <i class="fas fa-check-double read" title="{{ __('chat.seen') }}"></i>
                                             @else
                                                 {{-- 1 gray check - message sent but not delivered --}}
-                                                <i class="fas fa-check" title="Sent"></i>
+                                                <i class="fas fa-check" title="{{ __('chat.sent') }}"></i>
                                             @endif
                                         @endif
                                     </span>
                                 </div>
                                 @if($message->is_mine && !$message->trashed())
-                                    <button class="delete-btn" onclick="deleteMessage({{ $message->id }})"><i class="fas fa-trash"></i></button>
+                                    <button class="delete-btn" onclick="deleteMessage({{ $message->id }})" title="{{ __('chat.delete_message') }}"><i class="fas fa-trash"></i></button>
                                 @endif
                             </div>
                         </div>
@@ -435,7 +435,7 @@ $chatTitle = $conversation->is_group
                 @empty
                     <div class="no-messages">
                         <i class="fas fa-comments"></i>
-                        <p>Start a conversation with {{ $conversation->other_user->username ?? 'User' }}</p>
+                        <p>{{ __('chat.no_messages_in_chat', ['user' => $conversation->other_user->username ?? __('chat.user')]) }}</p>
                     </div>
                 @endforelse
             </div>
@@ -448,18 +448,18 @@ $chatTitle = $conversation->is_group
                         <span class="dot"></span>
                         <span class="dot"></span>
                     </span>
-                    <span class="typing-text">{{ $conversation->other_user->username ?? 'User' }} is typing...</span>
+                    <span class="typing-text">{{ __('chat.is_typing', ['user' => $conversation->other_user->username ?? __('chat.user')]) }}</span>
                 </div>
                 <form id="messageForm" onsubmit="sendMessage(event)">
                     <div id="mediaPreview" class="media-preview" style="display: none;">
                         <div class="preview-carousel">
-                            <button type="button" class="carousel-arrow left" onclick="movePreview(-1)" title="Previous">
+                            <button type="button" class="carousel-arrow left" onclick="movePreview(-1)" title="{{ __('chat.previous') }}">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
                             <div class="preview-slides" id="previewSlides">
                                 <!-- Slides will be added here -->
                             </div>
-                            <button type="button" class="carousel-arrow right" onclick="movePreview(1)" title="Next">
+                            <button type="button" class="carousel-arrow right" onclick="movePreview(1)" title="{{ __('chat.next') }}">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         </div>
@@ -468,16 +468,16 @@ $chatTitle = $conversation->is_group
                         </div>
                         <div class="preview-info">
                             <span id="previewCount">1 / 1</span>
-                            <button type="button" class="clear-all" onclick="clearMediaPreview()" title="Remove all">
+                            <button type="button" class="clear-all" onclick="clearMediaPreview()" title="{{ __('chat.remove_all') }}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </div>
                     <div class="input-row">
-                        <label for="mediaInput" class="attach-btn" title="Attach"><i class="fas fa-paperclip"></i></label>
+                        <label for="mediaInput" class="attach-btn" title="{{ __('chat.attach') }}"><i class="fas fa-paperclip"></i></label>
                         <input type="file" id="mediaInput" accept="image/*,video/*" multiple onchange="handleMediaSelect(event)" style="display: none;">
-                        <input type="text" id="messageInput" placeholder="Type a message" maxlength="1000" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                        <button type="submit" id="sendButton" class="send-btn"><i class="fas fa-paper-plane"></i></button>
+                        <input type="text" id="messageInput" placeholder="{{ __('chat.type_a_message') }}" maxlength="1000" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                        <button type="submit" id="sendButton" class="send-btn" title="{{ __('chat.send') }}"><i class="fas fa-paper-plane"></i></button>
                     </div>
                 </form>
             </div>
@@ -486,9 +486,9 @@ $chatTitle = $conversation->is_group
 
     {{-- Media Viewer Modal --}}
     <div id="mediaViewer" class="media-viewer" onclick="closeMediaViewerOnOverlay(event)">
-        <button class="viewer-close" onclick="closeMediaViewer()"><i class="fas fa-times"></i></button>
-        <button class="viewer-arrow left" onclick="navigateMedia(-1, event)"><i class="fas fa-chevron-left"></i></button>
-        <button class="viewer-arrow right" onclick="navigateMedia(1, event)"><i class="fas fa-chevron-right"></i></button>
+        <button class="viewer-close" onclick="closeMediaViewer()" title="{{ __('chat.close') }}"><i class="fas fa-times"></i></button>
+        <button class="viewer-arrow left" onclick="navigateMedia(-1, event)" title="{{ __('chat.previous') }}"><i class="fas fa-chevron-left"></i></button>
+        <button class="viewer-arrow right" onclick="navigateMedia(1, event)" title="{{ __('chat.next') }}"><i class="fas fa-chevron-right"></i></button>
         <div class="viewer-content">
             <img id="viewerImage" src="" alt="Full size">
             <video id="viewerVideo" src="" controls style="display: none; max-width: 90%; max-height: 90vh;"></video>
@@ -501,13 +501,13 @@ $chatTitle = $conversation->is_group
         <div class="modal-box">
             <div class="modal-header">
                 <button class="back-btn" onclick="hideUserSearch()"><i class="fas fa-arrow-left"></i></button>
-                <h3>New Chat</h3>
+                <h3>{{ __('chat.new_chat') }}</h3>
                 <div class="spacer"></div>
             </div>
             <div class="modal-body">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="userSearch" placeholder="Search contacts..." class="search-input">
+                    <input type="text" id="userSearch" placeholder="{{ __('chat.search_contacts') }}" class="search-input">
                 </div>
                 <div id="userResults" class="results-list"></div>
             </div>
@@ -518,23 +518,23 @@ $chatTitle = $conversation->is_group
     <div id="deleteMessageModal" class="modal-overlay" style="display: none;" onclick="if(event.target===this)closeDeleteModal()">
         <div class="modal-box delete-modal">
             <div class="modal-header">
-                <h3>Delete Message</h3>
-                <button class="close-btn" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
+                <h3>{{ __('chat.delete_message') }}</h3>
+                <button class="close-btn" onclick="closeDeleteModal()" title="{{ __('chat.close') }}"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <p class="delete-description">Choose who should have this message deleted:</p>
+                <p class="delete-description">{{ __('chat.delete_message_desc') }}</p>
                 <button class="delete-option" onclick="confirmDelete('everyone')">
                     <div class="delete-option-icon"><i class="fas fa-users"></i></div>
                     <div class="delete-option-content">
-                        <div class="delete-option-title">Delete for Everyone</div>
-                        <div class="delete-option-desc">Message will be removed for all participants</div>
+                        <div class="delete-option-title">{{ __('chat.delete_for_everyone') }}</div>
+                        <div class="delete-option-desc">{{ __('chat.delete_for_everyone_desc') }}</div>
                     </div>
                 </button>
                 <button class="delete-option" onclick="confirmDelete('me')">
                     <div class="delete-option-icon"><i class="fas fa-user"></i></div>
                     <div class="delete-option-content">
-                        <div class="delete-option-title">Delete for Me</div>
-                        <div class="delete-option-desc">Only you will have this message removed</div>
+                        <div class="delete-option-title">{{ __('chat.delete_for_me') }}</div>
+                        <div class="delete-option-desc">{{ __('chat.delete_for_me_desc') }}</div>
                     </div>
                 </button>
             </div>
@@ -2745,12 +2745,12 @@ function sendMediaMessage(content, mediaFile) {
             input.value = '';
             clearMediaPreview();
         } else {
-            alert(data.error || 'Failed to send media. Please try again.');
+            alert(data.error || window.chatTranslations.failed_to_send_media);
         }
     })
     .catch(err => {
         console.error('Error sending media:', err);
-        alert('Error sending media. Please try again.');
+        alert(window.chatTranslations.error_sending_media);
     })
     .finally(() => {
         input.disabled = false;
@@ -2819,12 +2819,12 @@ function addMessage(msg) {
                     <div class="invite-card">
                         <div class="invite-icon"><i class="fas fa-users"></i></div>
                         <div class="invite-content">
-                            <div class="invite-title">${escapeHtml(inviteData.group_name || 'Group')}</div>
-                            <div class="invite-text">${escapeHtml(msg.sender?.username || msg.sender?.name || 'Someone')} invited you to join</div>
+                            <div class="invite-title">${escapeHtml(inviteData.group_name || window.chatTranslations.group)}</div>
+                            <div class="invite-text">${escapeHtml(msg.sender?.username || msg.sender?.name || 'Someone')} ${escapeHtml(window.chatTranslations.invited_you_to_join)}</div>
                         </div>
-                        ${!isOwn && inviteData.invite_link ? `<button class="accept-btn" onclick="acceptGroupInvite('${escapeHtml(inviteData.invite_link)}')"><i class="fas fa-check"></i> Join</button>` : ''}
+                        ${!isOwn && inviteData.invite_link ? `<button class="accept-btn" onclick="acceptGroupInvite('${escapeHtml(inviteData.invite_link)}')"><i class="fas fa-check"></i> ${escapeHtml(window.chatTranslations.join)}</button>` : ''}
                     </div>
-                    <span class="message-time">${time}${isOwn ? '<i class="fas fa-check" title="Sent"></i>' : ''}</span>
+                    <span class="message-time">${time}${isOwn ? '<i class="fas fa-check" title="' + window.chatTranslations.sent + '"></i>' : ''}</span>
                 </div>
             `;
             container.appendChild(div);
@@ -2910,7 +2910,7 @@ function addMessage(msg) {
             const storyReplyContent = msg.content.replace('📸 Reply to your story:', '').trim();
             contentHtml += `<div class="story-reply-message">
                 <div class="story-reply-header">
-                    <span class="story-reply-label">Story Reply</span>
+                    <span class="story-reply-label">${escapeHtml(window.chatTranslations.story_reply)}</span>
                 </div>
                 <div class="story-reply-content">${escapeHtml(storyReplyContent)}</div>
             </div>`;
@@ -2921,7 +2921,7 @@ function addMessage(msg) {
 
     // Time with read receipts for own messages
     if (isOwn) {
-        timeHtml = `<span class="message-time">${time}<i class="fas fa-check" title="Sent"></i></span>`;
+        timeHtml = `<span class="message-time">${time}<i class="fas fa-check" title="${escapeHtml(window.chatTranslations.sent)}"></i></span>`;
     } else {
         timeHtml = `<span class="message-time">${time}</span>`;
     }
@@ -3272,7 +3272,7 @@ document.addEventListener('keydown', (e) => {
 
 // Clear chat
 function clearChat() {
-    if (confirm('Clear all messages in this chat?')) {
+    if (confirm('{{ __('chat.confirm_delete') }}')) {
         fetch(`{{ route('chat.clear', $conversation) }}`, {
             method: 'DELETE',
             headers: {
@@ -3325,13 +3325,13 @@ function confirmDelete(type) {
 function handleDeleteMessage(messageId, deleteType, deletedFor) {
     const msgEl = document.querySelector(`.message[data-message-id="${messageId}"]`);
     if (!msgEl) return;
-    
+
     if (deleteType === 'everyone') {
         // Show "message deleted" for everyone
         msgEl.classList.add('deleted');
         const content = msgEl.querySelector('.message-content');
         if (content) {
-            content.innerHTML = '<em class="deleted-text">message deleted</em>';
+            content.innerHTML = `<em class="deleted-text">${window.chatTranslations.message_deleted}</em>`;
         }
         // Remove delete button
         const deleteBtn = msgEl.querySelector('.delete-btn');
@@ -3348,7 +3348,7 @@ function markMessageAsDeleted(id) {
     if (el) {
         const contentEl = el.querySelector('.message-content');
         if (contentEl) {
-            contentEl.innerHTML = '<em class="deleted-text">message deleted</em>';
+            contentEl.innerHTML = `<em class="deleted-text">${window.chatTranslations.message_deleted}</em>`;
             el.classList.add('deleted');
         }
         // Remove delete button
@@ -3396,17 +3396,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Delivery confirmations and read-marking delegated to RealTime.js
 
+// Translation strings for JavaScript
+window.chatTranslations = {
+    you: '{{ __('chat.you') }}',
+    sent_an_image: '{{ __('chat.sent_an_image') }}',
+    sent_a_video: '{{ __('chat.sent_a_video') }}',
+    sent_an_audio: '{{ __('chat.sent_an_audio') }}',
+    sent_a_document: '{{ __('chat.sent_a_document') }}',
+    sent_a_gif: '{{ __('chat.sent_a_gif') }}',
+    sent_a_sticker: '{{ __('chat.sent_a_sticker') }}',
+    replied_to_story: '{{ __('chat.replied_to_story') }}',
+    story_reply: '{{ __('chat.story_reply') }}',
+    message_deleted: '{{ __('chat.message_deleted') }}',
+    failed_to_send_media: '{{ __('chat.failed_to_send_media') }}',
+    error_sending_media: '{{ __('chat.error_sending_media') }}',
+    group: '{{ __('chat.group') }}',
+    invited_you_to_join: '{{ __('chat.invited_you_to_join') }}',
+    join: '{{ __('chat.join') }}',
+    sent: '{{ __('chat.sent') }}',
+};
+
 // Get media preview text
 function getMediaPreviewText(type, isOwn) {
-    const prefix = isOwn ? 'You: ' : '';
+    const prefix = isOwn ? window.chatTranslations.you + ': ' : '';
     switch(type) {
-        case 'image': return prefix + 'Sent an image';
-        case 'video': return prefix + 'Sent a video';
-        case 'audio': return prefix + 'Sent an audio';
-        case 'document': return prefix + 'Sent a document';
-        case 'gif': return prefix + 'Sent a GIF';
-        case 'sticker': return prefix + 'Sent a sticker';
-        case 'story_reply': return prefix + 'Replied to story';
+        case 'image': return prefix + window.chatTranslations.sent_an_image;
+        case 'video': return prefix + window.chatTranslations.sent_a_video;
+        case 'audio': return prefix + window.chatTranslations.sent_an_audio;
+        case 'document': return prefix + window.chatTranslations.sent_a_document;
+        case 'gif': return prefix + window.chatTranslations.sent_a_gif;
+        case 'sticker': return prefix + window.chatTranslations.sent_a_sticker;
+        case 'story_reply': return prefix + window.chatTranslations.replied_to_story;
         default: return '';
     }
 }

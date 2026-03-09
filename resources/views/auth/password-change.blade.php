@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Change Password — Nexus</title>
+    <title>{{ __('auth.change_password_title') }} — Nexus</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -47,7 +47,7 @@
             min-height:100vh;
         }
 
-        /* NAV — identical to login/register */
+        /* NAV — Regular authenticated user header style */
         nav{
             position:fixed;
             top:0;
@@ -101,7 +101,7 @@
             color:#000000;
         }
 
-        /* Action buttons - match landing page header */
+        /* Action buttons - match regular header */
         #themeToggle {
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -145,6 +145,86 @@
         }
         [data-theme="light"] .back-btn:hover {
             background: rgba(0, 0, 0, 0.05);
+        }
+
+        /* Language switcher styles */
+        .language-switcher {
+            position: relative;
+            display: inline-block;
+        }
+        .language-toggle {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 8px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .language-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        [data-theme="light"] .language-toggle {
+            border-color: rgba(0, 0, 0, 0.2);
+            color: #111111;
+        }
+        [data-theme="light"] .language-toggle:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .language-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            min-width: 160px;
+            background: rgba(22, 22, 22, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            overflow: hidden;
+            padding: 8px;
+        }
+        [data-theme="light"] .language-dropdown {
+            background: rgba(255, 255, 255, 0.98);
+            border-color: rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+        .language-option:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        [data-theme="light"] .language-option:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .language-option.active {
+            color: #5e60ce;
+        }
+        .language-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: rgba(0, 0, 0, 0.5);
         }
 
         /* PAGE WRAP */
@@ -360,18 +440,19 @@
     <div class="nav-container">
         <a href="{{ route('home') }}" class="nav-brand">Nexus</a>
         <div style="display: flex; align-items: center; gap: 12px;">
-            <button type="button" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
+            @include('layouts.language')
+            <button type="button" id="themeToggle" onclick="toggleTheme()" title="{{ __('auth.toggle_theme') }}">
                 <i class="fas fa-moon" id="theme-icon"></i>
             </button>
-            <a href="{{ route('users.show', auth()->user()) }}" class="back-btn">← Back to Profile</a>
+            <a href="{{ route('users.show', auth()->user()) }}" class="back-btn">← {{ __('auth.back_to_profile') }}</a>
         </div>
     </div>
 </nav>
 
 <div class="page">
     <div class="login-card">
-        <h1 class="login-title">Change Password</h1>
-        <p class="login-sub">Update your password to keep your account secure.</p>
+        <h1 class="login-title">{{ __('auth.change_password_title') }}</h1>
+        <p class="login-sub">{{ __('auth.change_password_subtitle') }}</p>
 
         @if(session('success'))
             <div class="alert-success">
@@ -395,9 +476,9 @@
             <input type="text" name="username" value="{{ auth()->user()->email }}" autocomplete="username" style="display: none;" aria-hidden="true">
 
             <div class="field">
-                <label for="current_password">Current Password</label>
+                <label for="current_password">{{ __('auth.current_password') }}</label>
                 <div class="password-wrap">
-                    <input type="password" name="current_password" id="current_password" placeholder="Enter current password" required autocomplete="current-password">
+                    <input type="password" name="current_password" id="current_password" placeholder="{{ __('auth.current_password_placeholder') }}" required autocomplete="current-password">
                     <button type="button" class="toggle-pw" onclick="togglePw('current_password','current-eye')">
                         <i class="fas fa-eye" id="current-eye"></i>
                     </button>
@@ -406,9 +487,9 @@
             </div>
 
             <div class="field">
-                <label for="password">New Password</label>
+                <label for="password">{{ __('auth.new_password') }}</label>
                 <div class="password-wrap">
-                    <input type="password" name="password" id="password" placeholder="Create a new password" required autocomplete="new-password">
+                    <input type="password" name="password" id="password" placeholder="{{ __('auth.new_password_placeholder') }}" required autocomplete="new-password">
                     <button type="button" class="toggle-pw" onclick="togglePw('password','password-eye')">
                         <i class="fas fa-eye" id="password-eye"></i>
                     </button>
@@ -419,9 +500,9 @@
             </div>
 
             <div class="field">
-                <label for="password_confirmation">Confirm New Password</label>
+                <label for="password_confirmation">{{ __('auth.confirm_new_password') }}</label>
                 <div class="password-wrap">
-                    <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Repeat your new password" required autocomplete="new-password">
+                    <input type="password" name="password_confirmation" id="password_confirmation" placeholder="{{ __('auth.confirm_new_password_placeholder') }}" required autocomplete="new-password">
                     <button type="button" class="toggle-pw" onclick="togglePw('password_confirmation','confirm-eye')">
                         <i class="fas fa-eye" id="confirm-eye"></i>
                     </button>
@@ -431,13 +512,13 @@
             </div>
 
             <button type="submit" class="btn btn-primary">
-                Update Password <i class="fas fa-shield-alt"></i>
+                {{ __('auth.update_password_button') }} <i class="fas fa-shield-alt"></i>
             </button>
         </form>
 
         <div class="card-footer">
             <a href="{{ route('users.show', auth()->user()) }}">
-                <i class="fas fa-user"></i> Back to Profile
+                <i class="fas fa-user"></i> {{ __('auth.back_to_profile') }}
             </a>
         </div>
     </div>
@@ -476,11 +557,16 @@
         if (/[^A-Za-z0-9]/.test(val)) score++;
 
         const level = score <= 2 ? 'weak' : score === 3 ? 'medium' : score === 4 ? 'strong' : 'very-strong';
-        const label = { weak: 'Weak', medium: 'Medium', strong: 'Strong', 'very-strong': 'Very Strong' }[level];
+        const labelMap = {
+            'weak': '{{ __('auth.weak') }}',
+            'medium': '{{ __('auth.medium') }}',
+            'strong': '{{ __('auth.strong') }}',
+            'very-strong': '{{ __('auth.very_strong') }}'
+        };
 
         fill.className = 'strength-fill ' + level;
         lbl.className = 'strength-label ' + level;
-        lbl.textContent = label;
+        lbl.textContent = labelMap[level];
         checkMatch();
     });
 
@@ -493,10 +579,10 @@
         if (!conf.length) { div.textContent = ''; div.className = 'field-status'; return; }
 
         if (pass === conf) {
-            div.textContent = '✓ Passwords match';
+            div.textContent = '{{ __('auth.passwords_match') }}';
             div.className = 'field-status matching';
         } else {
-            div.textContent = '✗ Passwords do not match';
+            div.textContent = '{{ __('auth.passwords_not_match') }}';
             div.className = 'field-status not-matching';
         }
     }
@@ -522,6 +608,81 @@
         } else {
             icon.className = 'fas fa-sun';
         }
+    })();
+
+    // Language switcher functions
+    function toggleLanguageDropdown() {
+        const dropdown = document.getElementById('language-dropdown');
+        const overlay = document.getElementById('language-overlay');
+        const arrow = document.getElementById('lang-arrow');
+        const toggle = document.querySelector('.language-toggle');
+
+        const isVisible = dropdown && dropdown.style.display === 'block';
+
+        if (isVisible) {
+            dropdown.style.display = 'none';
+            overlay.style.display = 'none';
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
+            toggle.setAttribute('aria-expanded', 'false');
+        } else {
+            dropdown.style.display = 'block';
+            overlay.style.display = 'block';
+            if (arrow) arrow.style.transform = 'rotate(180deg)';
+            toggle.setAttribute('aria-expanded', 'true');
+        }
+    }
+
+    function switchLanguage(locale) {
+        const loading = document.getElementById('language-loading');
+        if (loading) {
+            loading.style.display = 'flex';
+        }
+        toggleLanguageDropdown();
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = '/lang/' + locale + '?return=' + encodeURIComponent(currentPath);
+    }
+
+    document.addEventListener('click', function(event) {
+        const switcher = document.querySelector('.language-switcher');
+        if (switcher && !switcher.contains(event.target)) {
+            const dropdown = document.getElementById('language-dropdown');
+            const overlay = document.getElementById('language-overlay');
+            const arrow = document.getElementById('lang-arrow');
+            const toggle = document.querySelector('.language-toggle');
+
+            if (dropdown) dropdown.style.display = 'none';
+            if (overlay) overlay.style.display = 'none';
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // Theme-aware styling for language switcher
+    (function() {
+        const checkTheme = () => {
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            const toggle = document.querySelector('.language-toggle');
+            const dropdown = document.getElementById('language-dropdown');
+
+            if (toggle) {
+                toggle.style.borderColor = isLight ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
+                toggle.style.color = isLight ? '#111111' : '#ffffff';
+            }
+
+            if (dropdown) {
+                dropdown.style.background = isLight ? 'rgba(255, 255, 255, 0.98)' : 'rgba(22, 22, 22, 0.98)';
+                dropdown.style.borderColor = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+                dropdown.style.boxShadow = isLight ? '0 10px 40px rgba(0, 0, 0, 0.15)' : '0 10px 40px rgba(0, 0, 0, 0.4)';
+            }
+        };
+
+        checkTheme();
+
+        const observer = new MutationObserver(checkTheme);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme']
+        });
     })();
 </script>
 

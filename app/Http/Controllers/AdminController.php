@@ -224,20 +224,20 @@ class AdminController extends Controller
         // Update or create profile
         $user->profile()->updateOrCreate(['user_id' => $user->id], $profileData);
 
-        return redirect()->route('admin.users.show', $user)->with('success', 'User updated successfully');
+        return redirect()->route('admin.users.show', $user)->with('success', __('messages.user_updated'));
     }
 
     public function deleteUser(User $user)
     {
         // Prevent deleting admin accounts (except self)
         if ($user->is_admin && $user->id !== auth()->id()) {
-            return redirect()->back()->with('error', 'Cannot delete admin accounts');
+            return redirect()->back()->with('error', __('messages.cannot_delete_admin'));
         }
 
         // Delete user and all related data
         $user->delete();
 
-        return redirect()->route('admin.users')->with('success', 'User deleted successfully');
+        return redirect()->route('admin.users')->with('success', __('messages.user_deleted'));
     }
 
     public function posts(Request $request)
@@ -265,7 +265,7 @@ class AdminController extends Controller
 
         $post->delete();
 
-        return redirect()->back()->with('success', 'Post deleted successfully');
+        return redirect()->back()->with('success', __('messages.post_deleted'));
     }
 
     public function comments(Request $request)
@@ -286,7 +286,7 @@ class AdminController extends Controller
     {
         $comment->delete();
 
-        return redirect()->back()->with('success', 'Comment deleted successfully');
+        return redirect()->back()->with('success', __('messages.comment_deleted'));
     }
 
     public function stories(Request $request)
@@ -315,7 +315,7 @@ class AdminController extends Controller
 
         $story->delete();
 
-        return redirect()->back()->with('success', 'Story deleted successfully');
+        return redirect()->back()->with('success', __('messages.story_deleted'));
     }
 
 
@@ -343,6 +343,6 @@ class AdminController extends Controller
             'is_private' => false,
         ]);
 
-        return redirect()->back()->with('success', 'Admin account created successfully');
+        return redirect()->back()->with('success', __('messages.admin_account_created'));
     }
 }

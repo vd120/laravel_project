@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'AI Assistant - Nexus')
+@section('title', __('ai.title') . ' - Nexus')
 
 @section('content')
 <style>
@@ -296,7 +296,64 @@
     margin: 0;
 }
 
-/* Help List - Simple vertical list */
+/* Quick Action Buttons - Clean Grid Layout */
+.message-bubble .quick-actions {
+    margin-top: 16px;
+}
+
+.message-bubble .quick-action-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.message-bubble .quick-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px;
+    background: var(--wa-bg);
+    border: 1px solid var(--wa-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.message-bubble .quick-btn:hover {
+    background: var(--wa-panel-hover);
+    border-color: var(--wa-accent);
+    transform: translateY(-2px);
+}
+
+.message-bubble .quick-btn:active {
+    transform: translateY(0);
+}
+
+.message-bubble .quick-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--wa-accent), var(--wa-blue));
+    color: white;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.message-bubble .quick-label {
+    font-size: 10px;
+    color: var(--wa-text);
+    text-align: center;
+    line-height: 1.2;
+    font-weight: 500;
+}
+
+/* Help List - Simple vertical list (legacy) */
 .message-bubble .help-list {
     display: flex;
     flex-direction: column;
@@ -346,6 +403,86 @@
     color: var(--wa-text-muted);
     margin-top: 4px;
     text-align: right;
+}
+
+/* AI Typing Indicator - Clean & Professional */
+@keyframes cursorBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* Message content during typing - responsive */
+.message-content {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.message-content strong {
+    font-weight: 600;
+    color: var(--wa-accent);
+}
+
+.message-content .emoji {
+    display: inline-block;
+}
+
+.typing-indicator {
+    display: inline-flex;
+    gap: 4px;
+    padding: 8px 12px;
+    background: var(--wa-panel-hover);
+    border-radius: 12px;
+    align-items: center;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--wa-text-muted);
+    border-radius: 50%;
+    animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+    30% {
+        transform: translateY(-4px);
+        opacity: 1;
+    }
+}
+
+/* Cursor for typewriter effect */
+.cursor {
+    display: inline-block;
+    width: 2px;
+    height: 16px;
+    background: var(--wa-accent);
+    margin-left: 1px;
+    vertical-align: middle;
+    animation: cursorBlink 1s step-end infinite;
+}
+
+/* Message styling */
+.message.ai .message-bubble {
+    position: relative;
+}
+
+.message.ai .message-bubble strong {
+    color: var(--wa-accent);
+    font-weight: 600;
 }
 
 .user-bubble .message-time {
@@ -597,6 +734,26 @@
         font-size: 11px;
     }
 
+    /* Quick buttons mobile */
+    .message-bubble .quick-action-row {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .message-bubble .quick-btn {
+        padding: 10px 6px;
+    }
+
+    .message-bubble .quick-num {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+
+    .message-bubble .quick-label {
+        font-size: 9px;
+    }
+
     .message-time {
         font-size: 9px;
     }
@@ -619,12 +776,22 @@
         height: 34px;
         font-size: 14px;
     }
+
+    /* Message content mobile responsive */
+    .message-content {
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .message-content .emoji {
+        font-size: 14px;
+    }
 }
 </style>
 
 <div class="ai-page">
     <header class="ai-header">
-        <a href="{{ route('home') }}" class="back-btn" title="Back to Home">
+        <a href="{{ route('home') }}" class="back-btn" title="{{ __('home.back') }}">
             <i class="fas fa-arrow-left"></i>
         </a>
         <div class="ai-avatar">
@@ -632,70 +799,76 @@
         </div>
         <div class="ai-info">
             <h1>
-                Nexus AI
+                {{ __('ai.assistant_name') }}
                 <i class="fas fa-check-circle" style="color: var(--wa-blue); font-size: 14px;"></i>
             </h1>
             <div class="ai-status">
                 <span class="status-dot"></span>
-                Always Online
+                {{ __('ai.online') }}
             </div>
         </div>
         <div class="header-actions">
-            <button class="icon-btn" onclick="clearChat()" title="Clear chat">
+            <button class="icon-btn" onclick="clearChat()" title="{{ __('ai.clear_chat') }}">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
     </header>
 
     <div class="chat-container" id="chatContainer">
-        <!-- Welcome Message as Regular Chat -->
+        <!-- Welcome Message -->
         <div class="message ai" id="welcomeMessage">
             <div class="message-avatar">
                 <i class="fas fa-robot"></i>
             </div>
             <div class="message-bubble">
-                <p><strong>🤖 Hi! I'm Nexus AI Assistant</strong></p>
-                <p>Type a number (1-9) to get help:</p>
-                
-                <div class="help-list">
-                    <div class="help-item" onclick="sendQuickMessage('1')">
-                        <span class="help-number">1</span>
-                        <span class="help-text">Help & Menu</span>
+                <p><strong>🤖 {{ __('ai.welcome_greeting') }}</strong></p>
+                <p style="margin-top: 12px; color: var(--wa-text-muted);">{{ __('ai.welcome_instruction') }}</p>
+
+                <div class="quick-actions">
+                    <div class="quick-action-row">
+                        <button class="quick-btn" onclick="sendQuickMessage('1')">
+                            <span class="quick-num">1</span>
+                            <span class="quick-label">{{ __('ai.help_menu') }}</span>
+                        </button>
+                        <button class="quick-btn" onclick="sendQuickMessage('2')">
+                            <span class="quick-num">2</span>
+                            <span class="quick-label">{{ __('ai.writing_posts') }}</span>
+                        </button>
+                        <button class="quick-btn" onclick="sendQuickMessage('3')">
+                            <span class="quick-num">3</span>
+                            <span class="quick-label">{{ __('ai.follow_suggestions') }}</span>
+                        </button>
                     </div>
-                    <div class="help-item" onclick="sendQuickMessage('2')">
-                        <span class="help-number">2</span>
-                        <span class="help-text">Writing Posts</span>
+                    <div class="quick-action-row">
+                        <button class="quick-btn" onclick="sendQuickMessage('4')">
+                            <span class="quick-num">4</span>
+                            <span class="quick-label">{{ __('ai.trending_topics') }}</span>
+                        </button>
+                        <button class="quick-btn" onclick="sendQuickMessage('5')">
+                            <span class="quick-num">5</span>
+                            <span class="quick-label">{{ __('ai.privacy_guide') }}</span>
+                        </button>
+                        <button class="quick-btn" onclick="sendQuickMessage('6')">
+                            <span class="quick-num">6</span>
+                            <span class="quick-label">{{ __('ai.engagement_tips') }}</span>
+                        </button>
                     </div>
-                    <div class="help-item" onclick="sendQuickMessage('3')">
-                        <span class="help-number">3</span>
-                        <span class="help-text">Follow Tips</span>
-                    </div>
-                    <div class="help-item" onclick="sendQuickMessage('4')">
-                        <span class="help-number">4</span>
-                        <span class="help-text">Trending Topics</span>
-                    </div>
-                    <div class="help-item" onclick="sendQuickMessage('5')">
-                        <span class="help-number">5</span>
-                        <span class="help-text">Privacy Guide</span>
-                    </div>
-                    <div class="help-item" onclick="sendQuickMessage('6')">
-                        <span class="help-number">6</span>
-                        <span class="help-text">Engagement Tips</span>
-                    </div>
-                    <div class="help-item" onclick="sendQuickMessage('7')">
-                        <span class="help-number">7</span>
-                        <span class="help-text">Stories Guide</span>
-                    </div>
-                    <div class="help-item" onclick="sendQuickMessage('8')">
-                        <span class="help-number">8</span>
-                        <span class="help-text">Profile Setup</span>
-                    </div>
-                    <div class="help-item" onclick="sendQuickMessage('9')">
-                        <span class="help-number">9</span>
-                        <span class="help-text">Search & Discover</span>
+                    <div class="quick-action-row">
+                        <button class="quick-btn" onclick="sendQuickMessage('7')">
+                            <span class="quick-num">7</span>
+                            <span class="quick-label">{{ __('ai.stories_guide') }}</span>
+                        </button>
+                        <button class="quick-btn" onclick="sendQuickMessage('8')">
+                            <span class="quick-num">8</span>
+                            <span class="quick-label">{{ __('ai.profile_setup') }}</span>
+                        </button>
+                        <button class="quick-btn" onclick="sendQuickMessage('9')">
+                            <span class="quick-num">9</span>
+                            <span class="quick-label">{{ __('ai.search_discover') }}</span>
+                        </button>
                     </div>
                 </div>
-                
+
                 <div class="message-time">{{ now()->format('H:i') }}</div>
             </div>
         </div>
@@ -703,11 +876,11 @@
 
     <div class="input-area">
         <div class="input-wrapper">
-            <input type="text" id="chatInput" placeholder="Type a number (1-9)..." maxlength="1" autocomplete="off" inputmode="numeric" pattern="[1-9]">
-            <button type="button" id="stopBtn" class="stop-btn" style="display:none;" title="Stop">
+            <input type="text" id="chatInput" placeholder="{{ __('ai.input_placeholder') }}" maxlength="1" autocomplete="off" inputmode="numeric" pattern="[1-9]">
+            <button type="button" id="stopBtn" class="stop-btn" style="display:none;" title="{{ __('ai.stop') }}">
                 <i class="fas fa-stop"></i>
             </button>
-            <button type="button" id="sendBtn" class="send-btn" disabled title="Send">
+            <button type="button" id="sendBtn" class="send-btn" disabled title="{{ __('ai.send') }}">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
@@ -834,7 +1007,11 @@ function addMessageWithTyping(fullText, type) {
     div.innerHTML = `
         <div class="message-avatar"><i class="fas fa-robot"></i></div>
         <div class="message-bubble">
-            <p class="typing-text"></p>
+            <div class="typing-indicator">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </div>
             <div class="message-time">${time}</div>
         </div>
     `;
@@ -842,51 +1019,118 @@ function addMessageWithTyping(fullText, type) {
     chatContainer.appendChild(div);
     scrollToBottom();
 
-    // Start typing animation
-    typeText(div, fullText);
+    // Start typing effect after a short delay (simulating AI "thinking")
+    setTimeout(() => {
+        startTypewriterEffect(div, fullText);
+    }, 400);
 }
 
-function typeText(messageDiv, fullText) {
-    const textElement = messageDiv.querySelector('.typing-text');
-    let currentIndex = 0;
+function startTypewriterEffect(messageDiv, fullText) {
+    const bubble = messageDiv.querySelector('.message-bubble');
+    const contentP = document.createElement('p');
+    contentP.className = 'message-content';
+    contentP.style.minHeight = '20px';
+
+    // Replace typing indicator with content paragraph
+    const typingIndicator = bubble.querySelector('.typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+    bubble.insertBefore(contentP, bubble.querySelector('.message-time'));
+
+    // Add cursor
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    contentP.appendChild(cursor);
+
+    let charIndex = 0;
     isTyping = true;
 
     // Show stop button
     stopBtn.style.display = 'flex';
-    
+
     stopBtn.onclick = function() {
         isTyping = false;
         clearTimeout(typingTimeout);
         stopBtn.style.display = 'none';
-        textElement.innerHTML = formatResponse(fullText);
+        cursor.remove();
+        contentP.innerHTML = formatResponse(fullText);
         setTimeout(scrollToBottom, 50);
     };
 
-    function typeCharacter() {
-        if (currentIndex < fullText.length && isTyping) {
-            const char = fullText[currentIndex];
-            textElement.innerHTML = formatResponse(fullText.substring(0, currentIndex + 1));
-            currentIndex++;
+    function typeNextChar() {
+        if (!isTyping) return;
+
+        if (charIndex < fullText.length) {
+            const remaining = fullText.substring(charIndex);
+            let chunk = '';
+            let charsToSkip = 1;
+
+            // Check for emoji first (before processing other chars)
+            const emojiMatch = remaining.match(/^[\p{Emoji}]/u);
+            if (emojiMatch) {
+                chunk = emojiMatch[0];
+                charsToSkip = 1;
+            }
+            // If we're at a line break, add it
+            else if (fullText[charIndex] === '\n') {
+                chunk = '<br>';
+                charsToSkip = 1;
+            }
+            // If we're at bold marker, add full bold section
+            else if (remaining.startsWith('**')) {
+                const endBold = remaining.indexOf('**', 2);
+                if (endBold !== -1) {
+                    const boldText = remaining.substring(2, endBold);
+                    chunk = '<strong>' + boldText + '</strong>';
+                    charsToSkip = endBold + 2;
+                } else {
+                    chunk = remaining[0];
+                    charsToSkip = 1;
+                }
+            }
+            // Otherwise add next character
+            else {
+                chunk = remaining[0];
+                if (chunk === ' ') chunk = '&nbsp;';
+                else if (chunk === '<') chunk = '&lt;';
+                else if (chunk === '>') chunk = '&gt;';
+                charsToSkip = 1;
+            }
+
+            // Insert before cursor
+            const tempSpan = document.createElement('span');
+            tempSpan.innerHTML = chunk;
+            while (tempSpan.firstChild) {
+                contentP.insertBefore(tempSpan.firstChild, cursor);
+            }
+
+            charIndex += charsToSkip;
             scrollToBottom();
 
-            // Variable typing speed
-            const typingSpeed = getTypingSpeed(char);
-            typingTimeout = setTimeout(typeCharacter, typingSpeed);
+            // Natural typing speed with variation
+            const speed = getTypingSpeed(fullText[charIndex - 1]) + Math.random() * 10;
+            typingTimeout = setTimeout(typeNextChar, speed);
         } else {
+            // Finished
             stopBtn.style.display = 'none';
+            cursor.remove();
+            // Apply final formatting
+            contentP.innerHTML = formatResponse(fullText);
         }
     }
 
-    typeCharacter();
+    typeNextChar();
 }
 
 function getTypingSpeed(char) {
-    if (char === ' ' || char === '\n') return 30;
-    if (char.match(/[a-z]/)) return 25;
-    if (char.match(/[A-Z]/)) return 35;
-    if (char.match(/[0-9]/)) return 20;
-    if (char.match(/[.,!?;:]/)) return 80;
-    return 40;
+    // Fast, natural AI typing speeds (like ChatGPT/Claude)
+    if (char === '\n') return 50;      // Pause slightly at line breaks
+    if (char === ' ') return 25;       // Faster for spaces
+    if (char.match(/[a-z0-9]/i)) return 15;  // Very fast for letters/numbers
+    if (char.match(/[.,!?;:]/)) return 80;   // Pause at punctuation
+    if (char.match(/[\u0600-\u06FF]/)) return 20;  // Arabic characters
+    return 20;  // Default fast speed
 }
 
 function stopGenerating() {
@@ -921,9 +1165,20 @@ function hideTyping(indicator) {
 }
 
 function formatResponse(text) {
-    return text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>');
+    // Escape HTML first
+    let formatted = escapeHtml(text);
+
+    // Wrap emojis in span tags for proper display
+    const emojiRegex = /[\p{Emoji}]/gu;
+    formatted = formatted.replace(emojiRegex, '<span class="emoji">$&</span>');
+
+    // Apply bold formatting
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // Handle line breaks
+    formatted = formatted.replace(/\n/g, '<br>');
+
+    return formatted;
 }
 
 function escapeHtml(text) {
@@ -937,7 +1192,7 @@ function scrollToBottom() {
 }
 
 function clearChat() {
-    if (!confirm('Clear all messages?')) return;
+    if (!confirm('{{ __('ai.clear_chat_confirm') }}')) return;
     
     // Remove all messages except welcome
     const messages = chatContainer.querySelectorAll('.message:not(#welcomeMessage)');
