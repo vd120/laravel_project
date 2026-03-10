@@ -134,7 +134,9 @@
                                     @if(!$isGroup && $conv->other_user)
                                         <span class="online-status-text {{ $conv->other_user->is_online && $conv->other_user->last_active && $conv->other_user->last_active->diffInSeconds(now()) < 120 ? 'online' : 'offline' }}"
                                               data-user-id="{{ $conv->other_user->id }}">
-                                            {{ $conv->other_user->is_online && $conv->other_user->last_active && $conv->other_user->last_active->diffInSeconds(now()) < 120 ? '• Online' : '' }}
+                                            @if($conv->other_user->is_online && $conv->other_user->last_active && $conv->other_user->last_active->diffInSeconds(now()) < 120)
+                                                • {{ __('chat.online') }}
+                                            @endif
                                         </span>
                                     @endif
                                 </span>

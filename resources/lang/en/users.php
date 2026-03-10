@@ -50,6 +50,7 @@ return [
     'delete_cover_confirm' => 'Delete your cover image?',
     'delete_account_warning' => 'WARNING: This will permanently delete your account and all data. Are you sure?',
     'delete_account_final' => 'This action cannot be undone. Type "DELETE" to confirm.',
+    'delete_account_password_prompt' => 'Enter your password to confirm account deletion:',
     'failed_delete_avatar' => 'Failed to delete avatar',
     'failed_delete_cover' => 'Failed to delete cover image',
     'failed_delete_account' => 'Failed to delete account',

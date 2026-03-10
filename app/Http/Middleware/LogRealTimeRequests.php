@@ -50,6 +50,11 @@ class LogRealTimeRequests
         $userId = $user ? $user->id : null;
         $userEmail = $user ? $user->email : null;
 
+        // Update last active timestamp for authenticated users
+        if ($user) {
+            $user->updateLastActive();
+        }
+
         // Log asynchronously (don't block the request)
         if (config('app.debug')) {
             // Only log in debug/tunnel mode

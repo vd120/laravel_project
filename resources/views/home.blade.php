@@ -147,7 +147,7 @@ nav a:hover{opacity:1}
 
 /* RTL Support */
 /* Header/Nav always LTR for consistency */
-nav, .nav-container, .nav-links, .language-switcher {
+nav, .nav-container, .nav-links, .language-switcher, .language-toggle, .language-dropdown, .language-option {
     direction: ltr !important;
 }
 
@@ -497,7 +497,6 @@ footer a:hover { color: var(--primary); }
     .menu-toggle { display: flex; }
     #themeToggle { width: 36px; height: 36px; }
     #themeToggle svg { width: 18px; height: 18px; }
-    .lang-toggle { padding: 6px 10px; font-size: 12px; }
     .scroll-arrow {
         bottom: 110px;
     }
@@ -557,13 +556,14 @@ footer a:hover { color: var(--primary); }
     }
 }
 
-/* Language Switcher Styles - Match login/register pages */
+/* Language Switcher - Landing Page Style */
 .language-switcher {
     position: relative;
     display: inline-block;
 }
+
 .language-toggle {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     padding: 8px 14px;
@@ -572,42 +572,55 @@ footer a:hover { color: var(--primary); }
     align-items: center;
     gap: 6px;
     transition: all 0.3s ease;
-    color: var(--text-primary);
+    color: #ffffff;
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
 }
+
 .language-toggle:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.3);
 }
+
 [data-theme="light"] .language-toggle {
-    border-color: rgba(0, 0, 0, 0.2);
-}
-[data-theme="light"] .language-toggle:hover {
     background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #111111;
 }
+
+[data-theme="light"] .language-toggle:hover {
+    background: rgba(0, 0, 0, 0.1);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
 .language-dropdown {
+    display: none;
     position: absolute;
     top: 100%;
     right: 0;
     margin-top: 8px;
-    min-width: 160px;
+    min-width: 180px;
     background: rgba(22, 22, 22, 0.98);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(40px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     z-index: 1000;
     overflow: hidden;
     padding: 8px;
-    direction: ltr !important;
 }
+
 [data-theme="light"] .language-dropdown {
-    background: rgba(255, 255, 255, 0.98);
-    border-color: rgba(0, 0, 0, 0.1);
+    background: rgba(249, 250, 251, 0.98);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
 }
+
+.language-dropdown.show {
+    display: block !important;
+}
+
 .language-option {
     display: flex;
     align-items: center;
@@ -618,36 +631,89 @@ footer a:hover { color: var(--primary); }
     color: inherit;
     transition: all 0.2s;
     margin-bottom: 4px;
+    cursor: pointer;
 }
+
+[data-theme="light"] .language-option {
+    color: #111111;
+}
+
 .language-option:hover {
     background: rgba(255, 255, 255, 0.05);
 }
+
 [data-theme="light"] .language-option:hover {
     background: rgba(0, 0, 0, 0.05);
 }
+
 .language-option.active {
+    background: rgba(94, 96, 206, 0.1);
     color: #5e60ce;
-}
-.language-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 999;
-    background: rgba(0, 0, 0, 0.5);
+    font-weight: 600;
 }
 
-/* Mobile - Hide language text, show only icon */
-@media(max-width: 480px) {
-    .language-switcher .current-locale,
-    .language-switcher .lang-divider,
-    .language-switcher .lang-alt {
+.language-option.active:hover {
+    background: rgba(94, 96, 206, 0.15);
+}
+
+.language-header {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 4px;
+}
+
+[data-theme="light"] .language-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.language-header span {
+    font-size: 12px;
+    font-weight: 600;
+    color: #86868b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    /* Header/Nav Always LTR */
+    nav,
+    .nav-container,
+    .nav-container * {
+        direction: ltr !important;
+        text-align: left !important;
+    }
+
+    .language-toggle {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .language-toggle .current-locale,
+    .language-toggle .lang-divider,
+    .language-toggle .lang-alt {
         display: none;
     }
-    .language-switcher {
-        padding: 6px 10px !important;
+
+    .language-toggle span:first-child {
+        font-size: 16px;
     }
-    .language-switcher span:first-child {
-        font-size: 16px !important;
+
+    .language-dropdown {
+        min-width: 160px;
+    }
+
+    .language-option {
+        padding: 8px 12px;
+        gap: 10px;
+    }
+
+    .language-option span:first-child {
+        font-size: 16px;
+    }
+
+    .language-option div span {
+        font-size: 13px;
     }
 }
 </style>
@@ -664,7 +730,7 @@ footer a:hover { color: var(--primary); }
     <div class="nav-container">
         <a href="/" class="nav-brand">Nexus</a>
         <div style="display:flex;align-items:center;gap:20px;">
-            @include('layouts.language')
+            @include('partials.language-switcher')
             <button id="themeToggle" title="{{ __('home.toggle_theme') }}">
                 <svg class="theme-icon sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                 <svg class="theme-icon moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>

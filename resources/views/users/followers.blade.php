@@ -118,5 +118,12 @@ function followersPageToggleFollow(btn, username) {
         btn.disabled = false;
     });
 }
+
+// Show success message toast if exists
+@if(session('success'))
+document.addEventListener('DOMContentLoaded', function() {
+    showToast({!! json_encode(session('success')) !!}, 'success');
+});
+@endif
 </script>
 @endsection

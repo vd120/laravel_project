@@ -40,20 +40,20 @@ class SocialAuthController extends Controller
             if (!$user) {
                 // Generate a unique username from name (remove spaces and special characters)
                 $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $googleUser->name));
-                
+
                 // If username is empty after removing special chars, use base from email
                 if (empty($baseUsername)) {
                     $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', explode('@', $googleUser->email)[0]));
                 }
-                
+
                 // Limit base length to leave room for numbers
                 $baseUsername = substr($baseUsername, 0, 20);
-                
+
                 // If still empty, use 'user'
                 if (empty($baseUsername)) {
                     $baseUsername = 'user';
                 }
-                
+
                 $username = $baseUsername;
                 $counter = 1;
 
@@ -64,18 +64,25 @@ class SocialAuthController extends Controller
                 }
 
                 // Create new user WITHOUT email verification (needs verification)
+                // Set password to null to indicate Google-only login initially
                 $user = User::create([
                     'username' => $username,
                     'name' => $googleUser->name,
                     'email' => $googleUser->email,
-                    'password' => Hash::make(Str::random(32)),
+                    'password' => null, // NULL - will set password on next step
                     'email_verified_at' => null, // NOT verified - needs verification code
                 ]);
 
                 // Store user ID in session for pending verification
                 session(['pending_verification_user_id' => $user->id]);
 
-                // Redirect to verification page
+                // Log in the user
+                Auth::login($user);
+
+                // Regenerate session
+                request()->session()->regenerate();
+
+                // Redirect to verification page FIRST
                 return redirect()->route('verification.notice')->with('message', __('messages.please_verify_email'));
             }
 

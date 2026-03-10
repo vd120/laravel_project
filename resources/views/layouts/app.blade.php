@@ -143,9 +143,131 @@
         .header-inner,
         .nav-links,
         .user-actions,
-        .language-switcher {
+        .language-switcher,
+        .language-toggle,
+        .language-dropdown,
+        .language-option {
             direction: ltr !important;
             text-align: left !important;
+        }
+        
+        /* Language Dropdown Styles */
+        .language-switcher {
+            position: relative;
+            display: inline-block;
+        }
+
+        .language-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 8px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .language-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        [data-theme="light"] .language-toggle {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #111111;
+        }
+
+        [data-theme="light"] .language-toggle:hover {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.15);
+        }
+
+        .language-dropdown {
+            background: var(--surface) !important;
+            backdrop-filter: blur(40px) !important;
+            border: 1px solid var(--border) !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        [data-theme="light"] .language-dropdown {
+            background: var(--surface) !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .language-dropdown.show {
+            display: block !important;
+        }
+
+        .language-header {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 4px;
+        }
+
+        .language-header span {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .language-option {
+            color: var(--text) !important;
+            transition: all 0.2s !important;
+        }
+
+        [data-theme="dark"] .language-option {
+            color: var(--text) !important;
+        }
+
+        .language-option:hover {
+            background: var(--surface-hover) !important;
+        }
+
+        .language-option.active {
+            background: rgba(94, 96, 206, 0.1) !important;
+            color: var(--primary) !important;
+            font-weight: 600 !important;
+        }
+
+        .language-option.active:hover {
+            background: rgba(94, 96, 206, 0.15) !important;
+        }
+
+        /* Mobile - Hide language text, show only icon */
+        @media(max-width: 480px) {
+            .language-switcher .current-locale,
+            .language-switcher .lang-divider,
+            .language-switcher .lang-alt {
+                display: none;
+            }
+            .language-switcher {
+                padding: 6px 10px !important;
+            }
+            .language-switcher span:first-child {
+                font-size: 16px !important;
+            }
+            .language-dropdown {
+                min-width: 160px;
+            }
+            .language-option {
+                padding: 8px 12px;
+                gap: 10px;
+            }
+            .language-option span:first-child {
+                font-size: 16px;
+            }
+            .language-option div span {
+                font-size: 13px;
+            }
         }
 
         /* Header — Same as Login/Register Pages */
@@ -382,6 +504,14 @@
 
         /* Mobile - Header */
         @media (max-width: 480px) {
+            /* Header Always LTR */
+            .header,
+            .header-inner,
+            .header * {
+                direction: ltr !important;
+                text-align: left !important;
+            }
+            
             .header {
                 padding: 10px 16px;
             }
@@ -1269,7 +1399,7 @@
 
             <div class="user-actions">
                 @guest
-                @include('layouts.language')
+                @include('partials.language-switcher')
                 @endguest
 
                 <button class="nav-action-btn" onclick="toggleTheme()" title="{{ __('messages.theme') }}">
@@ -1340,12 +1470,16 @@
         @endif
         <div class="divider"></div>
         
-        <!-- Language Switcher -->
+        <!-- Language Switcher - Unified Style -->
+        @php
+            $currentLocale = app()->getLocale();
+            $supportedLocales = \App\Http\Controllers\LanguageController::getSupportedLocales();
+        @endphp
         <div class="language-switcher" style="position: relative; display: block; width: 100%;">
             <button
                 type="button"
                 class="language-option"
-                onclick="toggleLanguageDropdown()"
+                onclick="toggleUserLanguageDropdown()"
                 aria-label="{{ __('messages.language') }}"
                 aria-haspopup="true"
                 aria-expanded="false"
@@ -1362,11 +1496,19 @@
                     <span>{{ __('messages.language') }}</span>
                 </span>
                 <span style="opacity: 0.6; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-                    @if(app()->getLocale() === 'ar')
-                        العربية
+                    @if($currentLocale === 'ar')
+                        ع
                     @else
-                        English
+                        EN
                     @endif
+                    <span style="opacity: 0.5;">|</span>
+                    <span style="opacity: 0.7;">
+                        @if($currentLocale === 'ar')
+                            EN
+                        @else
+                            ع
+                        @endif
+                    </span>
                     <svg style="width: 14px; height: 14px; transition: transform 0.2s;" id="user-lang-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                     </svg>
@@ -1384,30 +1526,22 @@
                     left: 0;
                     margin-bottom: 8px;
                     min-width: 200px;
-                    background: inherit;
-                    backdrop-filter: blur(20px);
-                    border: 1px solid rgba(0, 0, 0, 0.05);
-                    border-radius: 12px;
-                    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
                     z-index: 1001;
                     overflow: hidden;
                     padding: 8px;
                     direction: ltr !important;
                 "
             >
-                <div style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); margin-bottom: 4px;">
+                <div style="padding: 8px 12px; border-bottom: 1px solid var(--border); margin-bottom: 4px;">
                     <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
                         {{ __('messages.select_language') }}
                     </span>
                 </div>
-                @php
-                    $supportedLocales = \App\Http\Controllers\LanguageController::getSupportedLocales();
-                @endphp
                 @foreach($supportedLocales as $locale => $details)
                     <a
                         href="#"
-                        onclick="switchLanguage('{{ $locale }}'); return false;"
-                        class="language-option {{ app()->getLocale() === $locale ? 'active' : '' }}"
+                        onclick="switchUserLanguage('{{ $locale }}'); return false;"
+                        class="language-option {{ $currentLocale === $locale ? 'active' : '' }}"
                         data-locale="{{ $locale }}"
                         style="
                             display: flex;
@@ -1416,22 +1550,18 @@
                             padding: 12px 14px;
                             border-radius: 8px;
                             text-decoration: none;
-                            color: {{ app()->getLocale() === $locale ? '#5e60ce' : 'inherit' }};
-                            transition: all 0.2s;
                             margin-bottom: 2px;
                         "
-                        onmouseover="this.style.background='rgba(0,0,0,0.05)'"
-                        onmouseout="if(!this.classList.contains('active')) this.style.background='inherit'"
                     >
-                        <span style="font-size: 20px;">{{ $details['flag'] }}</span>
-                        <div style="display: flex; flex-direction: column; flex: 1;">
+                        <span style="font-size: 18px;">{{ $details['flag'] }}</span>
+                        <div style="display: flex; flex-direction: column;">
                             <span style="font-size: 14px; font-weight: 500;">{{ $details['native_name'] }}</span>
                             @if($details['name'] !== $details['native_name'])
                                 <span style="font-size: 11px; opacity: 0.6;">{{ $details['name'] }}</span>
                             @endif
                         </div>
-                        @if(app()->getLocale() === $locale)
-                            <svg style="width: 18px; height: 18px; color: #5e60ce;" fill="currentColor" viewBox="0 0 20 20">
+                        @if($currentLocale === $locale)
+                            <svg style="width: 16px; height: 16px; margin-left: auto; color: var(--primary);" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
                         @endif
@@ -1945,7 +2075,7 @@
         });
 
         // User Menu Language Dropdown Functions
-        function toggleLanguageDropdown() {
+        function toggleUserLanguageDropdown() {
             const dropdown = document.getElementById('user-language-dropdown');
             const arrow = document.getElementById('user-lang-arrow');
             const toggle = document.querySelector('#userMenu .language-option');
@@ -1965,15 +2095,15 @@
             }
         }
 
-        function switchLanguage(locale) {
-            // Show loading indicator (reuse existing if available)
+        function switchUserLanguage(locale) {
+            // Show loading indicator
             const loading = document.getElementById('language-loading');
             if (loading) {
                 loading.style.display = 'flex';
             }
 
             // Close dropdown
-            toggleLanguageDropdown();
+            toggleUserLanguageDropdown();
 
             // Navigate to language switch route with current URL as return
             const currentPath = window.location.pathname + window.location.search;
@@ -1984,16 +2114,16 @@
         document.addEventListener('click', function(event) {
             const userMenu = document.getElementById('userMenu');
             const userLangSwitcher = userMenu?.querySelector('.language-switcher');
-            
+
             if (userLangSwitcher && !userLangSwitcher.contains(event.target)) {
                 const dropdown = document.getElementById('user-language-dropdown');
                 const arrow = document.getElementById('user-lang-arrow');
                 const toggle = document.querySelector('#userMenu .language-option');
 
-                if (dropdown) {
+                if (dropdown && dropdown.style.display === 'block') {
                     dropdown.style.display = 'none';
-                    arrow.style.transform = 'rotate(0deg)';
-                    toggle.setAttribute('aria-expanded', 'false');
+                    if (arrow) arrow.style.transform = 'rotate(0deg)';
+                    if (toggle) toggle.setAttribute('aria-expanded', 'false');
                 }
             }
         });

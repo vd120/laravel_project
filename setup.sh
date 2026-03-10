@@ -47,16 +47,49 @@ print_status "Checking PHP..."
 if command -v php &> /dev/null; then
     PHP_VERSION=$(php -v | head -n 1 | cut -d' ' -f2 | cut -d'.' -f1,2)
     print_success "PHP $PHP_VERSION installed"
+    
+    # Check minimum PHP version (8.2 required)
+    PHP_MAJOR=$(php -v | head -n 1 | cut -d' ' -f2 | cut -d'.' -f1)
+    PHP_MINOR=$(php -v | head -n 1 | cut -d' ' -f2 | cut -d'.' -f2)
+    if [ "$PHP_MAJOR" -lt 8 ] || { [ "$PHP_MAJOR" -eq 8 ] && [ "$PHP_MINOR" -lt 2 ]; }; then
+        print_error "PHP 8.2 or higher is required! You have $PHP_VERSION"
+        echo -e "  ${YELLOW}Please upgrade PHP to version 8.2 or higher${NC}"
+        exit 1
+    fi
 else
     print_error "PHP is not installed!"
     echo -e "  ${YELLOW}Install with:${NC} sudo apt install php php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 php-mysql"
     exit 1
 fi
 
+# Check required PHP extensions
+echo ""
+echo "  Checking PHP extensions..."
+
+REQUIRED_EXTENSIONS=("mbstring" "xml" "curl" "zip" "openssl" "pdo" "json" "tokenizer")
+MISSING_EXTENSIONS=()
+
+for ext in "${REQUIRED_EXTENSIONS[@]}"; do
+    if php -m | grep -qi "$ext"; then
+        print_success "PHP extension: $ext"
+    else
+        print_error "PHP extension: $ext (MISSING)"
+        MISSING_EXTENSIONS+=("$ext")
+    fi
+done
+
+if [ ${#MISSING_EXTENSIONS[@]} -ne 0 ]; then
+    echo ""
+    print_error "Missing PHP extensions: ${MISSING_EXTENSIONS[*]}"
+    echo -e "  ${YELLOW}Install with:${NC} sudo apt install php-mbstring php-xml php-curl php-zip php-sqlite3 php-mysql"
+    exit 1
+fi
+
 # Check Composer
 print_status "Checking Composer..."
 if command -v composer &> /dev/null; then
-    print_success "Composer installed"
+    COMPOSER_VERSION=$(composer --version | cut -d' ' -f3)
+    print_success "Composer $COMPOSER_VERSION installed"
 else
     print_error "Composer is not installed!"
     echo -e "  ${YELLOW}Install with:${NC} curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer"
@@ -87,10 +120,28 @@ fi
 # Check Git
 print_status "Checking Git..."
 if command -v git &> /dev/null; then
-    print_success "Git installed"
+    GIT_VERSION=$(git --version | cut -d' ' -f3)
+    print_success "Git $GIT_VERSION installed"
 else
     print_error "Git is not installed!"
     exit 1
+fi
+
+# Check required system tools
+print_status "Checking system tools..."
+if command -v unzip &> /dev/null; then
+    print_success "unzip installed"
+else
+    print_error "unzip is not installed!"
+    echo -e "  ${YELLOW}Install with:${NC} sudo apt install unzip"
+    exit 1
+fi
+
+if command -v jq &> /dev/null; then
+    print_success "jq installed (for tunnel logs)"
+else
+    print_status "jq not found (optional, for tunnel visitor logs)"
+    echo -e "  ${YELLOW}Install with:${NC} sudo apt install jq (recommended for tunnel mode)"
 fi
 
 echo ""
@@ -217,7 +268,18 @@ else
 fi
 
 echo ""
-echo -e "${BOLD}Step 7: Seeding Admin User${NC}"
+echo -e "${BOLD}Step 7: Creating Storage Links${NC}"
+echo "────────────────────────────────────────"
+print_status "Creating storage link..."
+php artisan storage:link
+if [ $? -eq 0 ]; then
+    print_success "Storage link created"
+else
+    print_status "Storage link may already exist"
+fi
+
+echo ""
+echo -e "${BOLD}Step 8: Seeding Admin User${NC}"
 echo "────────────────────────────────────────"
 print_status "Running admin user seeder..."
 php artisan db:seed --class=AdminUserSeeder --force
@@ -242,7 +304,7 @@ if [ "$SEED_DB" = "y" ] || [ "$SEED_DB" = "Y" ]; then
 fi
 
 echo ""
-echo -e "${BOLD}Step 8: Building Frontend Assets${NC}"
+echo -e "${BOLD}Step 9: Building Frontend Assets${NC}"
 echo "────────────────────────────────────────"
 print_status "Building assets with npm..."
 npm run build
@@ -254,17 +316,6 @@ else
 fi
 
 echo ""
-echo -e "${BOLD}Step 9: Creating Storage Links${NC}"
-echo "────────────────────────────────────────"
-print_status "Creating storage link..."
-php artisan storage:link
-if [ $? -eq 0 ]; then
-    print_success "Storage link created"
-else
-    print_status "Storage link may already exist"
-fi
-
-echo ""
 echo -e "${BOLD}Step 10: Clearing Caches${NC}"
 echo "────────────────────────────────────────"
 print_status "Clearing caches..."
@@ -273,6 +324,15 @@ php artisan cache:clear
 php artisan view:clear
 php artisan route:clear
 print_success "Caches cleared"
+
+# Set proper permissions for storage
+echo ""
+echo -e "${BOLD}Step 11: Setting Permissions${NC}"
+echo "────────────────────────────────────────"
+print_status "Setting storage permissions..."
+chmod -R 775 storage/
+chmod -R 775 bootstrap/cache/
+print_success "Permissions set"
 
 echo ""
 echo "════════════════════════════════════════"

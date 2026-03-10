@@ -1,4 +1,4 @@
-{{-- Language Switcher Component --}}
+{{-- Unified Language Switcher Component - Landing Page Style --}}
 {{-- Usage: @include('partials.language-switcher') --}}
 
 @php
@@ -6,29 +6,15 @@
     $supportedLocales = \App\Http\Controllers\LanguageController::getSupportedLocales();
 @endphp
 
-<div class="language-switcher" style="position: relative; display: inline-block;">
+<div class="language-switcher" dir="ltr" style="direction: ltr !important;">
     {{-- Language Toggle Button --}}
-    <button 
-        type="button" 
-        class="language-toggle" 
-        onclick="toggleLanguageDropdown()"
+    <button
+        type="button"
+        class="language-toggle"
+        onclick="toggleUnifiedLanguageDropdown()"
         aria-label="{{ __('messages.language') }}"
         aria-haspopup="true"
         aria-expanded="false"
-        style="
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 8px 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.3s ease;
-            color: var(--text-primary, #ffffff);
-            font-size: 13px;
-            font-weight: 600;
-        "
     >
         <span style="opacity: 0.9;">🌐</span>
         <span class="current-locale">
@@ -38,8 +24,8 @@
                 EN
             @endif
         </span>
-        <span style="opacity: 0.5;">|</span>
-        <span class="alternate-locale" style="opacity: 0.7;">
+        <span class="lang-divider" style="opacity: 0.5;">|</span>
+        <span class="lang-alt" style="opacity: 0.7;">
             @if($currentLocale === 'ar')
                 EN
             @else
@@ -52,45 +38,20 @@
     </button>
 
     {{-- Dropdown Menu --}}
-    <div 
-        id="language-dropdown" 
+    <div
+        id="unified-language-dropdown"
         class="language-dropdown"
-        style="
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 8px;
-            min-width: 160px;
-            background: rgba(22, 22, 22, 0.98);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-            z-index: 1000;
-            overflow: hidden;
-            padding: 8px;
-        "
     >
+        <div class="language-header">
+            <span>{{ __('messages.select_language') }}</span>
+        </div>
+        
         @foreach($supportedLocales as $locale => $details)
-            <a 
+            <a
                 href="#"
-                onclick="switchLanguage('{{ $locale }}'); return false;"
+                onclick="switchUnifiedLanguage('{{ $locale }}'); return false;"
                 class="language-option {{ $currentLocale === $locale ? 'active' : '' }}"
                 data-locale="{{ $locale }}"
-                style="
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 10px 14px;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    color: {{ $currentLocale === $locale ? '#5e60ce' : 'inherit' }};
-                    transition: all 0.2s;
-                    margin-bottom: 4px;
-                "
-                onmouseover="this.style.background='rgba(255,255,255,0.05)'"
-                onmouseout="if(!this.classList.contains('active')) this.style.background='transparent'"
             >
                 <span style="font-size: 18px;">{{ $details['flag'] }}</span>
                 <div style="display: flex; flex-direction: column;">
@@ -100,67 +61,42 @@
                     @endif
                 </div>
                 @if($currentLocale === $locale)
-                    <svg style="width: 16px; height: 16px; margin-left: auto; color: #5e60ce;" fill="currentColor" viewBox="0 0 20 20">
+                    <svg style="width: 16px; height: 16px; margin-left: auto;" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
                 @endif
             </a>
         @endforeach
     </div>
-    
-    {{-- Loading Overlay --}}
-    <div id="language-loading" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 9999; align-items: center; justify-content: center;">
-        <div style="background: rgba(22, 22, 22, 0.98); backdrop-filter: blur(20px); padding: 30px 50px; border-radius: 16px; text-align: center;">
-            <div style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #5e60ce; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 15px;"></div>
-            <p style="color: #fff; font-size: 14px; margin: 0;">{{ __('messages.loading') }}</p>
-        </div>
-    </div>
 </div>
 
-{{-- Overlay for mobile --}}
-<div 
-    id="language-overlay" 
-    onclick="toggleLanguageDropdown()"
-    style="
-        display: none;
-        position: fixed;
-        inset: 0;
-        z-index: 999;
-        background: transparent
-    "
-></div>
-
 <script>
-function toggleLanguageDropdown() {
-    const dropdown = document.getElementById('language-dropdown');
-    const overlay = document.getElementById('language-overlay');
+function toggleUnifiedLanguageDropdown() {
+    const dropdown = document.getElementById('unified-language-dropdown');
     const arrow = document.getElementById('lang-arrow');
-    const toggle = document.querySelector('.language-toggle');
     
-    const isVisible = dropdown.style.display === 'block';
+    if (!dropdown) return;
+    
+    const isVisible = dropdown.classList.contains('show');
     
     if (isVisible) {
-        dropdown.style.display = 'none';
-        overlay.style.display = 'none';
-        arrow.style.transform = 'rotate(0deg)';
-        toggle.setAttribute('aria-expanded', 'false');
+        dropdown.classList.remove('show');
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
     } else {
-        dropdown.style.display = 'block';
-        overlay.style.display = 'block';
-        arrow.style.transform = 'rotate(180deg)';
-        toggle.setAttribute('aria-expanded', 'true');
+        dropdown.classList.add('show');
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
     }
 }
 
-function switchLanguage(locale) {
-    // Show loading indicator
+function switchUnifiedLanguage(locale) {
+    // Show loading overlay if exists
     const loading = document.getElementById('language-loading');
     if (loading) {
         loading.style.display = 'flex';
     }
     
     // Close dropdown
-    toggleLanguageDropdown();
+    toggleUnifiedLanguageDropdown();
     
     // Navigate to language switch route with current URL as return
     const currentPath = window.location.pathname + window.location.search;
@@ -171,76 +107,26 @@ function switchLanguage(locale) {
 document.addEventListener('click', function(event) {
     const switcher = document.querySelector('.language-switcher');
     if (switcher && !switcher.contains(event.target)) {
-        const dropdown = document.getElementById('language-dropdown');
-        const overlay = document.getElementById('language-overlay');
+        const dropdown = document.getElementById('unified-language-dropdown');
         const arrow = document.getElementById('lang-arrow');
-        const toggle = document.querySelector('.language-toggle');
         
-        dropdown.style.display = 'none';
-        overlay.style.display = 'none';
-        arrow.style.transform = 'rotate(0deg)';
-        toggle.setAttribute('aria-expanded', 'false');
+        if (dropdown && dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
+        }
     }
 });
 
-// Light theme styles
-(function() {
-    const checkTheme = () => {
-        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-        const toggle = document.querySelector('.language-toggle');
-        const dropdown = document.getElementById('language-dropdown');
+// Close dropdown on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const dropdown = document.getElementById('unified-language-dropdown');
+        const arrow = document.getElementById('lang-arrow');
         
-        if (toggle) {
-            if (isLight) {
-                toggle.style.borderColor = 'rgba(0, 0, 0, 0.2)';
-                toggle.style.color = '#111111';
-            } else {
-                toggle.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                toggle.style.color = '#ffffff';
-            }
+        if (dropdown && dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
         }
-        
-        if (dropdown) {
-            if (isLight) {
-                dropdown.style.background = 'rgba(255, 255, 255, 0.98)';
-                dropdown.style.borderColor = 'rgba(0, 0, 0, 0.1)';
-                dropdown.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.15)';
-            } else {
-                dropdown.style.background = 'rgba(22, 22, 22, 0.98)';
-                dropdown.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                dropdown.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.4)';
-            }
-        }
-    };
-    
-    checkTheme();
-    
-    // Watch for theme changes
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['data-theme']
-    });
-})();
+    }
+});
 </script>
-
-{{-- Loading Animation --}}
-<style>
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-</style>
-
-{{-- RTL Support for dropdown --}}
-@if(app()->getLocale() === 'ar')
-<style>
-    .language-dropdown {
-        right: auto !important;
-        left: 0 !important;
-    }
-    html[lang="ar"] .language-switcher {
-        direction: rtl;
-    }
-</style>
-@endif

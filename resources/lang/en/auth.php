@@ -122,4 +122,21 @@ return [
     'next' => 'Next',
     'previous' => 'Previous',
     'toggle_theme' => 'Toggle theme',
+
+    // Set Password for Google OAuth users
+    'set_password_title' => 'Set Your Password',
+    'set_password_desc' => 'Create a password to login with email in the future',
+    'set_password_button' => 'Set Password',
+    'please_set_password' => 'Please set your password to continue',
+    'password_set_success' => 'Password set successfully! You can now login with email.',
+
+    // Error Pages
+    'forbidden_title' => '403 - Access Denied',
+    'forbidden_message' => "You don't have permission to access this resource.",
+    'server_error_title' => '500 - Server Error',
+    'server_error_message' => 'Something went wrong. Please try again later.',
+    'page_expired_title' => '419 - Page Expired',
+    'page_expired_message' => 'Your session has expired. Please refresh the page and try again.',
+    'go_back' => 'Go Back',
+    'refresh_page' => 'Refresh Page',
 ];

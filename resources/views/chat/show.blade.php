@@ -148,7 +148,9 @@ $chatTitle = $conversation->is_group
                                     @if(!$isGroup && $conv->other_user)
                                         <span class="online-status-text {{ $conv->other_user->is_online && $conv->other_user->last_active && $conv->other_user->last_active->diffInSeconds(now()) < 120 ? 'online' : 'offline' }}"
                                               data-user-id="{{ $conv->other_user->id }}">
-                                            {{ $conv->other_user->is_online && $conv->other_user->last_active && $conv->other_user->last_active->diffInSeconds(now()) < 120 ? '• Online' : '' }}
+                                            @if($conv->other_user->is_online && $conv->other_user->last_active && $conv->other_user->last_active->diffInSeconds(now()) < 120)
+                                                • {{ __('chat.online') }}
+                                            @endif
                                         </span>
                                     @endif
                                 </span>
@@ -3399,6 +3401,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // Translation strings for JavaScript
 window.chatTranslations = {
     you: '{{ __('chat.you') }}',
+    online: '{{ __('chat.online') }}',
+    offline: '{{ __('chat.offline') }}',
+    typing: '{{ __('chat.typing') }}',
     sent_an_image: '{{ __('chat.sent_an_image') }}',
     sent_a_video: '{{ __('chat.sent_a_video') }}',
     sent_an_audio: '{{ __('chat.sent_an_audio') }}',

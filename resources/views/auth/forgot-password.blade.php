@@ -101,6 +101,162 @@
             color:#000000;
         }
 
+        /* Language Switcher - Unified Style (same as landing page) */
+        .language-switcher {
+            position: relative;
+            display: inline-block;
+        }
+
+        .language-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 8px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .language-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        [data-theme="light"] .language-toggle {
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #111111;
+        }
+
+        [data-theme="light"] .language-toggle:hover {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.15);
+        }
+
+        .language-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            min-width: 180px;
+            background: rgba(22, 22, 22, 0.98);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            overflow: hidden;
+            padding: 8px;
+        }
+
+        [data-theme="light"] .language-dropdown {
+            background: rgba(249, 250, 251, 0.98);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .language-dropdown.show {
+            display: block !important;
+        }
+
+        .language-header {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 4px;
+        }
+
+        [data-theme="light"] .language-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .language-header span {
+            font-size: 12px;
+            font-weight: 600;
+            color: #86868b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+            cursor: pointer;
+        }
+
+        [data-theme="light"] .language-option {
+            color: #111111;
+        }
+
+        .language-option:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-theme="light"] .language-option:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .language-option.active {
+            background: rgba(94, 96, 206, 0.1);
+            color: #5e60ce;
+            font-weight: 600;
+        }
+
+        .language-option.active:hover {
+            background: rgba(94, 96, 206, 0.15);
+        }
+
+        /* Mobile - Hide language text, show only icon */
+        @media(max-width: 480px) {
+            .language-switcher .current-locale,
+            .language-switcher .lang-divider,
+            .language-switcher .lang-alt {
+                display: none;
+            }
+            .language-switcher {
+                padding: 6px 10px !important;
+            }
+            .language-switcher span:first-child {
+                font-size: 16px !important;
+            }
+            .language-dropdown {
+                min-width: 160px;
+            }
+            .language-option {
+                padding: 8px 12px;
+                gap: 10px;
+            }
+            .language-option span:first-child {
+                font-size: 16px;
+            }
+            .language-option div span {
+                font-size: 13px;
+            }
+        }
+
+        /* Language Switcher - Always LTR */
+        .language-switcher,
+        .language-switcher *,
+        .language-toggle,
+        .language-dropdown,
+        .language-option {
+            direction: ltr !important;
+            text-align: left !important;
+        }
+
         /* Action buttons - match login page header */
         #themeToggle {
             background: transparent;
@@ -145,86 +301,6 @@
         }
         [data-theme="light"] .back-btn:hover {
             background: rgba(0, 0, 0, 0.05);
-        }
-
-        /* Language switcher styles */
-        .language-switcher {
-            position: relative;
-            display: inline-block;
-        }
-        .language-toggle {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 8px 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.3s ease;
-            color: #ffffff;
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-        }
-        .language-toggle:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-        [data-theme="light"] .language-toggle {
-            border-color: rgba(0, 0, 0, 0.2);
-            color: #111111;
-        }
-        [data-theme="light"] .language-toggle:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-        .language-dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 8px;
-            min-width: 160px;
-            background: rgba(22, 22, 22, 0.98);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-            z-index: 1000;
-            overflow: hidden;
-            padding: 8px;
-        }
-        [data-theme="light"] .language-dropdown {
-            background: rgba(255, 255, 255, 0.98);
-            border-color: rgba(0, 0, 0, 0.1);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-        }
-        .language-option {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.2s;
-            margin-bottom: 4px;
-        }
-        .language-option:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        [data-theme="light"] .language-option:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-        .language-option.active {
-            color: #5e60ce;
-        }
-        .language-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 999;
-            background: rgba(0, 0, 0, 0.5);
         }
 
         /* PAGE WRAP */
@@ -371,6 +447,13 @@
         .card-footer a:hover{text-decoration:underline}
 
         @media(max-width:480px){
+            /* Mobile Header - Always LTR */
+            nav,
+            .nav-container,
+            .nav-container * {
+                direction: ltr !important;
+                text-align: left !important;
+            }
             .login-card{padding:35px 25px}
             .login-title{font-size:30px}
         }
@@ -388,7 +471,7 @@
     <div class="nav-container">
         <a href="{{ route('home') }}" class="nav-brand">Nexus</a>
         <div style="display: flex; align-items: center; gap: 12px;">
-            @include('layouts.language')
+            @include('partials.language-switcher')
             <button type="button" id="themeToggle" onclick="toggleTheme()" title="{{ __('auth.toggle_theme') }}">
                 <i class="fas fa-moon" id="theme-icon"></i>
             </button>

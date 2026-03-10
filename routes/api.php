@@ -9,8 +9,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
-
-
 // Username availability check (public endpoint)
 Route::get('/check-username/{username}', function ($username) {
     // Validate username format
@@ -37,11 +35,11 @@ Route::get('/check-username/{username}', function ($username) {
 });
 
 // User search (web authenticated endpoint)
-Route::middleware('web')->group(function () {
+Route::middleware(['web'])->group(function () {
     Route::get('/search-users', [UserController::class, 'search']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('posts', PostController::class, [
         'parameters' => ['posts' => 'post:slug'],
         'names' => ['index' => 'api.posts.index', 'show' => 'api.posts.show', 'store' => 'api.posts.store', 'update' => 'api.posts.update', 'destroy' => 'api.posts.destroy', 'create' => 'api.posts.create', 'edit' => 'api.posts.edit']
@@ -60,7 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Web-authenticated API routes for notifications (session-based auth)
-Route::middleware('web')->group(function () {
+Route::middleware(['web'])->group(function () {
     Route::get('/notifications', [App\Http\Controllers\Api\NotificationController::class, 'index']);
     Route::get('/notifications/unread-count', [App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
     Route::post('/notifications/{notification}/read', [App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);

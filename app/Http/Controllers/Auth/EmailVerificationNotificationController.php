@@ -14,6 +14,10 @@ class EmailVerificationNotificationController extends Controller
     public function store(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
+            // User is already verified, check if they need to set password
+            if ($request->user()->password === null) {
+                return redirect()->route('password.set-password')->with('message', __('messages.please_set_password'));
+            }
             return back()->with('already_verified', __('messages.email_already_verified'));
         }
 
@@ -44,6 +48,11 @@ class EmailVerificationNotificationController extends Controller
         if ($user->verifyCode($request->code)) {
             // Log the user in
             Auth::login($user);
+
+            // If user has no password (Google OAuth), redirect to set password page
+            if ($user->password === null) {
+                return redirect()->route('password.set-password')->with('message', __('messages.please_set_password'));
+            }
 
             return redirect('/')->with('message', __('messages.email_verified_success'));
         }

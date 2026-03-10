@@ -30,6 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'verification_code',
         'verification_code_expires_at',
         'last_active',
+        'inactive_reminder_sent_at',
         'is_online',
         'username_changed_at',
     ];
@@ -56,6 +57,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'username_changed_at' => 'datetime',
             'last_active' => 'datetime',
+            'inactive_reminder_sent_at' => 'datetime',
             'is_online' => 'boolean',
         ];
     }
@@ -439,5 +441,25 @@ class User extends Authenticatable implements MustVerifyEmail
                         ->subject(config('app.name') . ' - Password Reset Request');
             }
         );
+    }
+
+    /**
+     * Update the last active timestamp
+     */
+    public function updateLastActive(): void
+    {
+        $this->update(['last_active' => now()]);
+    }
+
+    /**
+     * Check if user is inactive for given days
+     */
+    public function isInactiveFor($days): bool
+    {
+        if (!$this->last_active) {
+            return false; // Never active, don't consider inactive
+        }
+
+        return $this->last_active->diffInDays() >= $days;
     }
 }

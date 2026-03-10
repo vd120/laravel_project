@@ -161,15 +161,7 @@ class UserController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        // Get active stories from followed users and current user (same as home page)
-        $followedUsersWithStories = \App\Models\User::whereHas('followers', function($query) use ($user) {
-            $query->where('follower_id', $user->id);
-        })->whereHas('activeStories')->with(['activeStories'])->get();
-
-        // Include current user's stories
-        $myStories = $user->activeStories;
-
-        return view('users.saved-posts', compact('user', 'savedPosts', 'followedUsersWithStories', 'myStories'));
+        return view('users.saved-posts', compact('user', 'savedPosts'));
     }
 
     public function explore()
@@ -180,17 +172,17 @@ class UserController extends Controller
             return redirect()->route('home');
         }
 
-        // Get all users except current user with their relationships
+        // Get all users except current user with relationships
         $users = User::where('id', '!=', $currentUser->id)
             ->with(['profile'])
             ->withCount(['followers', 'follows'])
             ->orderBy('created_at', 'desc')
-            ->paginate(20); // Paginate for better performance
+            ->paginate(20);
 
         // Get blocked user IDs for current user (single query)
         $blockedByCurrentUser = $currentUser->blockedUsers()->pluck('blocked_id')->toArray();
         $blockedCurrentUser = Block::where('blocked_id', $currentUser->id)->pluck('blocker_id')->toArray();
-        
+
         // Pre-calculate following IDs (single query instead of N queries in view)
         $followingIds = $currentUser->follows()->pluck('followed_id')->toArray();
 
@@ -377,6 +369,11 @@ class UserController extends Controller
     public function deleteAccount(Request $request)
     {
         $user = auth()->user();
+
+        // Validate password confirmation for security
+        $request->validate([
+            'password' => ['required', 'current_password'],
+        ]);
 
         // Start a database transaction to ensure data integrity
         \DB::beginTransaction();

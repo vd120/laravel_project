@@ -4,22 +4,22 @@ return [
     // Main Navigation
     'home' => 'الرئيسية',
     'dashboard' => 'لوحة التحكم',
-    'profile' => 'الملف الشخصي',
+    'profile' => 'البروفايل',
     'settings' => 'الإعدادات',
     'explore' => 'استكشاف',
     'search' => 'بحث',
 
     // User Menu
-    'my_profile' => 'ملفي الشخصي',
-    'edit_profile' => 'تعديل الملف الشخصي',
+    'my_profile' => 'بروفايلي',
+    'edit_profile' => 'تعديل البروفايل',
     'saved_posts' => 'المنشورات المحفوظة',
-    'blocked_users' => 'المستخدمون المحظورون',
+    'blocked_users' => 'المستخدمين المحظورين',
     'account_settings' => 'إعدادات الحساب',
     'logout' => 'تسجيل الخروج',
 
     // Auth Links
     'login' => 'تسجيل الدخول',
-    'register' => 'إنشاء حساب',
+    'register' => 'اعمل حساب',
     'forgot_password' => 'نسيت كلمة المرور؟',
 
     // Features
@@ -29,6 +29,7 @@ return [
     'notifications' => 'الإشعارات',
     'groups' => 'المجموعات',
     'ai_assistant' => 'مساعد الذكاء الاصطناعي',
+    'explore' => 'استكشاف المستخدمين',
 
     // Admin
     'admin_panel' => 'لوحة الإدارة',

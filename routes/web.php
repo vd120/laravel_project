@@ -12,6 +12,21 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
+
+// Define rate limiters for production
+RateLimiter::for('auth', function ($request) {
+    return Limit::perMinute(5)->by($request->ip());
+});
+
+RateLimiter::for('posts', function ($request) {
+    return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+});
+
+RateLimiter::for('comments', function ($request) {
+    return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
+});
 
 // Explicit route binding for Story model to use slug
 Route::bind('story', function ($value) {
@@ -30,7 +45,7 @@ Route::middleware('guest')->group(function () {
         return view('auth.login');
     })->name('login.view');
 
-    Route::post('login', [LoginController::class, 'store'])->name('login');
+    Route::post('login', [LoginController::class, 'store'])->name('login')->middleware('throttle:auth');
 
     Route::get('suspended', function () {
         return view('auth.suspended');
@@ -40,7 +55,7 @@ Route::middleware('guest')->group(function () {
         return view('auth.register');
     })->name('register.view');
 
-    Route::post('register', [RegisterController::class, 'store'])->name('register');
+    Route::post('register', [RegisterController::class, 'store'])->name('register')->middleware('throttle:auth');
 
     // Password Reset Routes
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
@@ -97,6 +112,14 @@ Route::post('/email/verification-notification', function (Request $request) {
 
     // Check if user is already verified
     if ($user && $user->hasVerifiedEmail()) {
+        // User is already verified, check if they need to set password
+        if ($user->password === null) {
+            if ($request->expectsJson()) {
+                return response()->json(['redirect' => route('password.set-password')], 200);
+            }
+            return redirect()->route('password.set-password')->with('message', __('messages.please_set_password'));
+        }
+        
         if ($request->expectsJson()) {
             return response()->json(['error' => 'Your account is already verified!'], 400);
         }
@@ -165,6 +188,11 @@ Route::post('/email/verify-code', function (Request $request) {
         // Regenerate session for security
         request()->session()->regenerate();
 
+        // If user has no password (Google OAuth), redirect to set password page
+        if ($user->password === null) {
+            return redirect()->route('password.set-password')->with('message', __('messages.please_set_password'));
+        }
+
         return redirect('/')->with('message', 'Email verified successfully! Welcome to the platform.');
     }
 
@@ -180,9 +208,13 @@ Route::get('/', function () {
     if (!auth()->user()->hasVerifiedEmail()) {
         return redirect()->route('verification.notice');
     }
+    // If user has no password (Google OAuth), redirect to set password page
+    if (auth()->user()->password === null) {
+        return redirect()->route('password.set-password')->with('message', __('messages.please_set_password'));
+    }
     // Show posts feed
     return app(\App\Http\Controllers\PostController::class)->index(request());
-})->name('home');
+})->name('home')->middleware(['auth', 'suspended', 'verified', 'password.set']);
 
 // User account status check (for security monitoring)
 Route::middleware(['auth', 'suspended'])->group(function () {
@@ -194,23 +226,23 @@ Route::get('/user/test-route', function() {
     return response()->json(['status' => 'ok', 'message' => 'Route works']);
 });
 
-Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
+Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(function () {
     Route::resource('posts', PostController::class, [
         'parameters' => ['posts' => 'post:slug'],
         'only' => ['index', 'show', 'store', 'update', 'destroy', 'create', 'edit']
-    ]);
-    Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like')->where('post', '[a-zA-Z0-9]{24}');
-    Route::post('/posts/{post}/save', [PostController::class, 'save'])->name('posts.save')->where('post', '[a-zA-Z0-9]{24}');
+    ])->middleware('throttle:posts');
+    Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like')->where('post', '[a-zA-Z0-9]{24}')->middleware('throttle:posts');
+    Route::post('/posts/{post}/save', [PostController::class, 'save'])->name('posts.save')->where('post', '[a-zA-Z0-9]{24}')->middleware('throttle:posts');
     Route::get('/posts/{post}/likers', [PostController::class, 'getLikers'])->name('posts.likers')->where('post', '[a-zA-Z0-9]{24}');
-    Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::post('/comments', [CommentController::class, 'store'])->name('comments.store')->middleware('throttle:comments');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
-    Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->name('comments.like');
+    Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->name('comments.like')->middleware('throttle:comments');
     Route::get('/stories', [App\Http\Controllers\StoryController::class, 'index'])->name('stories.index');
     Route::get('/stories/create', [App\Http\Controllers\StoryController::class, 'create'])->name('stories.create');
-    Route::post('/stories', [App\Http\Controllers\StoryController::class, 'store'])->name('stories.store');
+    Route::post('/stories', [App\Http\Controllers\StoryController::class, 'store'])->name('stories.store')->middleware('throttle:posts');
     Route::get('/stories/{user}/{story}', [App\Http\Controllers\StoryController::class, 'show'])->name('stories.show')->where('user', '[a-zA-Z0-9_-]+');
     Route::get('/stories/{user}/{story}/viewers', [App\Http\Controllers\StoryController::class, 'viewers'])->name('stories.viewers')->where('user', '[a-zA-Z0-9_-]+');
-    Route::post('/stories/{user}/{story}/react', [App\Http\Controllers\StoryController::class, 'react'])->name('stories.react');
+    Route::post('/stories/{user}/{story}/react', [App\Http\Controllers\StoryController::class, 'react'])->name('stories.react')->middleware('throttle:posts');
     Route::delete('/stories/{user}/{story}/react', [App\Http\Controllers\StoryController::class, 'removeReaction'])->name('stories.remove-reaction');
     Route::get('/stories/{user}/{story}/reactions', [App\Http\Controllers\StoryController::class, 'getReactions'])->name('stories.reactions');
     Route::get('/stories/{user}/{story}/check-reaction', [App\Http\Controllers\StoryController::class, 'checkReaction'])->name('stories.check-reaction');
@@ -234,6 +266,11 @@ Route::middleware(['auth', 'suspended', 'verified'])->group(function () {
     Route::delete('/profile/delete-avatar', [UserController::class, 'deleteAvatar'])->name('profile.delete-avatar');
     Route::delete('/profile/delete-cover', [UserController::class, 'deleteCoverImage'])->name('profile.delete-cover');
     Route::delete('/profile/delete-account', [UserController::class, 'deleteAccount'])->name('profile.delete-account');
+    
+    // Set password for Google OAuth users
+    Route::get('/set-password', [App\Http\Controllers\Auth\PasswordController::class, 'showSetPassword'])->name('password.set-password');
+    Route::post('/set-password', [App\Http\Controllers\Auth\PasswordController::class, 'setPassword'])->name('password.set-password.store');
+    
     Route::get('/password/change', function () { return view('auth.password-change'); })->name('password.change.view');
     Route::post('/password/change', [PasswordController::class, 'change'])->name('password.change');
 

@@ -333,12 +333,21 @@ function deleteCover() {
 }
 
 function confirmDeleteAccount() {
+    // Create password prompt modal
+    const password = prompt({!! json_encode(__('users.delete_account_password_prompt')) !!});
+    if (!password) return;
+    
     if (!confirm({!! json_encode(__('users.delete_account_warning')) !!})) return;
     if (!confirm({!! json_encode(__('users.delete_account_final')) !!})) return;
 
     fetch('{{ route("profile.delete-account") }}', {
         method: 'DELETE',
-        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ password: password })
     })
     .then(r => r.json())
     .then(data => {
@@ -347,6 +356,10 @@ function confirmDeleteAccount() {
         } else {
             alert(data.message || {!! json_encode(__('users.failed_delete_account')) !!});
         }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert({!! json_encode(__('users.failed_delete_account')) !!});
     });
 }
 

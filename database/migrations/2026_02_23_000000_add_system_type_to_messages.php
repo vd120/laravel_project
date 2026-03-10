@@ -10,8 +10,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // First, convert any 'group_invite' types to 'system'
+        DB::table('messages')->where('type', 'group_invite')->update(['type' => 'system']);
+        
         // Modify type enum to include 'system' for group system messages
-        DB::statement("ALTER TABLE messages MODIFY COLUMN type ENUM('text', 'image', 'video', 'file', 'system') DEFAULT 'text'");
+        DB::statement("ALTER TABLE messages MODIFY COLUMN type ENUM('text', 'image', 'video', 'file', 'system', 'group_invite') DEFAULT 'text'");
     }
 
     /**

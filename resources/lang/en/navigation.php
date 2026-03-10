@@ -29,6 +29,7 @@ return [
     'notifications' => 'Notifications',
     'groups' => 'Groups',
     'ai_assistant' => 'AI Assistant',
+    'explore' => 'Explore Users',
 
     // Admin
     'admin_panel' => 'Admin Panel',

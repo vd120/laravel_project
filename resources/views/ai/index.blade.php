@@ -68,6 +68,13 @@
     }
 }
 
+/* Desktop - show back button */
+@media (min-width: 901px) {
+    .back-btn {
+        display: flex !important;
+    }
+}
+
 /* Laptop view - full width */
 @media (min-width: 1024px) {
     .ai-page {
@@ -106,7 +113,7 @@
 }
 
 .back-btn {
-    display: none;
+    display: flex;
     width: 38px;
     height: 38px;
     border: none;

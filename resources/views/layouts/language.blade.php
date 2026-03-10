@@ -129,6 +129,69 @@ i, svg, .fas, .fab, .far {
 .fade-content h2, .fade-content p {
     text-align: center !important;
 }
+
+/* ============================================
+   LANGUAGE DROPDOWN - Theme-Aware Styles
+   ============================================ */
+.language-dropdown {
+    background: var(--surface, rgba(22, 22, 22, 0.95)) !important;
+    backdrop-filter: blur(40px) !important;
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08)) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="light"] .language-dropdown {
+    background: var(--surface, rgba(249, 250, 251, 0.95)) !important;
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.1)) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+.language-option {
+    color: var(--text, #111111) !important;
+    transition: all 0.2s !important;
+}
+
+[data-theme="dark"] .language-option {
+    color: var(--text, #f5f5f7) !important;
+}
+
+.language-option:hover {
+    background: var(--surface-hover, rgba(0, 0, 0, 0.05)) !important;
+}
+
+[data-theme="dark"] .language-option:hover {
+    background: var(--surface-hover, rgba(255, 255, 255, 0.1)) !important;
+}
+
+.language-option.active {
+    background: rgba(94, 96, 206, 0.1) !important;
+    color: var(--primary, #5e60ce) !important;
+    font-weight: 600 !important;
+}
+
+.language-option.active:hover {
+    background: rgba(94, 96, 206, 0.15) !important;
+}
+
+/* Language Switcher Button */
+.language-toggle {
+    color: var(--text, #111111) !important;
+    transition: all 0.3s ease !important;
+}
+
+[data-theme="dark"] .language-toggle {
+    color: var(--text, #ffffff) !important;
+}
+
+.language-toggle:hover {
+    background: var(--surface-hover, rgba(0, 0, 0, 0.05)) !important;
+    border-color: var(--border, rgba(0, 0, 0, 0.1)) !important;
+}
+
+[data-theme="dark"] .language-toggle:hover {
+    background: var(--surface-hover, rgba(255, 255, 255, 0.1)) !important;
+    border-color: var(--border, rgba(255, 255, 255, 0.2)) !important;
+}
 </style>
 
 {{-- Language Switcher Component --}}
@@ -187,11 +250,6 @@ i, svg, .fas, .fab, .far {
             right: 0;
             margin-top: 8px;
             min-width: 160px;
-            background: inherit;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
             z-index: 1001;
             overflow: hidden;
             padding: 8px;
@@ -213,12 +271,8 @@ i, svg, .fas, .fab, .far {
                     padding: 10px 14px;
                     border-radius: 8px;
                     text-decoration: none;
-                    color: {{ $currentLocale === $locale ? '#5e60ce' : 'inherit' }};
-                    transition: all 0.2s;
                     margin-bottom: 4px;
                 "
-                onmouseover="this.style.background='rgba(255,255,255,0.05)'"
-                onmouseout="if(!this.classList.contains('active')) this.style.background='inherit'"
             >
                 <span style="font-size: 18px;">{{ $details['flag'] }}</span>
                 <div style="display: flex; flex-direction: column;">
@@ -228,7 +282,7 @@ i, svg, .fas, .fab, .far {
                     @endif
                 </div>
                 @if($currentLocale === $locale)
-                    <svg style="width: 16px; height: 16px; margin-left: auto; color: #5e60ce;" fill="currentColor" viewBox="0 0 20 20">
+                    <svg style="width: 16px; height: 16px; margin-left: auto; color: var(--primary);" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
                 @endif

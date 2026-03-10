@@ -47,6 +47,21 @@ Write-Status "Checking PHP..."
 try {
     $phpVersion = php -v 2>&1 | Select-Object -First 1
     if ($phpVersion) {
+        # Extract version number
+        $versionMatch = $phpVersion -match '(\d+)\.(\d+)'
+        if ($versionMatch) {
+            $phpMajor = $matches[1]
+            $phpMinor = $matches[2]
+            $phpVersionNum = "$phpMajor.$phpMinor"
+            
+            # Check minimum PHP version (8.2 required)
+            if ([int]$phpMajor -lt 8 -or ([int]$phpMajor -eq 8 -and [int]$phpMinor -lt 2)) {
+                Write-Error-Custom "PHP 8.2 or higher is required! You have $phpVersionNum"
+                Write-Host "  Please upgrade PHP to version 8.2 or higher" -ForegroundColor $YELLOW
+                Read-Host "Press Enter to exit"
+                exit 1
+            }
+        }
         Write-Success "PHP installed ($($phpVersion.Substring(0, [Math]::Min(20, $phpVersion.Length))))"
     } else {
         throw
@@ -54,6 +69,31 @@ try {
 } catch {
     Write-Error-Custom "PHP is not installed!"
     Write-Host "  Install from: https://windows.php.net/download/" -ForegroundColor $YELLOW
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+
+# Check required PHP extensions
+Write-Host ""
+Write-Host "  Checking PHP extensions..." -ForegroundColor $CYAN
+
+$REQUIRED_EXTENSIONS = @("mbstring", "xml", "curl", "zip", "openssl", "pdo", "json", "tokenizer")
+$MISSING_EXTENSIONS = @()
+
+foreach ($ext in $REQUIRED_EXTENSIONS) {
+    $extCheck = php -m 2>&1 | Select-String -Pattern $ext -CaseSensitive:$false
+    if ($extCheck) {
+        Write-Success "PHP extension: $ext"
+    } else {
+        Write-Error-Custom "PHP extension: $ext (MISSING)"
+        $MISSING_EXTENSIONS += $ext
+    }
+}
+
+if ($MISSING_EXTENSIONS.Count -gt 0) {
+    Write-Host ""
+    Write-Error-Custom "Missing PHP extensions: $($MISSING_EXTENSIONS -join ', ')"
+    Write-Host "  Enable extensions in php.ini or install: php-mbstring php-xml php-curl php-zip php-sqlite3 php-mysql" -ForegroundColor $YELLOW
     Read-Host "Press Enter to exit"
     exit 1
 }
@@ -110,7 +150,7 @@ Write-Status "Checking Git..."
 try {
     $gitVersion = git --version 2>&1
     if ($gitVersion) {
-        Write-Success "Git installed"
+        Write-Success "Git installed ($gitVersion)"
     } else {
         throw
     }
@@ -119,6 +159,24 @@ try {
     Write-Host "  Install from: https://git-scm.com/download/win" -ForegroundColor $YELLOW
     Read-Host "Press Enter to exit"
     exit 1
+}
+
+# Check required system tools
+Write-Status "Checking system tools..."
+if (Get-Command unzip -ErrorAction SilentlyContinue) {
+    Write-Success "unzip installed"
+} else {
+    Write-Error-Custom "unzip is not installed!"
+    Write-Host "  Install from: https://info-zip.org/" -ForegroundColor $YELLOW
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+
+if (Get-Command jq -ErrorAction SilentlyContinue) {
+    Write-Success "jq installed (for tunnel logs)"
+} else {
+    Write-Status "jq not found (optional, for tunnel visitor logs)"
+    Write-Host "  Install from: https://jqlang.github.io/jq/download/ (recommended for tunnel mode)" -ForegroundColor $YELLOW
 }
 
 Write-Host ""
