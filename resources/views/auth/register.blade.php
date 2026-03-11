@@ -745,7 +745,7 @@
     }
     document.getElementById('password_confirmation').addEventListener('input', checkMatch);
 
-    // username availability check (simulated with fetch, keep original behavior)
+    // username availability check
     let usernameTimer = null;
     document.getElementById('username').addEventListener('input', function() {
         const username = this.value.trim();
@@ -764,8 +764,7 @@
         status.className = 'field-status checking';
 
         usernameTimer = setTimeout(function() {
-            // Using same endpoint as original – adjust if needed
-            fetch('/api/check-username/' + encodeURIComponent(username))
+            fetch('/api/check-username?username=' + encodeURIComponent(username))
                 .then(r => r.json())
                 .then(data => {
                     if (data.available) {

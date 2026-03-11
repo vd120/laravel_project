@@ -10,6 +10,33 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
 // Username availability check (public endpoint)
+Route::get('/check-username', function (\Illuminate\Http\Request $request) {
+    $username = $request->query('username', '');
+    
+    // Validate username format
+    if (empty($username) || !preg_match('/^[a-zA-Z0-9_-]+$/', $username)) {
+        return response()->json(['available' => false, 'message' => 'Invalid username format']);
+    }
+
+    // Get current user ID from session if authenticated
+    $currentUserId = auth()->id();
+
+    // Check if username exists (exclude current user if editing profile)
+    $query = \App\Models\User::where('username', $username);
+
+    if ($currentUserId) {
+        $query->where('id', '!=', $currentUserId);
+    }
+
+    $exists = $query->exists();
+
+    return response()->json([
+        'available' => !$exists,
+        'username' => $username
+    ]);
+});
+
+// Legacy endpoint with route parameter (for backward compatibility)
 Route::get('/check-username/{username}', function ($username) {
     // Validate username format
     if (!preg_match('/^[a-zA-Z0-9_-]+$/', $username)) {

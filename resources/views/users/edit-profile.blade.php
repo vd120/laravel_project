@@ -410,6 +410,107 @@ function updateCooldownTimer() {
 // Start the timer when page loads
 document.addEventListener('DOMContentLoaded', function() {
     updateCooldownTimer();
+    initUsernameCheck();
 });
+
+// Real-time username availability check
+function initUsernameCheck() {
+    const usernameInput = document.getElementById('username');
+    
+    if (!usernameInput) return;
+    
+    // Create error display element if it doesn't exist
+    let usernameError = document.getElementById('username-error');
+    if (!usernameError) {
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'username-error';
+        errorDiv.style.cssText = 'font-size: 13px; margin-top: 6px; display: none; font-weight: 500;';
+        usernameInput.parentNode.appendChild(errorDiv);
+        usernameError = errorDiv;
+    }
+    
+    // Create status indicator
+    let statusSpan = document.getElementById('username-status');
+    if (!statusSpan) {
+        statusSpan = document.createElement('span');
+        statusSpan.id = 'username-status';
+        statusSpan.style.cssText = 'font-size: 14px; margin-left: 8px; display: none; vertical-align: middle;';
+        usernameInput.parentNode.appendChild(statusSpan);
+    }
+    
+    let debounceTimer;
+    
+    usernameInput.addEventListener('input', function() {
+        const username = this.value.trim();
+        const currentUsername = '{{ $user->username }}';
+        
+        clearTimeout(debounceTimer);
+        
+        // Hide status and error
+        usernameError.style.display = 'none';
+        statusSpan.style.display = 'none';
+        
+        // Don't check if username is the same as current
+        if (username === currentUsername) {
+            return;
+        }
+        
+        // Don't check if username is too short
+        if (username.length < 3) {
+            return;
+        }
+        
+        // Debounce the check
+        debounceTimer = setTimeout(() => {
+            checkUsernameAvailability(username);
+        }, 500);
+    });
+    
+    // Check on blur as well
+    usernameInput.addEventListener('blur', function() {
+        const username = this.value.trim();
+        const currentUsername = '{{ $user->username }}';
+        
+        if (username !== currentUsername && username.length >= 3) {
+            checkUsernameAvailability(username);
+        }
+    });
+}
+
+function checkUsernameAvailability(username) {
+    const errorEl = document.getElementById('username-error');
+    const statusEl = document.getElementById('username-status');
+    
+    // Show loading state with text
+    statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span style="font-size: 12px; margin-left: 4px;">{{ __('messages.username_checking') }}</span>';
+    statusEl.style.color = 'var(--text-muted)';
+    statusEl.style.display = 'inline';
+    
+    fetch('/api/check-username?username=' + encodeURIComponent(username))
+        .then(response => response.json())
+        .then(data => {
+            if (data.available) {
+                // Username is available - show success checkmark with text
+                statusEl.innerHTML = '<i class="fas fa-check-circle" style="color: var(--success);"></i> <span style="font-size: 12px; margin-left: 4px; color: var(--success);">{{ __('messages.username_available') }}</span>';
+                statusEl.style.display = 'inline';
+                errorEl.style.display = 'none';
+            } else {
+                // Username is taken - show error with text
+                errorEl.innerHTML = '<i class="fas fa-times-circle" style="color: var(--accent); margin-right: 4px;"></i> <span>{{ __('messages.username_taken') }}</span>';
+                errorEl.style.color = 'var(--accent)';
+                errorEl.style.display = 'block';
+                
+                // Also show X icon in status
+                statusEl.innerHTML = '<i class="fas fa-times-circle" style="color: var(--accent);"></i>';
+                statusEl.style.display = 'inline';
+            }
+        })
+        .catch(error => {
+            console.error('Error checking username:', error);
+            statusEl.style.display = 'none';
+            errorEl.style.display = 'none';
+            // Silently fail - backend validation will catch it
+        });
+}
 </script>
 @endsection

@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\SavedPost;
+use App\Services\FileUploadService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class PostController extends Controller
 {
@@ -15,70 +15,49 @@ class PostController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $perPage = $request->get('per_page', 10); // Default 10 posts per page for web view
+        $perPage = $request->get('per_page', 10);
         $page = $request->get('page', 1);
 
         if ($user) {
-            // Authenticated user logic - cache for 3 minutes
-            $cacheKey = "user_{$user->id}_feed_page_{$page}_per_{$perPage}";
-            
-            $posts = Cache::remember($cacheKey, now()->addMinutes(3), function() use ($user, $perPage) {
-                return Post::with(['user', 'media', 'likes', 'savedPosts', 'comments.replies.user', 'comments.likes'])
-                    ->where(function($query) use ($user) {
-                        // Show posts where ANY of these conditions are true:
-                        $query->where(function($q) use ($user) {
-                                // 1. Your own posts (always show)
-                                $q->where('user_id', $user->id);
-                            })
-                            ->orWhere(function($q) use ($user) {
-                                // 2. Posts from users you follow (regardless of their privacy settings)
-                                $q->whereHas('user.followers', function($followerQuery) use ($user) {
-                                    $followerQuery->where('follower_id', $user->id);
-                                });
-                            })
-                            ->orWhere(function($q) use ($user) {
-                                // 3. Public posts from all users (for discovery - regardless of profile privacy)
-                                $q->where('is_private', false);
+            $posts = Post::with(['user', 'media', 'likes', 'savedPosts', 'comments.replies.user', 'comments.likes'])
+                ->where(function($query) use ($user) {
+                    $query->where(function($q) use ($user) {
+                            $q->where('user_id', $user->id);
+                        })
+                        ->orWhere(function($q) use ($user) {
+                            $q->whereHas('user.followers', function($followerQuery) use ($user) {
+                                $followerQuery->where('follower_id', $user->id);
                             });
-                    })
-                    // Exclude posts from users that blocked the current user or that the current user blocked
-                    ->whereDoesntHave('user.blockedBy', function($blockedByQuery) use ($user) {
-                        $blockedByQuery->where('blocker_id', $user->id);
-                    })
-                    ->whereDoesntHave('user.blockedUsers', function($blockedUsersQuery) use ($user) {
-                        $blockedUsersQuery->where('blocked_id', $user->id);
-                    })
-                    ->latest()
-                    ->paginate($perPage)
-                    ->withQueryString();
-            });
+                        })
+                        ->orWhere(function($q) use ($user) {
+                            $q->where('is_private', false);
+                        });
+                })
+                ->whereDoesntHave('user.blockedBy', function($blockedByQuery) use ($user) {
+                    $blockedByQuery->where('blocker_id', $user->id);
+                })
+                ->whereDoesntHave('user.blockedUsers', function($blockedUsersQuery) use ($user) {
+                    $blockedUsersQuery->where('blocked_id', $user->id);
+                })
+                ->latest()
+                ->paginate($perPage)
+                ->withQueryString();
 
-            // Get active stories from followed users and current user - cache for 2 minutes
-            $storiesCacheKey = "user_{$user->id}_followed_stories";
-            $followedUsersWithStories = Cache::remember($storiesCacheKey, now()->addMinutes(2), function() use ($user) {
-                return \App\Models\User::whereHas('followers', function($query) use ($user) {
-                    $query->where('follower_id', $user->id);
-                })->whereHas('activeStories')->with(['activeStories'])->get();
-            });
+            $followedUsersWithStories = \App\Models\User::whereHas('followers', function($query) use ($user) {
+                $query->where('follower_id', $user->id);
+            })->whereHas('activeStories')->with(['activeStories'])->get();
 
-            // Include current user's stories
             $myStories = $user->activeStories;
         } else {
-            // Guest user logic - cache for 5 minutes (longer cache for guests)
-            $cacheKey = "guest_feed_page_{$page}_per_{$perPage}";
-            
-            $posts = Cache::remember($cacheKey, now()->addMinutes(5), function() use ($perPage) {
-                return Post::with(['user', 'media', 'likes', 'comments.replies.user', 'comments.likes'])
-                    ->where('is_private', false)
-                    ->whereHas('user.profile', function($profileQuery) {
-                        $profileQuery->where('is_private', false);
-                    })
-                    ->latest()
-                    ->paginate($perPage)
-                    ->withQueryString();
-            });
+            $posts = Post::with(['user', 'media', 'likes', 'comments.replies.user', 'comments.likes'])
+                ->where('is_private', false)
+                ->whereHas('user.profile', function($profileQuery) {
+                    $profileQuery->where('is_private', false);
+                })
+                ->latest()
+                ->paginate($perPage)
+                ->withQueryString();
 
-            // No stories for guests
             $followedUsersWithStories = collect();
             $myStories = collect();
         }
@@ -97,8 +76,15 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, FileUploadService $fileService)
     {
+        // Check if POST data exceeded PHP limits
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST) && empty($_FILES)) {
+            return back()
+                ->withInput()
+                ->withErrors(['media' => __('messages.post_too_large')]);
+        }
+        
         $request->validate([
             'content' => 'nullable|string|max:280',
             'media' => 'nullable|array|max:30', // Allow up to 30 files
@@ -108,6 +94,27 @@ class PostController extends Controller
         // Ensure at least content or media is provided
         if (!$request->filled('content') && !$request->hasFile('media')) {
             return back()->withErrors(['content' => 'Please provide either text content or media.']);
+        }
+
+        $allowedMimeTypes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'
+        ];
+
+        // SECURITY FIX: Validate all files before processing
+        $validatedFiles = [];
+        if ($request->hasFile('media')) {
+            foreach ($request->file('media') as $index => $file) {
+                $validation = $fileService->validateFile($file, $allowedMimeTypes);
+                
+                if (!$validation['valid']) {
+                    return back()->withErrors([
+                        'media.' . $index => implode(', ', $validation['errors'])
+                    ])->withInput();
+                }
+                
+                $validatedFiles[] = $file;
+            }
         }
 
         $postData = $request->only('content');
@@ -123,9 +130,9 @@ class PostController extends Controller
             app(\App\Services\MentionService::class)->processMentions($post, $post->content, auth()->id());
         }
 
-        // Handle multiple media uploads
-        if ($request->hasFile('media')) {
-            $files = $request->file('media');
+        // Handle multiple media uploads with validated files
+        if ($validatedFiles) {
+            $files = $validatedFiles;
             $sortOrder = 0;
 
             foreach ($files as $file) {
@@ -133,40 +140,17 @@ class PostController extends Controller
                 $originalName = $file->getClientOriginalName();
 
                 if (str_contains($mimeType, 'image/')) {
-                    // Handle image upload with compression
+                    // Handle image upload with FAST compression
                     try {
-                        // Try to use GD driver first
                         $manager = new \Intervention\Image\ImageManager(
                             new \Intervention\Image\Drivers\Gd\Driver()
                         );
-                    } catch (\Exception $e) {
-                        // Fallback to Imagick driver if GD is not available
-                        try {
-                            $manager = new \Intervention\Image\ImageManager(
-                                new \Intervention\Image\Drivers\Imagick\Driver()
-                            );
-                        } catch (\Exception $e2) {
-                            // If neither GD nor Imagick is available, save the original file
-                            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                            $path = 'posts/images/' . $filename;
-                            $file->move(storage_path('app/public/posts/images'), $filename);
-
-                            $post->media()->create([
-                                'media_type' => 'image',
-                                'media_path' => $path,
-                                'sort_order' => $sortOrder++
-                            ]);
-                            continue;
-                        }
-                    }
-
-                    try {
                         $compressedImage = $manager->read($file);
 
-                        // Compress image based on quality and size
-                        $maxWidth = 1200;
-                        $maxHeight = 1200;
-                        $quality = 85; // Good balance of quality vs size
+                        // FAST compression: smaller max size + lower quality
+                        $maxWidth = 800;  // Reduced from 1200 for speed
+                        $maxHeight = 800; // Reduced from 1200 for speed
+                        $quality = 75;    // Reduced from 85 for speed
 
                         // Resize if too large
                         if ($compressedImage->width() > $maxWidth || $compressedImage->height() > $maxHeight) {
@@ -174,10 +158,10 @@ class PostController extends Controller
                         }
 
                         // Generate unique filename
-                        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $filename = time() . '_' . uniqid() . '.jpg'; // Always use .jpg for speed
                         $path = 'posts/images/' . $filename;
 
-                        // Save compressed image
+                        // Save compressed image (fastest settings)
                         $compressedImage->toJpeg($quality)->save(storage_path('app/public/' . $path));
                     } catch (\Exception $e) {
                         // If compression fails, save the original file
@@ -346,10 +330,8 @@ class PostController extends Controller
 
         if ($like) {
             $like->delete();
-            $post->refresh();
         } else {
-            $newLike = $post->likes()->create(['user_id' => $user->id]);
-            $post->refresh();
+            $post->likes()->create(['user_id' => $user->id]);
 
             // Create notification for post owner (if not liking own post)
             if ($post->user_id !== $user->id) {
@@ -367,13 +349,9 @@ class PostController extends Controller
                 ]);
             }
         }
-        
-        // Clear cache for post owner's feed (engagement affects feed ranking)
-        Cache::forget("user_{$post->user->id}_feed_page_1_per_10");
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {
-            // Get recent likers (up to 10)
             $recentLikers = $post->likes()->with('user:id,name')->latest()->limit(10)->get()->map(function($like) {
                 return [
                     'id' => $like->user->id,
@@ -397,17 +375,12 @@ class PostController extends Controller
         $saved = SavedPost::where('user_id', auth()->id())->where('post_id', $post->id)->first();
         if ($saved) {
             $saved->delete();
-            $post->refresh();
         } else {
             SavedPost::create([
                 'user_id' => auth()->id(),
                 'post_id' => $post->id
             ]);
-            $post->refresh();
         }
-        
-        // Clear cache for current user (saved posts changed)
-        Cache::forget("user_" . auth()->id() . "_feed_page_1_per_10");
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {

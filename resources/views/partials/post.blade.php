@@ -366,21 +366,29 @@
     gap: 2px;
 }
 
-/* Single image - full width, natural aspect ratio preserved */
+/* Single image - improved for tall/portrait images */
 .fb-grid-1 {
     grid-template-columns: 1fr;
 }
 
 .fb-grid-1 .media-item {
     max-height: 600px;
+    position: relative;
 }
 
 .fb-grid-1 .media-item img,
 .fb-grid-1 .media-item video {
     width: 100%;
     max-height: 600px;
-    object-fit: contain;
+    object-fit: cover; /* Changed from contain to cover for better appearance */
     background: var(--surface-hover);
+}
+
+/* Special handling for very tall images (portrait mode) */
+.fb-grid-1 .media-item img.portrait,
+.fb-grid-1 .media-item video.portrait {
+    object-fit: contain; /* Keep full visibility for very tall images */
+    max-height: 800px; /* Allow taller display */
 }
 
 /* Two images - side by side, equal height */
@@ -728,6 +736,13 @@
     .fb-grid-1 .media-item video {
         max-height: 500px;
     }
+    
+    /* Better tall image display on mobile */
+    .fb-grid-1 .media-item img.portrait,
+    .fb-grid-1 .media-item video.portrait {
+        max-height: 70vh; /* Use viewport height on mobile */
+        object-fit: contain;
+    }
 
     .post-actions {
         margin-top: 4px;
@@ -790,7 +805,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.95);
     z-index: 9999;
     justify-content: center;
     align-items: center;
@@ -802,9 +817,10 @@
 
 .media-modal-content {
     position: relative;
-    max-width: 90vw;
-    max-height: 90vh;
+    max-width: 100vw;
+    max-height: 100vh;
     width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -813,96 +829,109 @@
 .media-modal-content img,
 .media-modal-content video {
     max-width: 100%;
-    max-height: 90vh;
+    max-height: 100vh;
     object-fit: contain;
 }
 
+/* Close button - top right, static position */
 .media-modal-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.5);
-    border: none;
-    color: white;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(50, 255, 50, 0.5);
+    color: #32ff32; /* Lime green */
     font-size: 28px;
     cursor: pointer;
-    padding: 8px 12px;
-    z-index: 10000;
+    padding: 0;
+    z-index: 10001;
     border-radius: 50%;
-    width: 44px;
-    height: 44px;
+    width: 50px;
+    height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+/* Navigation buttons - bottom corners, static position */
 .media-modal-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
+    position: fixed;
+    bottom: 30px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(50, 255, 50, 0.5);
+    color: #32ff32; /* Lime green */
     border: none;
-    font-size: 24px;
-    padding: 16px 12px;
+    font-size: 28px;
     cursor: pointer;
-    border-radius: 8px;
-    z-index: 10000;
-    min-width: 50px;
+    padding: 0;
+    z-index: 10001;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.media-modal-nav:hover {
-    background: rgba(0, 0, 0, 0.8);
 }
 
 .media-modal-prev {
-    left: 10px;
+    left: 30px;
 }
 
 .media-modal-next {
-    right: 10px;
+    right: 30px;
 }
 
+/* Counter - bottom center, above buttons */
 .media-modal-counter {
-    position: absolute;
-    bottom: 10px;
+    position: fixed;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     color: white;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 6px 12px;
-    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 8px 16px;
+    border-radius: 20px;
+    z-index: 10001;
+    min-width: 80px;
+    text-align: center;
 }
 
 /* Mobile Navigation Buttons - Always visible on mobile */
 @media (max-width: 768px) {
-    .media-modal-nav {
-        background: rgba(0, 0, 0, 0.7);
-        font-size: 28px;
-        padding: 20px 10px;
-        min-width: 60px;
-    }
-    
-    .media-modal-prev {
-        left: 5px;
-    }
-    
-    .media-modal-next {
-        right: 5px;
-    }
-    
     .media-modal-close {
-        top: 10px;
-        right: 10px;
+        top: 15px;
+        right: 15px;
+        width: 44px;
+        height: 44px;
+        font-size: 24px;
+        border-width: 2px;
     }
     
-    .media-modal-counter {
+    .media-modal-nav {
         bottom: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        border-width: 2px;
+    }
+
+    .media-modal-prev {
+        left: 20px;
+    }
+
+    .media-modal-next {
+        right: 20px;
+    }
+
+    .media-modal-counter {
+        bottom: 15px;
+        font-size: 14px;
+        padding: 6px 12px;
     }
 }
 
@@ -1328,10 +1357,16 @@
 <!-- Media Modal -->
 <div id="media-modal" class="media-modal" onclick="closeMediaModal(event)">
     <div class="media-modal-content" onclick="event.stopPropagation()">
-        <button class="media-modal-close" onclick="closeMediaModal()">&times;</button>
-        <button class="media-modal-nav media-modal-prev" onclick="navigateMedia(-1)">&#8249;</button>
+        <button class="media-modal-close" onclick="closeMediaModal()" title="Close">
+            <i class="fas fa-times"></i>
+        </button>
+        <button class="media-modal-nav media-modal-prev" onclick="navigateMedia(-1)" title="Previous">
+            <i class="fas fa-chevron-left"></i>
+        </button>
         <div id="media-modal-image"></div>
-        <button class="media-modal-nav media-modal-next" onclick="navigateMedia(1)">&#8250;</button>
+        <button class="media-modal-nav media-modal-next" onclick="navigateMedia(1)" title="Next">
+            <i class="fas fa-chevron-right"></i>
+        </button>
         <div class="media-modal-counter" id="media-modal-counter"></div>
     </div>
 </div>
@@ -1341,10 +1376,10 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
     window.postFunctionsInitialized = true;
 
     function deletePost(slug, btn) {
-        if (!confirm('Are you sure you want to delete this post?')) return;
-        
+        if (!confirm('{{ __('messages.delete_post_confirm') }}')) return;
+
         const postCard = btn.closest('.post-card');
-        
+
         fetch(`/posts/${slug}`, {
             method: 'DELETE',
             headers: {
@@ -1355,7 +1390,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
         .then(response => {
             if (response.ok) {
                 if (postCard) postCard.remove();
-                showToast('Post deleted successfully', 'success');
+                showToast('{{ __('messages.post_deleted') }}', 'success');
                 return { success: true };
             }
             // If not ok, try to parse JSON or reload
@@ -1370,7 +1405,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
         })
         .catch(error => {
             console.error('Error:', error);
-            showToast('Failed to delete post', 'error');
+            showToast('{{ __('messages.failed_to_delete_post') }}', 'error');
             window.location.reload();
         });
     }
@@ -1770,7 +1805,7 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
     }
 
     function deleteComment(commentId, btn) {
-        if (!confirm('Delete this comment?')) return;
+        if (!confirm('{{ __('messages.delete_comment_confirm') }}')) return;
         
         fetch(`/comments/${commentId}`, {
             method: 'DELETE',
@@ -1955,6 +1990,26 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
     function showLoginModal(action, message) {
         alert('Please login to ' + action);
     }
+
+    // Detect portrait images on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.fb-grid-1 .media-item img').forEach(function(img) {
+            img.addEventListener('load', function() {
+                // Check if image is taller than wide (portrait)
+                const aspectRatio = this.naturalHeight / this.naturalWidth;
+                if (aspectRatio > 1.3) {
+                    this.classList.add('portrait');
+                }
+            });
+            // If image is already loaded
+            if (this.complete) {
+                const aspectRatio = this.naturalHeight / this.naturalWidth;
+                if (aspectRatio > 1.3) {
+                    this.classList.add('portrait');
+                }
+            }
+        });
+    });
 
     // Media modal functions
     window.currentMediaIndex = 0;

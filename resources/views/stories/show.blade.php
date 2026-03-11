@@ -811,6 +811,22 @@
 
         function previousStory() {
             if (currentIndex > 0) {
+                // Clear timer before changing index to prevent race conditions
+                clearStoryTimer();
+                
+                // Reset the progress bar for the story we're going back to
+                const prevIndex = currentIndex - 1;
+                const prevBar = progressBars[prevIndex];
+                if (prevBar) {
+                    const fill = prevBar.querySelector('.progress-fill');
+                    if (fill) {
+                        fill.style.width = '0%';
+                        fill.style.animation = 'none';
+                        fill.offsetHeight; // Trigger reflow
+                        fill.style.animation = `progress 5s linear forwards`;
+                    }
+                }
+                
                 currentIndex--;
                 updateDisplay();
             }

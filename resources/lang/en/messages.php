@@ -231,7 +231,9 @@ return [
     'unsuspend_user' => 'Unsuspend User',
     'delete_user' => 'Delete User',
     'delete_post' => 'Delete Post',
+    'delete_post_confirm' => 'Are you sure you want to delete this post?',
     'delete_comment' => 'Delete Comment',
+    'delete_comment_confirm' => 'Delete this comment?',
     'delete_story' => 'Delete Story',
     'create_admin' => 'Create Admin Account',
 
@@ -293,6 +295,7 @@ return [
     'cannot_delete_admin' => 'Cannot delete admin accounts',
     'user_deleted' => 'User deleted successfully',
     'post_deleted' => 'Post deleted successfully',
+    'failed_to_delete_post' => 'Failed to delete post',
     'comment_deleted' => 'Comment deleted successfully',
     'story_deleted' => 'Story deleted successfully',
     'story_posted' => 'Story posted successfully!',
@@ -300,6 +303,15 @@ return [
 
     // Flash Messages - Chat
     'cannot_chat_with_self' => 'You cannot start a conversation with yourself.',
+    'cannot_chat_with_blocked_user' => 'You cannot start a conversation with a blocked user.',
+    'cannot_send_message_blocked_user' => 'Cannot send message. You have blocked or been blocked by a participant.',
+    'user_has_blocked_you' => 'This user has blocked you.',
+    'profile_is_private' => 'This profile is private.',
+    'post_owner_has_blocked_you' => 'The post owner has blocked you.',
+    'you_have_blocked_this_user' => 'You have blocked this user.',
+    'comment_author_has_blocked_you' => 'The comment author has blocked you.',
+    'post_too_large' => 'The post data is too large. Please reduce the file size or number of images/videos.',
+    
     'comment_posted' => 'Comment posted successfully',
     'notification_marked_as_read' => 'Notification marked as read',
     'all_notifications_marked_as_read' => 'All notifications marked as read',

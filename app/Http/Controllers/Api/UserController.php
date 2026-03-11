@@ -10,13 +10,49 @@ class UserController extends Controller
 {
     public function show(User $user)
     {
-        $posts = $user->posts()->with(['comments.replies.user', 'comments.likes'])->latest()->get();
+        $currentUser = auth()->user();
+        
+        // Check if profile is private and current user is not following
+        $isPrivate = $user->profile && $user->profile->is_private;
+        $isFollowing = $currentUser ? $currentUser->isFollowing($user) : false;
+        $isOwnProfile = $currentUser && $currentUser->id === $user->id;
+        
+        // If profile is private and user is not following or owner, return limited data
+        if ($isPrivate && !$isFollowing && !$isOwnProfile) {
+            return response()->json([
+                'user' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'name' => $user->name,
+                    'avatar_url' => $user->avatar_url,
+                    'profile' => $user->profile ? [
+                        'is_private' => true,
+                        'bio' => null,
+                        'avatar' => null
+                    ] : null
+                ],
+                'posts' => [],
+                'message' => __('messages.profile_is_private'),
+                'is_private' => true
+            ]);
+        }
+        
+        // Get posts with privacy checks
+        $postsQuery = $user->posts()->with(['comments.replies.user', 'comments.likes']);
+        
+        // Only show public posts to non-followers
+        if (!$isFollowing && !$isOwnProfile) {
+            $postsQuery->where('is_private', false);
+        }
+        
+        $posts = $postsQuery->latest()->get();
+        
         return response()->json([
             'user' => $user,
             'posts' => $posts,
             'followers_count' => $user->followers->count(),
             'following_count' => $user->follows->count(),
-            'is_following' => auth()->user()->isFollowing($user),
+            'is_following' => $currentUser ? $currentUser->isFollowing($user) : false,
         ]);
     }
 

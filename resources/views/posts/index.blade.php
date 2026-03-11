@@ -14,27 +14,47 @@
 .stories-scroll::-webkit-scrollbar { display: none; }
 
 .story-item { flex-shrink: 0; text-align: center; cursor: pointer; }
-.story-avatar-wrapper { 
-    width: 72px; height: 72px; border-radius: 50%; 
+.story-avatar-wrapper {
+    width: 72px; height: 72px; border-radius: 50%;
     padding: 3px; background: linear-gradient(135deg, var(--primary), var(--secondary));
     margin-bottom: 8px;
+    position: relative;
 }
-.story-avatar { 
-    width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--bg); 
+.story-avatar {
+    width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--bg);
     overflow: hidden; background: var(--surface);
 }
 .story-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.story-avatar .avatar-placeholder { 
+.story-avatar .avatar-placeholder {
     width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
     font-weight: 700; font-size: 24px; color: var(--text);
 }
 .story-item.create .story-avatar-wrapper { background: var(--border); }
-.story-item.create .add-icon { 
-    position: absolute; bottom: 0; right: 0; width: 24px; height: 24px;
-    background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 12px; border: 3px solid var(--bg);
+.story-item.create .add-icon {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 26px;
+    height: 26px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    border: 3px solid var(--bg);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-.story-name { font-size: 12px; color: var(--text-muted); max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.story-name {
+    font-size: 12px;
+    color: var(--text-muted);
+    max-width: 72px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.4;
+}
 
 /* Create Post - Clean Professional Design */
 .create-post {
@@ -231,8 +251,7 @@ body.light-theme .btn-primary:hover {
     @endif
 
     @auth
-    {{-- Stories --}}
-    @if($followedUsersWithStories->count() > 0 || $myStories->count() > 0)
+    {{-- Stories - Always show section --}}
     <div class="stories-section">
         <div class="stories-header">
             <h3>{{ __('messages.stories') }}</h3>
@@ -240,7 +259,7 @@ body.light-theme .btn-primary:hover {
                 <i class="fas fa-external-link-alt"></i> {{ __('messages.view_all_stories') }}
             </a>
         </div>
-        <div class="stories-scroll">
+        <div class="stories-scroll" id="stories-scroll">
             @if($myStories->count() > 0)
                 @php
                 $latestMyStory = $myStories->sortByDesc('created_at')->first();
@@ -282,7 +301,6 @@ body.light-theme .btn-primary:hover {
             @endforeach
         </div>
     </div>
-    @endif
 
     {{-- Create Post - Clean Professional Design --}}
     <div class="create-post">
@@ -338,8 +356,70 @@ body.light-theme .btn-primary:hover {
 </div>
 
 <script>
+// Disable browser scroll restoration to ensure stories section is always visible at top
+// if ('scrollRestoration' in history) {
+//     history.scrollRestoration = 'manual';
+// }
+
+// Scroll to top immediately when page loads
+// window.addEventListener('load', function() {
+//     window.scrollTo(0, 0);
+// });
+
+// Also scroll to top on DOMContentLoaded as backup
+// document.addEventListener('DOMContentLoaded', function() {
+//     window.scrollTo(0, 0);
+// });
+
 function viewStory(user, storySlug) { window.location.href = '/stories/' + user + '/' + storySlug; }
 function viewStoryFromHome(user, storySlug) { window.location.href = '/stories/' + user + '/' + storySlug + '?from=home'; }
+
+// Add story to the stories section when following a user
+function addStoryToSection(user) {
+    const storiesScroll = document.querySelector('.stories-scroll');
+    if (!storiesScroll) return;
+    
+    // Check if story already exists
+    const existingStory = storiesScroll.querySelector(`[data-username="${user.username}"]`);
+    if (existingStory) return; // Already exists
+    
+    // Create story item
+    const storyItem = document.createElement('div');
+    storyItem.className = 'story-item';
+    storyItem.setAttribute('data-username', user.username);
+    storyItem.onclick = function() { viewStoryFromHome(user.username, user.storySlug); };
+    
+    const avatarUrl = user.avatarUrl || '/images/default-avatar.png';
+    const hasAvatar = user.avatarUrl && user.avatarUrl !== '';
+    
+    storyItem.innerHTML = `
+        <div class="story-avatar-wrapper">
+            <div class="story-avatar">
+                ${hasAvatar 
+                    ? `<img src="${avatarUrl}" alt="${user.username}">` 
+                    : `<div class="avatar-placeholder">${user.username.charAt(0).toUpperCase()}</div>`
+                }
+            </div>
+        </div>
+        <div class="story-name">${user.username}</div>
+    `;
+    
+    // Add after "Your Story" or "Create Story" button
+    const firstStory = storiesScroll.querySelector('.story-item:not([data-username])');
+    if (firstStory && firstStory.nextElementSibling) {
+        storiesScroll.insertBefore(storyItem, firstStory.nextElementSibling);
+    } else {
+        storiesScroll.appendChild(storyItem);
+    }
+}
+
+// Remove story from section when unfollowing
+function removeStoryFromSection(username) {
+    const storyItem = document.querySelector(`.story-item[data-username="${username}"]`);
+    if (storyItem) {
+        storyItem.remove();
+    }
+}
 
 function togglePrivacy() {
     const btn = document.getElementById('privacy-btn');

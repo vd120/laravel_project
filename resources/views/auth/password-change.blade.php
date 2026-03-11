@@ -759,6 +759,15 @@
             attributeFilter: ['data-theme']
         });
     })();
+
+    // Show success toast if password was changed
+    @if(session('success'))
+        setTimeout(function() {
+            if (typeof showToast === 'function') {
+                showToast('{{ session('success') }}', 'success');
+            }
+        }, 500);
+    @endif
 </script>
 
 {{-- Unified Mobile Header Styles --}}

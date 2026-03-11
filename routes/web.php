@@ -28,6 +28,16 @@ RateLimiter::for('comments', function ($request) {
     return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
 });
 
+RateLimiter::for('verification', function ($request) {
+    return Limit::perHour(3)->by($request->user()?->id ?: $request->ip())
+        ->response(function ($message, $headers) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Too many verification attempts. Please try again in an hour.',
+            ], 429, $headers);
+        });
+});
+
 // Explicit route binding for Story model to use slug
 Route::bind('story', function ($value) {
     return \App\Models\Story::where('slug', $value)->firstOrFail();
@@ -155,7 +165,7 @@ Route::post('/email/verification-notification', function (Request $request) {
     }
 
     return back()->with('error', 'Unable to send verification email.');
-})->name('verification.send');
+})->middleware('throttle:verification')->name('verification.send');
 
 Route::post('/email/verify-code', function (Request $request) {
     $request->validate([
@@ -197,7 +207,7 @@ Route::post('/email/verify-code', function (Request $request) {
     }
 
     return back()->withErrors(['code' => 'Invalid or expired verification code.']);
-})->name('verification.verify-code');
+})->middleware('throttle:verification')->name('verification.verify-code');
 
 Route::get('/', function () {
     // If user is not authenticated, show the landing page
@@ -236,7 +246,7 @@ Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(func
     Route::get('/posts/{post}/likers', [PostController::class, 'getLikers'])->name('posts.likers')->where('post', '[a-zA-Z0-9]{24}');
     Route::post('/comments', [CommentController::class, 'store'])->name('comments.store')->middleware('throttle:comments');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
-    Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->name('comments.like')->middleware('throttle:comments');
+    Route::post('/comments/{comment}/like', [CommentController::class, 'like'])->name('comments.like');
     Route::get('/stories', [App\Http\Controllers\StoryController::class, 'index'])->name('stories.index');
     Route::get('/stories/create', [App\Http\Controllers\StoryController::class, 'create'])->name('stories.create');
     Route::post('/stories', [App\Http\Controllers\StoryController::class, 'store'])->name('stories.store')->middleware('throttle:posts');

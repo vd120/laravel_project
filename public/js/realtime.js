@@ -8,10 +8,10 @@
 
     // Configuration
     window.RealTimeConfig = {
-        chatListInterval: 1000,      // Poll chat list every 1 seconds
+        chatListInterval: 2000,      // Poll chat list every 2 seconds
         chatRoomInterval: 1000,      // Poll chat room every 1 seconds
         accountStatusInterval: 10000, // Check account status every 10 seconds
-        notificationsInterval: 2000,  // Poll notifications every 2 seconds
+        notificationsInterval: 3000,  // Poll notifications every 3 seconds
         onlineStatusInterval: 10000,  // Ping online status every 10 seconds
         userId: window.currentUserId || null,
         active: true

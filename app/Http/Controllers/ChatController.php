@@ -226,6 +226,29 @@ class ChatController extends Controller
             abort(403);
         }
 
+        $currentUser = auth()->user();
+        
+        // CRITICAL FIX: Check if sender is blocked by any participant or has blocked any participant
+        foreach ($conversation->participants as $participant) {
+            if ($participant->id !== $currentUser->id) {
+                // Check if current user has blocked this participant
+                if ($currentUser->isBlocking($participant)) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => __('messages.cannot_send_message_blocked_user')
+                    ], 403);
+                }
+                
+                // Check if this participant has blocked current user
+                if ($participant->isBlocking($currentUser)) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => __('messages.user_has_blocked_you')
+                    ], 403);
+                }
+            }
+        }
+
         $request->validate([
             'content' => 'nullable|string|max:1000',
             'media' => 'nullable|array',
@@ -319,6 +342,7 @@ class ChatController extends Controller
     public function startConversation($userId)
     {
         $user = User::findOrFail($userId);
+        $currentUser = auth()->user();
 
         // Can't start conversation with yourself
         if ($user->id === auth()->id()) {
@@ -326,6 +350,21 @@ class ChatController extends Controller
                 return response()->json(['error' => __('messages.cannot_chat_with_self')], 400);
             }
             return redirect()->back()->with('error', __('messages.cannot_chat_with_self'));
+        }
+
+        // CRITICAL FIX: Check if users have blocked each other
+        if ($currentUser->isBlocking($user)) {
+            if (request()->expectsJson()) {
+                return response()->json(['error' => __('messages.cannot_chat_with_blocked_user')], 403);
+            }
+            return redirect()->back()->with('error', __('messages.cannot_chat_with_blocked_user'));
+        }
+        
+        if ($user->isBlocking($currentUser)) {
+            if (request()->expectsJson()) {
+                return response()->json(['error' => __('messages.user_has_blocked_you')], 403);
+            }
+            return redirect()->back()->with('error', __('messages.user_has_blocked_you'));
         }
 
         // Check if conversation already exists
