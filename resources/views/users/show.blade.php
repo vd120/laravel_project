@@ -70,14 +70,14 @@
     <div class="profile-header">
         <div class="cover-image" @if($user->profile && $user->profile->cover_image) onclick="openImageModal('{{ asset('storage/' . $user->profile->cover_image) }}')" style="cursor: pointer;" @endif>
             @if($user->profile && $user->profile->cover_image)
-                <img src="{{ asset('storage/' . $user->profile->cover_image) }}" alt="Cover">
+                <img src="{{ asset('storage/' . $user->profile->cover_image) }}" alt="Cover" loading="lazy">
             @else
                 <div class="cover-placeholder"><i class="fas fa-image"></i></div>
             @endif
         </div>
         <div class="profile-avatar-wrapper">
             <div class="profile-avatar" @if($user->avatar_url) onclick="openImageModal('{{ $user->avatar_url }}')" style="cursor: pointer;" @endif>
-                <img src="{{ $user->avatar_url }}" alt="{{ $user->username }}">
+                <img src="{{ $user->avatar_url }}" alt="{{ $user->username }}" loading="lazy">
             </div>
         </div>
     </div>

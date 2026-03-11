@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\SavedPost;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class PostController extends Controller
 {
@@ -15,56 +16,67 @@ class PostController extends Controller
     {
         $user = auth()->user();
         $perPage = $request->get('per_page', 10); // Default 10 posts per page for web view
+        $page = $request->get('page', 1);
 
         if ($user) {
-            // Authenticated user logic
-            // Show posts from ALL users (with privacy and block restrictions)
-            $posts = Post::with(['user', 'media', 'likes', 'savedPosts', 'comments.replies.user', 'comments.likes'])
-                ->where(function($query) use ($user) {
-                    // Show posts where ANY of these conditions are true:
-                    $query->where(function($q) use ($user) {
-                            // 1. Your own posts (always show)
-                            $q->where('user_id', $user->id);
-                        })
-                        ->orWhere(function($q) use ($user) {
-                            // 2. Posts from users you follow (regardless of their privacy settings)
-                            $q->whereHas('user.followers', function($followerQuery) use ($user) {
-                                $followerQuery->where('follower_id', $user->id);
+            // Authenticated user logic - cache for 3 minutes
+            $cacheKey = "user_{$user->id}_feed_page_{$page}_per_{$perPage}";
+            
+            $posts = Cache::remember($cacheKey, now()->addMinutes(3), function() use ($user, $perPage) {
+                return Post::with(['user', 'media', 'likes', 'savedPosts', 'comments.replies.user', 'comments.likes'])
+                    ->where(function($query) use ($user) {
+                        // Show posts where ANY of these conditions are true:
+                        $query->where(function($q) use ($user) {
+                                // 1. Your own posts (always show)
+                                $q->where('user_id', $user->id);
+                            })
+                            ->orWhere(function($q) use ($user) {
+                                // 2. Posts from users you follow (regardless of their privacy settings)
+                                $q->whereHas('user.followers', function($followerQuery) use ($user) {
+                                    $followerQuery->where('follower_id', $user->id);
+                                });
+                            })
+                            ->orWhere(function($q) use ($user) {
+                                // 3. Public posts from all users (for discovery - regardless of profile privacy)
+                                $q->where('is_private', false);
                             });
-                        })
-                        ->orWhere(function($q) use ($user) {
-                            // 3. Public posts from all users (for discovery - regardless of profile privacy)
-                            $q->where('is_private', false);
-                        });
-                })
-                // Exclude posts from users that blocked the current user or that the current user blocked
-                ->whereDoesntHave('user.blockedBy', function($blockedByQuery) use ($user) {
-                    $blockedByQuery->where('blocker_id', $user->id);
-                })
-                ->whereDoesntHave('user.blockedUsers', function($blockedUsersQuery) use ($user) {
-                    $blockedUsersQuery->where('blocked_id', $user->id);
-                })
-                ->latest()
-                ->paginate($perPage)
-                ->withQueryString(); // Preserve query parameters
+                    })
+                    // Exclude posts from users that blocked the current user or that the current user blocked
+                    ->whereDoesntHave('user.blockedBy', function($blockedByQuery) use ($user) {
+                        $blockedByQuery->where('blocker_id', $user->id);
+                    })
+                    ->whereDoesntHave('user.blockedUsers', function($blockedUsersQuery) use ($user) {
+                        $blockedUsersQuery->where('blocked_id', $user->id);
+                    })
+                    ->latest()
+                    ->paginate($perPage)
+                    ->withQueryString();
+            });
 
-            // Get active stories from followed users and current user
-            $followedUsersWithStories = \App\Models\User::whereHas('followers', function($query) use ($user) {
-                $query->where('follower_id', $user->id);
-            })->whereHas('activeStories')->with(['activeStories'])->get();
+            // Get active stories from followed users and current user - cache for 2 minutes
+            $storiesCacheKey = "user_{$user->id}_followed_stories";
+            $followedUsersWithStories = Cache::remember($storiesCacheKey, now()->addMinutes(2), function() use ($user) {
+                return \App\Models\User::whereHas('followers', function($query) use ($user) {
+                    $query->where('follower_id', $user->id);
+                })->whereHas('activeStories')->with(['activeStories'])->get();
+            });
 
             // Include current user's stories
             $myStories = $user->activeStories;
         } else {
-            // Guest user logic - show only public posts from non-private accounts
-            $posts = Post::with(['user', 'media', 'likes', 'comments.replies.user', 'comments.likes'])
-                ->where('is_private', false)
-                ->whereHas('user.profile', function($profileQuery) {
-                    $profileQuery->where('is_private', false);
-                })
-                ->latest()
-                ->paginate($perPage)
-                ->withQueryString();
+            // Guest user logic - cache for 5 minutes (longer cache for guests)
+            $cacheKey = "guest_feed_page_{$page}_per_{$perPage}";
+            
+            $posts = Cache::remember($cacheKey, now()->addMinutes(5), function() use ($perPage) {
+                return Post::with(['user', 'media', 'likes', 'comments.replies.user', 'comments.likes'])
+                    ->where('is_private', false)
+                    ->whereHas('user.profile', function($profileQuery) {
+                        $profileQuery->where('is_private', false);
+                    })
+                    ->latest()
+                    ->paginate($perPage)
+                    ->withQueryString();
+            });
 
             // No stories for guests
             $followedUsersWithStories = collect();
@@ -334,11 +346,9 @@ class PostController extends Controller
 
         if ($like) {
             $like->delete();
-            // Refresh the post model to get updated relationships
             $post->refresh();
-            } else {
+        } else {
             $newLike = $post->likes()->create(['user_id' => $user->id]);
-            // Refresh the post model to get updated relationships
             $post->refresh();
 
             // Create notification for post owner (if not liking own post)
@@ -356,8 +366,10 @@ class PostController extends Controller
                     'related_id' => $post->id
                 ]);
             }
-
-            }
+        }
+        
+        // Clear cache for post owner's feed (engagement affects feed ranking)
+        Cache::forget("user_{$post->user->id}_feed_page_1_per_10");
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {
@@ -368,7 +380,7 @@ class PostController extends Controller
                     'username' => $like->user->username
                 ];
             });
-            
+
             return response()->json([
                 'success' => true,
                 'liked' => !$like,
@@ -385,16 +397,17 @@ class PostController extends Controller
         $saved = SavedPost::where('user_id', auth()->id())->where('post_id', $post->id)->first();
         if ($saved) {
             $saved->delete();
-            // Refresh the post model to get updated relationships
             $post->refresh();
         } else {
             SavedPost::create([
                 'user_id' => auth()->id(),
                 'post_id' => $post->id
             ]);
-            // Refresh the post model to get updated relationships
             $post->refresh();
         }
+        
+        // Clear cache for current user (saved posts changed)
+        Cache::forget("user_" . auth()->id() . "_feed_page_1_per_10");
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {

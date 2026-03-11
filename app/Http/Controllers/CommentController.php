@@ -42,6 +42,9 @@ class CommentController extends Controller
                 'related_id' => $comment->id
             ]);
         }
+        
+        // Clear cache for post owner's feed (new comment affects feed)
+        Cache::forget("user_{$comment->post->user_id}_feed_page_1_per_10");
 
         // Check if it's an AJAX request
         if ($request->expectsJson()) {
@@ -116,13 +119,14 @@ class CommentController extends Controller
 
         if ($like) {
             $like->delete();
-            // Refresh the comment model to get updated relationships
             $comment->refresh();
-            } else {
+        } else {
             $newLike = CommentLike::create(['user_id' => $user->id, 'comment_id' => $comment->id]);
-            // Refresh the comment model to get updated relationships
             $comment->refresh();
-            }
+        }
+        
+        // Clear cache for post owner's feed (comment engagement affects feed)
+        Cache::forget("user_{$comment->post->user_id}_feed_page_1_per_10");
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {

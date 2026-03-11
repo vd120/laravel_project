@@ -3,6 +3,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 </script>
 
+<script lang="ts">
+export default {
+    inheritAttrs: false
+}
+</script>
+
 <template>
     <Head title="Dashboard" />
 

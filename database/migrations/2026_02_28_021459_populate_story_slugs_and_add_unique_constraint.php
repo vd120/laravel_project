@@ -12,6 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Add slug column if it doesn't exist
+        if (!Schema::hasColumn('stories', 'slug')) {
+            Schema::table('stories', function (Blueprint $table) {
+                $table->string('slug')->nullable();
+            });
+        }
+
         // Generate slugs for existing stories that don't have one
         $stories = \DB::table('stories')->whereNull('slug')->orWhere('slug', '')->get();
         foreach ($stories as $story) {

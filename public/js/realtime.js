@@ -96,8 +96,14 @@
             return;
         }
 
-        // Initial load
-        refreshChatList();
+        // Initial load - with small delay to ensure DOM is fully ready
+        setTimeout(() => {
+            refreshChatList();
+            // Second refresh after 500ms to ensure fresh data
+            setTimeout(() => {
+                refreshChatList();
+            }, 500);
+        }, 100);
 
         // Start polling for chat list
         state.chatListTimer = setInterval(() => {
@@ -122,9 +128,9 @@
     }
 
     function refreshChatList() {
-        fetch('/chat/conversations', {
+        fetch('/chat/conversations?t=' + Date.now(), {
             credentials: 'include',
-            cache: 'no-store', // ensure we don't get a cached response in some browsers
+            cache: 'no-cache', // Force fresh data
             headers: {
                 'X-CSRF-TOKEN': getCsrfToken(),
                 'Accept': 'application/json'
@@ -143,9 +149,18 @@
 
     function updateChatListUI(conversations) {
 
-        // Support both ID naming conventions
-        const conversationsList = document.getElementById('sidebarConvList') || document.getElementById('conversationsList');
-        if (!conversationsList) return;
+        // Support both ID naming conventions - with retry if element not found
+        let conversationsList = document.getElementById('sidebarConvList') || document.getElementById('conversationsList');
+        
+        // Retry after 50ms if element not found (DOM might still be loading)
+        if (!conversationsList) {
+            setTimeout(() => {
+                conversationsList = document.getElementById('sidebarConvList') || document.getElementById('conversationsList');
+                if (!conversationsList) return;
+                updateChatListUI(conversations);
+            }, 50);
+            return;
+        }
 
         // Limit typing checks to the top N conversations to avoid flooding
         const TYPING_CHECK_LIMIT = 25;

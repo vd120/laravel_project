@@ -1514,6 +1514,12 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
         });
     }
 
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     function showLikersModal(likers) {
         // Remove existing modal if any
         const existingModal = document.getElementById('likers-modal');
@@ -1586,11 +1592,11 @@ if (typeof window.postFunctionsInitialized === 'undefined') {
                     ? `<img src="${avatar}" alt="${displayName}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">`
                     : `<div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--primary, #5e60ce), var(--secondary, #4ea8de)); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white;">${initial}</div>`
                 }
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; font-size: 14px;">@${displayName}</div>
-                    ${liker.name ? `<div style="font-size: 12px; color: var(--text-muted, #86868b);">${liker.name}</div>` : ''}
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 600; font-size: 14px; direction: ltr; text-align: left;">@${escapeHtml(displayName)}</div>
+                    ${liker.name ? `<div style="font-size: 12px; color: var(--text-muted, #86868b);">${escapeHtml(liker.name)}</div>` : ''}
                 </div>
-                ${liker.is_verified ? '<i class="fas fa-check-circle" style="color: #22c55e; font-size: 16px;"></i>' : ''}
+                ${liker.is_verified ? '<i class="fas fa-check-circle" style="color: #22c55e; font-size: 16px; flex-shrink: 0;"></i>' : ''}
             `;
 
             list.appendChild(item);

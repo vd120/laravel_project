@@ -204,7 +204,7 @@ Route::get('/', function () {
     if (!auth()->check()) {
         return view('home');
     }
-    // If authenticated and verified, show the posts feed
+    // If authenticated and not verified, show verification notice
     if (!auth()->user()->hasVerifiedEmail()) {
         return redirect()->route('verification.notice');
     }
@@ -212,9 +212,9 @@ Route::get('/', function () {
     if (auth()->user()->password === null) {
         return redirect()->route('password.set-password')->with('message', __('messages.please_set_password'));
     }
-    // Show posts feed
+    // Show posts feed for authenticated and verified users
     return app(\App\Http\Controllers\PostController::class)->index(request());
-})->name('home')->middleware(['auth', 'suspended', 'verified', 'password.set']);
+})->name('home');
 
 // User account status check (for security monitoring)
 Route::middleware(['auth', 'suspended'])->group(function () {

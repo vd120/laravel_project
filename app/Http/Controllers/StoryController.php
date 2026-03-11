@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Support\Facades\Cache;
 
 class StoryController extends Controller
 {
@@ -15,10 +16,13 @@ class StoryController extends Controller
     {
         $user = auth()->user();
 
-        // Get users that current user follows who have active stories
-        $followedUsersWithStories = User::whereHas('followers', function($query) use ($user) {
-            $query->where('follower_id', $user->id);
-        })->whereHas('activeStories')->with(['activeStories'])->get();
+        // Get users that current user follows who have active stories - cache for 2 minutes
+        $cacheKey = "user_{$user->id}_followed_stories";
+        $followedUsersWithStories = Cache::remember($cacheKey, now()->addMinutes(2), function() use ($user) {
+            return User::whereHas('followers', function($query) use ($user) {
+                $query->where('follower_id', $user->id);
+            })->whereHas('activeStories')->with(['activeStories'])->get();
+        });
 
         // Also include current user's stories
         $myStories = $user->activeStories;
@@ -147,6 +151,17 @@ class StoryController extends Controller
             'content' => $request->content,
             'expires_at' => now()->addHours(24),
         ]);
+
+        // Clear stories cache for all users who follow this user
+        Cache::forget("user_" . auth()->id() . "_followed_stories");
+        
+        // Clear feed cache for followers
+        \App\Models\User::whereHas('followers', function($q) {
+            $q->where('followed_id', auth()->id());
+        })->get()->each(function($follower) {
+            Cache::forget("user_{$follower->id}_feed_page_1_per_10");
+            Cache::forget("user_{$follower->id}_followed_stories");
+        });
 
         return redirect()->route('stories.index')->with('success', __('messages.story_posted'));
     }
@@ -337,6 +352,17 @@ class StoryController extends Controller
         Storage::disk('public')->delete($story->media_path);
 
         $story->delete();
+
+        // Clear stories cache
+        Cache::forget("user_{$userId}_followed_stories");
+        
+        // Clear feed cache for followers
+        \App\Models\User::whereHas('followers', function($q) use ($userId) {
+            $q->where('followed_id', $userId);
+        })->get()->each(function($follower) use ($userId) {
+            Cache::forget("user_{$follower->id}_feed_page_1_per_10");
+            Cache::forget("user_{$follower->id}_followed_stories");
+        });
 
         // Log for debugging
         \Log::info('Story deleted', [

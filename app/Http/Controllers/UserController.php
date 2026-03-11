@@ -5,30 +5,40 @@ namespace App\Http\Controllers;
 use App\Models\Block;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class UserController extends Controller
 {
     public function show(User $user)
     {
-        // Eager load profile and posts with their relationships
-        $user->load(['profile', 'posts.media', 'posts.comments', 'posts.likes']);
+        // Cache user data with profile for 10 minutes (longer cache for profiles)
+        $cacheKey = "profile_{$user->id}";
+        
+        $userData = Cache::remember($cacheKey, now()->addMinutes(10), function() use ($user) {
+            $user->load(['profile']);
+            return [
+                'postsCount' => $user->posts()->count(),
+                'followersCount' => $user->followers()->count(),
+                'followingCount' => $user->follows()->count(),
+            ];
+        });
         
         // Pre-calculate counts to avoid queries in view
-        $postsCount = $user->posts()->count();
-        $followersCount = $user->followers()->count();
-        $followingCount = $user->follows()->count();
+        $postsCount = $userData['postsCount'];
+        $followersCount = $userData['followersCount'];
+        $followingCount = $userData['followingCount'];
         $blockedCount = 0;
-        
+
         // Check if current user follows this user (for the button state)
         $isFollowing = false;
         $isBlocking = false;
         $isBlockedBy = false;
-        
+
         if (auth()->check()) {
             $isFollowing = auth()->user()->isFollowing($user);
             $isBlocking = auth()->user()->isBlocking($user);
             $isBlockedBy = $user->isBlocking(auth()->user());
-            
+
             // Load blocked users count only for the profile owner
             if (auth()->id() === $user->id) {
                 $blockedCount = $user->blockedUsers()->count();
@@ -49,9 +59,15 @@ class UserController extends Controller
         $currentUser = auth()->user();
 
         if ($currentUser->isFollowing($user)) {
+            // Unfollow
             $currentUser->follows()->where('followed_id', $user->id)->delete();
+            
+            // Clear cache for current user (they unfollowed, so their feed/stories changed)
+            Cache::forget("user_{$currentUser->id}_feed_page_1_per_10");
+            Cache::forget("user_{$currentUser->id}_followed_stories");
 
-            } else {
+        } else {
+            // Follow
             $follow = $currentUser->follows()->create(['followed_id' => $user->id]);
 
             // Create notification for the followed user
@@ -65,8 +81,11 @@ class UserController extends Controller
                 'related_type' => \App\Models\Follow::class,
                 'related_id' => $follow->id
             ]);
-
-            }
+            
+            // Clear cache for current user (they followed someone new)
+            Cache::forget("user_{$currentUser->id}_feed_page_1_per_10");
+            Cache::forget("user_{$currentUser->id}_followed_stories");
+        }
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {
@@ -93,17 +112,23 @@ class UserController extends Controller
             return back()->with('error', __('messages.cannot_block_admin'));
         }
 
-        if (auth()->user()->isBlocking($user)) {
-            auth()->user()->blockedUsers()->where('blocked_id', $user->id)->delete();
+        $currentUser = auth()->user();
+        
+        if ($currentUser->isBlocking($user)) {
+            $currentUser->blockedUsers()->where('blocked_id', $user->id)->delete();
         } else {
-            auth()->user()->blockedUsers()->create(['blocked_id' => $user->id]);
+            $currentUser->blockedUsers()->create(['blocked_id' => $user->id]);
             // Also unfollow if they were following
-            auth()->user()->follows()->where('followed_id', $user->id)->delete();
+            $currentUser->follows()->where('followed_id', $user->id)->delete();
         }
+        
+        // Clear cache for current user (their feed/stories changed)
+        Cache::forget("user_{$currentUser->id}_feed_page_1_per_10");
+        Cache::forget("user_{$currentUser->id}_followed_stories");
 
         // Check if it's an AJAX request
         if (request()->expectsJson()) {
-            $isBlocking = auth()->user()->isBlocking($user);
+            $isBlocking = $currentUser->isBlocking($user);
             return response()->json([
                 'success' => true,
                 'blocking' => $isBlocking,

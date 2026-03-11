@@ -137,7 +137,7 @@
         }
 
         /* ============================================
-           HEADER - Always LTR (for consistency)
+           HEADER - Follows Language Direction
            ============================================ */
         .header,
         .header-inner,
@@ -147,8 +147,7 @@
         .language-toggle,
         .language-dropdown,
         .language-option {
-            direction: ltr !important;
-            text-align: left !important;
+            /* Direction follows language - RTL for Arabic, LTR for English */
         }
         
         /* Language Dropdown Styles */
@@ -292,13 +291,12 @@
         }
 
         .header-inner {
-            max-width: 1200px;
             width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             height: 56px;
-            padding: 0 8px;
+            padding: 0 16px;
         }
 
         .logo {
@@ -504,15 +502,9 @@
 
         /* Mobile - Header */
         @media (max-width: 480px) {
-            /* Header Always LTR */
+            /* Header follows language direction */
             .header,
-            .header-inner,
-            .header * {
-                direction: ltr !important;
-                text-align: left !important;
-            }
-            
-            .header {
+            .header-inner {
                 padding: 10px 16px;
             }
             .header-inner {
@@ -711,6 +703,25 @@
             margin: 0 !important;
             text-align: left !important;
             justify-content: flex-start !important;
+        }
+
+        /* RTL Support for User Menu - Arabic */
+        html[dir="rtl"] #userMenu {
+            direction: rtl !important;
+        }
+
+        html[dir="rtl"] #userMenu a,
+        html[dir="rtl"] #userMenu button {
+            text-align: right !important;
+            justify-content: flex-start !important;
+            flex-direction: row !important;
+        }
+
+        html[dir="rtl"] #userMenu a i,
+        html[dir="rtl"] #userMenu button i {
+            margin-left: 12px !important;
+            margin-right: 0 !important;
+            flex-shrink: 0 !important;
         }
         #userMenu a:hover, #userMenu button:hover {
             background: rgba(255, 255, 255, 0.05) !important;
@@ -1754,8 +1765,19 @@
             closeAllDropdowns();
             if (!isOpen) {
                 const rect = btn.getBoundingClientRect();
+                const isRTL = document.documentElement.dir === 'rtl';
+                
+                // Position dropdown based on language direction
                 menu.style.top = (rect.bottom + 8) + 'px';
-                menu.style.right = (window.innerWidth - rect.right) + 'px';
+                if (isRTL) {
+                    // Arabic: align to left
+                    menu.style.left = rect.left + 'px';
+                    menu.style.right = 'auto';
+                } else {
+                    // English: align to right
+                    menu.style.right = (window.innerWidth - rect.right) + 'px';
+                    menu.style.left = 'auto';
+                }
                 menu.classList.add('show');
                 document.getElementById('dropdownOverlay').classList.add('active');
             }
@@ -2082,6 +2104,7 @@
 
             if (!dropdown) return;
 
+            const isRTL = document.documentElement.dir === 'rtl';
             const isVisible = dropdown.style.display === 'block';
 
             if (isVisible) {
@@ -2089,7 +2112,17 @@
                 if (arrow) arrow.style.transform = 'rotate(0deg)';
                 if (toggle) toggle.setAttribute('aria-expanded', 'false');
             } else {
+                // Position dropdown based on language direction
                 dropdown.style.display = 'block';
+                if (isRTL) {
+                    // Arabic: align to right
+                    dropdown.style.right = '0';
+                    dropdown.style.left = 'auto';
+                } else {
+                    // English: align to left
+                    dropdown.style.left = '0';
+                    dropdown.style.right = 'auto';
+                }
                 if (arrow) arrow.style.transform = 'rotate(180deg)';
                 if (toggle) toggle.setAttribute('aria-expanded', 'true');
             }

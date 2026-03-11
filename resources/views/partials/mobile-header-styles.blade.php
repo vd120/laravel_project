@@ -1,0 +1,131 @@
+{{-- Unified Mobile Header Styles - Consistent across all pages --}}
+{{-- Include this after your main styles --}}
+
+<style>
+/* ============================================
+   UNIFIED MOBILE HEADER (≤480px)
+   Same design for all pages
+   ============================================ */
+@media (max-width: 480px) {
+    /* Base Nav Container - All Pages */
+    nav,
+    .nav-container,
+    .header,
+    .header-inner {
+        /* Direction follows language */
+    }
+
+    /* Nav Container (Auth Pages & Landing) */
+    nav {
+        padding: 10px 16px !important;
+    }
+
+    .nav-container {
+        padding: 0 16px !important;
+        height: 52px !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    /* Header (Main App Layout) */
+    .header {
+        padding: 10px 16px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+    }
+
+    .header-inner {
+        padding: 0 16px !important;
+        height: 52px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Logo / Brand */
+    .nav-brand,
+    .logo {
+        font-size: 18px !important;
+        font-weight: 700 !important;
+    }
+
+    /* Theme Toggle Button */
+    #themeToggle,
+    .nav-action-btn {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+    }
+
+    /* Language Switcher */
+    .language-switcher {
+        padding: 6px 10px !important;
+    }
+
+    .language-switcher .current-locale,
+    .language-switcher .lang-divider,
+    .language-switcher .lang-alt {
+        display: none !important;
+    }
+
+    .language-switcher span:first-child {
+        font-size: 16px !important;
+    }
+
+    /* Back Button (Auth Pages) */
+    .back-btn {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+    }
+
+    .back-btn span {
+        display: none !important;
+    }
+
+    /* Navigation Links - Hide on mobile for main app (auth/landing keep their hamburger menu) */
+    .header .nav-links {
+        display: none !important;
+    }
+
+    /* User Actions (Main App) */
+    .user-actions {
+        gap: 4px !important;
+    }
+
+    .nav-action-btn {
+        width: 36px !important;
+        height: 36px !important;
+        padding: 0 !important;
+    }
+
+    .nav-action-btn .badge {
+        top: 2px !important;
+        right: 2px !important;
+        min-width: 16px !important;
+        height: 16px !important;
+        font-size: 9px !important;
+        padding: 0 4px !important;
+    }
+
+    /* User Button (Main App) */
+    .nav-user-btn {
+        height: 36px !important;
+        padding: 4px 8px 4px 4px !important;
+    }
+
+    .nav-user-btn .user-avatar {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .nav-user-btn span {
+        font-size: 12px !important;
+        max-width: 80px !important;
+    }
+
+    .nav-user-btn .fa-chevron-down {
+        font-size: 9px !important;
+    }
+}
+</style>

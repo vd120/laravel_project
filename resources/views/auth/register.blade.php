@@ -247,14 +247,13 @@
             }
         }
 
-        /* Language Switcher - Always LTR */
+        /* Language Switcher - Follows Language Direction */
         .language-switcher,
         .language-switcher *,
         .language-toggle,
         .language-dropdown,
         .language-option {
-            direction: ltr !important;
-            text-align: left !important;
+            /* Direction follows language - RTL for Arabic, LTR for English */
         }
 
         /* Action buttons - match landing page header */
@@ -541,46 +540,8 @@
         .card-footer a:hover{text-decoration:underline}
 
         @media(max-width:480px){
-            /* Mobile Header - Always LTR */
-            nav,
-            .nav-container,
-            .nav-container * {
-                direction: ltr !important;
-                text-align: left !important;
-            }
             .login-card{padding:35px 25px}
             .login-title{font-size:30px}
-            /* Mobile Header */
-            .nav-container {
-                padding: 8px 16px;
-                gap: 8px;
-            }
-            .nav-brand {
-                font-size: 16px;
-            }
-            /* Hide language text on mobile, show only icon */
-            .language-switcher .current-locale,
-            .language-switcher .lang-divider,
-            .language-switcher .lang-alt {
-                display: none;
-            }
-            .language-switcher {
-                padding: 6px 10px !important;
-            }
-            .language-switcher span:first-child {
-                font-size: 16px !important;
-            }
-            #themeToggle {
-                width: 36px;
-                height: 36px;
-            }
-            .back-btn {
-                padding: 6px 10px;
-                font-size: 12px;
-            }
-            .back-btn span {
-                display: none;
-            }
         }
     </style>
 </head>
@@ -842,5 +803,7 @@
     })();
 </script>
 
+{{-- Unified Mobile Header Styles --}}
+@include('partials.mobile-header-styles')
 </body>
 </html>

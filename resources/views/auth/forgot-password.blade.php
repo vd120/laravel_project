@@ -247,14 +247,13 @@
             }
         }
 
-        /* Language Switcher - Always LTR */
+        /* Language Switcher - Follows Language Direction */
         .language-switcher,
         .language-switcher *,
         .language-toggle,
         .language-dropdown,
         .language-option {
-            direction: ltr !important;
-            text-align: left !important;
+            /* Direction follows language - RTL for Arabic, LTR for English */
         }
 
         /* Action buttons - match login page header */
@@ -447,13 +446,6 @@
         .card-footer a:hover{text-decoration:underline}
 
         @media(max-width:480px){
-            /* Mobile Header - Always LTR */
-            nav,
-            .nav-container,
-            .nav-container * {
-                direction: ltr !important;
-                text-align: left !important;
-            }
             .login-card{padding:35px 25px}
             .login-title{font-size:30px}
         }
@@ -623,5 +615,7 @@
     })();
 </script>
 
+{{-- Unified Mobile Header Styles --}}
+@include('partials.mobile-header-styles')
 </body>
 </html>

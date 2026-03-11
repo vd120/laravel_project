@@ -36,7 +36,7 @@ html[lang="ar"] body {
 }
 
 /* ============================================
-   HEADER - Always LTR (for consistency)
+   HEADER - Follows Language Direction
    ============================================ */
 nav,
 .nav-container,
@@ -44,8 +44,7 @@ nav,
 .language-switcher,
 .header,
 .header-inner {
-    direction: ltr !important;
-    text-align: left !important;
+    /* Direction follows language - RTL for Arabic, LTR for English */
 }
 
 /* ============================================
