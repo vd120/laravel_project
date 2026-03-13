@@ -64,12 +64,24 @@ html[lang="ar"] body {
     gap: 5px;
     cursor: pointer;
     padding: 5px;
+    z-index: 1001;
 }
 .menu-toggle span {
     width: 25px;
     height: 2px;
-    background: #f5f5f7;
-    transition: all 0.3s;
+    background: var(--text-primary);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: center;
+}
+.menu-toggle.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+.menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+.menu-toggle.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
 }
 
 .animated-bg {
@@ -97,6 +109,29 @@ nav{
     border-bottom:none;
     will-change: auto;
     contain: layout style;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: navFadeInAfterIntro 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 2s;
+}
+@keyframes navFadeInAfterIntro {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+nav.scrolled {
+    padding: 10px 40px;
+    background: transparent;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+}
+nav.scrolled .nav-container {
+    max-width: 1000px;
+    padding: 10px 28px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
 }
 .nav-container{
     max-width:1200px;
@@ -115,6 +150,7 @@ nav{
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     contain: layout style;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 nav a{color:var(--text-primary);text-decoration:none;font-size:14px;font-weight:500;opacity:0.8;transition:opacity 0.3s;}
 nav a:hover{opacity:1}
@@ -209,23 +245,197 @@ html[lang="ar"] .feature-grid {
     align-items:center;
     text-align:center;
     padding:0 20px;
-    background:transparent;
+    background:#030308;
+    transition: background 0.3s ease;
 }
 
-.hero-content{position:relative;z-index:1;max-width:900px;}
-.hero-content h2{opacity:0;transform:translateY(20px);}
-#nexus-title{opacity:0;transform:translateY(20px);}
-.hero h1{font-size:clamp(4rem, 10vw, 8rem);font-weight:700;letter-spacing:-0.03em;line-height:1;margin-bottom:20px;color:var(--text-primary);}
-.hero h2{font-size:clamp(1.2rem,2.5vw,1.8rem);font-weight:400;color:var(--text-secondary);margin-bottom:40px;}
-.hero-cta{display:flex;gap:20px;justify-content:center;}
+/* Light Theme - Hero Background */
+[data-theme="light"] .hero {
+    background: #f5f5f7;
+}
+
+.hero-bg-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+.hero-bg-video video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 1;
+    will-change: auto;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.hero-bg-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(3,3,8,0.85) 0%, rgba(3,3,8,0.65) 50%, rgba(3,3,8,0.9) 100%);
+    z-index: 1;
+    pointer-events: none;
+    transition: background 0.3s ease;
+}
+
+/* Light Theme - Adjust overlay */
+[data-theme="light"] .hero-bg-overlay {
+    background: linear-gradient(180deg, rgba(245,245,247,0.85) 0%, rgba(245,245,247,0.65) 50%, rgba(245,245,247,0.9) 100%);
+}
+
+/* Light Theme - Video opacity */
+[data-theme="light"] .hero-bg-video video {
+    opacity: 1;
+}
+
+/* Mobile optimization - reduce video opacity */
+@media (max-width: 768px) {
+    .hero-bg-video video {
+        opacity: 1;
+    }
+    [data-theme="light"] .hero-bg-video video {
+        opacity: 1;
+    }
+}
+
+/* Low power mode - further reduce */
+@media (prefers-reduced-motion: reduce) {
+    .hero-bg-video video {
+        opacity: 1;
+    }
+    [data-theme="light"] .hero-bg-video video {
+        opacity: 1;
+    }
+}
+
+/* Ultra low-end devices - minimal video impact */
+@media (max-width: 480px) {
+    .hero-bg-video video {
+        opacity: 1;
+    }
+    [data-theme="light"] .hero-bg-video video {
+        opacity: 1;
+    }
+}
+
+.hero-content{
+    position:relative;
+    z-index:1;
+    max-width:900px;
+}
+.hero-content h2{
+    opacity:0;
+    transform:translateY(30px);
+    animation: heroSubtitleFade 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards 2s;
+}
+#nexus-title{
+    opacity:0;
+    transform:translateY(40px);
+    animation: heroTitleFade 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 1.5s;
+}
+.hero h1{
+    font-size:clamp(4rem, 10vw, 8rem);
+    font-weight:700;
+    letter-spacing:-0.03em;
+    line-height:1;
+    margin-bottom:20px;
+    color:var(--text-primary);
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: heroTitleFade 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 1.5s;
+}
+.hero h2{
+    font-size:clamp(1.2rem,2.5vw,1.8rem);
+    font-weight:400;
+    color:var(--text-secondary);
+    margin-bottom:40px;
+}
+.hero-cta{
+    display:flex;
+    gap:20px;
+    justify-content:center;
+    opacity:0;
+    transform:translateY(20px);
+    animation: heroCtaFade 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards 2.3s;
+}
 .hero-cta-btn{
-    padding:16px 32px;border-radius:980px;font-size:16px;font-weight:600;text-decoration:none;
+    padding:16px 32px;
+    border-radius:980px;
+    font-size:16px;
+    font-weight:600;
+    text-decoration:none;
     transition:all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.hero-cta-btn-primary{background:#fff;color:#000;box-shadow:0 10px 30px rgba(255,255,255,0.15);}
-.hero-cta-btn-primary:hover{transform:scale(1.05);box-shadow:0 15px 40px rgba(255,255,255,0.2);}
-.hero-cta-btn-secondary{background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);}
-.hero-cta-btn-secondary:hover{background:rgba(255,255,255,0.15);}
+.hero-cta-btn-primary{
+    background:#fff;
+    color:#000;
+    box-shadow:0 10px 30px rgba(255,255,255,0.15);
+}
+.hero-cta-btn-primary:hover{
+    transform:scale(1.05);
+    box-shadow:0 15px 40px rgba(255,255,255,0.25);
+}
+.hero-cta-btn-secondary{
+    background:rgba(255,255,255,0.1);
+    color:#fff;
+    border:1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.hero-cta-btn-secondary:hover{
+    background:rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+    transform:translateY(-2px);
+}
+
+@keyframes heroTitleFade {
+    0% {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes heroSubtitleFade {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes heroCtaFade {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
 /* Scroll Arrow */
 .scroll-arrow {
@@ -238,7 +448,7 @@ html[lang="ar"] .feature-grid {
     align-items: center;
     gap: 8px;
     opacity: 0;
-    animation: fadeInArrow 0.5s ease 0.5s forwards;
+    animation: fadeInArrow 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 2.5s;
     cursor: pointer;
     z-index: 10;
 }
@@ -318,8 +528,16 @@ html[lang="ar"] .feature-grid {
 }
 
 @keyframes introScale {
-    to {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    70% {
         transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.2) translateY(-100vh);
         opacity: 1;
     }
 }
@@ -346,6 +564,13 @@ html[lang="ar"] .feature-grid {
     }
 }
 
+@media (max-width: 768px) {
+    .intro-shape {
+        width: 250px;
+        height: 90px;
+    }
+}
+
 
 .pin-section {
     height: 100vh;
@@ -358,15 +583,138 @@ html[lang="ar"] .feature-grid {
     justify-content: center; align-items: center; text-align: center;
     background: transparent; padding: 0 20px; position: relative;
 }
-.fade-content h2 { font-size: clamp(3rem, 6vw, 5rem); font-weight: 700; margin-bottom: 20px; background: linear-gradient(135deg, var(--text-primary), #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.fade-content p { font-size: clamp(1.2rem, 2vw, 1.5rem); color: var(--text-secondary); max-width: 600px; line-height: 1.5; }
-.carousel { position: relative; height: 120px; width: 100%; display: flex; justify-content: center; align-items: center; }
-.word-line { position: absolute; font-size: clamp(3rem, 8vw, 6rem); font-weight: 700; opacity: 0.2; color: var(--text-primary); }
-.list-effect { display: flex; flex-direction: column; gap: 40px; width: 100%; max-width: 800px; text-align: left; padding-left: 10%; }
-.list-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; color: var(--text-primary); margin-bottom: 30px; text-align: center; width: 100%; opacity: 0; transform: translateY(30px); }
-.list-item { display: flex; align-items: center; gap: 20px; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 500; color: var(--text-primary); opacity: 0; transform: translateX(-30px); }
-.list-bullet { width: 12px; height: 12px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 15px var(--primary); }
-.blur-text { font-size: clamp(3rem, 7vw, 5.5rem); font-weight: 700; filter: blur(15px); opacity: 0; color: var(--text-primary); text-align: center; line-height: 1.1; }
+.fade-content h2 { 
+    font-size: clamp(3rem, 6vw, 5rem); 
+    font-weight: 700; 
+    margin-bottom: 20px; 
+    background: linear-gradient(135deg, var(--text-primary), #888); 
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+}
+.fade-content p { 
+    font-size: clamp(1.2rem, 2vw, 1.5rem); 
+    color: var(--text-secondary); 
+    max-width: 600px; 
+    line-height: 1.5;
+    opacity: 0;
+    transform: translateY(30px);
+}
+.carousel { 
+    position: relative; 
+    height: auto;
+    min-height: 120px;
+    width: 100%; 
+    display: flex; 
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center; 
+    gap: 10px;
+    padding: 20px 0;
+}
+.word-line {
+    position: relative;
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 700;
+    opacity: 0;
+    color: var(--text-primary);
+    transform: translateY(30px);
+    background: linear-gradient(135deg, var(--text-primary), #888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+@media (max-width: 768px) {
+    .word-line {
+        font-size: clamp(2rem, 10vw, 4rem);
+        transform: translateY(20px);
+    }
+}
+.list-effect { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 24px; 
+    width: 100%; 
+    max-width: 700px;
+    text-align: center;
+    padding: 20px;
+}
+.list-title { 
+    font-size: clamp(2rem, 4vw, 3rem); 
+    font-weight: 700; 
+    color: var(--text-primary); 
+    margin-bottom: 20px;
+    text-align: center;
+    width: 100%;
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+    background: linear-gradient(135deg, var(--text-primary), #888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.list-item { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    gap: 16px; 
+    font-size: clamp(1.3rem, 2.5vw, 1.8rem); 
+    font-weight: 500; 
+    color: var(--text-primary); 
+    opacity: 1;
+    transform: scale(0.9);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 20px 28px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.list-item:hover {
+    transform: scale(1.02);
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.15);
+}
+.list-bullet { 
+    width: 10px; 
+    height: 10px; 
+    background: var(--primary); 
+    border-radius: 50%; 
+    box-shadow: 0 0 20px var(--primary);
+    flex-shrink: 0;
+}
+.blur-section-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+.blur-text { 
+    font-size: clamp(2.5rem, 6vw, 4.5rem); 
+    font-weight: 800; 
+    opacity: 0;
+    color: var(--text-primary); 
+    text-align: center; 
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    transform: translateY(40px) scale(0.9);
+    background: linear-gradient(135deg, var(--text-primary), #888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.blur-glow {
+    display: none;
+}
+.blur-desc {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    color: var(--text-secondary);
+    max-width: 500px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(30px);
+}
 
 /* Growing Section Styles */
 #section-growing .text-line {
@@ -376,6 +724,10 @@ html[lang="ar"] .feature-grid {
     opacity: 0;
     margin: 8px 0;
     text-align: center;
+    background: linear-gradient(135deg, var(--text-primary), #888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 #section-growing .growing-title {
     font-size: clamp(1.5rem, 3vw, 2.5rem) !important;
@@ -411,7 +763,12 @@ html[lang="ar"] .feature-grid {
     margin: 8px 0;
     text-align: center;
     max-width: 800px;
-    line-height: 1.6;
+    line-height: 1.8;
+    transform: translateY(40px) scale(0.95);
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .features-grid-section {
@@ -420,8 +777,29 @@ html[lang="ar"] .feature-grid {
     position: relative;
     z-index: 2;
 }
-.section-label { font-size: 18px; font-weight: 600; color: var(--primary-light); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.1em; text-align:center; }
-.section-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 700; margin-bottom: 60px; color: var(--text-primary); }
+.section-label { 
+    font-size: 18px; 
+    font-weight: 600; 
+    color: var(--primary-light); 
+    margin-bottom: 10px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.1em; 
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+}
+.section-title { 
+    font-size: clamp(2.5rem, 5vw, 4rem); 
+    font-weight: 700; 
+    margin-bottom: 60px; 
+    color: var(--text-primary);
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+    background: linear-gradient(135deg, var(--text-primary), #888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
 
 .feature-grid {
     display: grid;
@@ -440,6 +818,8 @@ html[lang="ar"] .feature-grid {
     position: relative;
     overflow: hidden;
     transition: transform 0.4s ease, border-color 0.4s ease, background 0.3s ease;
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
 }
 .card:hover {
     border-color: rgba(255,255,255,0.15);
@@ -458,38 +838,85 @@ html[lang="ar"] .feature-grid {
 }
 .card h3 { font-size: 24px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary); position: relative; z-index: 2; }
 .card p { font-size: 16px; color: var(--text-secondary); line-height: 1.6; position: relative; z-index: 2; }
+/* CTA Section */
 .cta-section {
     min-height: 80vh;
     display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
     background: transparent;
-    padding: 100px 20px; position: relative; overflow: hidden;
+    padding: 100px 20px; position: relative;
+    z-index: 5;
 }
 .cta-content { position: relative; z-index: 2; }
-.cta-section h2 { font-size: clamp(3rem, 6vw, 5rem); font-weight: 700; margin-bottom: 20px; opacity: 0; transform: translateY(30px); color: var(--text-primary); }
-.cta-section p { font-size: clamp(1.2rem, 2vw, 1.5rem); color: var(--text-secondary); margin-bottom: 50px; opacity: 0; transform: translateY(20px); }
-.cta-buttons { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; opacity: 0; }
+.cta-section h2 { 
+    font-size: clamp(3rem, 6vw, 5rem); 
+    font-weight: 700; 
+    margin-bottom: 20px; 
+    opacity: 0; 
+    transform: translateY(40px) scale(0.95);
+    color: var(--text-primary);
+    background: linear-gradient(135deg, var(--text-primary), #888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.cta-section p { 
+    font-size: clamp(1.2rem, 2vw, 1.5rem); 
+    color: var(--text-secondary); 
+    margin-bottom: 50px; 
+    opacity: 0; 
+    transform: translateY(30px);
+    max-width: 600px;
+}
+.cta-buttons { 
+    display: flex; 
+    gap: 20px; 
+    justify-content: center; 
+    flex-wrap: wrap; 
+    opacity: 0;
+    transform: translateY(20px);
+}
 .cta-btn { padding: 18px 40px; border-radius: 980px; font-size: 18px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; }
 .cta-btn-primary { background: var(--primary); color: #fff; box-shadow: 0 10px 30px rgba(94, 96, 206, 0.3); }
 .cta-btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(94, 96, 206, 0.5); }
 .cta-btn-secondary { background: transparent; border: 2px solid var(--text-primary); color: var(--text-primary); opacity: 0.7; }
 .cta-btn-secondary:hover { background: var(--card-bg); border-color: var(--text-primary); opacity: 1; }
 
-footer{background:transparent;padding:50px 20px;font-size:15px;color:var(--text-secondary);text-align:center;border-top:1px solid var(--nav-border);}
+footer{
+    background:transparent;
+    padding:50px 20px;
+    font-size:15px;
+    color:var(--text-secondary);
+    text-align:center;
+    border-top:1px solid var(--nav-border);
+}
 footer a { color: var(--text-secondary); transition: color 0.3s ease; }
 footer a:hover { color: var(--primary); }
 
 @media(max-width:768px){
-    nav{padding:10px 16px}
+    nav{padding:10px 16px;}
+    nav.scrolled {
+        padding: 10px 16px;
+    }
     .nav-container {
+        width: 95%;
         padding: 8px 16px;
         border-radius: 80px;
         background: rgba(255,255,255,0.05);
         backdrop-filter: blur(40px) saturate(150%);
         -webkit-backdrop-filter: blur(40px) saturate(150%);
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.08);
         transform: translateZ(0);
         -webkit-transform: translateZ(0);
         contain: layout style;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    nav.scrolled .nav-container {
+        width: 95%;
+        padding: 8px 16px;
+        border-radius: 80px;
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.08);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
     }
     .hero-cta{flex-direction:column;align-items:center}
     .list-effect { padding: 0 20px; }
@@ -748,6 +1175,12 @@ footer a:hover { color: var(--primary); }
     </div>
 </nav>
 <section class="hero">
+    <div class="hero-bg-video">
+        <video autoplay muted loop playsinline preload="metadata" loading="lazy" decoding="async" poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Crect fill='%23030308' width='1920' height='1080'/%3E%3C/svg%3E">
+            <source src="{{ asset('vid.mp4') }}" type="video/mp4">
+        </video>
+        <div class="hero-bg-overlay"></div>
+    </div>
     <div class="hero-content">
         <h1 id="nexus-title">{{ __('home.nexus') }}</h1>
         <h2>{{ __('home.connect_share_belong') }}</h2>
@@ -838,19 +1271,23 @@ footer a:hover { color: var(--primary); }
 </section>
 <section class="pin-section" id="section-list">
     <div class="pin-container">
-        <h2 class="list-title" data-en="Why Choose Nexus?" data-ar="لماذا تختار Nexus؟">{{ __('home.why_choose_nexus') }}</h2>
+        <h2 class="list-title">{{ __('home.why_choose_nexus') }}</h2>
         <div class="list-effect">
-            <div class="list-item e4-item1"><span class="list-bullet"></span><span>{{ __('home.no_ads') }}</span></div>
-            <div class="list-item e4-item2"><span class="list-bullet"></span><span>{{ __('home.chronological_feed') }}</span></div>
-            <div class="list-item e4-item3"><span class="list-bullet"></span><span>{{ __('home.your_data_your_control') }}</span></div>
-            <div class="list-item e4-item4"><span class="list-bullet"></span><span>{{ __('home.end_to_end_encryption') }}</span></div>
-            <div class="list-item e4-item5"><span class="list-bullet"></span><span>{{ __('home.community_driven') }}</span></div>
+            <div class="list-item"><span class="list-bullet"></span><span>{{ __('home.no_ads') }}</span></div>
+            <div class="list-item"><span class="list-bullet"></span><span>{{ __('home.chronological_feed') }}</span></div>
+            <div class="list-item"><span class="list-bullet"></span><span>{{ __('home.your_data_your_control') }}</span></div>
+            <div class="list-item"><span class="list-bullet"></span><span>{{ __('home.end_to_end_encryption') }}</span></div>
+            <div class="list-item"><span class="list-bullet"></span><span>{{ __('home.community_driven') }}</span></div>
         </div>
     </div>
 </section>
 <section class="pin-section" id="section-blur">
     <div class="pin-container">
-        <div class="blur-text e6-blur">{!! __('home.your_privacy_protected') !!}</div>
+        <div class="blur-section-wrapper">
+            <div class="blur-glow"></div>
+            <div class="blur-text e6-blur">{!! __('home.your_privacy_protected') !!}</div>
+            <!-- <p class="blur-desc">{{ __('home.your_privacy_protected_desc') }}</p> -->
+        </div>
     </div>
 </section>
 <section class="pin-section" id="section-type">
@@ -890,7 +1327,7 @@ footer a:hover { color: var(--primary); }
     <div class="footer-content">
         <p>© 2026 Nexus. {{ __('home.built_for_authentic_connections') }}</p>
         <div style="display:flex;justify-content:center;gap:20px;margin-top:20px;flex-wrap:wrap;">
-            <a href="https://github.com/vd120/laravel_project" target="_blank" rel="noopener noreferrer" style="color:var(--text-secondary);text-decoration:none;font-size:14px;display:flex;align-items:center;gap:8px;font-weight:500;">
+            <a href="https://github.com/vd120/nexus" target="_blank" rel="noopener noreferrer" style="color:var(--text-secondary);text-decoration:none;font-size:14px;display:flex;align-items:center;gap:8px;font-weight:500;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
                 GitHub
             </a>
@@ -907,6 +1344,34 @@ footer a:hover { color: var(--primary); }
 (function() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
+})();
+
+// Video Background Optimization - Pause when not visible
+(function() {
+    const heroVideo = document.querySelector('.hero-bg-video video');
+    if (heroVideo) {
+        // Pause video when not in viewport
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    heroVideo.play();
+                } else {
+                    heroVideo.pause();
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        observer.observe(heroVideo);
+        
+        // Pause video when tab is not active
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                heroVideo.pause();
+            } else {
+                heroVideo.play();
+            }
+        });
+    }
 })();
 
 window.addEventListener('load', function() {
@@ -950,85 +1415,238 @@ if (themeToggle) {
 // Refresh ScrollTrigger to ensure all triggers are calculated
 ScrollTrigger.refresh();
 
+// Header scroll animation
+const nav = document.querySelector('nav');
+let lastScroll = 0;
 
-// Hero fade in - Nexus title first, then subtitle
-gsap.to('#nexus-title', { opacity: 1, y: 0, duration: 1, delay: 0.2 });
-gsap.to('.hero-content h2', { opacity: 1, y: 0, duration: 1, delay: 0.6 });
+window.addEventListener('scroll', () => {
+    const currentScroll = window.pageYOffset;
+    
+    // Add/remove scrolled class for transform effect
+    if (currentScroll > 50) {
+        nav.classList.add('scrolled');
+    } else {
+        nav.classList.remove('scrolled');
+    }
+    
+    lastScroll = currentScroll;
+}, { passive: true });
 
-// Section 1: "Built for Real Connections" - simple fade on scroll (from opacity 0 to 1)
-gsap.from('#section-fade .fade-content', {
-    opacity: 0,
-    duration: 0.8,
+
+// Section 1: "Built for Real Connections" - Framer Motion Style Fade
+gsap.timeline({
     scrollTrigger: {
         trigger: '#section-fade',
-        start: 'top 85%',
+        start: 'top 80%',
+        once: true
+    }
+})
+.to('#section-fade .fade-content h2', {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    duration: 1.5,
+    ease: 'back.out(1.7)'
+}, 0)
+.to('#section-fade .fade-content p', {
+    opacity: 1,
+    y: 0,
+    duration: 1.2,
+    ease: 'power2.out'
+}, 0.5);
+
+// Section 2: Word Carousel - Auto fade sequence (no pin, no scrub)
+const words = ['#word1','#word2','#word3','#word4'];
+
+// Set initial state - hide all words
+gsap.set(words, { opacity: 0, y: 30 });
+
+// Create timeline
+const tlWords = gsap.timeline({
+    scrollTrigger: {
+        trigger: '#section-carousel',
+        start: 'top 75%',
         once: true
     }
 });
 
-// Section 2: Word Carousel - Works in both languages
-const words = ['#word1','#word2','#word3','#word4'];
-gsap.set(words, { opacity:0.15 });
-const tlWords = gsap.timeline({ scrollTrigger: { trigger:'#section-carousel', start:'top top', end:'+=150%', pin:true, scrub:0.5, anticipatePin:1 } });
+// Each word fades in from bottom and stays visible
 words.forEach((sel, i) => {
-    tlWords.to(sel, { opacity: 1, duration: 0.5 }, i * 0.8)
-           .to(sel, { opacity: 0.15, duration: 0.5 }, i * 0.8 + 0.6);
+    tlWords.to(sel, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power2.out'
+    }, i * 0.6);
 });
 
-// Feature Cards - Hover effects only, no scroll animation
-// Cards are visible by default in both languages
+// Feature Cards - Framer Motion Style Stagger Effect
+const sectionLabel = document.querySelector('#section-features .section-label');
+const sectionTitle = document.querySelector('#section-features .section-title');
+const cards = document.querySelectorAll('#section-features .card');
 
-// Section 3: Staggered List - Works in both languages (RTL handled by CSS)
-gsap.timeline({ scrollTrigger: { trigger:'#section-list', start:'top top', end:'+=100%', pin:true, scrub:0.5, anticipatePin:1 } })
-    .to('.list-title', { opacity:1, y:0, duration:0.5 }, 0)
-    .to('.e4-item1', { opacity:1, x:0, duration:0.5 }, 0.2)
-    .to('.e4-item2', { opacity:1, x:0, duration:0.5 }, 0.4)
-    .to('.e4-item3', { opacity:1, x:0, duration:0.5 }, 0.6)
-    .to('.e4-item4', { opacity:1, x:0, duration:0.5 }, 0.8)
-    .to('.e4-item5', { opacity:1, x:0, duration:0.5 }, 1);
+// Set initial state
+gsap.set(sectionLabel, { opacity: 0, y: 20 });
+gsap.set(sectionTitle, { opacity: 0, y: 30 });
+gsap.set(cards, { opacity: 0, y: 40, scale: 0.95 });
 
-// Section 4: Blur Reveal - Works in both languages
-gsap.timeline({ scrollTrigger: { trigger:'#section-blur', start:'top top', end:'+=100%', pin:true, scrub:0.5, anticipatePin:1 } })
-    .to('.e6-blur', { opacity:1, filter:'blur(0px)', duration:1, ease:'power2.out' }, 0);
-
-// Section 5: Typewriter - Fade animation (same as Growing section)
 gsap.timeline({
     scrollTrigger: {
-        trigger:'#section-type',
-        start:'top top',
-        end:'+=150%',
-        scrub:true,
-        pin:true
+        trigger: '#section-features',
+        start: 'top 75%',
+        once: true
+    }
+})
+.to(sectionLabel, {
+    opacity: 1,
+    y: 0,
+    duration: 0.8,
+    ease: 'power2.out'
+}, 0)
+.to(sectionTitle, {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    duration: 1.2,
+    ease: 'power2.out'
+}, 0.2)
+.to(cards, {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    duration: 1,
+    stagger: 0.15,
+    ease: 'back.out(1.7)'
+}, 0.5);
+
+// Section 3: Staggered List - Framer Motion Style Effect (auto fade)
+const listTitle = document.querySelector('.list-title');
+const listItems = document.querySelectorAll('.list-item');
+
+// Set initial state
+gsap.set(listTitle, { opacity: 0, scale: 0.7, y: 40 });
+gsap.set(listItems, { 
+    opacity: 0, 
+    scale: 0.8, 
+    y: 30 
+});
+
+gsap.timeline({ 
+    scrollTrigger: { 
+        trigger: '#section-list', 
+        start: 'top 75%',
+        once: true
+    } 
+})
+.to(listTitle, { 
+    opacity: 1, 
+    scale: 1, 
+    y: 0, 
+    duration: 1, 
+    ease: 'back.out(1.7)' 
+}, 0)
+.to(listItems, { 
+    opacity: 1, 
+    scale: 1, 
+    y: 0, 
+    duration: 0.8, 
+    stagger: 0.2, 
+    ease: 'back.out(1.7)' 
+}, 0.4);
+
+// Section 4: Blur Reveal - Auto Fade on View (no pin, no scrub)
+const blurText = document.querySelector('.e6-blur');
+const blurDesc = document.querySelector('.blur-desc');
+
+// Set initial state
+gsap.set(blurText, { opacity: 0, y: 40, scale: 0.9 });
+gsap.set(blurDesc, { opacity: 0, y: 30 });
+
+gsap.timeline({ 
+    scrollTrigger: { 
+        trigger: '#section-blur', 
+        start: 'top 75%',
+        once: true
+    } 
+})
+.to(blurText, { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1, 
+    duration: 1.2, 
+    ease: 'back.out(1.7)' 
+}, 0)
+.to(blurDesc, { 
+    opacity: 1, 
+    y: 0, 
+    duration: 1, 
+    ease: 'power2.out' 
+}, 0.5);
+
+// Section 5: Typewriter - Framer Motion Style Fade (no pin, no scrub)
+gsap.timeline({
+    scrollTrigger: {
+        trigger: '#section-type',
+        start: 'top 75%',
+        once: true
     }
 }).to('#section-type .text-line', {
     opacity: 1,
-    y: -20,
-    duration: 0.5
+    y: 0,
+    scale: 1,
+    duration: 2.5,
+    ease: 'power2.out'
 });
 
-// Growing Section - Stats - Works in both languages
-let growingTl = gsap.timeline({
+// Growing Section - Stats - Auto fade with stagger (no pin, no scrub)
+gsap.timeline({
     scrollTrigger: {
         trigger: '#section-growing',
-        start: 'top top',
-        end: '+=150%',
-        scrub: true,
-        pin: true
+        start: 'top 75%',
+        once: true
     }
-});
-
-growingTl.to('#section-growing .text-line', {
+})
+.to('#section-growing .growing-title', {
     opacity: 1,
-    y: -20,
-    stagger: 0.5,
-    duration: 0.5
-});
+    y: 0,
+    duration: 1,
+    ease: 'power2.out'
+}, 0)
+.to('#section-growing .stat-row', {
+    opacity: 1,
+    y: 0,
+    stagger: 0.2,
+    duration: 0.8,
+    ease: 'power2.out'
+}, 0.4);
 
-// CTA Section - Works in both languages
-gsap.timeline({ scrollTrigger: { trigger: '#section-cta', start: 'top 80%', end: 'bottom bottom', toggleActions: 'play none none reverse' } })
-    .to('.cta-title', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0)
-    .to('.cta-desc', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0.2)
-    .to('.cta-buttons', { opacity: 1, duration: 0.8, ease: 'power3.out' }, 0.4);
+// CTA Section - Framer Motion Style Fade (no pin, no scrub)
+gsap.timeline({ 
+    scrollTrigger: { 
+        trigger: '#section-cta', 
+        start: 'top 80%',
+        once: true
+    } 
+})
+.to('.cta-title', { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    duration: 1.5, 
+    ease: 'power3.out' 
+}, 0)
+.to('.cta-desc', { 
+    opacity: 1, 
+    y: 0, 
+    duration: 1.2, 
+    ease: 'power3.out' 
+}, 0.4)
+.to('.cta-buttons', { 
+    opacity: 1, 
+    y: 0,
+    duration: 1, 
+    ease: 'power3.out' 
+}, 0.8);
 
 // Mobile menu - attach event listener
 const menuToggle = document.getElementById('menuToggle');
@@ -1036,12 +1654,14 @@ if (menuToggle && navLinks) {
     menuToggle.addEventListener('click', function(e) {
         e.stopPropagation();
         navLinks.classList.toggle('active');
+        menuToggle.classList.toggle('active');
     });
 
     // Close menu when clicking outside
     document.addEventListener('click', function(e) {
         if (!navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
             navLinks.classList.remove('active');
+            menuToggle.classList.remove('active');
         }
     });
 }
@@ -1051,6 +1671,7 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
         navLinks.classList.remove('active');
+        menuToggle.classList.remove('active');
 
         const targetId = link.getAttribute('href');
         const targetSection = document.querySelector(targetId);
