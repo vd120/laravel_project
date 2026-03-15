@@ -620,77 +620,79 @@ sequenceDiagram
 This diagram shows the main actors and their interactions with the system.
 
 ```mermaid
-useCaseDiagram
-    actor "Guest User" as Guest
-    actor "Registered User" as User
-    actor "Admin" as Admin
+flowchart TB
+    subgraph Actors
+        Guest[👤 Guest User]
+        User[👤 Registered User]
+        Admin[👤 Admin]
+    end
 
-    package "Authentication" {
-        useCase "Register Account" as UC1
-        useCase "Login" as UC2
-        useCase "Logout" as UC3
-        useCase "Reset Password" as UC4
-        useCase "Verify Email" as UC5
-        useCase "Login with Google" as UC6
-    }
+    subgraph Authentication
+        UC1[Register Account]
+        UC2[Login]
+        UC3[Logout]
+        UC4[Reset Password]
+        UC5[Verify Email]
+        UC6[Login with Google]
+    end
 
-    package "Posts" {
-        useCase "Create Post" as UC10
-        useCase "View Posts" as UC11
-        useCase "Edit Post" as UC12
-        useCase "Delete Post" as UC13
-        useCase "Like Post" as UC14
-        useCase "Save Post" as UC15
-        useCase "Comment on Post" as UC16
-        useCase "Like Comment" as UC17
-    }
+    subgraph Posts
+        UC10[Create Post]
+        UC11[View Posts]
+        UC12[Edit Post]
+        UC13[Delete Post]
+        UC14[Like Post]
+        UC15[Save Post]
+        UC16[Comment on Post]
+        UC17[Like Comment]
+    end
 
-    package "Stories" {
-        useCase "Create Story" as UC20
-        useCase "View Stories" as UC21
-        useCase "React to Story" as UC22
-        useCase "View Story Viewers" as UC23
-        useCase "Delete Story" as UC24
-    }
+    subgraph Stories
+        UC20[Create Story]
+        UC21[View Stories]
+        UC22[React to Story]
+        UC23[View Story Viewers]
+        UC24[Delete Story]
+    end
 
-    package "Social Features" {
-        useCase "Follow User" as UC30
-        useCase "Unfollow User" as UC31
-        useCase "Block User" as UC32
-        useCase "View Profile" as UC33
-        useCase "Edit Profile" as UC34
-        useCase "Explore Users" as UC35
-    }
+    subgraph Social
+        UC30[Follow User]
+        UC31[Unfollow User]
+        UC32[Block User]
+        UC33[View Profile]
+        UC34[Edit Profile]
+        UC35[Explore Users]
+    end
 
-    package "Messaging" {
-        useCase "Send Message" as UC40
-        useCase "View Conversations" as UC41
-        useCase "Delete Message" as UC42
-        useCase "Mark as Read" as UC43
-        useCase "Send Typing Indicator" as UC44
-    }
+    subgraph Messaging
+        UC40[Send Message]
+        UC41[View Conversations]
+        UC42[Delete Message]
+        UC43[Mark as Read]
+        UC44[Send Typing Indicator]
+    end
 
-    package "Groups" {
-        useCase "Create Group" as UC50
-        useCase "Join Group" as UC51
-        useCase "Leave Group" as UC52
-        useCase "Add Members" as UC53
-        useCase "Remove Members" as UC54
-        useCase "Make Admin" as UC55
-    }
+    subgraph Groups
+        UC50[Create Group]
+        UC51[Join Group]
+        UC52[Leave Group]
+        UC53[Add Members]
+        UC54[Remove Members]
+        UC55[Make Admin]
+    end
 
-    package "Admin" {
-        useCase "View Dashboard" as UC60
-        useCase "Manage Users" as UC61
-        useCase "Delete Posts" as UC62
-        useCase "Delete Comments" as UC63
-        useCase "Delete Stories" as UC64
-        useCase "Create Admin" as UC65
-    }
+    subgraph Admin
+        UC60[View Dashboard]
+        UC61[Manage Users]
+        UC62[Delete Posts]
+        UC63[Delete Comments]
+        UC64[Delete Stories]
+        UC65[Create Admin]
+    end
 
-    package "AI Features" {
-        useCase "Chat with AI" as UC70
-    }
+    subgraph AI
+        UC70[Chat with AI]
+    end
 
     Guest --> UC1
     Guest --> UC2
