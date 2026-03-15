@@ -543,11 +543,18 @@
                     const parentComment = document.querySelector('[data-comment-id="' + commentId + '"]');
                     if (parentComment) {
                         let repliesContainer = parentComment.querySelector('.replies-container');
+                        let showRepliesAlways = parentComment.querySelector('.show-replies-always');
 
                         if (!repliesContainer) {
                             repliesContainer = document.createElement('div');
                             repliesContainer.className = 'replies-container';
                             parentComment.appendChild(repliesContainer);
+                        }
+
+                        // Hide the "Show replies" button since we're adding a reply dynamically
+                        // and the replies are now visible
+                        if (showRepliesAlways) {
+                            showRepliesAlways.style.display = 'none';
                         }
 
                         const user = data.comment.user || { username: 'user', avatar_url: null };

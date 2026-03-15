@@ -3,14 +3,6 @@
 .comment-item {
     padding: 14px 0;
     border-bottom: 1px solid var(--border);
-    transition: background 0.2s ease;
-}
-
-.comment-item:hover {
-    background: var(--surface-hover);
-    margin: 0 -16px;
-    padding: 14px 16px;
-    border-radius: var(--radius);
 }
 
 .comment-item:last-child {
@@ -109,16 +101,12 @@
     padding: 6px;
     border-radius: 50%;
     font-size: 12px;
-    opacity: 0;
+    opacity: 0.7;
     transition: all 0.2s ease;
 }
 
-.comment-item:hover .delete-comment-btn {
-    opacity: 0.7;
-}
-
 .delete-comment-btn:hover {
-    opacity: 1 !important;
+    opacity: 1;
     background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
 }
@@ -235,6 +223,7 @@
     height: 36px;
     line-height: 20px;
     transition: all 0.2s ease;
+    overflow: hidden;
 }
 
 .reply-input-wrapper textarea:focus {
@@ -324,12 +313,6 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-    .comment-item:hover {
-        background: transparent;
-        margin: 0;
-        padding: 14px 0;
-    }
-
     .comment-item.nested {
         margin-left: 8px;
         padding-left: 8px;
@@ -444,22 +427,6 @@
 
     /* Disable hover effects on mobile */
     .comment-name:hover { color: var(--text); }
-    .comment-action-btn:hover { background: transparent; color: var(--text-muted); }
-    .reply-input-wrapper button:hover { transform: none; }
-    .cancel-reply:hover { background: transparent; color: var(--text-muted); }
-    .show-more-replies button:hover, .hide-replies:hover, .show-replies-btn:hover { background: transparent; text-decoration: none; }
-}
-
-/* Disable ALL hover effects on touch devices */
-@media (hover: none) {
-    .comment-item:hover {
-        background: transparent;
-        margin: 0;
-        padding: 14px 0;
-    }
-
-    .comment-name:hover { color: var(--text); }
-    .delete-comment-btn:hover { opacity: 0.7; background: transparent; }
     .comment-action-btn:hover { background: transparent; color: var(--text-muted); }
     .reply-input-wrapper button:hover { transform: none; }
     .cancel-reply:hover { background: transparent; color: var(--text-muted); }

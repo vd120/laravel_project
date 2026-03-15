@@ -26,6 +26,6 @@
         }
 
         if (showMoreBtn) showMoreBtn.style.display = 'none';
-        if (showRepliesAlways) showRepliesAlways.style.display = 'none';
+        if (showRepliesAlways) showRepliesAlways.style.display = show ? 'none' : 'block';
     };
 })();

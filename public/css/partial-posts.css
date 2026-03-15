@@ -466,6 +466,7 @@
     height: 40px;
     line-height: 20px;
     transition: all 0.2s ease;
+    overflow: hidden;
 }
 
 .comment-form textarea:focus {
@@ -843,6 +844,7 @@
     resize: none;
     height: 36px;
     line-height: 20px;
+    overflow: hidden;
 }
 
 .reply-input-wrapper textarea:focus {
