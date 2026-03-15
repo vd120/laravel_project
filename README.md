@@ -207,12 +207,20 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 - [Features](docs/FEATURES.md) — Complete feature documentation with flow diagrams
 - [API Reference](docs/API.md) — RESTful API endpoints with examples
 - [Database Schema](docs/DATABASE.md) — Entity relationships, table definitions
-- [Diagrams](docs/DIAGRAMS.md) — UML diagrams, use cases, sequence diagrams
 - [Security Report](docs/SECURITY.md) — Security audit, vulnerabilities, best practices
 - [Technologies](docs/TECHNOLOGIES.md) — Complete tech stack with versions
 - [Troubleshooting](docs/TROUBLESHOOTING.md) — Common issues and solutions
 - [Frontend Guide](docs/FRONTEND.md) — Blade templates, JavaScript modules
 - [Multilingual](docs/MULTILINGUAL.md) — English/Arabic support, RTL layout
+
+### UML Diagrams
+
+For visual representations of the system architecture and design, see [UML.md](UML.md):
+
+- **Class Diagram** — Eloquent models and their relationships
+- **ERD** — Database table relationships
+- **Sequence Diagrams** — Authentication, posts, messaging, and more
+- **Use Case Diagram** — User interactions with the system
 
 ---
 

@@ -308,8 +308,8 @@ erDiagram
     USERS {
         bigint id PK
         string name
-        string username UK
-        string email UK
+        string username
+        string email
         string password
         boolean is_admin
         boolean is_suspended
@@ -322,7 +322,7 @@ erDiagram
         bigint id PK
         bigint user_id FK
         string content
-        string slug UK
+        string slug
         string media_type
         string media_path
         boolean is_private
@@ -356,7 +356,7 @@ erDiagram
 
     PROFILES {
         bigint id PK
-        bigint user_id FK UK
+        bigint user_id FK
         string bio
         string avatar
         string cover_image
@@ -367,7 +367,7 @@ erDiagram
         bigint id PK
         bigint user_id FK
         string media_path
-        string slug UK
+        string slug
         timestamp expires_at
     }
 
@@ -388,7 +388,7 @@ erDiagram
         bigint id PK
         bigint user1_id FK
         bigint user2_id FK
-        string slug UK
+        string slug
         boolean is_group
         bigint group_id FK
         timestamp last_message_at
@@ -410,8 +410,8 @@ erDiagram
         string name
         string description
         bigint creator_id FK
-        string slug UK
-        string invite_link UK
+        string slug
+        string invite_link
         boolean is_private
     }
 
@@ -620,76 +620,76 @@ sequenceDiagram
 This diagram shows the main actors and their interactions with the system.
 
 ```mermaid
-usecaseDiagram
+useCaseDiagram
     actor "Guest User" as Guest
     actor "Registered User" as User
     actor "Admin" as Admin
 
     package "Authentication" {
-        usecase "Register Account" as UC1
-        usecase "Login" as UC2
-        usecase "Logout" as UC3
-        usecase "Reset Password" as UC4
-        usecase "Verify Email" as UC5
-        usecase "Login with Google" as UC6
+        useCase "Register Account" as UC1
+        useCase "Login" as UC2
+        useCase "Logout" as UC3
+        useCase "Reset Password" as UC4
+        useCase "Verify Email" as UC5
+        useCase "Login with Google" as UC6
     }
 
     package "Posts" {
-        usecase "Create Post" as UC10
-        usecase "View Posts" as UC11
-        usecase "Edit Post" as UC12
-        usecase "Delete Post" as UC13
-        usecase "Like Post" as UC14
-        usecase "Save Post" as UC15
-        usecase "Comment on Post" as UC16
-        usecase "Like Comment" as UC17
+        useCase "Create Post" as UC10
+        useCase "View Posts" as UC11
+        useCase "Edit Post" as UC12
+        useCase "Delete Post" as UC13
+        useCase "Like Post" as UC14
+        useCase "Save Post" as UC15
+        useCase "Comment on Post" as UC16
+        useCase "Like Comment" as UC17
     }
 
     package "Stories" {
-        usecase "Create Story" as UC20
-        usecase "View Stories" as UC21
-        usecase "React to Story" as UC22
-        usecase "View Story Viewers" as UC23
-        usecase "Delete Story" as UC24
+        useCase "Create Story" as UC20
+        useCase "View Stories" as UC21
+        useCase "React to Story" as UC22
+        useCase "View Story Viewers" as UC23
+        useCase "Delete Story" as UC24
     }
 
     package "Social Features" {
-        usecase "Follow User" as UC30
-        usecase "Unfollow User" as UC31
-        usecase "Block User" as UC32
-        usecase "View Profile" as UC33
-        usecase "Edit Profile" as UC34
-        usecase "Explore Users" as UC35
+        useCase "Follow User" as UC30
+        useCase "Unfollow User" as UC31
+        useCase "Block User" as UC32
+        useCase "View Profile" as UC33
+        useCase "Edit Profile" as UC34
+        useCase "Explore Users" as UC35
     }
 
     package "Messaging" {
-        usecase "Send Message" as UC40
-        usecase "View Conversations" as UC41
-        usecase "Delete Message" as UC42
-        usecase "Mark as Read" as UC43
-        usecase "Send Typing Indicator" as UC44
+        useCase "Send Message" as UC40
+        useCase "View Conversations" as UC41
+        useCase "Delete Message" as UC42
+        useCase "Mark as Read" as UC43
+        useCase "Send Typing Indicator" as UC44
     }
 
     package "Groups" {
-        usecase "Create Group" as UC50
-        usecase "Join Group" as UC51
-        usecase "Leave Group" as UC52
-        usecase "Add Members" as UC53
-        usecase "Remove Members" as UC54
-        usecase "Make Admin" as UC55
+        useCase "Create Group" as UC50
+        useCase "Join Group" as UC51
+        useCase "Leave Group" as UC52
+        useCase "Add Members" as UC53
+        useCase "Remove Members" as UC54
+        useCase "Make Admin" as UC55
     }
 
     package "Admin" {
-        usecase "View Dashboard" as UC60
-        usecase "Manage Users" as UC61
-        usecase "Delete Posts" as UC62
-        usecase "Delete Comments" as UC63
-        usecase "Delete Stories" as UC64
-        usecase "Create Admin" as UC65
+        useCase "View Dashboard" as UC60
+        useCase "Manage Users" as UC61
+        useCase "Delete Posts" as UC62
+        useCase "Delete Comments" as UC63
+        useCase "Delete Stories" as UC64
+        useCase "Create Admin" as UC65
     }
 
     package "AI Features" {
-        usecase "Chat with AI" as UC70
+        useCase "Chat with AI" as UC70
     }
 
     Guest --> UC1
@@ -792,6 +792,6 @@ graph TB
 ## Notes
 
 - All diagrams are written in **Mermaid.js** syntax and will render automatically on GitHub
-- For local viewing, use a Markdown editor with Mermaid support (VS Code, Obsidian, etc.)
+- For local viewing, use a Markdown editor with Mermaid support
 - Diagrams are auto-generated based on the current codebase structure
-- Last updated: March 15, 2026
+- Last updated: 15-3-2026
