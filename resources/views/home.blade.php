@@ -10,17 +10,12 @@
 <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
-
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔷</text></svg>">
-
 </head>
 <body>
-
-<!-- Intro Animation -->
 <div class="intro-wrapper">
     <div class="intro-shape"></div>
 </div>
-
 <div class="animated-bg"></div>
 <nav>
     <div class="nav-container">
@@ -83,7 +78,6 @@
 <section class="features-grid-section" id="section-features">
     <p class="section-label">{{ __('home.features') }}</p>
     <h2 class="section-title">{{ __('home.everything_you_need') }}</h2>
-
     <div class="feature-grid">
         <div class="card">
             <div class="card-glow"></div>
@@ -155,7 +149,6 @@
         <div class="blur-section-wrapper">
             <div class="blur-glow"></div>
             <div class="blur-text e6-blur">{!! __('home.your_privacy_protected') !!}</div>
-            <!-- <p class="blur-desc">{{ __('home.your_privacy_protected_desc') }}</p> -->
         </div>
     </div>
 </section>
@@ -191,7 +184,6 @@
         </div>
     </div>
 </section>
-
 <footer>
     <div class="footer-content">
         <p>© 2026 Nexus. {{ __('home.built_for_authentic_connections') }}</p>
@@ -207,14 +199,10 @@
         </div>
     </div>
 </footer>
-
 @vite(['resources/js/legacy/home.js'])
-
-<!-- GSAP Libraries - Deferred for better performance -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
 <script defer>
-// Initialize GSAP when DOM is ready and scripts are loaded
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof gsap !== 'undefined') {
         initGSAP();

@@ -755,7 +755,7 @@ Flash: success = "Story created!"
 **Request:**
 ```json
 {
-    "reaction": "❤️"
+    "reaction": ""
 }
 ```
 
@@ -780,7 +780,7 @@ Flash: success = "Reaction added!"
         {
             "id": 1,
             "user_id": 2,
-            "reaction_type": "❤️",
+            "reaction_type": "",
             "user": {
                 "name": "Jane Doe",
                 "username": "janedoe",

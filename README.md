@@ -16,7 +16,7 @@
 
 ---
 
-## 📖 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Features](#features)
@@ -29,7 +29,7 @@
 
 ---
 
-## 🌟 Overview
+## Overview
 
 **Nexus** is a production-ready social networking platform that enables users to connect, share, and communicate in real-time. Built with modern web technologies, it offers a seamless experience for creating posts, sharing stories, messaging, and building communities.
 
@@ -37,11 +37,11 @@
 
 <div align="center">
 
-![Nexus Landing Page - English](Images/landingPage-en.png)
+![Nexus Landing Page - English](Images/landingPage-en.png?v=1)
 
 *English Landing Page*
 
-![Nexus Landing Page - Arabic](Images/landingPage-ar.png)
+![Nexus Landing Page - Arabic](Images/landingPage-ar.png?v=2)
 
 *Arabic Landing Page (RTL Support)*
 
@@ -60,9 +60,9 @@
 
 ---
 
-## ✨ Features
+## Features
 
-### 📝 Content Management
+### Content Management
 
 | Feature | Description |
 |---------|-------------|
@@ -72,7 +72,7 @@
 | **Stories** | Ephemeral 24-hour content with view tracking and emoji reactions |
 | **Media Processing** | Auto-compression, video thumbnails, FFmpeg processing |
 
-### 💬 Real-Time Communication
+### Real-Time Communication
 
 | Feature | Description |
 |---------|-------------|
@@ -82,7 +82,7 @@
 | **Read Receipts** | Track message delivery and read status |
 | **Message Actions** | Delete for me/everyone, edit, reply |
 
-### 👥 Social Network
+### Social Network
 
 | Feature | Description |
 |---------|-------------|
@@ -92,7 +92,7 @@
 | **Block Users** | Block unwanted interactions |
 | **Explore** | Discover new users and content |
 
-### 🏢 Groups
+### Groups
 
 | Feature | Description |
 |---------|-------------|
@@ -102,7 +102,7 @@
 | **Group Chat** | Dedicated conversation for each group |
 | **Member Management** | Add/remove members, promote to admin |
 
-### 🤖 AI Assistant
+### AI Assistant
 
 | Feature | Description |
 |---------|-------------|
@@ -110,7 +110,7 @@
 | **Context Aware** | Remembers conversation history |
 | **Quick Actions** | Pre-defined prompts for common tasks |
 
-### 🛡️ Admin Panel
+### Admin Panel
 
 | Feature | Description |
 |---------|-------------|
@@ -121,7 +121,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 
@@ -154,11 +154,11 @@
 | **Cloudflare Tunnel** | Latest | Public URL sharing |
 | **Google OAuth** | Latest | Social authentication |
 
-> 📋 **Note:** For a complete list of all technologies with versions, see [Technologies Documentation](docs/TECHNOLOGIES.md)
+> **Note:** For a complete list of all technologies with versions, see [Technologies Documentation](docs/TECHNOLOGIES.md)
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -226,11 +226,11 @@ After setup, login with:
 | **Email** | `admin@example.com` |
 | **Password** | `admin123` |
 
-> ⚠️ **Security Notice:** Change the default password immediately after installation!
+> **Security Notice:** Change the default password immediately after installation!
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 Comprehensive documentation is available in the [`docs/`](docs/) directory:
 
@@ -250,7 +250,7 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 laravel_project/
@@ -298,27 +298,27 @@ laravel_project/
 
 ---
 
-## 🔧 Setup Scripts
+## Setup Scripts
 
 The automated setup scripts handle the entire installation process with full MySQL support.
 
 ### What It Does
 
-1. ✅ Checks system requirements (PHP, Composer, Node.js, extensions)
-2. ✅ Installs PHP dependencies via Composer
-3. ✅ Installs JavaScript dependencies via npm
-4. ✅ Creates `.env` from `.env.example`
-5. ✅ Generates unique application key
-6. ✅ **Database Setup** - Choose SQLite or MySQL
-7. ✅ **MySQL Options:**
+1. Checks system requirements (PHP, Composer, Node.js, extensions)
+2. Installs PHP dependencies via Composer
+3. Installs JavaScript dependencies via npm
+4. Creates `.env` from `.env.example`
+5. Generates unique application key
+6. **Database Setup** - Choose SQLite or MySQL
+7. **MySQL Options:**
    - Create new database with user
    - Use existing database
    - Automatic privilege configuration
-8. ✅ Runs database migrations
-9. ✅ Creates admin user with default credentials
-10. ✅ Builds frontend assets with Vite
-11. ✅ Creates storage symbolic link
-12. ✅ Clears all Laravel caches
+8. Runs database migrations
+9. Creates admin user with default credentials
+10. Builds frontend assets with Vite
+11. Creates storage symbolic link
+12. Clears all Laravel caches
 
 **Estimated Time:** 3-5 minutes (depending on internet connection)
 
@@ -354,7 +354,7 @@ php artisan migrate
 
 ---
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 Having setup issues? See the complete [Troubleshooting Guide](docs/TROUBLESHOOTING.md) for:
 
@@ -367,7 +367,7 @@ Having setup issues? See the complete [Troubleshooting Guide](docs/TROUBLESHOOTI
 
 ---
 
-## 🌐 Public Tunnel
+## Public Tunnel
 
 Share your local development environment via Cloudflare Tunnel:
 
@@ -389,7 +389,7 @@ Share your local development environment via Cloudflare Tunnel:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Here's how to help:
 
@@ -403,12 +403,12 @@ We welcome contributions! Here's how to help:
 
 ### What We Need
 
-- 🐛 Bug fixes
-- ✨ New features
-- 📖 Documentation improvements
-- ⚡ Performance optimizations
-- 🌍 Translations (especially Arabic)
-- ✅ Test coverage
+- Bug fixes
+- New features
+- Documentation improvements
+- Performance optimizations
+- Translations (especially Arabic)
+- Test coverage
 
 ### Development Setup
 
@@ -424,7 +424,7 @@ npm run dev
 
 ---
 
-## 📄 License
+## License
 
 This project is proprietary software. All rights reserved.
 
@@ -434,7 +434,7 @@ This project is proprietary software. All rights reserved.
 
 <div align="center">
 
-**Built with ❤️ using Laravel & Vue.js**
+**Built with Laravel & Vue.js**
 
 [Documentation](docs/) • [API Reference](docs/API.md) • [Features](docs/FEATURES.md)
 
