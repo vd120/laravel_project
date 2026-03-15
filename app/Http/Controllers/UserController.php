@@ -462,14 +462,45 @@ class UserController extends Controller
             }
 
             // Finally, delete the user account
+            $userId = $user->id;
+            $userEmail = $user->email;
+            
+            // Clear remember token before deletion
+            $user->remember_token = null;
+            $user->save();
+            
             $user->delete();
-            \Log::info('Deleted user account');
+            
+            // Verify user was actually deleted
+            $deletedUser = User::find($userId);
+            if ($deletedUser) {
+                \Log::error('User deletion failed - user still exists: ' . $userId);
+                \DB::rollback();
+                return response()->json([
+                    'success' => false,
+                    'message' => __('messages.account_delete_failed')
+                ], 500);
+            }
+            
+            \Log::info('Deleted user account: ' . $userId . ' (' . $userEmail . ')');
 
             // Commit the transaction
             \DB::commit();
+            
+            // Clear query cache to ensure fresh data on next request
+            \DB::purge();
 
-            // Log out the user (though the user is already deleted, this clears the session)
+            // Log out the user and invalidate session
             auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            // Clear any remember me cookie
+            if ($request->hasCookie('remember_web_user')) {
+                \Cookie::queue(\Cookie::forget('remember_web_user'));
+            }
+
+            \Log::info('Account deletion complete, session invalidated for user: ' . $userId);
 
             return response()->json([
                 'success' => true,

@@ -25,16 +25,33 @@ class SocialAuthController extends Controller
     public function handleGoogleCallback()
     {
         try {
-            // Try stateless first, fall back to regular method
+            // Clear any stale session data first
+            session()->forget('pending_verification_user_id');
+            
+            $googleUser = null;
             try {
-                $googleUser = Socialite::driver('google')->stateless()->user();
+                // Try stateless first, fall back to regular method
+                try {
+                    $googleUser = Socialite::driver('google')->stateless()->user();
+                } catch (\Exception $e) {
+                    // Fallback to regular OAuth flow
+                    $googleUser = Socialite::driver('google')->user();
+                }
             } catch (\Exception $e) {
-                // Fallback to regular OAuth flow
-                $googleUser = Socialite::driver('google')->user();
+                \Log::error('Google OAuth Error: ' . $e->getMessage());
+                return redirect()->route('login')->withErrors(['email' => __('auth.google_login_error')]);
             }
+
+            \Log::info('Google OAuth callback - Email: ' . $googleUser->email . ', Name: ' . $googleUser->name);
 
             // Find existing user by email
             $user = User::where('email', $googleUser->email)->first();
+
+            if ($user) {
+                \Log::info('Existing user found - ID: ' . $user->id . ', email_verified_at: ' . ($user->email_verified_at ?? 'null') . ', password: ' . ($user->password ?? 'null'));
+            } else {
+                \Log::info('No existing user found - will create new user');
+            }
 
             // Case 1: New user - email doesn't exist in database
             if (!$user) {
@@ -57,9 +74,14 @@ class SocialAuthController extends Controller
                 $username = $baseUsername;
                 $counter = 1;
 
-                // Ensure uniqueness
-                while (User::where('username', $username)->exists()) {
-                    $username = substr($baseUsername, 0, 20 - strlen($counter)) . $counter;
+                // Ensure uniqueness and minimum length
+                while (User::where('username', $username)->exists() || strlen($username) < 3) {
+                    // If username is too short, pad it
+                    if (strlen($username) < 3) {
+                        $username = $baseUsername . $counter;
+                    } else {
+                        $username = substr($baseUsername, 0, 20 - strlen($counter)) . $counter;
+                    }
                     $counter++;
                 }
 
@@ -73,6 +95,10 @@ class SocialAuthController extends Controller
                     'email_verified_at' => null, // NOT verified - needs verification code
                 ]);
 
+                // Verify the user was created with null email_verified_at
+                $user = $user->fresh();
+                \Log::info('User created - ID: ' . $user->id . ', email_verified_at: ' . ($user->email_verified_at ?? 'null'));
+
                 // Store user ID in session for pending verification
                 session(['pending_verification_user_id' => $user->id]);
 
@@ -82,14 +108,23 @@ class SocialAuthController extends Controller
                 // Regenerate session
                 request()->session()->regenerate();
 
+                \Log::info('New Google OAuth user created: ' . $user->email . ' (ID: ' . $user->id . '), redirecting to verification');
+
                 // Redirect to verification page FIRST
                 return redirect()->route('verification.notice')->with('message', __('messages.please_verify_email'));
             }
 
             // Case 2: User exists but email is NOT verified (email_verified_at is null)
             if (is_null($user->email_verified_at)) {
+                // Check if user is suspended BEFORE redirecting to verification
+                if ($user->is_suspended) {
+                    return redirect()->route('login')->with('suspended', true);
+                }
+                
                 // Store user ID in session for pending verification
                 session(['pending_verification_user_id' => $user->id]);
+
+                \Log::info('Existing unverified Google OAuth user: ' . $user->email . ' (ID: ' . $user->id . '), redirecting to verification');
 
                 // Redirect to verification page
                 return redirect()->route('verification.notice')->with('message', __('messages.please_verify_email'));
@@ -106,6 +141,8 @@ class SocialAuthController extends Controller
 
             // Regenerate session
             request()->session()->regenerate();
+
+            \Log::info('Existing verified Google OAuth user logged in: ' . $user->email . ' (ID: ' . $user->id . ')');
 
             return redirect()->intended('/')->with('message', __('messages.welcome_back', ['username' => $user->username]));
         } catch (\Exception $e) {

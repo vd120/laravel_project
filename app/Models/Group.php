@@ -99,6 +99,7 @@ class Group extends Model
 
         // Create conversation for the group
         Conversation::create([
+            'user1_id' => $creator->id,
             'is_group' => true,
             'group_id' => $group->id,
             'name' => $group->name,

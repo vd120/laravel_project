@@ -49,7 +49,7 @@ return [
     'delete_avatar_confirm' => 'تحذف صورتك الشخصية؟',
     'delete_cover_confirm' => 'تحذف صورة الغلاف؟',
     'delete_account_warning' => 'تحذير: حسابك وجميع بياناتك هتتحذف نهائيًا. إنت متأكد؟',
-    'delete_account_final' => 'مفيش رجوع في الإجراء ده. اكتب "DELETE" للتأكيد.',
+    'delete_account_final' => 'مفيش رجوع في الإجراء ده. يرجى التأكيد للمتابعة.',
     'delete_account_password_prompt' => 'أدخل كلمة المرور عشان تؤكد حذف الحساب:',
     'failed_delete_avatar' => 'فشل حذف الصورة الشخصية',
     'failed_delete_cover' => 'فشل حذف صورة الغلاف',

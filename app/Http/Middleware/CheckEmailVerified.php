@@ -18,22 +18,17 @@ class CheckEmailVerified
     public function handle(Request $request, Closure $next): Response
     {
         // Skip check for verification-related routes
-        if ($request->routeIs('verification.*') || 
+        if ($request->routeIs('verification.*') ||
             $request->routeIs('auth.verify-email') ||
             $request->routeIs('logout') ||
             $request->routeIs('auth.suspended')) {
             return $next($request);
         }
-        
+
         // Check if user is authenticated
         if (Auth::check()) {
             $user = Auth::user();
-            
-            // Skip for admins (they might be exempt from verification)
-            if ($user->is_admin) {
-                return $next($request);
-            }
-            
+
             // Check if user has verified their email
             if (!$user->hasVerifiedEmail()) {
                 // For API requests, return JSON error
@@ -43,7 +38,7 @@ class CheckEmailVerified
                         'redirect' => route('verification.notice')
                     ], 403);
                 }
-                
+
                 // Redirect to verification notice page
                 return redirect()->route('verification.notice')
                     ->with('message', 'Please verify your email address to continue.');

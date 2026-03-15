@@ -333,12 +333,15 @@ function deleteCover() {
 }
 
 function confirmDeleteAccount() {
-    // Create password prompt modal
+    // Layer 1: Warning confirmation
+    if (!confirm({!! json_encode(__('users.delete_account_warning')) !!})) return;
+
+    // Layer 2: Final confirmation
+    if (!confirm({!! json_encode(__('users.delete_account_final')) !!})) return;
+
+    // Layer 3: Password prompt
     const password = prompt({!! json_encode(__('users.delete_account_password_prompt')) !!});
     if (!password) return;
-    
-    if (!confirm({!! json_encode(__('users.delete_account_warning')) !!})) return;
-    if (!confirm({!! json_encode(__('users.delete_account_final')) !!})) return;
 
     fetch('{{ route("profile.delete-account") }}', {
         method: 'DELETE',

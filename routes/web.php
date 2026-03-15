@@ -86,7 +86,6 @@ Route::middleware(['auth', 'suspended'])->group(function () {
 });
 
 // Email verification routes (6-digit code system)
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 
 Route::get('/email/verify', function () {
@@ -183,7 +182,7 @@ Route::post('/email/verify-code', function (Request $request) {
     }
 
     if (!$user) {
-        return redirect()->route('login')->withErrors(['code' => 'User not found.']);
+        return redirect()->route('login')->withErrors(['code' => __('messages.user_not_found')]);
     }
 
     if ($user->verifyCode($request->code)) {
@@ -203,10 +202,10 @@ Route::post('/email/verify-code', function (Request $request) {
             return redirect()->route('password.set-password')->with('message', __('messages.please_set_password'));
         }
 
-        return redirect('/')->with('message', 'Email verified successfully! Welcome to the platform.');
+        return redirect('/')->with('message', __('messages.email_verified_success'));
     }
 
-    return back()->withErrors(['code' => 'Invalid or expired verification code.']);
+    return back()->withErrors(['code' => __('messages.invalid_verification_code')]);
 })->middleware('throttle:verification')->name('verification.verify-code');
 
 Route::get('/', function () {
@@ -214,14 +213,24 @@ Route::get('/', function () {
     if (!auth()->check()) {
         return view('home');
     }
+
+    $user = auth()->user();
+
+    // Log for debugging
+    \Log::info('Home route access - User ID: ' . $user->id . ', email: ' . $user->email . ', email_verified_at: ' . ($user->email_verified_at ?? 'null') . ', is_admin: ' . ($user->is_admin ? 'true' : 'false'));
+
     // If authenticated and not verified, show verification notice
-    if (!auth()->user()->hasVerifiedEmail()) {
+    if (!$user->hasVerifiedEmail()) {
+        \Log::info('Redirecting unverified user to verification page');
         return redirect()->route('verification.notice');
     }
+
     // If user has no password (Google OAuth), redirect to set password page
-    if (auth()->user()->password === null) {
+    if ($user->password === null) {
+        \Log::info('Redirecting user without password to set password page');
         return redirect()->route('password.set-password')->with('message', __('messages.please_set_password'));
     }
+
     // Show posts feed for authenticated and verified users
     return app(\App\Http\Controllers\PostController::class)->index(request());
 })->name('home');

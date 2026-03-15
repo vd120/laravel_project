@@ -8,499 +8,9 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-
-<style>
-:root{
-    --bg: #0d0d0d;
-    --surface: rgba(22, 22, 22, 0.7);
-    --surface-hover: #1c1c1e;
-    --border: rgba(255, 255, 255, 0.08);
-    --text: #ffffff;
-    --text-muted: #86868b;
-    --primary: #5e60ce;
-    --primary-hover: #7400b8;
-    --secondary: #4ea8de;
-    --accent: #5e60ce;
-    --success: #30d158;
-    --warning: #ffd60a;
-    --radius: 12px;
-    --radius-lg: 16px;
-    --radius-full: 9999px;
-}
-
-[data-theme="light"] {
-    --bg: #ffffff;
-    --surface: rgba(249, 250, 251, 0.7);
-    --surface-hover: #f3f4f6;
-    --border: rgba(0, 0, 0, 0.08);
-    --text: #111111;
-    --text-muted: #6b7280;
-}
-
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-    font-family:'Inter',sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    -webkit-font-smoothing:antialiased;
-    min-height:100vh;
-}
-
-/* Base Styles */
-nav{
-    position:fixed;
-    top:0;
-    width:100%;
-    padding:10px 40px;
-    backdrop-filter:blur(30px);
-    -webkit-backdrop-filter:blur(30px);
-    background:rgba(13, 13, 13, 0.8);
-    border-bottom:1px solid rgba(255, 255, 255, 0.1);
-    display:flex;
-    justify-content:center;
-    z-index:300;
-}
-
-[data-theme="light"] nav{
-    background:rgba(255, 255, 255, 0.8);
-    border-bottom:1px solid rgba(0, 0, 0, 0.1);
-}
-
-.nav-container{
-    max-width:980px;
-    width:100%;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    height:48px;
-}
-.nav-brand{
-    font-weight:600;
-    font-size:18px;
-    text-decoration:none;
-    color:#ffffff;
-}
-
-[data-theme="light"] .nav-brand{
-    color:#000000;
-}
-
-.nav-link{
-    font-size:13px;
-    color:#86868b;
-    text-decoration:none;
-    transition:0.3s;
-}
-.nav-link:hover{color:#ffffff}
-
-[data-theme="light"] .nav-link{
-    color:#6b7280;
-}
-[data-theme="light"] .nav-link:hover{
-    color:#000000;
-}
-
-/* Language Switcher - Unified Style (same as landing page) */
-.language-switcher {
-    position: relative;
-    display: inline-block;
-}
-
-.language-toggle {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    padding: 8px 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.3s ease;
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.language-toggle:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-[data-theme="light"] .language-toggle {
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    color: #111111;
-}
-
-[data-theme="light"] .language-toggle:hover {
-    background: rgba(0, 0, 0, 0.1);
-    border-color: rgba(0, 0, 0, 0.15);
-}
-
-.language-dropdown {
-    display: none;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 8px;
-    min-width: 180px;
-    background: rgba(22, 22, 22, 0.98);
-    backdrop-filter: blur(40px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    overflow: hidden;
-    padding: 8px;
-}
-
-[data-theme="light"] .language-dropdown {
-    background: rgba(249, 250, 251, 0.98);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-}
-
-.language-dropdown.show {
-    display: block !important;
-}
-
-.language-header {
-    padding: 8px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 4px;
-}
-
-[data-theme="light"] .language-header {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.language-header span {
-    font-size: 12px;
-    font-weight: 600;
-    color: #86868b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.language-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.2s;
-    margin-bottom: 4px;
-    cursor: pointer;
-}
-
-[data-theme="light"] .language-option {
-    color: #111111;
-}
-
-.language-option:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="light"] .language-option:hover {
-    background: rgba(0, 0, 0, 0.05);
-}
-
-.language-option.active {
-    background: rgba(94, 96, 206, 0.1);
-    color: #5e60ce;
-    font-weight: 600;
-}
-
-.language-option.active:hover {
-    background: rgba(94, 96, 206, 0.15);
-}
-
-/* Mobile - Hide language text, show only icon */
-@media(max-width: 480px) {
-    .language-switcher .current-locale,
-    .language-switcher .lang-divider,
-    .language-switcher .lang-alt {
-        display: none;
-    }
-    .language-switcher {
-        padding: 6px 10px !important;
-    }
-    .language-switcher span:first-child {
-        font-size: 16px !important;
-    }
-    .language-dropdown {
-        min-width: 160px;
-    }
-    .language-option {
-        padding: 8px 12px;
-        gap: 10px;
-    }
-    .language-option span:first-child {
-        font-size: 16px;
-    }
-    .language-option div span {
-        font-size: 13px;
-    }
-}
-
-/* Language Switcher - Follows Language Direction */
-.language-switcher,
-.language-switcher *,
-.language-toggle,
-.language-dropdown,
-.language-option {
-    /* Direction follows language - RTL for Arabic, LTR for English */
-}
-
-/* Action buttons - match landing page header */
-#themeToggle {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    font-size: 18px;
-}
-[data-theme="light"] #themeToggle {
-    border-color: rgba(0, 0, 0, 0.2);
-    color: #111111;
-}
-
-.back-btn {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    padding: 8px 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-.back-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-[data-theme="light"] .back-btn {
-    border-color: rgba(0, 0, 0, 0.2);
-    color: #111111;
-}
-[data-theme="light"] .back-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
-}
-
-/* PAGE WRAP */
-.page{
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:120px 20px 40px;
-}
-
-/* LOGIN CARD — Apple Glass */
-.login-card{
-    width:100%;
-    max-width:420px;
-    background:var(--surface);
-    border:1px solid var(--border);
-    backdrop-filter:blur(40px);
-    border-radius:28px;
-    padding:50px 40px;
-    position:relative;
-    overflow:hidden;
-}
-
-/* Glow Accent */
-.login-card::before{
-    content:"";
-    position:absolute;
-    top:-40px;
-    right:-40px;
-    width:140px;
-    height:140px;
-    background:var(--primary);
-    filter:blur(80px);
-    opacity:0.25;
-}
-
-/* Title */
-.login-title{
-    font-size:38px;
-    font-weight:700;
-    margin-bottom:10px;
-    letter-spacing:-0.02em;
-    background:linear-gradient(135deg,var(--text) 0%,var(--text-muted) 100%);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-}
-
-.login-sub{
-    font-size:16px;
-    color:var(--text-muted);
-    margin-bottom:40px;
-}
-
-/* Fields */
-.field{margin-bottom:24px}
-
-.field label{
-    display:block;
-    font-size:14px;
-    margin-bottom:8px;
-    color:var(--text);
-}
-
-.field input{
-    width:100%;
-    padding:14px 18px;
-    border-radius:14px;
-    border:1px solid var(--border);
-    background:rgba(255,255,255,0.03);
-    color:var(--text);
-    font-size:15px;
-    outline:none;
-    transition:0.3s;
-}
-
-.field input:focus{
-    border-color:var(--primary);
-    box-shadow:0 0 0 4px rgba(94,96,206,0.2);
-}
-
-.field-error{
-    font-size:13px;
-    color:#ef4444;
-    margin-top:6px;
-}
-
-/* Password toggle */
-.password-wrap{position:relative}
-.password-wrap input{padding-right:45px}
-.toggle-pw{
-    position:absolute;
-    right:15px;
-    top:50%;
-    transform:translateY(-50%);
-    background:none;
-    border:none;
-    color:var(--text-muted);
-    cursor:pointer;
-}
-
-/* Extras */
-.extras{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    font-size:13px;
-    margin-bottom:30px;
-    color:var(--text-muted);
-}
-.extras input{accent-color:var(--primary)}
-.extras a{
-    color:var(--text-muted);
-    text-decoration:none;
-}
-.extras a:hover{color:var(--text)}
-
-/* Buttons */
-.btn{
-    width:100%;
-    padding:14px;
-    border-radius:var(--radius-full);
-    font-size:16px;
-    font-weight:500;
-    border:none;
-    cursor:pointer;
-    transition:0.3s;
-}
-
-.btn-primary{
-    background:#fff;
-    color:#000;
-}
-.btn-primary:hover{
-    background:#f5f5f5;
-    transform:scale(1.02);
-}
-
-.divider{
-    text-align:center;
-    font-size:13px;
-    color:var(--text-muted);
-    margin:25px 0;
-    position:relative;
-}
-.divider::before,
-.divider::after{
-    content:"";
-    position:absolute;
-    top:50%;
-    width:35%;
-    height:1px;
-    background:var(--border);
-}
-.divider::before{left:0}
-.divider::after{right:0}
-
-/* Google */
-.btn-google{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:10px;
-    padding:14px;
-    border-radius:var(--radius-full);
-    border:1px solid var(--border);
-    background:transparent;
-    color:var(--text);
-    text-decoration:none;
-    transition:0.3s;
-}
-.btn-google:hover{
-    background:rgba(255,255,255,0.05);
-}
-
-/* Footer */
-.card-footer{
-    margin-top:35px;
-    text-align:center;
-    font-size:14px;
-    color:var(--text-muted);
-}
-.card-footer a{
-    color:var(--text);
-    text-decoration:none;
-}
-.card-footer a:hover{text-decoration:underline}
-
-/* Responsive */
-@media(max-width:480px){
-    .login-card{padding:35px 25px}
-    .login-title{font-size:30px}
-}
-</style>
+<link rel="stylesheet" href="{{ asset('css/auth-login.css') }}">
 </head>
 <body>
-<script>
-    (function() {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    })();
-</script>
 
 <nav>
     <div class="nav-container">
@@ -598,38 +108,93 @@ nav{
     </div>
 </div>
 
+<script src="{{ asset('js/auth-login.js') }}"></script>
 <script>
-function togglePassword(){
-    const input=document.getElementById('password');
-    const icon=document.getElementById('eye-icon');
-    input.type=input.type==='password'?'text':'password';
-    icon.className=input.type==='password'?'fas fa-eye':'fas fa-eye-slash';
-}
-
-function toggleTheme() {
-    const html = document.documentElement;
-    const icon = document.getElementById('theme-icon');
-    const currentTheme = html.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', newTheme);
-    icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
-    localStorage.setItem('theme', newTheme);
-}
-
-// Set initial theme icon based on saved theme
-(function() {
-    const html = document.documentElement;
-    const icon = document.getElementById('theme-icon');
-    const currentTheme = html.getAttribute('data-theme');
-    if (currentTheme === 'light') {
-        icon.className = 'fas fa-moon';
-    } else {
-        icon.className = 'fas fa-sun';
+// Translations for session messages
+const sessionMessages = {
+    en: {
+        'passwords.reset': 'Password updated successfully! You can now log in.',
+        'password_reset': 'Password updated successfully! You can now log in.',
+        'account_suspended': 'Your account has been suspended.',
+        'concurrent_login': 'Security alert: Concurrent login detected.',
+        'account_deleted': 'Your account has been deleted.',
+        'logged_out': 'You have been logged out.'
+    },
+    ar: {
+        'passwords.reset': 'كلمة السر اتغيرت بنجاح! يمكنك تسجيل الدخول الآن.',
+        'password_reset': 'كلمة السر اتغيرت بنجاح! يمكنك تسجيل الدخول الآن.',
+        'account_suspended': 'حسابك تم تعليقه.',
+        'concurrent_login': 'تنبيه أمني: تم اكتشاف دخول متزامن.',
+        'account_deleted': 'حسابك تم حذفه.',
+        'logged_out': 'تم تسجيل خروجك.'
     }
-})();
-</script>
+};
 
-{{-- Unified Mobile Header Styles --}}
-@include('partials.mobile-header-styles')
+function getSessionMessage(key, lang) {
+    // Check for exact match first
+    if (key && sessionMessages[lang]?.[key]) return sessionMessages[lang][key];
+    if (key && sessionMessages.en[key]) return sessionMessages.en[key];
+    
+    // Check for partial matches (for translated messages)
+    if (!key) return '';
+    const keyLower = key.toLowerCase();
+    
+    // Handle Arabic translated messages
+    if (keyLower.includes('كلمة') || keyLower.includes('كلمة السر') || keyLower.includes('اتغيرت')) {
+        return sessionMessages[lang]?.['passwords.reset'] || sessionMessages.en['passwords.reset'];
+    }
+    if (keyLower.includes('password') && keyLower.includes('reset')) {
+        return sessionMessages[lang]?.['passwords.reset'] || sessionMessages.en['passwords.reset'];
+    }
+    if (keyLower.includes('password') && keyLower.includes('update')) {
+        return sessionMessages[lang]?.['passwords.reset'] || sessionMessages.en['passwords.reset'];
+    }
+    if (keyLower.includes('suspended')) {
+        return sessionMessages[lang]?.['account_suspended'] || sessionMessages.en['account_suspended'];
+    }
+    if (keyLower.includes('concurrent')) {
+        return sessionMessages[lang]?.['concurrent_login'] || sessionMessages.en['concurrent_login'];
+    }
+    if (keyLower.includes('deleted')) {
+        return sessionMessages[lang]?.['account_deleted'] || sessionMessages.en['account_deleted'];
+    }
+    if (keyLower.includes('logged out') || keyLower.includes('logout')) {
+        return sessionMessages[lang]?.['logged_out'] || sessionMessages.en['logged_out'];
+    }
+    
+    // Return the key itself if no match (for any other messages)
+    return key;
+}
+
+const userLang = document.documentElement.lang || 'en';
+
+// Show toast messages after page loads
+@if(session('status'))
+    const statusKey = '{{ session('status') }}';
+    const message = getSessionMessage(statusKey, userLang);
+    if (message) showSessionToast('success', message);
+@endif
+
+@if(session('error'))
+    const errorKey = '{{ session('error') }}';
+    const errorMessage = getSessionMessage(errorKey, userLang);
+    if (errorMessage) showSessionToast('error', errorMessage);
+@endif
+
+@if(session('concurrent_login'))
+    const concurrentMsg = getSessionMessage('concurrent_login', userLang);
+    showSessionToast('error', concurrentMsg);
+@endif
+
+@if(session('account_deleted'))
+    const deletedMsg = getSessionMessage('account_deleted', userLang);
+    showSessionToast('error', deletedMsg);
+@endif
+
+@if(session('account_suspended'))
+    const suspendedMsg = getSessionMessage('account_suspended', userLang);
+    showSessionToast('error', suspendedMsg);
+@endif
+</script>
 </body>
 </html>

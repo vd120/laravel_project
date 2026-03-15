@@ -73,6 +73,7 @@ class GroupController extends Controller
 
         // Create conversation for the group
         $conversation = Conversation::create([
+            'user1_id' => auth()->id(),
             'is_group' => true,
             'group_id' => $group->id,
             'name' => $group->name,

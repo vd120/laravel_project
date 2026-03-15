@@ -221,6 +221,9 @@ class ChatController extends Controller
 
     public function store(Request $request, Conversation $conversation)
     {
+        // Eager load participants to avoid N+1 queries
+        $conversation->load(['user1', 'user2']);
+
         // Check if user has access to this conversation
         if (!$conversation->isMember(auth()->id())) {
             abort(403);

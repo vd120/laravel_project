@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (localStorage.getItem('story_deleted') === 'true') {
         localStorage.removeItem('story_deleted');
         if (typeof showToast === 'function') {
-            showToast(window.chatTranslations.story_deleted_toast || 'Story deleted successfully', 'success');
+            showToast(window.chatTranslations.story_deleted_toast || '{{ __('messages.story_deleted_success') }}', 'success');
         }
     }
 });

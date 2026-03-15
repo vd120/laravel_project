@@ -30,6 +30,26 @@ class Conversation extends Model
         return $this->belongsTo(User::class, 'user2_id');
     }
 
+    /**
+     * Get all participants in the conversation
+     */
+    public function getParticipantsAttribute()
+    {
+        if ($this->is_group && $this->group) {
+            return $this->group->members()->with('user')->get()->pluck('user');
+        }
+
+        // For direct messages, return both users
+        $participants = collect();
+        if ($this->user1) {
+            $participants->push($this->user1);
+        }
+        if ($this->user2) {
+            $participants->push($this->user2);
+        }
+        return $participants;
+    }
+
     public function group()
     {
         return $this->belongsTo(Group::class);

@@ -147,7 +147,8 @@ class RegisterController extends Controller
             }
         );
 
-        // Store user ID in session for verification process
+        // Clear any stale session data and store user ID for verification process
+        session()->forget('pending_verification_user_id');
         session(['pending_verification_user_id' => $user->id]);
 
         return redirect()->route('verification.notice')->with('message', __('messages.registration_successful'));

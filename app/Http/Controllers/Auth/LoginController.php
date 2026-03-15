@@ -16,8 +16,11 @@ class LoginController extends Controller
         ]);
 
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            $user = Auth::user();
+            // Regenerate session immediately to prevent session fixation
+            $request->session()->regenerate();
             
+            $user = Auth::user();
+
             // Check if user is suspended
             if ($user->is_suspended) {
                 Auth::logout();
@@ -28,11 +31,11 @@ class LoginController extends Controller
 
             // Check if email is verified
             if (!$user->hasVerifiedEmail()) {
-                return redirect()->route('verification.notice');
+                return redirect()->route('verification.notice')
+                    ->with('message', __('messages.please_verify_email'));
             }
 
             // Store session tracking for concurrent login detection
-            $request->session()->regenerate();
             session([
                 'session_id' => $request->session()->getId(),
                 'last_activity' => now()->timestamp,

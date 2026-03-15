@@ -1522,8 +1522,6 @@
         // Show message to user
         if (typeof showToast === 'function') {
             showToast(toastMessage, toastType, 5000);
-        } else {
-            alert(toastMessage);
         }
 
         // Redirect after short delay
@@ -1567,7 +1565,7 @@
             } else {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-check"></i> Join';
-                alert(data.message || 'Failed to join group');
+                showToast(window.chatTranslations?.failed_to_join_group || window.layoutTranslations?.failed_to_join_group || 'Failed to join group', 'error');
             }
         })
         .catch(err => {

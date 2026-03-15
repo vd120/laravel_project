@@ -48,10 +48,16 @@ class PasswordController extends Controller
     public function setPassword(Request $request): RedirectResponse
     {
         $user = $request->user();
-        
+
         // Only allow users who registered via Google
         if (!$user || $user->password !== null) {
             return redirect()->route('home');
+        }
+
+        // Verify email is verified before allowing password set
+        if (!$user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')
+                ->with('message', __('messages.please_verify_email'));
         }
 
         $validated = $request->validate([
