@@ -49,110 +49,81 @@
 
 ### Key Capabilities
 
-| Category | Features |
-|----------|----------|
-| **Content** | Posts with 30+ media attachments, Comments with threading, 24-hour Stories |
-| **Social** | Follow system, Private accounts, User blocking, Mentions |
-| **Communication** | Real-time chat, Group conversations, Typing indicators, Read receipts |
-| **Communities** | Groups with roles, Member management, Invite links |
-| **Safety** | Admin panel, Content moderation, Account suspension, Email verification |
-| **UX** | Dark/Light themes, Mobile responsive, Multilingual (EN/AR with RTL) |
+- **Content:** Posts with 30+ media attachments, Comments with threading, 24-hour Stories
+- **Social:** Follow system, Private accounts, User blocking, Mentions
+- **Communication:** Real-time chat, Group conversations, Typing indicators, Read receipts
+- **Communities:** Groups with roles, Member management, Invite links
+- **Safety:** Admin panel, Content moderation, Account suspension, Email verification
+- **UX:** Dark/Light themes, Mobile responsive, Multilingual (EN/AR with RTL)
 
 ---
 
 ## Features
 
 ### Content Management
-
-| Feature | Description |
-|---------|-------------|
-| **Posts** | Create text posts with up to 30 images/videos (50MB each) |
-| **Comments** | Nested replies with @mentions and likes |
-| **Reactions** | Like, save, and share posts |
-| **Stories** | Ephemeral 24-hour content with view tracking and emoji reactions |
-| **Media Processing** | Auto-compression, video thumbnails, FFmpeg processing |
+- **Posts** — Create text posts with up to 30 images/videos (50MB each)
+- **Comments** — Nested replies with @mentions and likes
+- **Reactions** — Like, save, and share posts
+- **Stories** — Ephemeral 24-hour content with view tracking and emoji reactions
+- **Media Processing** — Auto-compression, video thumbnails, FFmpeg processing
 
 ### Real-Time Communication
-
-| Feature | Description |
-|---------|-------------|
-| **Direct Messages** | One-on-one conversations with media sharing |
-| **Group Chat** | Multi-user conversations via groups |
-| **Typing Indicators** | Real-time typing status (5-second cache) |
-| **Read Receipts** | Track message delivery and read status |
-| **Message Actions** | Delete for me/everyone, edit, reply |
+- **Direct Messages** — One-on-one conversations with media sharing
+- **Group Chat** — Multi-user conversations via groups
+- **Typing Indicators** — Real-time typing status (5-second cache)
+- **Read Receipts** — Track message delivery and read status
+- **Message Actions** — Delete for me/everyone, edit, reply
 
 ### Social Network
-
-| Feature | Description |
-|---------|-------------|
-| **Follow System** | Follow/unfollow users with private account support |
-| **User Profiles** | Customizable avatars, cover photos, bio, social links |
-| **Privacy Controls** | Private accounts, post-level privacy settings |
-| **Block Users** | Block unwanted interactions |
-| **Explore** | Discover new users and content |
+- **Follow System** — Follow/unfollow users with private account support
+- **User Profiles** — Customizable avatars, cover photos, bio, social links
+- **Privacy Controls** — Private accounts, post-level privacy settings
+- **Block Users** — Block unwanted interactions
+- **Explore** — Discover new users and content
 
 ### Groups
-
-| Feature | Description |
-|---------|-------------|
-| **Create Groups** | Public or private communities |
-| **Member Roles** | Admin and member permissions |
-| **Invite Links** | Shareable links for quick joining |
-| **Group Chat** | Dedicated conversation for each group |
-| **Member Management** | Add/remove members, promote to admin |
+- **Create Groups** — Public or private communities
+- **Member Roles** — Admin and member permissions
+- **Invite Links** — Shareable links for quick joining
+- **Group Chat** — Dedicated conversation for each group
+- **Member Management** — Add/remove members, promote to admin
 
 ### AI Assistant
-
-| Feature | Description |
-|---------|-------------|
-| **Menu-Based Chat** | Interactive AI chatbot interface |
-| **Context Aware** | Remembers conversation history |
-| **Quick Actions** | Pre-defined prompts for common tasks |
+- **Menu-Based Chat** — Interactive AI chatbot interface
+- **Context Aware** — Remembers conversation history
+- **Quick Actions** — Pre-defined prompts for common tasks
 
 ### Admin Panel
-
-| Feature | Description |
-|---------|-------------|
-| **Dashboard** | Platform statistics and analytics |
-| **User Management** | View, edit, suspend, or delete users |
-| **Content Moderation** | Delete posts, comments, and stories |
-| **Admin Creation** | Create new admin accounts |
+- **Dashboard** — Platform statistics and analytics
+- **User Management** — View, edit, suspend, or delete users
+- **Content Moderation** — Delete posts, comments, and stories
+- **Admin Creation** — Create new admin accounts
 
 ---
 
 ## Tech Stack
 
 ### Backend
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Laravel** | 12.x | Web application framework |
-| **PHP** | 8.2+ | Server-side scripting |
-| **SQLite** | Latest | Default database (development) |
-| **MySQL** | 8.0+ | Production database (optional) |
-| **Laravel Sanctum** | 4.x | API authentication |
-| **Laravel Socialite** | 5.24 | OAuth (Google) |
-| **Intervention Image** | 3.11 | Image processing |
+- **Laravel 12.x** — Web application framework
+- **PHP 8.2+** — Server-side scripting
+- **SQLite** — Default database (development)
+- **MySQL 8.0+** — Production database (optional)
+- **Laravel Sanctum 4.x** — API authentication
+- **Laravel Socialite 5.24** — OAuth (Google)
+- **Intervention Image 3.11** — Image processing
 
 ### Frontend
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Blade Templates** | - | Server-side rendering (primary) |
-| **Vue.js** | 3.4 | Component framework (optional) |
-| **Tailwind CSS** | 3.2 | Utility-first CSS |
-| **Alpine.js** | Embedded | Lightweight interactivity |
-| **Vite** | 6.4 | Build tool |
-| **Axios** | 1.11 | HTTP client for AJAX |
+- **Blade Templates** — Server-side rendering (primary)
+- **Vue.js 3.4** — Component framework (optional)
+- **Tailwind CSS 3.2** — Utility-first CSS
+- **Alpine.js** — Lightweight interactivity
+- **Vite 6.4** — Build tool
+- **Axios 1.11** — HTTP client for AJAX
 
 ### Services & Tools
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **FFmpeg** | Latest | Video processing (thumbnails, trimming) |
-| **Cloudflare Tunnel** | Latest | Public URL sharing |
-| **Google OAuth** | Latest | Social authentication |
+- **FFmpeg** — Video processing (thumbnails, trimming)
+- **Cloudflare Tunnel** — Public URL sharing
+- **Google OAuth** — Social authentication
 
 > **Note:** For a complete list of all technologies with versions, see [Technologies Documentation](docs/TECHNOLOGIES.md)
 
@@ -219,12 +190,9 @@ php artisan serve
 ### Default Credentials
 
 After setup, login with:
-
-| Field | Value |
-|-------|-------|
-| **URL** | `http://localhost:8000` |
-| **Email** | `admin@example.com` |
-| **Password** | `admin123` |
+- **URL:** `http://localhost:8000`
+- **Email:** `admin@example.com`
+- **Password:** `admin123`
 
 > **Security Notice:** Change the default password immediately after installation!
 
@@ -234,19 +202,17 @@ After setup, login with:
 
 Comprehensive documentation is available in the [`docs/`](docs/) directory:
 
-| Document | Description |
-|----------|-------------|
-| [Installation Guide](docs/INSTALLATION.md) | Detailed setup instructions |
-| [Architecture](docs/ARCHITECTURE.md) | System design, directory structure, data flow |
-| [Features](docs/FEATURES.md) | Complete feature documentation with flow diagrams |
-| [API Reference](docs/API.md) | RESTful API endpoints with examples |
-| [Database Schema](docs/DATABASE.md) | Entity relationships, table definitions |
-| [Diagrams](docs/DIAGRAMS.md) | UML diagrams, use cases, sequence diagrams |
-| [Security Report](docs/SECURITY.md) | Security audit, vulnerabilities, best practices |
-| [Technologies](docs/TECHNOLOGIES.md) | Complete tech stack with versions |
-| [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and solutions |
-| [Frontend Guide](docs/FRONTEND.md) | Blade templates, JavaScript modules |
-| [Multilingual](docs/MULTILINGUAL.md) | English/Arabic support, RTL layout |
+- [Installation Guide](docs/INSTALLATION.md) — Detailed setup instructions
+- [Architecture](docs/ARCHITECTURE.md) — System design, directory structure, data flow
+- [Features](docs/FEATURES.md) — Complete feature documentation with flow diagrams
+- [API Reference](docs/API.md) — RESTful API endpoints with examples
+- [Database Schema](docs/DATABASE.md) — Entity relationships, table definitions
+- [Diagrams](docs/DIAGRAMS.md) — UML diagrams, use cases, sequence diagrams
+- [Security Report](docs/SECURITY.md) — Security audit, vulnerabilities, best practices
+- [Technologies](docs/TECHNOLOGIES.md) — Complete tech stack with versions
+- [Troubleshooting](docs/TROUBLESHOOTING.md) — Common issues and solutions
+- [Frontend Guide](docs/FRONTEND.md) — Blade templates, JavaScript modules
+- [Multilingual](docs/MULTILINGUAL.md) — English/Arabic support, RTL layout
 
 ---
 
