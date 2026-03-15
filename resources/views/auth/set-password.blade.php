@@ -95,7 +95,7 @@
         passwords_do_not_match: "{{ __('messages.passwords_do_not_match') }}"
     };
 </script>
-<script src="{{ asset('js/auth-set-password.js') }}"></script>
+@vite(['resources/js/legacy/auth-set-password.js'])
 
 </body>
 </html>

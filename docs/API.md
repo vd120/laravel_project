@@ -1,152 +1,153 @@
-# Nexus API Documentation
+# API Reference
 
-## Overview
-
-Nexus provides both web routes (Inertia.js) and a RESTful API for programmatic access. The API uses Laravel Sanctum for token-based authentication.
-
-### Base URL
-```
-Production: https://your-domain.com
-Development: http://localhost:8000
-```
-
-### Authentication
-
-Most API endpoints require authentication via Sanctum tokens.
-
-**Getting a Token:**
-```bash
-POST /api/token
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "password"
-}
-
-Response:
-{
-  "token": "1|abc123...",
-  "user": { ... }
-}
-```
-
-**Using a Token:**
-```bash
-Authorization: Bearer 1|abc123...
-```
-
-### Response Format
-
-**Success Response:**
-```json
-{
-  "success": true,
-  "data": { ... },
-  "message": "Operation successful"
-}
-```
-
-**Error Response:**
-```json
-{
-  "success": false,
-  "error": "Error message",
-  "errors": {
-    "field": ["Validation error"]
-  }
-}
-```
-
-### Rate Limiting
-
-- API requests: 60 requests per minute
-- Login attempts: 5 attempts per minute
+Complete RESTful API documentation for Nexus.
 
 ---
 
 ## Table of Contents
 
-1. [Authentication](#authentication)
-2. [Users](#users)
-3. [Posts](#posts)
-4. [Comments](#comments)
-5. [Stories](#stories)
-6. [Notifications](#notifications)
-7. [Chat & Messages](#chat--messages)
-8. [Groups](#groups)
-9. [Search & Explore](#search--explore)
+- [Overview](#overview)
+- [Authentication](#authentication)
+- [Rate Limiting](#rate-limiting)
+- [Endpoints](#endpoints)
+  - [Authentication](#authentication-endpoints)
+  - [Posts](#posts)
+  - [Comments](#comments)
+  - [Stories](#stories)
+  - [Users](#users)
+  - [Chat](#chat)
+  - [Groups](#groups)
+  - [Notifications](#notifications)
+  - [Admin](#admin)
+- [Error Handling](#error-handling)
+- [Response Formats](#response-formats)
 
 ---
 
-## Authentication
+## Overview
+
+### Base URL
+
+```
+Development: http://localhost:8000
+Production:  https://your-domain.com
+```
+
+### Content Types
+
+| Type | Header |
+|------|--------|
+| JSON | `Content-Type: application/json` |
+| Form Data | `Content-Type: multipart/form-data` |
+| URL Encoded | `Content-Type: application/x-www-form-urlencoded` |
+
+### Authentication
+
+Most endpoints require authentication via session cookie or Sanctum token.
+
+```
+Authorization: Bearer {token}  (API)
+Cookie: laravel_session={session}  (Web)
+```
+
+---
+
+## Rate Limiting
+
+API endpoints are rate-limited to prevent abuse.
+
+| Endpoint Type | Limit | Window |
+|---------------|-------|--------|
+| Authentication | 5 requests | 1 minute |
+| Posts | 30 requests | 1 minute |
+| Comments | 20 requests | 1 minute |
+| Verification | 3 requests | 1 hour |
+| General API | 60 requests | 1 minute |
+
+### Rate Limit Headers
+
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 45
+Retry-After: 60
+```
+
+### Rate Limit Response (429)
+
+```json
+{
+    "success": false,
+    "message": "Too many requests. Please try again in 60 seconds.",
+    "retry_after": 60
+}
+```
+
+---
+
+## Authentication Endpoints
+
+### Register User
+
+**POST** `/register`
+
+**Rate Limit:** 5 per minute
+
+**Request:**
+```json
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+```
+
+**Response (302):**
+```
+Redirect: /email/verify
+Session: pending_verification_user_id
+```
+
+**Validation Errors (422):**
+```json
+{
+    "errors": {
+        "email": ["The email has already been taken."],
+        "password": ["The password must be at least 8 characters."]
+    }
+}
+```
+
+---
 
 ### Login
 
-**Endpoint:** `POST /api/login`
+**POST** `/login`
 
-**Headers:**
-```
-Content-Type: application/json
-```
+**Rate Limit:** 5 per minute
 
-**Body:**
+**Request:**
 ```json
 {
-  "email": "user@example.com",
-  "password": "password"
+    "email": "john@example.com",
+    "password": "password123",
+    "remember": true
 }
 ```
 
-**Response (200 OK):**
+**Response (302):**
 ```json
 {
-  "success": true,
-  "data": {
-    "token": "1|abc123xyz",
-    "user": {
-      "id": 1,
-      "name": "John Doe",
-      "email": "user@example.com",
-      "username": "johndoe",
-      "avatar_url": "https://..."
-    }
-  }
+    "success": true,
+    "redirect": "/"
 }
 ```
 
----
-
-### Register
-
-**Endpoint:** `POST /api/register`
-
-**Body:**
+**Error (401):**
 ```json
 {
-  "name": "John Doe",
-  "username": "johndoe",
-  "email": "user@example.com",
-  "password": "strongpassword123",
-  "password_confirmation": "strongpassword123"
-}
-```
-
-**Validation Rules:**
-- `name`: required, string, max:255
-- `username`: required, string, unique, 3-30 chars, alphanumeric/underscore
-- `email`: required, email, unique
-- `password`: required, min:8, mixed case, numbers
-
-**Response (201 Created):**
-```json
-{
-  "success": true,
-  "data": {
-    "token": "1|abc123xyz",
-    "user": { ... }
-  },
-  "message": "Registration successful. Please verify your email."
+    "success": false,
+    "message": "Invalid credentials."
 }
 ```
 
@@ -154,661 +155,199 @@ Content-Type: application/json
 
 ### Logout
 
-**Endpoint:** `POST /api/logout`
+**POST** `/logout`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Response (200 OK):**
+**Response (302):**
+```
+Redirect: /
+```
+
+---
+
+### Request Password Reset
+
+**POST** `/forgot-password`
+
+**Rate Limit:** 5 per minute
+
+**Request:**
 ```json
 {
-  "success": true,
-  "message": "Logged out successfully"
+    "email": "john@example.com"
+}
+```
+
+**Response (200):**
+```json
+{
+    "success": true,
+    "message": "Password reset link sent to your email."
 }
 ```
 
 ---
 
-### Password Reset Request
+### Reset Password
 
-**Endpoint:** `POST /api/forgot-password`
+**POST** `/reset-password`
 
-**Body:**
+**Request:**
 ```json
 {
-  "email": "user@example.com"
+    "token": "reset-token",
+    "email": "john@example.com",
+    "password": "newpassword123",
+    "password_confirmation": "newpassword123"
 }
 ```
 
-**Response (200 OK):**
+**Response (200):**
 ```json
 {
-  "success": true,
-  "message": "Password reset link sent to your email"
-}
-```
-
----
-
-### Password Reset
-
-**Endpoint:** `POST /api/reset-password`
-
-**Body:**
-```json
-{
-  "token": "reset_token_from_email",
-  "email": "user@example.com",
-  "password": "newpassword123",
-  "password_confirmation": "newpassword123"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Password reset successfully"
+    "success": true,
+    "message": "Password reset successfully."
 }
 ```
 
 ---
 
-### Email Verification
+### Verify Email Code
 
-**Endpoint:** `POST /api/email/verify-code`
+**POST** `/email/verify-code`
 
-**Body:**
+**Rate Limit:** 3 per hour
+
+**Request:**
 ```json
 {
-  "code": "123456"
+    "code": "123456"
 }
 ```
 
-**Response (200 OK):**
+**Response (200):**
 ```json
 {
-  "success": true,
-  "message": "Email verified successfully"
+    "success": true,
+    "message": "Email verified successfully."
 }
 ```
 
----
-
-### Change Password (Authenticated)
-
-**Endpoint:** `POST /api/password/change`
-
-**Auth:** Required
-
-**Body:**
+**Error (400):**
 ```json
 {
-  "current_password": "oldpassword",
-  "password": "newpassword123",
-  "password_confirmation": "newpassword123"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Password changed successfully"
+    "success": false,
+    "message": "Invalid verification code."
 }
 ```
 
 ---
 
-## Users
+### Resend Verification Code
 
-### Get User Profile
+**POST** `/email/verification-notification`
 
-**Endpoint:** `GET /api/users/{user}`
+**Rate Limit:** 3 per hour
 
-**Auth:** Required
-
-**Path Parameters:**
-- `user`: User ID or username
-
-**Response (200 OK):**
+**Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
-    "id": 1,
-    "name": "John Doe",
-    "username": "johndoe",
-    "avatar_url": "https://...",
-    "profile": {
-      "bio": "Software developer",
-      "location": "New York",
-      "website": "https://johndoe.com",
-      "occupation": "Engineer",
-      "about": "Passionate about coding...",
-      "is_private": false
-    },
-    "followers_count": 150,
-    "following_count": 200,
-    "posts_count": 45,
-    "is_following": false,
-    "is_blocked": false
-  }
+    "success": true,
+    "message": "Verification code sent!"
 }
 ```
 
 ---
 
-### Get User Posts
+### Google OAuth
 
-**Endpoint:** `GET /api/users/{user}/posts`
+**GET** `/auth/google`
 
-**Auth:** Required
+**Description:** Redirects to Google OAuth consent screen.
 
-**Query Parameters:**
-- `page`: Page number (default: 1)
-- `per_page`: Items per page (default: 15)
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "posts": [ ... ],
-    "links": {
-      "first": "...",
-      "last": "...",
-      "prev": null,
-      "next": "..."
-    },
-    "meta": {
-      "current_page": 1,
-      "from": 1,
-      "last_page": 5,
-      "path": "...",
-      "per_page": 15,
-      "to": 15,
-      "total": 75
-    }
-  }
-}
+**Response (302):**
+```
+Redirect: https://accounts.google.com/o/oauth2/auth?...
 ```
 
 ---
 
-### Get Followers
+**GET** `/auth/google/callback`
 
-**Endpoint:** `GET /api/users/{user}/followers`
+**Description:** Google OAuth callback handler.
 
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 2,
-      "name": "Jane Smith",
-      "username": "janesmith",
-      "avatar_url": "https://...",
-      "is_following": true
-    }
-  ]
-}
+**Response (302):**
 ```
-
----
-
-### Get Following
-
-**Endpoint:** `GET /api/users/{user}/following`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 3,
-      "name": "Bob Wilson",
-      "username": "bobwilson",
-      "avatar_url": "https://...",
-      "is_following": false
-    }
-  ]
-}
-```
-
----
-
-### Follow User
-
-**Endpoint:** `POST /api/users/{user}/follow`
-
-**Auth:** Required
-
-**Path Parameters:**
-- `user`: User ID
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "following": true,
-    "followers_count": 151
-  },
-  "message": "Successfully followed user"
-}
-```
-
----
-
-### Unfollow User
-
-**Endpoint:** `POST /api/users/{user}/unfollow`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "following": false,
-    "followers_count": 150
-  },
-  "message": "Successfully unfollowed user"
-}
-```
-
----
-
-### Block User
-
-**Endpoint:** `POST /api/users/{user}/block`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "User blocked successfully"
-}
-```
-
----
-
-### Unblock User
-
-**Endpoint:** `POST /api/users/{user}/unblock`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "User unblocked successfully"
-}
-```
-
----
-
-### Get Blocked Users
-
-**Endpoint:** `GET /api/users/blocked`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 5,
-      "name": "Spam User",
-      "username": "spamuser",
-      "avatar_url": "https://...",
-      "blocked_at": "2026-03-01T10:00:00Z"
-    }
-  ]
-}
-```
-
----
-
-### Get Saved Posts
-
-**Endpoint:** `GET /api/users/saved-posts`
-
-**Auth:** Required
-
-**Query Parameters:**
-- `page`: Page number
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "posts": [ ... ],
-    "meta": { ... }
-  }
-}
-```
-
----
-
-### Update Profile
-
-**Endpoint:** `POST /api/profile/{user}/update`
-
-**Auth:** Required
-
-**Body:**
-```json
-{
-  "name": "John Updated",
-  "bio": "Updated bio",
-  "location": "Los Angeles",
-  "website": "https://newsite.com",
-  "occupation": "Senior Engineer",
-  "about": "More about me...",
-  "phone": "+1234567890",
-  "gender": "male",
-  "is_private": false,
-  "social_links": {
-    "twitter": "@johndoe",
-    "github": "johndoe",
-    "linkedin": "john-doe"
-  }
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "user": { ... },
-    "profile": { ... }
-  },
-  "message": "Profile updated successfully"
-}
-```
-
----
-
-### Upload Avatar
-
-**Endpoint:** `POST /api/profile/{user}/avatar`
-
-**Auth:** Required
-
-**Body (multipart/form-data):**
-```
-avatar: (file)
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "avatar_url": "https://..."
-  },
-  "message": "Avatar uploaded successfully"
-}
-```
-
----
-
-### Delete Avatar
-
-**Endpoint:** `DELETE /api/profile/delete-avatar`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Avatar deleted successfully"
-}
-```
-
----
-
-### Upload Cover Image
-
-**Endpoint:** `POST /api/profile/{user}/cover`
-
-**Auth:** Required
-
-**Body (multipart/form-data):**
-```
-cover_image: (file)
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "cover_image_url": "https://..."
-  },
-  "message": "Cover image uploaded successfully"
-}
-```
-
----
-
-### Delete Cover Image
-
-**Endpoint:** `DELETE /api/profile/delete-cover`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Cover image deleted successfully"
-}
-```
-
----
-
-### Delete Account
-
-**Endpoint:** `DELETE /api/profile/delete-account`
-
-**Auth:** Required
-
-**Body:**
-```json
-{
-  "password": "confirm_password"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Account deleted successfully"
-}
-```
-
----
-
-### Check Username Availability
-
-**Endpoint:** `GET /api/check-username/{username}`
-
-**Auth:** Optional
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "available": true
-}
-```
-
----
-
-### Search Users
-
-**Endpoint:** `GET /api/search-users`
-
-**Auth:** Required
-
-**Query Parameters:**
-- `query`: Search term
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "John Doe",
-      "username": "johndoe",
-      "avatar_url": "https://...",
-      "is_following": false
-    }
-  ]
-}
-```
-
----
-
-### Explore Users
-
-**Endpoint:** `GET /api/explore`
-
-**Auth:** Required
-
-**Query Parameters:**
-- `page`: Page number
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "users": [ ... ],
-    "meta": { ... }
-  }
-}
-```
-
----
-
-### Get Online Status
-
-**Endpoint:** `GET /api/users/{user}/online-status`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "is_online": true,
-    "last_active": "2026-03-04T10:30:00Z"
-  }
-}
+Redirect: / (if authenticated)
+Redirect: /set-password (if new user without password)
 ```
 
 ---
 
 ## Posts
 
-### Get Feed
+### Get Post Feed
 
-**Endpoint:** `GET /api/posts`
+**GET** `/`
 
-**Auth:** Required
+**Auth Required:** Yes
 
 **Query Parameters:**
-- `page`: Page number (default: 1)
-- `per_page`: Items per page (default: 15)
-- `type`: Filter by type (all, following, public)
 
-**Response (200 OK):**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| page | int | 1 | Page number |
+| per_page | int | 15 | Items per page |
+
+**Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
-    "posts": [
-      {
-        "id": 1,
-        "slug": "abc123...",
-        "content": "Hello world!",
-        "media": [
-          {
+    "data": [
+        {
             "id": 1,
-            "type": "image",
-            "url": "https://...",
-            "thumbnail": "https://..."
-          }
-        ],
-        "user": {
-          "id": 1,
-          "name": "John Doe",
-          "username": "johndoe",
-          "avatar_url": "https://..."
-        },
-        "likes_count": 25,
-        "comments_count": 5,
-        "is_liked": false,
-        "is_saved": false,
-        "created_at": "2026-03-04T10:00:00Z",
-        "is_private": false
-      }
+            "slug": "abc123...",
+            "content": "Hello world!",
+            "is_private": false,
+            "created_at": "2026-03-15T10:00:00Z",
+            "user": {
+                "id": 1,
+                "name": "John Doe",
+                "username": "johndoe",
+                "profile": {
+                    "avatar": "avatars/user1.jpg",
+                    "is_private": false
+                }
+            },
+            "media": [
+                {
+                    "id": 1,
+                    "media_type": "image",
+                    "media_path": "posts/abc123.jpg",
+                    "media_thumbnail": null,
+                    "sort_order": 1
+                }
+            ],
+            "likes_count": 5,
+            "comments_count": 2,
+            "is_liked": false,
+            "is_saved": false
+        }
     ],
-    "meta": { ... }
-  }
-}
-```
-
----
-
-### Get Single Post
-
-**Endpoint:** `GET /api/posts/{post}`
-
-**Auth:** Required
-
-**Path Parameters:**
-- `post`: Post ID or slug
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "slug": "abc123...",
-    "content": "Hello world!",
-    "media": [ ... ],
-    "user": { ... },
-    "likes_count": 25,
-    "comments_count": 5,
-    "comments": [ ... ],
-    "is_liked": false,
-    "is_saved": false,
-    "created_at": "2026-03-04T10:00:00Z"
-  }
+    "links": {
+        "first": "/?page=1",
+        "last": "/?page=5",
+        "prev": null,
+        "next": "/?page=2"
+    },
+    "meta": {
+        "current_page": 1,
+        "from": 1,
+        "last_page": 5,
+        "per_page": 15,
+        "to": 15,
+        "total": 75
+    }
 }
 ```
 
@@ -816,73 +355,104 @@ cover_image: (file)
 
 ### Create Post
 
-**Endpoint:** `POST /api/posts`
+**POST** `/posts`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Body (multipart/form-data):**
+**Rate Limit:** 30 per minute
+
+**Content-Type:** `multipart/form-data`
+
+**Request:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| content | string | Conditional | Post text (max 280 chars) |
+| is_private | boolean | No | Privacy setting (default: false) |
+| media[] | file[] | Conditional | Up to 30 files (max 50MB each) |
+
+**Note:** Either `content` OR `media` is required.
+
+**Response (302):**
 ```
-content: "Hello world!"
-is_private: false
-media[]: (files, max 30)
+Redirect: back
+Flash: success = "Post created successfully!"
 ```
 
-**Validation Rules:**
-- `content`: required if no media, max:280 chars
-- `media[]`: optional, max 30 files
-- `media.*`: image, video (mp4, mov, avi, webm)
-
-**Response (201 Created):**
+**Validation Errors (422):**
 ```json
 {
-  "success": true,
-  "data": {
-    "post": { ... }
-  },
-  "message": "Post created successfully"
+    "errors": {
+        "content": ["Post must have content or media."],
+        "media.0": ["The file must not exceed 50MB."]
+    }
 }
 ```
 
 ---
 
-### Update Post
+### Get Single Post
 
-**Endpoint:** `PUT /api/posts/{post}`
+**GET** `/posts/{slug}`
 
-**Auth:** Required (owner only)
+**Auth Required:** Yes
 
-**Body:**
+**Response (200):**
 ```json
 {
-  "content": "Updated content",
-  "is_private": true
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "post": { ... }
-  },
-  "message": "Post updated successfully"
-}
-```
-
----
-
-### Delete Post
-
-**Endpoint:** `DELETE /api/posts/{post}`
-
-**Auth:** Required (owner or admin)
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Post deleted successfully"
+    "id": 1,
+    "slug": "abc123...",
+    "content": "Hello world!",
+    "is_private": false,
+    "created_at": "2026-03-15T10:00:00Z",
+    "updated_at": "2026-03-15T10:00:00Z",
+    "user": {
+        "id": 1,
+        "name": "John Doe",
+        "username": "johndoe",
+        "profile": {
+            "avatar": "avatars/user1.jpg",
+            "bio": "Software developer",
+            "is_private": false
+        }
+    },
+    "media": [
+        {
+            "id": 1,
+            "media_type": "image",
+            "media_path": "/storage/posts/abc123.jpg",
+            "media_thumbnail": null,
+            "sort_order": 1
+        }
+    ],
+    "likes": [
+        {
+            "id": 1,
+            "user_id": 2,
+            "user": {
+                "name": "Jane Doe",
+                "username": "janedoe",
+                "avatar": "avatars/user2.jpg"
+            }
+        }
+    ],
+    "comments": [
+        {
+            "id": 1,
+            "content": "Great post!",
+            "user_id": 2,
+            "parent_id": null,
+            "created_at": "2026-03-15T10:30:00Z",
+            "user": {
+                "name": "Jane Doe",
+                "username": "janedoe",
+                "avatar": "avatars/user2.jpg"
+            },
+            "likes_count": 2
+        }
+    ],
+    "is_liked": false,
+    "is_saved": false
 }
 ```
 
@@ -890,103 +460,88 @@ media[]: (files, max 30)
 
 ### Like Post
 
-**Endpoint:** `POST /api/posts/{post}/like`
+**POST** `/posts/{post}/like`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Path Parameters:**
-- `post`: Post ID
+**Rate Limit:** 30 per minute
 
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "liked": true,
-    "likes_count": 26
-  },
-  "message": "Post liked successfully"
-}
+**Route Parameter:**
+- `post`: 24-character slug
+
+**Response (302):**
 ```
-
----
-
-### Unlike Post
-
-**Endpoint:** `POST /api/posts/{post}/unlike`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "liked": false,
-    "likes_count": 25
-  },
-  "message": "Post unliked successfully"
-}
-```
-
----
-
-### Get Post Likers
-
-**Endpoint:** `GET /api/posts/{post}/likers`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 2,
-      "name": "Jane Smith",
-      "username": "janesmith",
-      "avatar_url": "https://..."
-    }
-  ]
-}
+Redirect: back
+Flash: success = "Post liked!" or "Post unliked."
 ```
 
 ---
 
 ### Save Post
 
-**Endpoint:** `POST /api/posts/{post}/save`
+**POST** `/posts/{post}/save`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Response (200 OK):**
+**Rate Limit:** 30 per minute
+
+**Route Parameter:**
+- `post`: 24-character slug
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Post saved!" or "Post unsaved."
+```
+
+---
+
+### Get Post Likers
+
+**GET** `/posts/{post}/likers`
+
+**Auth Required:** Yes
+
+**Route Parameter:**
+- `post`: 24-character slug
+
+**Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
-    "saved": true
-  },
-  "message": "Post saved successfully"
+    "likers": [
+        {
+            "id": 1,
+            "name": "John Doe",
+            "username": "johndoe",
+            "avatar": "avatars/user1.jpg",
+            "is_following": true
+        }
+    ],
+    "total": 5
 }
 ```
 
 ---
 
-### Unsave Post
+### Delete Post
 
-**Endpoint:** `POST /api/posts/{post}/unsave`
+**DELETE** `/posts/{slug}`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Response (200 OK):**
+**Authorization:** Post owner or Admin
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Post deleted successfully!"
+```
+
+**Error (403):**
 ```json
 {
-  "success": true,
-  "data": {
-    "saved": false
-  },
-  "message": "Post unsaved successfully"
+    "success": false,
+    "message": "Unauthorized action."
 }
 ```
 
@@ -994,92 +549,44 @@ media[]: (files, max 30)
 
 ## Comments
 
-### Get Comments
-
-**Endpoint:** `GET /api/posts/{post}/comments`
-
-**Auth:** Required
-
-**Query Parameters:**
-- `page`: Page number
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "comments": [
-      {
-        "id": 1,
-        "content": "Great post!",
-        "user": { ... },
-        "likes_count": 5,
-        "is_liked": false,
-        "replies": [ ... ],
-        "created_at": "2026-03-04T10:05:00Z"
-      }
-    ],
-    "meta": { ... }
-  }
-}
-```
-
----
-
 ### Create Comment
 
-**Endpoint:** `POST /api/comments`
+**POST** `/comments`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Body:**
+**Rate Limit:** 20 per minute
+
+**Request:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| post_id | int | Yes | Post ID |
+| content | string | Yes | Comment text (max 280 chars) |
+| parent_id | int | No | Parent comment ID (for replies) |
+
+**Request Body:**
 ```json
 {
-  "post_id": 1,
-  "content": "Great post!",
-  "parent_id": null
+    "post_id": 1,
+    "content": "Great post!",
+    "parent_id": null
 }
 ```
 
-**Validation Rules:**
-- `post_id`: required, exists
-- `content`: required, max:280 chars
-- `parent_id`: optional, exists (for replies)
-
-**Response (201 Created):**
-```json
-{
-  "success": true,
-  "data": {
-    "comment": { ... }
-  },
-  "message": "Comment created successfully"
-}
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Comment added!"
 ```
 
----
-
-### Update Comment
-
-**Endpoint:** `PUT /api/comments/{comment}`
-
-**Auth:** Required (owner only)
-
-**Body:**
+**Validation Errors (422):**
 ```json
 {
-  "content": "Updated comment"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "comment": { ... }
-  },
-  "message": "Comment updated successfully"
+    "errors": {
+        "post_id": ["The post does not exist."],
+        "content": ["The comment text is required."]
+    }
 }
 ```
 
@@ -1087,56 +594,30 @@ media[]: (files, max 30)
 
 ### Delete Comment
 
-**Endpoint:** `DELETE /api/comments/{comment}`
+**DELETE** `/comments/{comment}`
 
-**Auth:** Required (owner or admin)
+**Auth Required:** Yes
 
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Comment deleted successfully"
-}
+**Authorization:** Comment owner, Post owner, or Admin
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Comment deleted!"
 ```
 
 ---
 
 ### Like Comment
 
-**Endpoint:** `POST /api/comments/{comment}/like`
+**POST** `/comments/{comment}/like`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "liked": true,
-    "likes_count": 6
-  },
-  "message": "Comment liked successfully"
-}
+**Response (302):**
 ```
-
----
-
-### Unlike Comment
-
-**Endpoint:** `POST /api/comments/{comment}/unlike`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "liked": false,
-    "likes_count": 5
-  },
-  "message": "Comment unliked successfully"
-}
+Redirect: back
+Flash: success = "Comment liked!" or "Comment unliked."
 ```
 
 ---
@@ -1145,38 +626,33 @@ media[]: (files, max 30)
 
 ### Get Stories
 
-**Endpoint:** `GET /api/stories`
+**GET** `/stories`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Response (200 OK):**
+**Response (200):**
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "user": {
-        "id": 1,
-        "name": "John Doe",
-        "username": "johndoe",
-        "avatar_url": "https://..."
-      },
-      "stories": [
+    "stories": [
         {
-          "id": 1,
-          "slug": "story123...",
-          "media_type": "image",
-          "media_url": "https://...",
-          "content": "Story caption",
-          "expires_at": "2026-03-05T10:00:00Z",
-          "time_remaining": "23 hours",
-          "views_count": 15,
-          "has_viewed": false,
-          "user_reaction": null
+            "id": 1,
+            "slug": "story123...",
+            "user": {
+                "id": 1,
+                "name": "John Doe",
+                "username": "johndoe",
+                "avatar": "avatars/user1.jpg"
+            },
+            "media_type": "image",
+            "media_path": "/storage/stories/story123.jpg",
+            "content": "Having a great day!",
+            "expires_at": "2026-03-16T10:00:00Z",
+            "views": 25,
+            "has_viewed": false,
+            "has_reaction": null,
+            "created_at": "2026-03-15T10:00:00Z"
         }
-      ]
-    }
-  ]
+    ]
 }
 ```
 
@@ -1184,29 +660,34 @@ media[]: (files, max 30)
 
 ### Create Story
 
-**Endpoint:** `POST /api/stories`
+**POST** `/stories`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Body (multipart/form-data):**
+**Rate Limit:** 30 per minute
+
+**Content-Type:** `multipart/form-data`
+
+**Request:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| media | file | Yes | Image or video (max 50MB) |
+| content | string | No | Caption (max 280 chars) |
+
+**Response (302):**
 ```
-media: (file, image or video)
-content: "Story caption"
+Redirect: /stories
+Flash: success = "Story created!"
 ```
 
-**Validation Rules:**
-- `media`: required, image or video (mp4, mov, avi, webm)
-- `content`: optional, max:280 chars
-- Video max duration: 60 seconds
-
-**Response (201 Created):**
+**Validation Errors (422):**
 ```json
 {
-  "success": true,
-  "data": {
-    "story": { ... }
-  },
-  "message": "Story created successfully"
+    "errors": {
+        "media": ["The media field is required."],
+        "content": ["The content must not exceed 280 characters."]
+    }
 }
 ```
 
@@ -1214,48 +695,50 @@ content: "Story caption"
 
 ### View Story
 
-**Endpoint:** `GET /api/stories/{user}/{story}`
+**GET** `/stories/{user}/{story}`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Response (200 OK):**
+**Route Parameters:**
+- `user`: Username
+- `story`: 24-character slug
+
+**Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
     "id": 1,
     "slug": "story123...",
+    "user": {
+        "id": 1,
+        "name": "John Doe",
+        "username": "johndoe",
+        "avatar": "avatars/user1.jpg",
+        "profile": {
+            "is_private": false
+        }
+    },
     "media_type": "image",
-    "media_url": "https://...",
-    "content": "Story caption",
-    "user": { ... },
-    "expires_at": "2026-03-05T10:00:00Z",
-    "views_count": 16
-  }
+    "media_path": "/storage/stories/story123.jpg",
+    "content": "Having a great day!",
+    "expires_at": "2026-03-16T10:00:00Z",
+    "views": 25,
+    "created_at": "2026-03-15T10:00:00Z"
 }
 ```
 
----
-
-### Get Story Viewers
-
-**Endpoint:** `GET /api/stories/{user}/{story}/viewers`
-
-**Auth:** Required (story owner only)
-
-**Response (200 OK):**
+**Error (403):**
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "id": 2,
-      "name": "Jane Smith",
-      "username": "janesmith",
-      "avatar_url": "https://...",
-      "viewed_at": "2026-03-04T10:30:00Z"
-    }
-  ]
+    "success": false,
+    "message": "This story is private."
+}
+```
+
+**Error (404):**
+```json
+{
+    "success": false,
+    "message": "Story expired"
 }
 ```
 
@@ -1263,66 +746,79 @@ content: "Story caption"
 
 ### React to Story
 
-**Endpoint:** `POST /api/stories/{user}/{story}/react`
+**POST** `/stories/{user}/{story}/react`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Body:**
+**Rate Limit:** 30 per minute
+
+**Request:**
 ```json
 {
-  "reaction": "❤️"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
     "reaction": "❤️"
-  },
-  "message": "Reaction added successfully"
 }
 ```
 
----
-
-### Remove Story Reaction
-
-**Endpoint:** `DELETE /api/stories/{user}/{story}/react`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Reaction removed successfully"
-}
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Reaction added!"
 ```
 
 ---
 
 ### Get Story Reactions
 
-**Endpoint:** `GET /api/stories/{user}/{story}/reactions`
+**GET** `/stories/{user}/{story}/reactions`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Response (200 OK):**
+**Response (200):**
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "id": 2,
-      "name": "Jane Smith",
-      "username": "janesmith",
-      "avatar_url": "https://...",
-      "reaction": "❤️",
-      "created_at": "2026-03-04T10:30:00Z"
-    }
-  ]
+    "reactions": [
+        {
+            "id": 1,
+            "user_id": 2,
+            "reaction_type": "❤️",
+            "user": {
+                "name": "Jane Doe",
+                "username": "janedoe",
+                "avatar": "avatars/user2.jpg"
+            },
+            "created_at": "2026-03-15T10:30:00Z"
+        }
+    ],
+    "total": 5
+}
+```
+
+---
+
+### Get Story Viewers
+
+**GET** `/stories/{user}/{story}/viewers`
+
+**Auth Required:** Yes
+
+**Authorization:** Story owner only
+
+**Response (200):**
+```json
+{
+    "viewers": [
+        {
+            "id": 2,
+            "user_id": 2,
+            "user": {
+                "name": "Jane Doe",
+                "username": "janedoe",
+                "avatar": "avatars/user2.jpg"
+            },
+            "viewed_at": "2026-03-15T10:30:00Z"
+        }
+    ],
+    "total_views": 25
 }
 ```
 
@@ -1330,16 +826,1264 @@ content: "Story caption"
 
 ### Delete Story
 
-**Endpoint:** `DELETE /api/stories/{user}/{story}`
+**DELETE** `/stories/{user}/{story}`
 
-**Auth:** Required (owner or admin)
+**Auth Required:** Yes
 
-**Response (200 OK):**
+**Authorization:** Story owner or Admin
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Story deleted!"
+```
+
+---
+
+## Users
+
+### Get User Profile
+
+**GET** `/users/{user}`
+
+**Auth Required:** Yes
+
+**Route Parameter:**
+- `user`: Username or ID
+
+**Response (200):**
 ```json
 {
-  "success": true,
-  "message": "Story deleted successfully"
+    "id": 1,
+    "name": "John Doe",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "profile": {
+        "avatar": "/storage/avatars/user1.jpg",
+        "cover_image": "/storage/covers/user1.jpg",
+        "bio": "Software developer",
+        "website": "https://johndoe.com",
+        "location": "New York",
+        "birth_date": "1990-01-01",
+        "occupation": "Developer",
+        "is_private": false,
+        "social_links": {
+            "twitter": "@johndoe",
+            "github": "johndoe"
+        }
+    },
+    "followers_count": 150,
+    "following_count": 100,
+    "posts_count": 45,
+    "is_following": false,
+    "is_follower": false,
+    "is_blocked": false
 }
+```
+
+---
+
+### Check Username Availability
+
+**GET** `/api/check-username`
+
+**Auth Required:** No (Public endpoint)
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| username | string | Yes | Username to check |
+
+**Response (200):**
+```json
+{
+    "available": true,
+    "username": "johndoe"
+}
+```
+
+**Error (400):**
+```json
+{
+    "available": false,
+    "message": "Invalid username format"
+}
+```
+
+---
+
+### Check Username Availability (Legacy)
+
+**GET** `/api/check-username/{username}`
+
+**Auth Required:** No (Public endpoint)
+
+**Route Parameter:**
+- `username`: Username to check
+
+**Response (200):**
+```json
+{
+    "available": true,
+    "username": "johndoe"
+}
+```
+
+**Note:** This is a legacy endpoint for backward compatibility. Use the query parameter version above for new implementations.
+
+---
+
+### Search Users
+
+**GET** `/api/search-users`
+
+**Auth Required:** Yes (Web session)
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| query | string | Yes | Search query |
+
+**Response (200):**
+```json
+{
+    "users": [
+        {
+            "id": 1,
+            "username": "johndoe",
+            "name": "John Doe",
+            "avatar_url": "/storage/avatars/user1.jpg"
+        }
+    ],
+    "total": 5
+}
+```
+
+---
+
+### Get User Posts
+
+**GET** `/users/{user}/posts`
+
+**Auth Required:** Yes
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| page | int | 1 | Page number |
+
+**Response (200):**
+```json
+{
+    "data": [
+        {
+            "id": 1,
+            "slug": "post123...",
+            "content": "Hello world!",
+            "media": [...],
+            "likes_count": 5,
+            "comments_count": 2,
+            "created_at": "2026-03-15T10:00:00Z"
+        }
+    ],
+    "meta": {
+        "total": 45,
+        "per_page": 15,
+        "current_page": 1
+    }
+}
+```
+
+---
+
+### Get Followers
+
+**GET** `/users/{user}/followers`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "followers": [
+        {
+            "id": 2,
+            "name": "Jane Doe",
+            "username": "janedoe",
+            "avatar": "avatars/user2.jpg",
+            "bio": "Designer",
+            "is_following": true,
+            "pivot": {
+                "created_at": "2026-03-01T10:00:00Z"
+            }
+        }
+    ],
+    "total": 150
+}
+```
+
+---
+
+### Get Following
+
+**GET** `/users/{user}/following`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "following": [
+        {
+            "id": 3,
+            "name": "Bob Smith",
+            "username": "bobsmith",
+            "avatar": "avatars/user3.jpg",
+            "bio": "Photographer",
+            "is_following": false,
+            "pivot": {
+                "created_at": "2026-03-02T10:00:00Z"
+            }
+        }
+    ],
+    "total": 100
+}
+```
+
+---
+
+### Follow User
+
+**POST** `/users/{user}/follow`
+
+**Auth Required:** Yes
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Following!" or "Unfollowed."
+```
+
+---
+
+### Block User
+
+**POST** `/users/{user}/block`
+
+**Auth Required:** Yes
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "User blocked!" or "User unblocked."
+```
+
+---
+
+### Get Blocked Users
+
+**GET** `/users/{user}/blocked`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "blocked": [
+        {
+            "id": 5,
+            "name": "Spam User",
+            "username": "spamuser",
+            "avatar": "avatars/user5.jpg",
+            "blocked_at": "2026-03-10T10:00:00Z"
+        }
+    ],
+    "total": 3
+}
+```
+
+---
+
+### Get Username Lookup
+
+**GET** `/api/user/{user}/username`
+
+**Auth Required:** Yes
+
+**Route Parameter:**
+- `user`: User ID or username
+
+**Response (200):**
+```json
+{
+    "success": true,
+    "user": {
+        "id": 1,
+        "username": "johndoe"
+    }
+}
+```
+
+---
+
+### Update Online Status
+
+**POST** `/user/online-status`
+
+**Auth Required:** Yes
+
+**Description:** Update the current user's online status.
+
+**Request Body:**
+```json
+{
+    "is_online": true
+}
+```
+
+**Response (200):**
+```json
+{
+    "success": true,
+    "is_online": true,
+    "last_active": "2026-03-15T10:30:00Z"
+}
+```
+
+---
+
+### Set Offline Status
+
+**POST** `/user/online-status/offline`
+
+**Auth Required:** Yes
+
+**Description:** Explicitly set the current user's status to offline.
+
+**Response (200):**
+```json
+{
+    "success": true,
+    "is_online": false
+}
+```
+
+---
+
+### Get User Online Status
+
+**GET** `/user/{user}/online-status`
+
+**Auth Required:** Yes
+
+**Route Parameter:**
+- `user`: User ID or username
+
+**Response (200):**
+```json
+{
+    "success": true,
+    "user_id": 1,
+    "username": "johndoe",
+    "is_online": true,
+    "last_active": "2026-03-15T10:30:00Z"
+}
+```
+
+---
+
+### Batch Online Status Check
+
+**POST** `/user/online-status/batch`
+
+**Auth Required:** Yes
+
+**Description:** Check online status for multiple users at once.
+
+**Request Body:**
+```json
+{
+    "user_ids": [1, 2, 3]
+}
+```
+
+**Response (200):**
+```json
+{
+    "success": true,
+    "statuses": [
+        {
+            "user_id": 1,
+            "username": "johndoe",
+            "is_online": true,
+            "last_active": "2026-03-15T10:30:00Z"
+        },
+        {
+            "user_id": 2,
+            "username": "janedoe",
+            "is_online": false,
+            "last_active": "2026-03-15T09:00:00Z"
+        }
+    ]
+}
+```
+
+---
+
+### Get Saved Posts
+
+**GET** `/saved-posts`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "data": [
+        {
+            "id": 1,
+            "slug": "post123...",
+            "content": "Great tips!",
+            "user": {
+                "name": "Jane Doe",
+                "username": "janedoe"
+            },
+            "media": [...],
+            "saved_at": "2026-03-14T10:00:00Z"
+        }
+    ],
+    "meta": {
+        "total": 20,
+        "per_page": 15,
+        "current_page": 1
+    }
+}
+```
+
+---
+
+### Update Profile
+
+**POST** `/profile/{user}/update`
+
+**Auth Required:** Yes
+
+**Content-Type:** `multipart/form-data`
+
+**Request:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| name | string | No | Display name |
+| username | string | No | Username |
+| bio | string | No | Bio (max 255 chars) |
+| website | string | No | Website URL |
+| location | string | No | Location |
+| birth_date | date | No | Birth date |
+| occupation | string | No | Occupation |
+| about | text | No | Extended about |
+| phone | string | No | Phone number |
+| gender | string | No | Gender |
+| is_private | boolean | No | Private account |
+| social_links | json | No | Social media links |
+| avatar | file | No | Avatar image |
+| cover_image | file | No | Cover image |
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Profile updated successfully!"
+```
+
+---
+
+### Delete Avatar
+
+**DELETE** `/profile/delete-avatar`
+
+**Auth Required:** Yes
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Avatar deleted!"
+```
+
+---
+
+### Delete Cover Image
+
+**DELETE** `/profile/delete-cover`
+
+**Auth Required:** Yes
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Cover image deleted!"
+```
+
+---
+
+### Delete Account
+
+**DELETE** `/profile/delete-account`
+
+**Auth Required:** Yes
+
+**Response (302):**
+```
+Redirect: /login
+Flash: success = "Account deleted successfully."
+```
+
+---
+
+### Explore Users
+
+**GET** `/explore`
+
+**Auth Required:** Yes
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| page | int | 1 | Page number |
+
+**Response (200):**
+```json
+{
+    "users": [
+        {
+            "id": 10,
+            "name": "New User",
+            "username": "newuser",
+            "avatar": "avatars/user10.jpg",
+            "bio": "Just joined!",
+            "followers_count": 5,
+            "is_following": false
+        }
+    ],
+    "meta": {
+        "total": 500,
+        "per_page": 20,
+        "current_page": 1
+    }
+}
+```
+
+---
+
+### Search Users
+
+**GET** `/search`
+
+**Auth Required:** Yes
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| q | string | Yes | Search query |
+| page | int | No | Page number |
+
+**Response (200):**
+```json
+{
+    "users": [
+        {
+            "id": 10,
+            "name": "John Smith",
+            "username": "johnsmith",
+            "avatar": "avatars/user10.jpg",
+            "bio": "Developer",
+            "is_following": false
+        }
+    ],
+    "query": "john",
+    "total": 15
+}
+```
+
+---
+
+## Chat
+
+### Get Conversations
+
+**GET** `/chat/conversations`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+[
+    {
+        "id": 1,
+        "slug": "conv123...",
+        "is_group": false,
+        "display_name": "Jane Doe",
+        "display_avatar": "avatars/user2.jpg",
+        "latest_message": {
+            "id": 5,
+            "content": "Hey! How are you?",
+            "type": "text",
+            "sender_id": 2,
+            "created_at": "2026-03-15T10:30:00Z",
+            "sender": {
+                "name": "Jane Doe",
+                "avatar": "avatars/user2.jpg"
+            }
+        },
+        "unread_count": 2,
+        "updated_at": "2026-03-15T10:30:00Z"
+    }
+]
+```
+
+---
+
+### Get Updated Conversations (Polling)
+
+**GET** `/chat/conversations/updated`
+
+**Auth Required:** Yes
+
+**Description:** Polling endpoint for updated conversations. Returns conversations with new messages or activity since the last check.
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| last_message_at | string | No | ISO timestamp of last message check |
+| last_unread_check | string | No | ISO timestamp of last unread check |
+
+**Response (200):**
+```json
+{
+    "success": true,
+    "conversations": [
+        {
+            "id": 1,
+            "slug": "conv123...",
+            "is_group": false,
+            "last_message_at": "2026-03-15T10:30:00Z",
+            "unread_count": 2,
+            "other_user": {
+                "id": 2,
+                "username": "janedoe",
+                "avatar_url": "/storage/avatars/user2.jpg"
+            },
+            "latest_message": {
+                "id": 5,
+                "content": "Hey! How are you?",
+                "sender_id": 2,
+                "created_at": "2026-03-15T10:30:00Z",
+                "read_at": null
+            }
+        }
+    ],
+    "timestamp": "2026-03-15T10:30:00Z"
+}
+```
+
+---
+
+### Get Conversations (API)
+
+**GET** `/api/conversations`
+
+**Auth Required:** Yes
+
+**Description:** Alternative endpoint for fetching all conversations. Returns all user conversations including cleared threads.
+
+**Response (200):**
+```json
+{
+    "success": true,
+    "conversations": [
+        {
+            "id": 1,
+            "slug": "conv123...",
+            "user1_id": 1,
+            "user2_id": 2,
+            "last_message_at": "2026-03-15T10:30:00Z",
+            "unread_count": 2,
+            "other_user": {
+                "id": 2,
+                "username": "janedoe",
+                "avatar_url": "/storage/avatars/user2.jpg",
+                "is_online": true,
+                "last_active": "2026-03-15T10:30:00Z"
+            },
+            "latest_message": {
+                "id": 5,
+                "content": "Hey! How are you?",
+                "type": "text",
+                "media_path": null,
+                "sender_id": 2,
+                "created_at": "2026-03-15T10:30:00Z",
+                "read_at": null
+            }
+        }
+    ]
+}
+```
+
+---
+
+### Get Single Conversation
+
+**GET** `/chat/{conversation}`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "id": 1,
+    "slug": "conv123...",
+    "is_group": false,
+    "display_name": "Jane Doe",
+    "display_avatar": "avatars/user2.jpg",
+    "messages": [
+        {
+            "id": 1,
+            "content": "Hello!",
+            "type": "text",
+            "sender_id": 1,
+            "created_at": "2026-03-15T09:00:00Z",
+            "read_at": "2026-03-15T09:01:00Z",
+            "delivered_at": "2026-03-15T09:00:01Z",
+            "sender": {
+                "name": "You",
+                "avatar": "avatars/user1.jpg"
+            }
+        },
+        {
+            "id": 2,
+            "content": "Hi there!",
+            "type": "text",
+            "sender_id": 2,
+            "created_at": "2026-03-15T09:02:00Z",
+            "read_at": null,
+            "delivered_at": "2026-03-15T09:02:01Z",
+            "sender": {
+                "name": "Jane Doe",
+                "avatar": "avatars/user2.jpg"
+            }
+        }
+    ],
+    "other_user": {
+        "id": 2,
+        "name": "Jane Doe",
+        "username": "janedoe",
+        "avatar": "avatars/user2.jpg",
+        "is_online": true,
+        "last_active": "2026-03-15T10:30:00Z"
+    }
+}
+```
+
+---
+
+### Send Message
+
+**POST** `/chat/{conversation}`
+
+**Auth Required:** Yes
+
+**Content-Type:** `multipart/form-data`
+
+**Request:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| content | string | Conditional | Message text |
+| type | string | No | text/image/file |
+| media | file | Conditional | Attachment |
+
+**Response (200):**
+```json
+{
+    "message": {
+        "id": 10,
+        "content": "Hello!",
+        "type": "text",
+        "sender_id": 1,
+        "conversation_id": 1,
+        "created_at": "2026-03-15T10:35:00Z",
+        "delivered_at": null,
+        "read_at": null,
+        "sender": {
+            "id": 1,
+            "name": "You",
+            "avatar": "avatars/user1.jpg"
+        }
+    }
+}
+```
+
+---
+
+### Mark as Read
+
+**POST** `/chat/{conversation}/read`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Get Message Statuses
+
+**POST** `/chat/{conversation}/status`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "statuses": [
+        {
+            "message_id": 5,
+            "delivered_at": "2026-03-15T10:30:01Z",
+            "read_at": "2026-03-15T10:31:00Z"
+        }
+    ]
+}
+```
+
+---
+
+### Delete Message
+
+**DELETE** `/chat/message/{message}`
+
+**Auth Required:** Yes
+
+**Request:**
+```json
+{
+    "delete_for": "me"  // or "everyone"
+}
+```
+
+**Response (200):**
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Clear Conversation
+
+**DELETE** `/chat/{conversation}/clear`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Start Conversation
+
+**GET** `/chat/start/{userId}`
+
+**Auth Required:** Yes
+
+**Route Parameter:**
+- `userId`: User ID to chat with
+
+**Response (302):**
+```
+Redirect: /chat/{conversationSlug}
+```
+
+---
+
+### Typing Indicator
+
+**POST** `/chat/{conversation}/typing`
+
+**Auth Required:** Yes
+
+**Request:**
+```json
+{
+    "is_typing": true
+}
+```
+
+**Response (200):**
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Get Typing Status
+
+**GET** `/chat/{conversation}/typing`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "is_typing": true,
+    "typing_users": [
+        {
+            "id": 2,
+            "name": "Jane Doe"
+        }
+    ]
+}
+```
+
+---
+
+### Get Online Status
+
+**GET** `/user/{user}/online-status`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "user_id": 2,
+    "is_online": true,
+    "last_active": "2026-03-15T10:30:00Z"
+}
+```
+
+---
+
+### Update Online Status
+
+**POST** `/user/online-status`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "success": true,
+    "is_online": true
+}
+```
+
+---
+
+### Set Offline Status
+
+**POST** `/user/online-status/offline`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "success": true,
+    "is_online": false
+}
+```
+
+---
+
+## Groups
+
+### Get All Groups
+
+**GET** `/groups`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "groups": [
+        {
+            "id": 1,
+            "name": "Developer Community",
+            "slug": "developer-community-abc123",
+            "description": "A group for developers",
+            "avatar": "/storage/groups/group1.jpg",
+            "is_private": false,
+            "member_count": 50,
+            "is_member": true,
+            "is_admin": false,
+            "created_at": "2026-03-01T10:00:00Z"
+        }
+    ]
+}
+```
+
+---
+
+### Create Group
+
+**POST** `/groups`
+
+**Auth Required:** Yes
+
+**Content-Type:** `multipart/form-data`
+
+**Request:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| name | string | Yes | Group name (max 255) |
+| description | string | No | Description (max 1000) |
+| is_private | boolean | No | Private group |
+| avatar | file | No | Group avatar |
+| member_ids[] | int[] | No | Initial member IDs |
+
+**Response (302):**
+```
+Redirect: /groups/{slug}
+Flash: success = "Group created successfully!"
+```
+
+---
+
+### Get Group
+
+**GET** `/groups/{slug}`
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+    "id": 1,
+    "name": "Developer Community",
+    "slug": "developer-community-abc123",
+    "description": "A group for developers",
+    "avatar": "/storage/groups/group1.jpg",
+    "is_private": false,
+    "creator": {
+        "id": 1,
+        "name": "John Doe",
+        "username": "johndoe"
+    },
+    "members": [
+        {
+            "id": 1,
+            "user_id": 1,
+            "role": "admin",
+            "user": {
+                "name": "John Doe",
+                "username": "johndoe",
+                "avatar": "avatars/user1.jpg"
+            }
+        }
+    ],
+    "member_count": 50,
+    "is_member": true,
+    "is_admin": false,
+    "invite_link": "https://app.com/join/abc123xyz",
+    "created_at": "2026-03-01T10:00:00Z"
+}
+```
+
+---
+
+### Update Group
+
+**PUT** `/groups/{slug}`
+
+**Auth Required:** Yes
+
+**Authorization:** Group admin only
+
+**Request:**
+
+| Field | Type | Required |
+|-------|------|----------|
+| name | string | No |
+| description | string | No |
+| is_private | boolean | No |
+| avatar | file | No |
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Group updated successfully!"
+```
+
+---
+
+### Delete Group
+
+**DELETE** `/groups/{slug}`
+
+**Auth Required:** Yes
+
+**Authorization:** Group admin only
+
+**Response (302):**
+```
+Redirect: /groups
+Flash: success = "Group deleted!"
+```
+
+---
+
+### Add Members
+
+**POST** `/groups/{slug}/members`
+
+**Auth Required:** Yes
+
+**Authorization:** Group admin only
+
+**Request:**
+```json
+{
+    "member_ids": [2, 3, 4]
+}
+```
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Members added!"
+```
+
+---
+
+### Remove Member
+
+**DELETE** `/groups/{slug}/members/{userId}`
+
+**Auth Required:** Yes
+
+**Authorization:** Group admin or self
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Member removed!"
+```
+
+---
+
+### Make Admin
+
+**POST** `/groups/{slug}/members/{userId}/admin`
+
+**Auth Required:** Yes
+
+**Authorization:** Group admin only
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "User promoted to admin!"
+```
+
+---
+
+### Remove Admin
+
+**DELETE** `/groups/{slug}/members/{userId}/admin`
+
+**Auth Required:** Yes
+
+**Authorization:** Group admin only
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Admin role removed!"
+```
+
+---
+
+### Regenerate Invite Link
+
+**POST** `/groups/{slug}/regenerate-invite`
+
+**Auth Required:** Yes
+
+**Authorization:** Group admin only
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Invite link regenerated!"
+```
+
+---
+
+### Quick Invite
+
+**POST** `/groups/{slug}/quick-invite`
+
+**Auth Required:** Yes
+
+**Authorization:** Group member only
+
+**Request:**
+```json
+{
+    "usernames": ["user1", "user2"]
+}
+```
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Invitations sent!"
+```
+
+---
+
+### Accept Invite
+
+**POST** `/groups/accept-invite/{inviteLink}`
+
+**Auth Required:** Yes
+
+**Response (302):**
+```
+Redirect: /groups/{slug}
+Flash: success = "Joined group!"
+```
+
+---
+
+### Join via Invite Link
+
+**GET** `/join/{inviteLink}`
+
+**Auth Required:** Yes
+
+**Response (302):**
+```
+Redirect: /groups/{slug}
+Flash: success = "Joined group!"
 ```
 
 ---
@@ -1348,52 +2092,32 @@ content: "Story caption"
 
 ### Get Notifications
 
-**Endpoint:** `GET /api/notifications`
+**GET** `/notifications`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Query Parameters:**
-- `page`: Page number
-- `per_page`: Items per page (default: 20)
-
-**Response (200 OK):**
+**Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
     "notifications": [
-      {
-        "id": 1,
-        "type": "like",
-        "message": "Jane Smith liked your post",
-        "data": {
-          "user": { ... },
-          "post_id": 1
-        },
-        "read": false,
-        "created_at": "2026-03-04T10:00:00Z"
-      }
+        {
+            "id": 1,
+            "type": "like",
+            "data": {
+                "user_id": 2,
+                "user_name": "Jane Doe",
+                "post_id": 5
+            },
+            "read_at": null,
+            "created_at": "2026-03-15T10:30:00Z",
+            "related": {
+                "type": "post",
+                "id": 5,
+                "url": "/posts/abc123"
+            }
+        }
     ],
-    "meta": { ... }
-  }
-}
-```
-
----
-
-### Get Unread Count
-
-**Endpoint:** `GET /api/notifications/unread-count`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
     "unread_count": 5
-  }
 }
 ```
 
@@ -1401,15 +2125,14 @@ content: "Story caption"
 
 ### Mark Notification as Read
 
-**Endpoint:** `POST /api/notifications/{notification}/read`
+**POST** `/notifications/{id}/read`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Response (200 OK):**
+**Response (200):**
 ```json
 {
-  "success": true,
-  "message": "Notification marked as read"
+    "success": true
 }
 ```
 
@@ -1417,15 +2140,15 @@ content: "Story caption"
 
 ### Mark All as Read
 
-**Endpoint:** `POST /api/notifications/mark-all-read`
+**POST** `/notifications/read-all`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Response (200 OK):**
+**Response (200):**
 ```json
 {
-  "success": true,
-  "message": "All notifications marked as read"
+    "success": true,
+    "marked_count": 5
 }
 ```
 
@@ -1433,737 +2156,452 @@ content: "Story caption"
 
 ### Delete Notification
 
-**Endpoint:** `DELETE /api/notifications/{notification}`
+**DELETE** `/notifications/{id}`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Response (200 OK):**
+**Response (200):**
 ```json
 {
-  "success": true,
-  "message": "Notification deleted successfully"
+    "success": true
 }
 ```
 
 ---
 
-### Delete All Notifications
+### Get Realtime Notification Updates
 
-**Endpoint:** `DELETE /api/notifications`
+**GET** `/api/notifications/realtime-updates`
 
-**Auth:** Required
+**Auth Required:** Yes (Web session)
 
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "All notifications deleted"
-}
-```
-
----
-
-### Real-time Updates
-
-**Endpoint:** `GET /api/notifications/realtime-updates`
-
-**Auth:** Required
+**Description:** Polling endpoint for real-time notification updates. Returns unread count and new notifications since last check.
 
 **Query Parameters:**
-- `last_update`: Timestamp of last update
 
-**Response (200 OK):**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| last_check | string | No | ISO timestamp of last check |
+
+**Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
-    "has_updates": true,
+    "success": true,
     "unread_count": 5,
-    "new_notifications": [ ... ]
-  }
-}
-```
-
----
-
-## Chat & Messages
-
-### Get Conversations
-
-**Endpoint:** `GET /api/conversations`
-
-**Auth:** Required
-
-**Query Parameters:**
-- `page`: Page number
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "slug": "conv123...",
-      "is_group": false,
-      "display_name": "Jane Smith",
-      "display_avatar": "https://...",
-      "other_user": {
-        "id": 2,
-        "name": "Jane Smith",
-        "username": "janesmith",
-        "avatar_url": "https://...",
-        "is_online": true
-      },
-      "latest_message": {
-        "id": 5,
-        "content": "Hey! How are you?",
-        "type": "text",
-        "sender_id": 2,
-        "created_at": "2026-03-04T10:30:00Z"
-      },
-      "unread_count": 2,
-      "updated_at": "2026-03-04T10:30:00Z"
-    }
-  ]
-}
-```
-
----
-
-### Get Single Conversation
-
-**Endpoint:** `GET /api/chat/{conversation}`
-
-**Auth:** Required
-
-**Path Parameters:**
-- `conversation`: Conversation ID or slug
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "slug": "conv123...",
-    "is_group": false,
-    "display_name": "Jane Smith",
-    "display_avatar": "https://...",
-    "other_user": { ... },
-    "messages": [ ... ],
-    "unread_count": 2
-  }
-}
-```
-
----
-
-### Get Messages
-
-**Endpoint:** `GET /api/chat/{conversation}/messages`
-
-**Auth:** Required
-
-**Query Parameters:**
-- `before`: Get messages before this timestamp
-- `limit`: Number of messages (default: 50)
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "messages": [
-      {
-        "id": 5,
-        "conversation_id": 1,
-        "sender_id": 2,
-        "sender": { ... },
-        "content": "Hey! How are you?",
-        "type": "text",
-        "media_url": null,
-        "read_at": null,
-        "delivered_at": "2026-03-04T10:30:05Z",
-        "created_at": "2026-03-04T10:30:00Z"
-      }
+    "new_notifications": [
+        {
+            "id": 10,
+            "type": "like",
+            "data": {
+                "user_id": 2,
+                "user_name": "Jane Doe",
+                "post_id": 5
+            },
+            "read_at": null,
+            "created_at": "2026-03-15T11:00:00Z"
+        }
     ],
-    "has_more": false
-  }
+    "timestamp": "2026-03-15T11:00:00Z"
 }
 ```
 
 ---
 
-### Send Message
+## Admin
 
-**Endpoint:** `POST /api/chat/{conversation}`
+### Get Dashboard
 
-**Auth:** Required
+**GET** `/admin`
 
-**Path Parameters:**
-- `conversation`: Conversation ID or slug
+**Auth Required:** Yes
 
-**Body (multipart/form-data):**
-```
-content: "Hello!"
-type: text
-media: (optional file)
-```
+**Authorization:** Admin only
 
-**Validation Rules:**
-- `content`: required for text type
-- `type`: text, image, file
-- `media`: required for image/file type
-
-**Response (201 Created):**
+**Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
-    "message": { ... }
-  },
-  "message": "Message sent successfully"
-}
-```
-
----
-
-### Start Conversation
-
-**Endpoint:** `GET /api/chat/start/{userId}`
-
-**Auth:** Required
-
-**Path Parameters:**
-- `userId`: User ID
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "conversation": {
-      "id": 1,
-      "slug": "conv123...",
-      "other_user": { ... }
+    "stats": {
+        "total_users": 1500,
+        "total_posts": 5000,
+        "total_comments": 15000,
+        "total_stories": 500
     },
-    "redirect": "/chat/conv123..."
-  }
+    "recent_users": [...],
+    "recent_posts": [...]
 }
 ```
 
 ---
 
-### Mark Conversation as Read
+### Get All Users
 
-**Endpoint:** `POST /api/chat/{conversation}/read`
+**GET** `/admin/users`
 
-**Auth:** Required
+**Auth Required:** Yes
 
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Conversation marked as read"
-}
-```
-
----
-
-### Delete Message
-
-**Endpoint:** `DELETE /api/chat/message/{message}`
-
-**Auth:** Required
-
-**Body:**
-```json
-{
-  "delete_for": "me"  // or "everyone" (sender only)
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Message deleted successfully"
-}
-```
-
----
-
-### Clear Chat
-
-**Endpoint:** `DELETE /api/chat/{conversation}/clear`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Chat cleared successfully"
-}
-```
-
----
-
-### Get Message Statuses
-
-**Endpoint:** `POST /api/chat/{conversation}/status`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "statuses": [
-      {
-        "message_id": 5,
-        "read_at": "2026-03-04T10:31:00Z",
-        "delivered_at": "2026-03-04T10:30:05Z"
-      }
-    ]
-  }
-}
-```
-
----
-
-### Send Typing Indicator
-
-**Endpoint:** `POST /api/chat/{conversation}/typing`
-
-**Auth:** Required
-
-**Body:**
-```json
-{
-  "is_typing": true
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Typing indicator sent"
-}
-```
-
----
-
-### Get Typing Status
-
-**Endpoint:** `GET /api/chat/{conversation}/typing`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "is_typing": true,
-    "typing_user": {
-      "id": 2,
-      "name": "Jane Smith"
-    }
-  }
-}
-```
-
----
-
-## Groups
-
-### Get Groups
-
-**Endpoint:** `GET /api/groups`
-
-**Auth:** Required
+**Authorization:** Admin only
 
 **Query Parameters:**
-- `page`: Page number
 
-**Response (200 OK):**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| page | int | 1 | Page number |
+| search | string | null | Search query |
+| status | string | all | active/suspended |
+
+**Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
-    "groups": [
-      {
-        "id": 1,
-        "name": "Developers",
-        "slug": "developers",
-        "avatar": "https://...",
-        "description": "Group for developers",
-        "members_count": 25,
-        "is_admin": true,
-        "created_at": "2026-03-01T10:00:00Z"
-      }
-    ],
-    "meta": { ... }
-  }
-}
-```
-
----
-
-### Get Single Group
-
-**Endpoint:** `GET /api/groups/{slug}`
-
-**Auth:** Required
-
-**Path Parameters:**
-- `slug`: Group slug
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "name": "Developers",
-    "slug": "developers",
-    "avatar": "https://...",
-    "description": "Group for developers",
-    "creator": { ... },
-    "members_count": 25,
-    "is_member": true,
-    "is_admin": false,
-    "members": [ ... ],
-    "created_at": "2026-03-01T10:00:00Z"
-  }
-}
-```
-
----
-
-### Create Group
-
-**Endpoint:** `POST /api/groups`
-
-**Auth:** Required
-
-**Body (multipart/form-data):**
-```
-name: "Developers"
-description: "Group for developers"
-is_private: false
-avatar: (optional file)
-member_ids[]: [1, 2, 3]
-```
-
-**Validation Rules:**
-- `name`: required, string, max:255
-- `description`: optional, max:1000
-- `is_private`: boolean
-- `avatar`: optional, image
-- `member_ids[]`: optional, array of user IDs
-
-**Response (201 Created):**
-```json
-{
-  "success": true,
-  "data": {
-    "group": { ... }
-  },
-  "message": "Group created successfully"
-}
-```
-
----
-
-### Update Group
-
-**Endpoint:** `PUT /api/groups/{slug}`
-
-**Auth:** Required (admin only)
-
-**Body:**
-```json
-{
-  "name": "Updated Name",
-  "description": "Updated description",
-  "is_private": true
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "group": { ... }
-  },
-  "message": "Group updated successfully"
-}
-```
-
----
-
-### Delete Group
-
-**Endpoint:** `DELETE /api/groups/{slug}`
-
-**Auth:** Required (admin only)
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Group deleted successfully"
-}
-```
-
----
-
-### Add Members
-
-**Endpoint:** `POST /api/groups/{slug}/members`
-
-**Auth:** Required (admin only)
-
-**Body:**
-```json
-{
-  "member_ids": [4, 5, 6]
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Members added successfully"
-}
-```
-
----
-
-### Remove Member
-
-**Endpoint:** `DELETE /api/groups/{slug}/members/{userId}`
-
-**Auth:** Required (admin only)
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Member removed successfully"
-}
-```
-
----
-
-### Make Admin
-
-**Endpoint:** `POST /api/groups/{slug}/members/{userId}/admin`
-
-**Auth:** Required (admin only)
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Member promoted to admin"
-}
-```
-
----
-
-### Remove Admin
-
-**Endpoint:** `DELETE /api/groups/{slug}/members/{userId}/admin`
-
-**Auth:** Required (admin only)
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Admin demoted to member"
-}
-```
-
----
-
-### Join via Invite Link
-
-**Endpoint:** `POST /api/groups/accept-invite/{inviteLink}`
-
-**Auth:** Required
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Joined group successfully",
-  "redirect": "/groups/developers"
-}
-```
-
----
-
-### Regenerate Invite Link
-
-**Endpoint:** `POST /api/groups/{slug}/regenerate-invite`
-
-**Auth:** Required (admin only)
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "invite_link": "https://..."
-  },
-  "message": "Invite link regenerated"
-}
-```
-
----
-
-### Quick Invite
-
-**Endpoint:** `POST /api/groups/{slug}/quick-invite`
-
-**Auth:** Required (admin only)
-
-**Body:**
-```json
-{
-  "user_ids": [4, 5, 6],
-  "message": "Join our group!"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Invites sent successfully"
-}
-```
-
----
-
-## Search & Explore
-
-### Search
-
-**Endpoint:** `GET /api/search`
-
-**Auth:** Required
-
-**Query Parameters:**
-- `q`: Search query
-- `type`: users, posts, groups (default: users)
-- `page`: Page number
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
-    "users": [ ... ],
-    "posts": [ ... ],
-    "groups": [ ... ],
-    "meta": { ... }
-  }
-}
-```
-
----
-
-### Explore
-
-**Endpoint:** `GET /api/explore`
-
-**Auth:** Required
-
-**Query Parameters:**
-- `page`: Page number
-
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "data": {
     "users": [
-      {
-        "id": 5,
-        "name": "New User",
-        "username": "newuser",
-        "avatar_url": "https://...",
-        "followers_count": 100,
-        "is_following": false
-      }
+        {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john@example.com",
+            "is_admin": false,
+            "is_suspended": false,
+            "email_verified_at": "2026-03-01T10:00:00Z",
+            "created_at": "2026-03-01T10:00:00Z"
+        }
     ],
-    "trending_posts": [ ... ],
-    "meta": { ... }
-  }
+    "meta": {
+        "total": 1500,
+        "per_page": 20,
+        "current_page": 1
+    }
 }
 ```
 
 ---
 
-## Error Codes
+### Get User Detail
 
-| HTTP Status | Meaning |
-|-------------|---------|
+**GET** `/admin/users/{user}`
+
+**Auth Required:** Yes
+
+**Authorization:** Admin only
+
+**Response (200):**
+```json
+{
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "username": "johndoe",
+    "is_admin": false,
+    "is_suspended": false,
+    "email_verified_at": "2026-03-01T10:00:00Z",
+    "created_at": "2026-03-01T10:00:00Z",
+    "profile": {...},
+    "posts_count": 45,
+    "followers_count": 150,
+    "following_count": 100
+}
+```
+
+---
+
+### Update User
+
+**PUT** `/admin/users/{user}`
+
+**Auth Required:** Yes
+
+**Authorization:** Admin only
+
+**Request:**
+
+| Field | Type | Required |
+|-------|------|----------|
+| name | string | No |
+| email | string | No |
+| username | string | No |
+| is_admin | boolean | No |
+| is_suspended | boolean | No |
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "User updated!"
+```
+
+---
+
+### Delete User
+
+**DELETE** `/admin/users/{user}`
+
+**Auth Required:** Yes
+
+**Authorization:** Admin only
+
+**Response (302):**
+```
+Redirect: /admin/users
+Flash: success = "User deleted!"
+```
+
+---
+
+### Get All Posts
+
+**GET** `/admin/posts`
+
+**Auth Required:** Yes
+
+**Authorization:** Admin only
+
+**Response (200):**
+```json
+{
+    "posts": [
+        {
+            "id": 1,
+            "content": "Post content...",
+            "user": {
+                "name": "John Doe",
+                "email": "john@example.com"
+            },
+            "is_private": false,
+            "created_at": "2026-03-15T10:00:00Z"
+        }
+    ],
+    "meta": {...}
+}
+```
+
+---
+
+### Delete Post
+
+**DELETE** `/admin/posts/{post}`
+
+**Auth Required:** Yes
+
+**Authorization:** Admin only
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Post deleted!"
+```
+
+---
+
+### Get All Comments
+
+**GET** `/admin/comments`
+
+**Auth Required:** Yes
+
+**Authorization:** Admin only
+
+**Response (200):**
+```json
+{
+    "comments": [...],
+    "meta": {...}
+}
+```
+
+---
+
+### Delete Comment
+
+**DELETE** `/admin/comments/{comment}`
+
+**Auth Required:** Yes
+
+**Authorization:** Admin only
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Comment deleted!"
+```
+
+---
+
+### Get All Stories
+
+**GET** `/admin/stories`
+
+**Auth Required:** Yes
+
+**Authorization:** Admin only
+
+**Response (200):**
+```json
+{
+    "stories": [...],
+    "meta": {...}
+}
+```
+
+---
+
+### Delete Story
+
+**DELETE** `/admin/stories/{story}`
+
+**Auth Required:** Yes
+
+**Authorization:** Admin only
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Story deleted!"
+```
+
+---
+
+### Create Admin
+
+**POST** `/admin/create-admin`
+
+**Auth Required:** Yes
+
+**Authorization:** Admin only
+
+**Request:**
+```json
+{
+    "name": "New Admin",
+    "email": "admin2@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+```
+
+**Response (302):**
+```
+Redirect: back
+Flash: success = "Admin account created!"
+```
+
+---
+
+## Error Handling
+
+### Error Response Format
+
+```json
+{
+    "success": false,
+    "message": "Error description",
+    "errors": {
+        "field": ["Error message"]
+    }
+}
+```
+
+### HTTP Status Codes
+
+| Code | Description |
+|------|-------------|
 | 200 | Success |
 | 201 | Created |
-| 400 | Bad Request (validation error) |
-| 401 | Unauthorized (not logged in) |
-| 403 | Forbidden (insufficient permissions) |
+| 302 | Redirect |
+| 400 | Bad Request |
+| 401 | Unauthorized |
+| 403 | Forbidden |
 | 404 | Not Found |
-| 422 | Unprocessable Entity (validation failed) |
-| 429 | Too Many Requests (rate limit) |
-| 500 | Internal Server Error |
+| 419 | CSRF Token Mismatch |
+| 422 | Validation Error |
+| 429 | Too Many Requests |
+| 500 | Server Error |
+
+### Validation Error Response (422)
+
+```json
+{
+    "message": "The given data was invalid.",
+    "errors": {
+        "email": ["The email has already been taken."],
+        "password": ["The password must be at least 8 characters."]
+    }
+}
+```
+
+### Unauthorized Response (401)
+
+```json
+{
+    "success": false,
+    "message": "Unauthenticated."
+}
+```
+
+### Forbidden Response (403)
+
+```json
+{
+    "success": false,
+    "message": "Unauthorized action."
+}
+```
+
+### Not Found Response (404)
+
+```json
+{
+    "success": false,
+    "message": "Not found."
+}
+```
 
 ---
 
-## Rate Limits
+## Response Formats
 
-| Endpoint | Limit |
-|----------|-------|
-| General API | 60 requests/minute |
-| Login | 5 attempts/minute |
-| Password Reset | 3 requests/hour |
-| Message Send | 30 messages/minute |
-| Story Create | 10 stories/hour |
+### Success Response
+
+```json
+{
+    "success": true,
+    "message": "Operation successful",
+    "data": {...}
+}
+```
+
+### Paginated Response
+
+```json
+{
+    "data": [...],
+    "links": {
+        "first": "/api/posts?page=1",
+        "last": "/api/posts?page=10",
+        "prev": null,
+        "next": "/api/posts?page=2"
+    },
+    "meta": {
+        "current_page": 1,
+        "from": 1,
+        "last_page": 10,
+        "per_page": 15,
+        "to": 15,
+        "total": 150
+    }
+}
+```
+
+### Redirect Response
+
+```json
+{
+    "success": true,
+    "redirect": "/dashboard"
+}
+```
 
 ---
 
-## Webhooks
+## Next Steps
 
-Nexus does not currently support webhooks. Real-time updates are handled via polling.
+Continue reading:
 
----
-
-## Versioning
-
-Current API version: v1 (implicit)
-
-Future versions will be prefixed: `/api/v2/...`
-
----
-
-## Support
-
-For API issues or questions:
-- Check documentation
-- Review error response messages
-- Contact development team
-
----
-
-**Last Updated**: March 2026
+- [Database Schema](DATABASE.md) - Table definitions
+- [Features](FEATURES.md) - Feature documentation
+- [Frontend Guide](FRONTEND.md) - Vue.js architecture

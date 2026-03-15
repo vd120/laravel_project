@@ -398,7 +398,7 @@
 
     <div id="toast-container"></div>
 
-    @vite(['resources/js/app.js'])
+    @vite(['resources/js/app.js', 'resources/js/legacy/ui-utils.js', 'resources/js/legacy/realtime.js', 'resources/js/legacy/comments.js'])
     @auth
         <script>
             window.currentUserId = {{ auth()->id() }};
@@ -406,19 +406,8 @@
                 failed_to_join_group: "{{ __('messages.failed_to_join_group') }}"
             };
         </script>
-        <script src="{{ asset('js/realtime.js') }}?v={{ md5_file(public_path('js/realtime.js')) }}"></script>
     @endauth
     <script>
-        function toggleTheme() {
-            const html = document.documentElement;
-            const icon = document.getElementById('theme-icon');
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
-            localStorage.setItem('theme', newTheme);
-        }
-
         function toggleUserMenu(event) {
             event.stopPropagation();
             event.preventDefault();
@@ -840,6 +829,5 @@
             });
         }
     </script>
-    <script src="{{ asset('js/comments.js') }}"></script>
 </body>
 </html>

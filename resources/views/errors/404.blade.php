@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+<html lang="{{ request()->cookie('locale', app()->getLocale()) }}" dir="{{ request()->cookie('locale', app()->getLocale()) === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
+    @php $locale = request()->cookie('locale', app()->getLocale()); @endphp
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ __('errors.not_found_title') }}</title>
+    <title>@yield('title', $locale === 'ar' ? '404 - الصفحة مش موجودة' : '404 - Page Not Found')</title>
     <style>
         * {
             margin: 0;
@@ -66,8 +67,8 @@
 </head>
 <body>
     <div class="error-icon">🔍</div>
-    <h1>{{ __('errors.not_found_title') }}</h1>
-    <p>{{ __('errors.not_found_message') }}</p>
-    <button onclick="history.back()">{{ __('errors.go_back') }}</button>
+    <h1>@yield('title', $locale === 'ar' ? '404 - الصفحة مش موجودة' : '404 - Page Not Found')</h1>
+    <p>@yield('message', $locale === 'ar' ? 'يا خسارة! الصفحة اللي بتدور عليها مش موجودة.' : "Oops! The page you're looking for doesn't exist.")</p>
+    <button onclick="history.back()">@yield('button', $locale === 'ar' ? 'رجوع' : 'Go Back')</button>
 </body>
 </html>

@@ -108,93 +108,14 @@
     </div>
 </div>
 
-<script src="{{ asset('js/auth-login.js') }}"></script>
-<script>
-// Translations for session messages
-const sessionMessages = {
-    en: {
-        'passwords.reset': 'Password updated successfully! You can now log in.',
-        'password_reset': 'Password updated successfully! You can now log in.',
-        'account_suspended': 'Your account has been suspended.',
-        'concurrent_login': 'Security alert: Concurrent login detected.',
-        'account_deleted': 'Your account has been deleted.',
-        'logged_out': 'You have been logged out.'
-    },
-    ar: {
-        'passwords.reset': 'كلمة السر اتغيرت بنجاح! يمكنك تسجيل الدخول الآن.',
-        'password_reset': 'كلمة السر اتغيرت بنجاح! يمكنك تسجيل الدخول الآن.',
-        'account_suspended': 'حسابك تم تعليقه.',
-        'concurrent_login': 'تنبيه أمني: تم اكتشاف دخول متزامن.',
-        'account_deleted': 'حسابك تم حذفه.',
-        'logged_out': 'تم تسجيل خروجك.'
-    }
-};
-
-function getSessionMessage(key, lang) {
-    // Check for exact match first
-    if (key && sessionMessages[lang]?.[key]) return sessionMessages[lang][key];
-    if (key && sessionMessages.en[key]) return sessionMessages.en[key];
-    
-    // Check for partial matches (for translated messages)
-    if (!key) return '';
-    const keyLower = key.toLowerCase();
-    
-    // Handle Arabic translated messages
-    if (keyLower.includes('كلمة') || keyLower.includes('كلمة السر') || keyLower.includes('اتغيرت')) {
-        return sessionMessages[lang]?.['passwords.reset'] || sessionMessages.en['passwords.reset'];
-    }
-    if (keyLower.includes('password') && keyLower.includes('reset')) {
-        return sessionMessages[lang]?.['passwords.reset'] || sessionMessages.en['passwords.reset'];
-    }
-    if (keyLower.includes('password') && keyLower.includes('update')) {
-        return sessionMessages[lang]?.['passwords.reset'] || sessionMessages.en['passwords.reset'];
-    }
-    if (keyLower.includes('suspended')) {
-        return sessionMessages[lang]?.['account_suspended'] || sessionMessages.en['account_suspended'];
-    }
-    if (keyLower.includes('concurrent')) {
-        return sessionMessages[lang]?.['concurrent_login'] || sessionMessages.en['concurrent_login'];
-    }
-    if (keyLower.includes('deleted')) {
-        return sessionMessages[lang]?.['account_deleted'] || sessionMessages.en['account_deleted'];
-    }
-    if (keyLower.includes('logged out') || keyLower.includes('logout')) {
-        return sessionMessages[lang]?.['logged_out'] || sessionMessages.en['logged_out'];
-    }
-    
-    // Return the key itself if no match (for any other messages)
-    return key;
-}
-
-const userLang = document.documentElement.lang || 'en';
-
-// Show toast messages after page loads
-@if(session('status'))
-    const statusKey = '{{ session('status') }}';
-    const message = getSessionMessage(statusKey, userLang);
-    if (message) showSessionToast('success', message);
-@endif
-
-@if(session('error'))
-    const errorKey = '{{ session('error') }}';
-    const errorMessage = getSessionMessage(errorKey, userLang);
-    if (errorMessage) showSessionToast('error', errorMessage);
-@endif
-
-@if(session('concurrent_login'))
-    const concurrentMsg = getSessionMessage('concurrent_login', userLang);
-    showSessionToast('error', concurrentMsg);
-@endif
-
-@if(session('account_deleted'))
-    const deletedMsg = getSessionMessage('account_deleted', userLang);
-    showSessionToast('error', deletedMsg);
-@endif
-
-@if(session('account_suspended'))
-    const suspendedMsg = getSessionMessage('account_suspended', userLang);
-    showSessionToast('error', suspendedMsg);
-@endif
-</script>
+@vite(['resources/js/legacy/auth-login.js'])
+<div id="login-config" 
+     data-status="{{ session('status') }}" 
+     data-error="{{ session('error') }}"
+     data-concurrent="{{ session('concurrent_login') }}"
+     data-deleted="{{ session('account_deleted') }}"
+     data-suspended="{{ session('account_suspended') }}"
+     style="display:none;">
+</div>
 </body>
 </html>

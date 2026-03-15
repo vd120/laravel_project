@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+<html lang="{{ request()->cookie('locale', app()->getLocale()) }}" dir="{{ request()->cookie('locale', app()->getLocale()) === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
+    @php $locale = request()->cookie('locale', app()->getLocale()); @endphp
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ __('errors.forbidden_title') }}</title>
+    <title>@yield('title', $locale === 'ar' ? '403 - ممنوع الدخول' : '403 - Access Denied')</title>
     <style>
         * {
             margin: 0;
@@ -66,8 +67,8 @@
 </head>
 <body>
     <div class="error-icon">🚫</div>
-    <h1>{{ __('errors.forbidden_title') }}</h1>
-    <p>{{ __('errors.forbidden_message') }}</p>
-    <button onclick="history.back()">{{ __('errors.go_back') }}</button>
+    <h1>@yield('title', $locale === 'ar' ? '403 - ممنوع الدخول' : '403 - Access Denied')</h1>
+    <p>@yield('message', $locale === 'ar' ? 'مش عندك صلاحية تدخل الصفحة دي.' : "You don't have permission to access this page.")</p>
+    <button onclick="history.back()">@yield('button', $locale === 'ar' ? 'رجوع' : 'Go Back')</button>
 </body>
 </html>

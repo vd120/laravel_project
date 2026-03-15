@@ -4,7 +4,7 @@
 
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/groups-show.css') }}">
-<script src="{{ asset('js/groups-show.js') }}"></script>
+@vite(['resources/js/legacy/groups-show.js'])
 
 <div class="group-page">
     <div class="group-container">
@@ -57,7 +57,7 @@
             @if($group->isAdmin(auth()->user()))
             <form action="{{ route('groups.regenerate-invite', $group->slug) }}" method="POST" class="regenerate-form">
                 @csrf
-                <button type="submit" class="regenerate-btn" onclick="return confirm('Generate a new invite link? The old link will stop working.')">
+                <button type="submit" class="regenerate-btn" onclick="confirmAction('Generate a new invite link? The old link will stop working.')">
                     <i class="fas fa-sync-alt"></i> {{ __('chat.edit') }}
                 </button>
             </form>
@@ -155,7 +155,7 @@
         <div class="danger-section">
             @if($group->isAdmin(auth()->user()) && $group->admins->count() === 1)
                 <p class="warning-text">{{ __('chat.only_admin_warning') }}</p>
-                <form action="{{ route('groups.destroy', $group->slug) }}" method="POST" onsubmit="return confirm('{{ __('chat.delete_group_confirm_admin') }}')">
+                <form action="{{ route('groups.destroy', $group->slug) }}" method="POST" onsubmit="event.preventDefault(); confirmForm('{{ __('chat.delete_group_confirm_admin') }}', this.closest('form'))">
                     @csrf @method('DELETE')
                     <button type="submit" class="delete-group-btn">
                         <i class="fas fa-trash"></i> {{ __('chat.delete_group') }}

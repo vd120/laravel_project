@@ -3,9 +3,15 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
+        "build": "vite build && node scripts/obfuscate.js",
+        "build:terser": "vite build && node scripts/minify-terser.js",
+        "build:uglify": "vite build && node scripts/minify-uglify.js",
+        "build:no-obf": "vite build",
         "dev": "vite",
-        "lint": "eslint resources/js --ext .js,.ts,.vue --ignore-path .gitignore --fix"
+        "lint": "eslint resources/js --ext .js,.ts,.vue --ignore-path .gitignore --fix",
+        "obfuscate": "node scripts/obfuscate.js",
+        "minify:terser": "node scripts/minify-terser.js",
+        "minify:uglify": "node scripts/minify-uglify.js"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^2.0.0",
@@ -20,13 +26,16 @@
         "concurrently": "^9.0.1",
         "eslint": "^8.57.0",
         "eslint-plugin-vue": "^9.23.0",
+        "javascript-obfuscator": "^5.3.0",
         "laravel-vite-plugin": "^2.0.0",
         "postcss": "^8.4.31",
         "prettier": "^3.3.0",
         "prettier-plugin-organize-imports": "^4.0.0",
         "prettier-plugin-tailwindcss": "^0.6.5",
         "tailwindcss": "^3.2.1",
+        "terser": "^5.46.0",
         "typescript": "^5.6.3",
+        "uglify-js": "^3.19.3",
         "vite": "^6.4.1",
         "vue": "^3.4.0",
         "vue-tsc": "^2.0.24"

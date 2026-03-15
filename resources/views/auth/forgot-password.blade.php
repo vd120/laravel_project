@@ -69,7 +69,7 @@
     </div>
 </div>
 
-<script src="{{ asset('js/auth-forgot-password.js') }}"></script>
+@vite(['resources/js/legacy/auth-forgot-password.js'])
 
 </body>
 </html>

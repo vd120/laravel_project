@@ -4,7 +4,7 @@
 
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/chat-index.css') }}">
-<script src="{{ asset('js/chat-index.js') }}"></script>
+@vite(['resources/js/legacy/chat-index.js'])
 <script>
 window.currentUserId = {{ auth()->id() }};
 window.chatTranslations = {

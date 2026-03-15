@@ -35,25 +35,28 @@ class LanguageController extends Controller
             Log::warning("Invalid locale attempted: {$locale}");
             abort(400, "Unsupported language: {$locale}");
         }
-
+        
         // Store locale in session
         Session::put('locale', $locale);
-
+        
+        // ALSO store in cookie (for error pages!)
+        $cookie = cookie('locale', $locale, 43200); // 30 days
+        
         // Set the application locale for this request
         App::setLocale($locale);
-
+        
         // If user is authenticated, save to database
         if (auth()->check()) {
             auth()->user()->update(['language' => $locale]);
         }
-
+        
         // Get return URL from query parameter or use previous URL
         $returnUrl = $request->query('return');
         
         if (!$returnUrl) {
             $returnUrl = Session::previousUrl() ?? route('home');
         }
-
+        
         // Parse the URL to remove any existing locale prefix
         $parsedUrl = parse_url($returnUrl);
         $path = $parsedUrl['path'] ?? '/';
@@ -65,12 +68,12 @@ class LanguageController extends Controller
                 break;
             }
         }
-
+        
         // Ensure path starts with /
         if (!$path) {
             $path = '/';
         }
-
+        
         // Build the final URL
         $finalUrl = $path;
         if (!empty($parsedUrl['query'])) {
@@ -83,8 +86,8 @@ class LanguageController extends Controller
             }
         }
 
-        // Redirect to the final URL
-        return redirect($finalUrl);
+        // Redirect to the final URL with cookie
+        return redirect($finalUrl)->withCookie($cookie);
     }
 
     /**

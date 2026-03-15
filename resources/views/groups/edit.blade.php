@@ -4,7 +4,7 @@
 
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/groups-edit.css') }}">
-<script src="{{ asset('js/groups-edit.js') }}"></script>
+@vite(['resources/js/legacy/groups-edit.js'])
 <script>
 window.currentGroupId = {{ $group->id }};
 window.groupTranslations = {

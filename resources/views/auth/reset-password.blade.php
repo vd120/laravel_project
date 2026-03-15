@@ -103,7 +103,7 @@
         weak_password: "{{ __('messages.weak_password') }}"
     };
 </script>
-<script src="{{ asset('js/auth-reset-password.js') }}"></script>
+@vite(['resources/js/legacy/auth-reset-password.js'])
 
 </body>
 </html>

@@ -1077,11 +1077,88 @@
     text-decoration: underline;
 }
 
+/* RTL Support for Arabic - Nested Replies */
+html[dir="rtl"] .replies-container {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+html[dir="rtl"] .show-more-replies,
+html[dir="rtl"] .hide-replies,
+html[dir="rtl"] .show-replies-always {
+    padding-left: 0;
+    padding-right: 46px;
+}
+
+html[dir="rtl"] .comment-item.nested {
+    margin-left: 0;
+    margin-right: 8px;
+    padding-left: 0;
+    padding-right: 12px;
+    border-left: none;
+    border-right: 1px solid var(--border);
+}
+
+html[dir="rtl"] .comment-item.level-1 {
+    margin-left: 0;
+    margin-right: 20px;
+}
+
+html[dir="rtl"] .comment-item.level-2 {
+    margin-left: 0;
+    margin-right: 40px;
+}
+
+html[dir="rtl"] .comment-item.level-3 {
+    margin-left: 0;
+    margin-right: 60px;
+}
+
+html[dir="rtl"] .comment-item.level-4 {
+    margin-left: 0;
+    margin-right: 80px;
+}
+
+html[dir="rtl"] .comment-item.level-5 {
+    margin-left: 0;
+    margin-right: 100px;
+}
+
+/* RTL Comment Actions Bar */
+html[dir="rtl"] .comment-actions-bar {
+    padding-left: 0;
+    padding-right: 46px;
+}
+
+/* RTL Reply Form */
+html[dir="rtl"] .reply-form {
+    padding-left: 0;
+    padding-right: 46px;
+}
+
+html[dir="rtl"] .reply-input-wrapper {
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .cancel-reply {
+    text-align: left;
+}
+
 @media (max-width: 768px) {
     .comment-item.nested {
         margin-left: 8px;
         padding-left: 8px;
         border-left-width: 1px;
+    }
+
+    /* RTL Mobile Support */
+    html[dir="rtl"] .comment-item.nested {
+        margin-left: 0;
+        margin-right: 20px;
+        padding-left: 0;
+        padding-right: 16px;
+        border-left: none;
+        border-right: 2px solid var(--border);
     }
 
     .comment-item.level-1 {
@@ -1102,6 +1179,43 @@
 
     .comment-item.level-5 {
         margin-left: 24px;
+    }
+
+    /* RTL Mobile Levels */
+    html[dir="rtl"] .comment-item.level-1 {
+        margin-left: 0;
+        margin-right: 20px;
+    }
+
+    html[dir="rtl"] .comment-item.level-2 {
+        margin-left: 0;
+        margin-right: 40px;
+    }
+
+    html[dir="rtl"] .comment-item.level-3 {
+        margin-left: 0;
+        margin-right: 60px;
+    }
+
+    html[dir="rtl"] .comment-item.level-4 {
+        margin-left: 0;
+        margin-right: 80px;
+    }
+
+    html[dir="rtl"] .comment-item.level-5 {
+        margin-left: 0;
+        margin-right: 100px;
+    }
+
+    /* RTL Mobile Comment Actions */
+    html[dir="rtl"] .comment-actions-bar {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    html[dir="rtl"] .reply-form {
+        padding-left: 0;
+        padding-right: 0;
     }
 
     .comment-content,
@@ -1182,6 +1296,46 @@
         padding: 10px;
         min-height: 44px;
         margin-left: 36px;
+    }
+
+    /* Extra small mobile (480px) - RTL Support */
+    @media (max-width: 480px) {
+        html[dir="rtl"] .comment-item.nested {
+            margin-left: 0;
+            margin-right: 4px;
+            padding-left: 0;
+            padding-right: 8px;
+        }
+
+        html[dir="rtl"] .comment-item.level-1 {
+            margin-left: 0;
+            margin-right: 4px;
+        }
+
+        html[dir="rtl"] .comment-item.level-2 {
+            margin-left: 0;
+            margin-right: 8px;
+        }
+
+        html[dir="rtl"] .comment-item.level-3 {
+            margin-left: 0;
+            margin-right: 12px;
+        }
+
+        html[dir="rtl"] .comment-item.level-4 {
+            margin-left: 0;
+            margin-right: 16px;
+        }
+
+        html[dir="rtl"] .comment-item.level-5 {
+            margin-left: 0;
+            margin-right: 20px;
+        }
+
+        html[dir="rtl"] .cancel-reply {
+            margin-left: 0;
+            margin-right: 36px;
+        }
     }
 }
 

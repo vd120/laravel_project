@@ -29,27 +29,33 @@ class SetLocale
     {
         // Get locale from various sources in order of priority:
         // 1. Route parameter (e.g., /lang/ar)
-        // 2. Session
-        // 3. Authenticated user's preference
-        // 4. Browser's preferred language
-        // 5. Default locale from config
-
+        // 2. Cookie (available before session)
+        // 3. Session
+        // 4. Authenticated user's preference
+        // 5. Browser's preferred language
+        // 6. Default locale from config
+        
         $locale = $this->determineLocale($request);
-
+        
         // Set the application locale
         App::setLocale($locale);
-
+        
         // Set locale for Carbon (dates)
         \Carbon\Carbon::setLocale($locale);
-
+        
         // Store locale in request for later use
         $request->setLocale($locale);
-
+        
         // Share locale with all views
         view()->share('currentLocale', $locale);
         view()->share('direction', $locale === 'ar' ? 'rtl' : 'ltr');
-
-        return $next($request);
+        
+        $response = $next($request);
+        
+        // Also set cookie for error pages (cookie is available before session)
+        $response->withCookie(cookie('locale', $locale, 43200)); // 30 days
+        
+        return $response;
     }
 
     /**
@@ -71,16 +77,25 @@ class SetLocale
                 return $locale;
             }
         }
-
-        // 2. Check session
+        
+        // 2. Check cookie (available before session - important for error pages!)
+        if ($request->cookie('locale')) {
+            $locale = $request->cookie('locale');
+            if ($this->isValidLocale($locale)) {
+                Session::put('locale', $locale);
+                return $locale;
+            }
+        }
+        
+        // 3. Check session
         if (Session::has('locale')) {
             $locale = Session::get('locale');
             if ($this->isValidLocale($locale)) {
                 return $locale;
             }
         }
-
-        // 3. Check authenticated user's preference
+        
+        // 4. Check authenticated user's preference
         if (auth()->check() && auth()->user()->language) {
             $locale = auth()->user()->language;
             if ($this->isValidLocale($locale)) {
@@ -88,15 +103,15 @@ class SetLocale
                 return $locale;
             }
         }
-
-        // 4. Check browser's preferred language
+        
+        // 5. Check browser's preferred language
         $preferredLanguage = $request->getPreferredLanguage(self::SUPPORTED_LOCALES);
         if ($preferredLanguage && $this->isValidLocale($preferredLanguage)) {
             Session::put('locale', $preferredLanguage);
             return $preferredLanguage;
         }
-
-        // 5. Return default locale
+        
+        // 6. Return default locale
         return self::DEFAULT_LOCALE;
     }
 

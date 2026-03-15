@@ -151,7 +151,7 @@
         username_taken: "{{ __('messages.username_taken') }}"
     };
 </script>
-<script src="{{ asset('js/auth-register.js') }}"></script>
+@vite(['resources/js/legacy/auth-register.js'])
 
 </body>
 </html>

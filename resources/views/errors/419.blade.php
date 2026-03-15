@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+<html lang="{{ request()->cookie('locale', app()->getLocale()) }}" dir="{{ request()->cookie('locale', app()->getLocale()) === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
+    @php $locale = request()->cookie('locale', app()->getLocale()); @endphp
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ __('errors.page_expired_title') }}</title>
+    <title>@yield('title', $locale === 'ar' ? 'الجلسة انتهت' : 'Session Expired')</title>
     <style>
         * {
             margin: 0;
@@ -66,8 +67,8 @@
 </head>
 <body>
     <div class="error-icon">⏰</div>
-    <h1>{{ __('errors.page_expired_title') }}</h1>
-    <p>{{ __('errors.page_expired_message') }}</p>
-    <button onclick="window.location.reload()">{{ __('errors.refresh_page') }}</button>
+    <h1>@yield('title', $locale === 'ar' ? 'الجلسة انتهت' : 'Session Expired')</h1>
+    <p>@yield('message', $locale === 'ar' ? 'جلستك انتهت. لو سمحت حدّث الصفحة وحاول تاني.' : 'Your session has expired. Please refresh the page and try again.')</p>
+    <button onclick="window.location.reload()">@yield('button', $locale === 'ar' ? 'تحديث الصفحة' : 'Refresh Page')</button>
 </body>
 </html>

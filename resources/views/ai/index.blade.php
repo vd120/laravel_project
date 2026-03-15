@@ -103,5 +103,5 @@
     </div>
 </div>
 
-<script src="{{ asset('js/ai-chat.js') }}"></script>
+@vite(['resources/js/legacy/ai-chat.js'])
 @endsection

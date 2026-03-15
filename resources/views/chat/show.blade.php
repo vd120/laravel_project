@@ -10,7 +10,7 @@ $chatTitle = $conversation->is_group
 
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/chat-show.css') }}">
-<script src="{{ asset('js/chat-show.js') }}"></script>
+@vite(['resources/js/legacy/chat-show.js'])
 <script>
 // Blade dynamic variables for JavaScript
 window.chatStoreUrl = `{{ route('chat.store', $conversation) }}`;

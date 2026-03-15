@@ -49,7 +49,7 @@
     </div>
 </div>
 
-<script src="{{ asset('js/auth-suspended.js') }}"></script>
+@vite(['resources/js/legacy/auth-suspended.js'])
 
 </body>
 </html>
