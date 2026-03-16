@@ -1,4 +1,4 @@
-# Architecture Documentation
+	# Architecture Documentation
 
 System architecture, design patterns, and data flow for Nexus.
 

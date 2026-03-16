@@ -263,12 +263,10 @@ Accurate documentation of all technologies, libraries, and tools actually used i
 │  │  ├── posts.js (Post interactions)                       │   │
 │  │  ├── comments.js (Comment system)                       │   │
 │  │  ├── home.js (Feed functionality)                       │   │
-│  │  ├── chat-index.js (Chat list)                          │   │
-│  │  ├── chat-show.js (Chat room)                           │   │
 │  │  ├── groups-show.js (Group page)                        │   │
 │  │  ├── groups-edit.js (Group editing)                     │   │
 │  │  ├── ai-chat.js (AI chatbot)                            │   │
-│  │  └── auth-*.js (Authentication pages)                   │   │
+│  │  └── auth-*.js (Authentication pages - 7 files)         │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                  │
 │  Vue.js Components (Available but minimal usage)                │
@@ -476,18 +474,18 @@ laravel_project/
 │   └── routes/web.php         (Main routing)
 │
 ├── Frontend (Hybrid: Blade + Vue 3)
-│   ├── resources/views/       (Blade templates - primary UI)
+│   ├── resources/views/       (Blade templates - primary UI, 49 files)
 │   ├── resources/js/
 │   │   ├── Components/        (Vue 3 components)
 │   │   ├── Pages/             (Inertia pages)
 │   │   ├── Composables/       (Vue composables)
 │   │   ├── Layouts/           (Vue layouts)
-│   │   └── legacy/            (18 JavaScript modules)
+│   │   └── legacy/            (16 JavaScript modules)
 │   ├── resources/css/         (Tailwind CSS)
 │   └── public/css/            (Compiled CSS)
 │
 ├── Database
-│   ├── database/migrations/   (56 migrations)
+│   ├── database/migrations/   (58 migrations)
 │   ├── database/factories/    (Model factories)
 │   └── database/database.sqlite
 │

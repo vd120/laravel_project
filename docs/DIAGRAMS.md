@@ -799,9 +799,9 @@ User    RegisterCtrl   User Model   Profile   MailService   Database
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘   │
 │                                                                         │
 │  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │                    Legacy JavaScript (18 modules)                │   │
-│  │  • posts.js  • comments.js  • chat-show.js  • groups-show.js   │   │
-│  │  • home.js   • realtime.js  • ai-chat.js     • auth-*.js       │   │
+│  │                    Legacy JavaScript (16 modules)                │   │
+│  │  • posts.js  • comments.js  • realtime.js    • groups-show.js   │   │
+│  │  • home.js   • ui-utils.js  • ai-chat.js     • auth-*.js       │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -816,7 +816,7 @@ User    RegisterCtrl   User Model   Profile   MailService   Database
 │  │                                                                  │   │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │   │
 │  │  │   Routes    │  │ Middleware  │  │ Controllers │             │   │
-│  │  │  web.php    │  │  (8 total)  │  │  (30 total) │             │   │
+│  │  │  web.php    │  │  (8 total)  │  │  (31 total)│             │   │
 │  │  │  api.php    │  │             │  │             │             │   │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘             │   │
 │  │                                                                  │   │
@@ -838,7 +838,7 @@ User    RegisterCtrl   User Model   Profile   MailService   Database
 │  │   MySQL/    │  │   Cache     │  │    File     │  │   Session   │   │
 │  │   SQLite    │  │  (Database) │  │   Storage   │  │  (Database) │   │
 │  │  Database   │  │             │  │             │  │             │   │
-│  │  (56 mig.)  │  │             │  │  /avatars   │  │             │   │
+│  │  (58 mig.)  │  │             │  │  /avatars   │  │             │   │
 │  │             │  │             │  │  /posts     │  │             │   │
 │  │             │  │             │  │  /stories   │  │             │   │
 │  │             │  │             │  │  /messages  │  │             │   │

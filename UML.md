@@ -796,4 +796,56 @@ graph TB
 - All diagrams are written in **Mermaid.js** syntax and will render automatically on GitHub
 - For local viewing, use a Markdown editor with Mermaid support
 - Diagrams are auto-generated based on the current codebase structure
-- Last updated: 15-3-2026
+
+### Project Statistics
+
+| Component | Count |
+|-----------|-------|
+| **Models** | 19 Eloquent models |
+| **Tables** | 24 database tables |
+| **Migrations** | 58 migration files |
+| **Controllers** | 31 (30 + 1 base class) |
+| **Middleware** | 8 middleware classes |
+| **Services** | 4 service classes |
+| **Console Commands** | 6 Artisan commands |
+
+### Model List
+
+**User Models:**
+- `User` - User accounts with authentication
+- `Profile` - Extended user profile information
+
+**Content Models:**
+- `Post` - User posts with slug URLs
+- `PostMedia` - Post media attachments (images/videos)
+- `Comment` - Post comments with nested replies
+- `CommentLike` - Comment likes
+
+**Social Models:**
+- `Follow` - User follow relationships
+- `Block` - User block relationships
+- `SavedPost` - Bookmarked posts
+- `Mention` - User mentions in posts/comments
+
+**Story Models:**
+- `Story` - Ephemeral 24-hour stories
+- `StoryView` - Story view tracking
+- `StoryReaction` - Story emoji reactions
+
+**Messaging Models:**
+- `Conversation` - Chat conversations (direct/group)
+- `Message` - Chat messages with delivery tracking
+
+**Group Models:**
+- `Group` - User groups with invite links
+- `GroupMember` - Group membership with roles
+
+**System Models:**
+- `Notification` - User notifications
+- `Like` - Post likes
+
+### Last Updated
+
+- **Date:** March 16, 2026
+- **Laravel Version:** 12.x
+- **PHP Version:** 8.2+

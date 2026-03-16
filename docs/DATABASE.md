@@ -21,8 +21,8 @@ Complete database schema, entity relationships, and table definitions for Nexus.
 
 | Metric | Value |
 |--------|-------|
-| **Total Tables** | 24+ |
-| **Total Migrations** | 56+ |
+| **Total Tables** | 24 |
+| **Total Migrations** | 58 |
 | **Database Type** | SQLite (Dev) / MySQL (Prod) |
 | **ORM** | Eloquent (Laravel) |
 
