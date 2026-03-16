@@ -30,6 +30,7 @@ return [
     'you_sent_gif' => 'بعت GIF',
     'you_sent_sticker' => 'بعت ملصق',
     'you_replied_to_story' => 'رديت على الستوري',
+    'you_sent_group_invite' => 'بعت دعوة مجموعة',
 
     // Message types - sent by others
     'sent_photo' => 'بعت صورة',
@@ -40,6 +41,7 @@ return [
     'sent_sticker' => 'بعت ملصق',
     'replied_to_story' => 'رد على الستوري',
     'replied_to_your_story' => 'رد على الستوري بتاعتك',
+    'sent_group_invite' => 'بعت دعوة مجموعة',
 
     // Message placeholders
     'start_a_conversation' => '👋 ابدأ محادثة',

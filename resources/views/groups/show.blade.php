@@ -155,7 +155,7 @@
         <div class="danger-section">
             @if($group->isAdmin(auth()->user()) && $group->admins->count() === 1)
                 <p class="warning-text">{{ __('chat.only_admin_warning') }}</p>
-                <form action="{{ route('groups.destroy', $group->slug) }}" method="POST" onsubmit="event.preventDefault(); confirmForm('{{ __('chat.delete_group_confirm_admin') }}', this.closest('form'))">
+                <form action="{{ route('groups.destroy', $group->slug) }}" method="POST" onsubmit="return confirm('{{ __('chat.delete_group_confirm_admin') }}')">
                     @csrf @method('DELETE')
                     <button type="submit" class="delete-group-btn">
                         <i class="fas fa-trash"></i> {{ __('chat.delete_group') }}

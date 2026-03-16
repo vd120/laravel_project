@@ -311,14 +311,15 @@ class PostController extends Controller
         if ($post->user_id !== auth()->id()) {
             abort(403);
         }
+        
         $post->delete();
 
-    // Check if it's an AJAX request
-    if (request()->expectsJson()) {
-        return response()->json([
-            'success' => true
-        ]);
-    }
+        // Check if it's an AJAX request
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true
+            ]);
+        }
 
         return back();
     }

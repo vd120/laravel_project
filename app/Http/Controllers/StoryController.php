@@ -101,29 +101,35 @@ class StoryController extends Controller
             }
 
             if ($needsTrimming && $trimEnd - $trimStart > 0) {
-                // Use ffmpeg to trim the video
+                // Use ffmpeg to trim the video using Symfony Process for security
                 $tempPath = $file->storeAs('temp', 'temp_' . time() . '.' . $file->getClientOriginalExtension());
                 $tempFullPath = storage_path('app/' . $tempPath);
                 $outputPath = storage_path('app/public/' . $path);
-                
-                // Build ffmpeg command to trim video
+
+                // Build ffmpeg command to trim video using Symfony Process
                 $duration = $trimEnd - $trimStart;
-                $command = sprintf(
-                    'ffmpeg -i "%s" -ss %.3f -t %.3f -c:v libx264 -c:a aac -strict experimental -movflags +faststart "%s" 2>&1',
-                    $tempFullPath,
-                    $trimStart,
-                    $duration,
+                
+                $process = new \Symfony\Component\Process\Process([
+                    'ffmpeg',
+                    '-i', $tempFullPath,
+                    '-ss', (string) $trimStart,
+                    '-t', (string) $duration,
+                    '-c:v', 'libx264',
+                    '-c:a', 'aac',
+                    '-strict', 'experimental',
+                    '-movflags', '+faststart',
                     $outputPath
-                );
+                ]);
                 
-                exec($command, $output, $returnVar);
-                
+                $process->setTimeout(60); // 60 second timeout
+                $process->run();
+
                 // Clean up temp file
                 if (file_exists($tempFullPath)) {
                     unlink($tempFullPath);
                 }
-                
-                if ($returnVar !== 0 || !file_exists($outputPath)) {
+
+                if (!$process->isSuccessful() || !file_exists($outputPath)) {
                     // If ffmpeg fails, fall back to original file
                     $file->move($directory, $filename);
                 }
@@ -131,7 +137,7 @@ class StoryController extends Controller
                 // No trimming needed, just move the file
                 $file->move($directory, $filename);
             }
-            
+
             $mediaType = 'video';
         } else {
             return back()->withErrors(['media' => 'Invalid file type.']);
@@ -197,22 +203,23 @@ class StoryController extends Controller
         }
 
         // Get all users who viewed this story with their view timestamps and reactions
+        // Eager load reactions to prevent N+1 queries
         $viewers = \App\Models\StoryView::where('story_id', $story->id)
             ->with(['user.profile'])
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Get all reactions for this story in a single query
+        $reactions = \App\Models\StoryReaction::where('story_id', $story->id)
+            ->get()
+            ->keyBy('user_id');
+
         // Transform the data to include reaction info
-        $viewerData = $viewers->map(function($viewer) use ($story) {
-            // Get reaction for this specific story
-            $reaction = \App\Models\StoryReaction::where('user_id', $viewer->user_id)
-                ->where('story_id', $story->id)
-                ->first();
-            
+        $viewerData = $viewers->map(function($viewer) use ($reactions) {
             return [
                 'user' => $viewer->user,
                 'viewed_at' => $viewer->created_at,
-                'reaction' => $reaction ? $reaction->reaction_type : null
+                'reaction' => $reactions->has($viewer->user_id) ? $reactions->get($viewer->user_id)->reaction_type : null
             ];
         });
 

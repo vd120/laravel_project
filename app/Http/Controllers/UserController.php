@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Block;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -581,10 +582,10 @@ class UserController extends Controller
             return response()->json(['success' => false, 'message' => __('messages.user_not_found')], 404);
         }
 
-        // Consider user offline if last active more than 2 minutes ago
-        $isOnline = $user->is_online && $user->last_active && $user->last_active->diffInSeconds(now()) < 120;
-
-        // Auto-update is_online flag if user has been inactive for more than 2 minutes
+        // Consider user offline if last active more than 30 seconds ago
+        $isOnline = $user->is_online && $user->last_active && $user->last_active->diffInSeconds(now()) < 30;
+        
+        // Auto-update is_online flag if user has been inactive for more than 30 seconds
         if (!$isOnline && $user->is_online) {
             $user->update(['is_online' => false]);
         }
@@ -614,7 +615,7 @@ class UserController extends Controller
         $usersToUpdate = [];
 
         foreach ($users as $user) {
-            $isOnline = $user->is_online && $user->last_active && $user->last_active->diffInSeconds(now()) < 120;
+            $isOnline = $user->is_online && $user->last_active && $user->last_active->diffInSeconds(now()) < 30;
 
             // Mark for update if still marked online but inactive
             if (!$isOnline && $user->is_online) {

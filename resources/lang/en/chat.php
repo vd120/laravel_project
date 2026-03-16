@@ -21,6 +21,9 @@ return [
     'offline' => 'Offline',
     'typing' => 'typing...',
     'is_typing' => ':user is typing...',
+    'and' => 'and',
+    'are_typing' => 'are typing...',
+    'users_typing' => 'users are typing...',
 
     // Message types - sent by you
     'you_sent_photo' => 'You sent a photo',
@@ -30,6 +33,7 @@ return [
     'you_sent_gif' => 'You sent a GIF',
     'you_sent_sticker' => 'You sent a sticker',
     'you_replied_to_story' => 'You replied to story',
+    'you_sent_group_invite' => 'You sent a group invite',
 
     // Message types - sent by others
     'sent_photo' => 'Sent a photo',
@@ -40,6 +44,7 @@ return [
     'sent_sticker' => 'Sent a sticker',
     'replied_to_story' => 'Replied to story',
     'replied_to_your_story' => 'Replied to your story',
+    'sent_group_invite' => 'Sent a group invite',
 
     // Message placeholders
     'start_a_conversation' => '👋 Start a conversation',

@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Message extends Model
 {
     use SoftDeletes;
+
+    /**
+     * The relationships that should be touched when the model is updated.
+     */
+    public $touches = ['conversation'];
+
     protected $fillable = [
         'conversation_id',
         'sender_id',

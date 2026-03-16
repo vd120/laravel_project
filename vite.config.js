@@ -24,8 +24,6 @@ export default defineConfig(({ mode }) => {
                     'resources/js/legacy/auth-password-change.js',
                     'resources/js/legacy/auth-suspended.js',
                     'resources/js/legacy/auth-verify-email.js',
-                    'resources/js/legacy/chat-show.js',
-                    'resources/js/legacy/chat-index.js',
                     'resources/js/legacy/groups-show.js',
                     'resources/js/legacy/groups-edit.js',
                     'resources/js/legacy/ai-chat.js',

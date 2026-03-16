@@ -14,6 +14,30 @@
     <link rel="stylesheet" href="{{ asset('css/app-layout.css') }}">
     <link rel="stylesheet" href="{{ asset('css/comments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/mobile-header.css') }}">
+    <style>
+    /* Mobile message badge */
+    .mobile-msg-badge {
+        position: absolute;
+        top: 2px;
+        right: 8px;
+        background: #ef4444;
+        color: white;
+        font-size: 10px;
+        font-weight: 600;
+        min-width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+        z-index: 10;
+    }
+    .mobile-nav-inner a {
+        position: relative;
+    }
+    </style>
 </head>
 <body id="app-body">
     <script>
@@ -390,7 +414,10 @@
                 <div class="mobile-nav-inner">
                     <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}"><i class="fas fa-home"></i> {{ __('navigation.home') }}</a>
                     <a href="{{ route('stories.index') }}" class="{{ request()->routeIs('stories.*') ? 'active' : '' }}"><i class="fas fa-circle-play"></i> {{ __('navigation.stories') }}</a>
-                    <a href="{{ route('chat.index') }}" class="{{ request()->routeIs('chat.*') ? 'active' : '' }}"><i class="fas fa-message"></i> {{ __('navigation.messages') }}</a>
+                    <a href="{{ route('chat.index') }}" class="{{ request()->routeIs('chat.*') ? 'active' : '' }}">
+                        <i class="fas fa-message"></i> {{ __('navigation.messages') }}
+                        <span class="mobile-msg-badge" id="mobileMsgBadge" style="display: none;">0</span>
+                    </a>
                     <a href="{{ route('users.show', auth()->user()) }}" class="{{ request()->routeIs('users.show') ? 'active' : '' }}"><i class="fas fa-user"></i> {{ __('navigation.profile') }}</a>
                 </div>
             </nav>
@@ -398,7 +425,6 @@
 
     <div id="toast-container"></div>
 
-    @vite(['resources/js/app.js', 'resources/js/legacy/ui-utils.js', 'resources/js/legacy/realtime.js', 'resources/js/legacy/comments.js'])
     @auth
         <script>
             window.currentUserId = {{ auth()->id() }};
@@ -407,6 +433,8 @@
             };
         </script>
     @endauth
+    
+    @vite(['resources/js/app.js', 'resources/js/legacy/ui-utils.js', 'resources/js/legacy/realtime.js', 'resources/js/legacy/comments.js'])
     <script>
         function toggleUserMenu(event) {
             event.stopPropagation();
@@ -497,42 +525,67 @@
             }, duration);
         }
 
-        function loadNotifications() {
-            fetch('/api/notifications', { 
-                credentials: 'include',
-                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function loadNotifications() {                                                       
+            console.log('loadNotifications: Fetching notifications...');
+            fetch('/api/notifications', {                                                    
+                credentials: 'include',                                                      
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').
+getAttribute('content'), 'Accept': 'application/json' }                                      
+            })                                                                               
+            .then(r => {
+                console.log('loadNotifications: Response status:', r.status);
+                return r.json();
             })
-            .then(r => r.json())
             .then(data => {
-                const list = document.getElementById('notif-list');
-                const badge = document.getElementById('notif-badge');
-                if (data.unread_count > 0) { badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count; badge.style.display = 'flex'; }
-                else { badge.style.display = 'none'; }
-                if (!data.notifications || data.notifications.length === 0) {
-                    list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>{{ __('notifications.no_notifications') }}</p></div>`;
-                    return;
+                console.log('loadNotifications: Data received:', data);
+                const list = document.getElementById('notif-list');                          
+                const badge = document.getElementById('notif-badge');                        
+                if (data.unread_count > 0) { 
+                    badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count; 
+                    badge.style.display = 'flex'; 
+                } else { 
+                    badge.style.display = 'none'; 
                 }
+                console.log('loadNotifications: Notifications array:', data.notifications);
+                console.log('loadNotifications: Array length:', data.notifications ? data.notifications.length : 'undefined');
+                if (!data.notifications || data.notifications.length === 0) {                
+                    console.log('loadNotifications: No notifications to display');
+                    list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>{{ __('notifications.no_notifications') }}</p></div>`;
+                    return;                                                                  
+                }
+                console.log('loadNotifications: Rendering', data.notifications.length, 'notifications');
                 list.innerHTML = data.notifications.map(n => {
-                    const iconClass = getNotificationIconClass(n.type);
-                    const notifIcon = getNotificationIcon(n.type);
-                    const timeAgo = getTimeAgo(n.created_at);
+                    const iconClass = getNotificationIconClass(n.type);                      
+                    const notifIcon = getNotificationIcon(n.type);                           
+                    const timeAgo = getTimeAgo(n.created_at);                                
                     const truncatedMessage = n.message.length > 60 ? n.message.substring(0, 60) + '...' : n.message;
-                    return `
+                    return `                                                                 
                     <div class="notif-item ${n.read_at ? '' : 'unread'}" id="notif-${n.id}" data-id="${n.id}">
                         <div class="notif-icon ${iconClass}" onclick="handleNotifClick(${n.id}, '${n.link || ''}')">
-                            <i class="fas ${notifIcon}"></i>
-                        </div>
+                            <i class="fas ${notifIcon}"></i>                                 
+                        </div>                                                               
                         <div class="notif-content ${n.read_at ? '' : 'unread'}" onclick="handleNotifClick(${n.id}, '${n.link || ''}')">
-                            <p>${escapeHtml(truncatedMessage)}</p>
-                            <span class="notif-time">${timeAgo}</span>
-                        </div>
-                        <div class="notif-item-actions">
+                            <p>${escapeHtml(truncatedMessage)}</p>                           
+                            <span class="notif-time">${timeAgo}</span>                       
+                        </div>                                                               
+                        <div class="notif-item-actions">                                     
                             ${!n.read_at ? `<button class="notif-item-btn" onclick="markAsRead(${n.id}); return false;" title="${window.chatTranslations.mark_as_read}"><i class="fas fa-check"></i></button>` : ''}
                             <button class="notif-item-btn delete" onclick="dismissNotification(${n.id}); return false;" title="${window.chatTranslations.delete}"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </div>
+                        </div>                                                               
+                    </div>                                                                   
                 `}).join('');
-            }).catch(() => {});
+                console.log('loadNotifications: Rendering complete');
+            })
+            .catch(err => {
+                console.error('loadNotifications: Error:', err);
+            });
         }
 
         function markAsRead(id) {

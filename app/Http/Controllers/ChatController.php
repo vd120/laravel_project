@@ -21,7 +21,7 @@ class ChatController extends Controller
             })
             ->with(['user1', 'user2', 'latestMessage.sender'])
             ->orderByRaw('last_message_at IS NULL, last_message_at DESC')
-            ->get();
+            ->orderBy('id', 'desc')->limit(50)->get()->reverse()->values();
 
         // Get group conversations
         $groupIds = auth()->user()->groupMemberships()->pluck('group_id');
@@ -29,7 +29,7 @@ class ChatController extends Controller
             ->whereIn('group_id', $groupIds)
             ->with(['group.members.user', 'latestMessage.sender'])
             ->orderByRaw('last_message_at IS NULL, last_message_at DESC')
-            ->get();
+            ->orderBy('id', 'desc')->limit(50)->get()->reverse()->values();
 
         // Merge and sort by last message
         $conversations = $directConversations->merge($groupConversations)
@@ -43,17 +43,33 @@ class ChatController extends Controller
         // When polling for conversations we return all known conversations so that
         // cleared threads continue to be tracked client‑side.  The client will render
         // an empty preview if there is no latest_message.
-        $conversations = Conversation::where(function($q) {
+        
+        // Get direct conversations
+        $directConversations = Conversation::where(function($q) {
                 $q->where('user1_id', auth()->id())
                   ->orWhere('user2_id', auth()->id());
             })
             ->with(['user1', 'user2', 'latestMessage.sender'])
             ->orderByRaw('last_message_at IS NULL, last_message_at DESC')
-            ->get()
+            ->orderBy('id', 'desc')->limit(50)->get()->reverse()->values();
+
+        // Get group conversations
+        $groupIds = auth()->user()->groupMemberships()->pluck('group_id');
+        $groupConversations = Conversation::where('is_group', true)
+            ->whereIn('group_id', $groupIds)
+            ->with(['group.members.user', 'latestMessage.sender'])
+            ->orderByRaw('last_message_at IS NULL, last_message_at DESC')
+            ->orderBy('id', 'desc')->limit(50)->get()->reverse()->values();
+
+        // Merge and sort by last message
+        $conversations = $directConversations->merge($groupConversations)
+            ->sortByDesc('last_message_at')
+            ->values()
             ->map(function ($conversation) {
                 return [
                     'id' => $conversation->id,
                     'slug' => $conversation->slug,
+                    'is_group' => (bool) $conversation->is_group,
                     'user1_id' => $conversation->user1_id,
                     'user2_id' => $conversation->user2_id,
                     'last_message_at' => $conversation->last_message_at ? \Carbon\Carbon::parse($conversation->last_message_at)->toISOString() : null,
@@ -65,12 +81,14 @@ class ChatController extends Controller
                             'is_online' => $conversation->other_user->is_online,
                             'last_active' => $conversation->other_user->last_active ? \Carbon\Carbon::parse($conversation->other_user->last_active)->toISOString() : null,
                         ] : null,
+                    'typing' => $conversation->other_user ? (bool) cache()->get("typing:{$conversation->id}:{$conversation->other_user->id}", false) : false,
                     'latest_message' => $conversation->latestMessage ? [
                         'id' => $conversation->latestMessage->id,
                         'content' => $conversation->latestMessage->content,
                         'type' => $conversation->latestMessage->type,
                         'media_path' => $conversation->latestMessage->media_path,
                         'sender_id' => $conversation->latestMessage->sender_id,
+                        'sender_username' => $conversation->latestMessage->sender->username ?? null,
                         'created_at' => $conversation->latestMessage->created_at ? \Carbon\Carbon::parse($conversation->latestMessage->created_at)->toISOString() : null,
                         'read_at' => $conversation->latestMessage->read_at,
                     ] : null,
@@ -91,23 +109,41 @@ class ChatController extends Controller
         $lastMessageAt = $request->query('last_message_at');
         $lastUnreadCheck = $request->query('last_unread_check');
 
-        // Get all user conversations
-        $query = Conversation::where('user1_id', auth()->id())
+        // Get direct conversations
+        $directQuery = Conversation::where('user1_id', auth()->id())
             ->orWhere('user2_id', auth()->id())
             ->with(['user1', 'user2', 'latestMessage.sender'])
             ->orderByRaw('last_message_at IS NULL, last_message_at DESC');
 
         // If we have a timestamp, only get conversations with new activity
         if ($lastMessageAt) {
-            $query->where('last_message_at', '>', $lastMessageAt);
+            $directQuery->where('last_message_at', '>', $lastMessageAt);
         }
 
-        $conversations = $query->orderBy('last_message_at', 'desc')->get()
+        $directConversations = $directQuery->orderBy('id', 'desc')->limit(50)->get()->reverse()->values();
+
+        // Get group conversations
+        $groupIds = auth()->user()->groupMemberships()->pluck('group_id');
+        $groupQuery = Conversation::where('is_group', true)
+            ->whereIn('group_id', $groupIds)
+            ->with(['group.members.user', 'latestMessage.sender'])
+            ->orderByRaw('last_message_at IS NULL, last_message_at DESC');
+
+        if ($lastMessageAt) {
+            $groupQuery->where('last_message_at', '>', $lastMessageAt);
+        }
+
+        $groupConversations = $groupQuery->orderBy('id', 'desc')->limit(50)->get()->reverse()->values();
+
+        // Merge and sort by last message
+        $conversations = $directConversations->merge($groupConversations)
+            ->sortByDesc('last_message_at')
+            ->values()
             ->map(function ($conversation) {
                 return [
                     'id' => $conversation->id,
                     'slug' => $conversation->slug,
-                    'is_group' => $conversation->is_group,
+                    'is_group' => (bool) $conversation->is_group,
                     'last_message_at' => $conversation->last_message_at ? \Carbon\Carbon::parse($conversation->last_message_at)->toISOString() : null,
                     'unread_count' => $conversation->unread_count,
                     'other_user' => $conversation->other_user ? [
@@ -115,10 +151,14 @@ class ChatController extends Controller
                         'username' => $conversation->other_user->username,
                         'avatar_url' => $conversation->other_user->avatar_url,
                     ] : null,
+                    'typing' => $conversation->other_user ? (bool) cache()->get("typing:{$conversation->id}:{$conversation->other_user->id}", false) : false,
                     'latest_message' => $conversation->latestMessage ? [
                         'id' => $conversation->latestMessage->id,
                         'content' => strip_tags($conversation->latestMessage->content),
+                        'type' => $conversation->latestMessage->type,
+                        'media_path' => $conversation->latestMessage->media_path,
                         'sender_id' => $conversation->latestMessage->sender_id,
+                        'sender_username' => $conversation->latestMessage->sender->username ?? null,
                         'created_at' => $conversation->latestMessage->created_at ? \Carbon\Carbon::parse($conversation->latestMessage->created_at)->toISOString() : null,
                         'read_at' => $conversation->latestMessage->read_at ? \Carbon\Carbon::parse($conversation->latestMessage->read_at)->toISOString() : null,
                     ] : null,
@@ -145,7 +185,7 @@ class ChatController extends Controller
             ->with(['sender', 'conversation'])
             ->orderBy('created_at', 'desc')
             ->take(10) // Limit to prevent too many notifications
-            ->get();
+            ->orderBy('id', 'desc')->limit(50)->get()->reverse()->values();
 
         // Mark these messages as notified
         if ($messages->count() > 0) {
@@ -213,6 +253,8 @@ class ChatController extends Controller
                       ->orWhereJsonDoesntContain('deleted_for', $userId)  // Or not deleted for this user
                       ->orWhere('deleted_by_sender', true);  // Or deleted by sender (show "message deleted")
                 })
+                ->orderBy('id', 'asc')
+                ->limit(50)
                 ->get();
         }
 
@@ -399,16 +441,15 @@ class ChatController extends Controller
         // Get messages after a specific ID for incremental polling
         $afterId = $request->query('after_id', $request->query('after'));
 
-        // Get unread messages from other users
+        // Get ALL new messages (including own) to prevent race conditions when sending fast
+        // This ensures messages aren't missed due to timing issues between send and poll
         $query = $conversation->messages()
             ->with('sender.profile')
-            ->where('sender_id', '!=', auth()->id())
-            ->where('read_at', null)
             ->where(function($q) {
                 $q->whereNull('visible_to')  // Messages visible to everyone
                   ->orWhere('visible_to', auth()->id());  // Or messages visible to current user
             })
-            ->orderBy('created_at', 'asc');
+            ->orderBy('id', 'asc');
 
         if ($afterId) {
             $query->where('id', '>', $afterId);
@@ -428,6 +469,7 @@ class ChatController extends Controller
                         'username' => $message->sender->username,
                         'avatar_url' => $message->sender->avatar_url,
                     ],
+                    'read_at' => $message->read_at ? \Carbon\Carbon::parse($message->read_at)->toISOString() : null,
                 ];
             });
 
@@ -457,16 +499,26 @@ class ChatController extends Controller
         ]);
     }
 
-    public function markAsRead(Conversation $conversation)
-    {
-        // Check if user has access to this conversation
-        if (!$conversation->isMember(auth()->id())) {
-            abort(403);
-        }
-
-        $count = Message::markConversationAsRead($conversation->id, auth()->id());
-
-        return response()->json(['success' => true, 'read_count' => $count]);
+    public function markAsRead(Conversation $conversation)                                   
+    {                                                                                        
+        // Check if user has access to this conversation                                     
+        if (!$conversation->isMember(auth()->id())) {                                        
+            abort(403);                                                                      
+        }                                                                                    
+                                                                                             
+        // Get messages that will be marked as read                                          
+        $messagesToMark = Message::where('conversation_id', $conversation->id)               
+            ->where('sender_id', '!=', auth()->id())                                         
+            ->whereNull('read_at')                                                           
+            ->pluck('id');                                                                   
+                                                                                             
+        $count = Message::markConversationAsRead($conversation->id, auth()->id());           
+                                                                                             
+        return response()->json([                                                            
+            'success' => true,                                                               
+            'read_count' => $count,                                                          
+            'read_message_ids' => $messagesToMark->toArray()                                 
+        ]);                                                                                  
     }
 
     public function destroy(Request $request, Message $message)
@@ -505,6 +557,14 @@ class ChatController extends Controller
             ]);
             $message->delete(); // Soft delete
             
+            // Update conversation last_message_at to previous non-deleted message (or null)
+            $latest = Message::where('conversation_id', $conversation->id)
+                ->whereNull('deleted_at')
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $conversation->update(['last_message_at' => $latest ? $latest->created_at : null]);
+
             // Broadcast to all users in conversation
             $this->broadcastMessageDeleted($message, $conversation);
         } else {
@@ -602,7 +662,7 @@ class ChatController extends Controller
             ->with('sender')
             ->orderBy('created_at', 'desc')
             ->limit(5)
-            ->get();
+            ->orderBy('id', 'desc')->limit(50)->get()->reverse()->values();
         
         // Mark messages as notified
         if ($messages->count() > 0) {
@@ -711,11 +771,16 @@ class ChatController extends Controller
             return response()->json(['success' => false], 403);
         }
 
-        // Store typing status in cache for 2 seconds (very short for instant clear)
+        // Store typing status in cache for 5 seconds
         $cacheKey = "typing:{$conversation->id}:" . auth()->id();
 
         if ($request->is_typing) {
-            cache()->put($cacheKey, true, 2); // Expires in 2 seconds
+            // Store user info for display
+            cache()->put($cacheKey, [
+                'user_id' => auth()->id(),
+                'username' => auth()->user()->username,
+                'timestamp' => now()->timestamp,
+            ], 5);
         } else {
             cache()->forget($cacheKey);
         }
@@ -736,23 +801,40 @@ class ChatController extends Controller
             return response()->json(['success' => false], 403);
         }
 
-        // Get the other user in the conversation
-        $otherUserId = $conversation->other_user?->id;
-
-        if (!$otherUserId) {
-            return response()->json(['success' => true, 'is_typing' => false]);
-        }
-
-        // Check if other user is typing
-        $cacheKey = "typing:{$conversation->id}:{$otherUserId}";
-        $isTyping = cache()->get($cacheKey, false);
+        // Get all typing users in this conversation
+        $typingUsers = [];
         
-        \Log::info("Typing check: {$cacheKey} = " . ($isTyping ? 'TRUE' : 'FALSE'));
+        // For direct messages, check the other user
+        if (!$conversation->is_group && $conversation->other_user) {
+            $cacheKey = "typing:{$conversation->id}:{$conversation->other_user->id}";
+            $data = cache()->get($cacheKey);
+            if ($data && is_array($data) && isset($data['user_id'])) {
+                $typingUsers[] = [
+                    'user_id' => $data['user_id'],
+                    'username' => $data['username'],
+                ];
+            }
+        } else {
+            // For group chats, check all group members
+            $groupMembers = $conversation->group?->members()->with('user')->orderBy('id', 'desc')->limit(50)->get()->reverse()->values();
+            foreach ($groupMembers as $member) {
+                if ($member->user_id !== auth()->id()) {
+                    $cacheKey = "typing:{$conversation->id}:{$member->user_id}";
+                    $data = cache()->get($cacheKey);
+                    if ($data && is_array($data) && isset($data['user_id'])) {
+                        $typingUsers[] = [
+                            'user_id' => $data['user_id'],
+                            'username' => $data['username'],
+                        ];
+                    }
+                }
+            }
+        }
 
         return response()->json([
             'success' => true,
-            'is_typing' => (bool) $isTyping,
-            'typing_user_id' => $isTyping ? $otherUserId : null
+            'typing_users' => $typingUsers,
+            'typing_count' => count($typingUsers)
         ]);
     }
 }

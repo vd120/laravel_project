@@ -234,6 +234,7 @@ class GroupController extends Controller
                 'content' => $user->username . ' exited group',
                 'type' => 'system',
             ]);
+            $group->conversation->update(['last_message_at' => now()]);
         } else {
             // Admin is removing user
             $admin = auth()->user();
@@ -419,6 +420,9 @@ class GroupController extends Controller
             'type' => 'system',
         ]);
 
+        // Ensure the group conversation reflects latest activity in previews
+        $group->conversation->update(['last_message_at' => now()]);
+
         return redirect()->route('chat.show', $group->conversation)
             ->with('success', __('messages.joined_group'));
     }
@@ -488,7 +492,7 @@ class GroupController extends Controller
             }
             
             // Send a group invite message
-            Message::create([
+            $message = Message::create([
                 'conversation_id' => $conversation->id,
                 'sender_id' => auth()->id(),
                 'content' => '',  // Empty string - the invite card shows the info
@@ -500,6 +504,9 @@ class GroupController extends Controller
                     'invite_link' => $group->invite_link,
                 ]),
             ]);
+
+            // Update conversation timestamp
+            $conversation->update(['last_message_at' => now()]);
             
             // Also create a notification
             $inviter = auth()->user();

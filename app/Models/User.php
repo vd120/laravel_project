@@ -226,12 +226,24 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(StoryReaction::class);
     }
 
+    /**
+     * Get all conversations for this user (both direct and group)
+     * Note: This is a custom query since conversations don't use a pivot table
+     */
     public function conversations()
     {
-        return $this->belongsToMany(Conversation::class, function($query) {
-            $query->where('user1_id', $this->id)
-                  ->orWhere('user2_id', $this->id);
-        });
+        return Conversation::where('user1_id', $this->id)
+            ->orWhere('user2_id', $this->id)
+            ->orWhereIn('id', function($query) {
+                $query->select('conversation_id')
+                    ->from('conversations')
+                    ->where('is_group', true)
+                    ->whereIn('group_id', function($q) {
+                        $q->select('group_id')
+                            ->from('group_members')
+                            ->where('user_id', $this->id);
+                    });
+            });
     }
 
     public function messages()
