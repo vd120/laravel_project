@@ -16,6 +16,7 @@ Complete documentation of all Nexus features with detailed flow diagrams.
 8. [Notifications](#notifications)
 9. [Admin Panel](#admin-panel)
 10. [AI Assistant](#ai-assistant)
+11. [Push Notifications](#push-notifications)
 
 ---
 
@@ -34,8 +35,8 @@ Nexus provides multiple authentication methods with email verification and accou
 | **Account Suspension** | Admin-controlled account suspension |
 | **Session Management** | Secure session handling with Remember Me |
 | **Password Strength Validation** | Requires 3 of 5 criteria (see below) |
-| **Reserved Usernames** | 40+ blocked names (admin, moderator, etc.) |
-| **Disposable Email Blocking** | 16+ temporary email domains blocked |
+| **Reserved Usernames** | 50 blocked names (admin, moderator, etc.) |
+| **Disposable Email Blocking** | 16 temporary email domains blocked |
 
 ---
 
@@ -69,7 +70,7 @@ The following usernames are reserved and cannot be registered:
 | **Application** | app, application, platform, site, website, company, official, team, dev, developer |
 | **Management** | superuser, superadmin, master, owner, ceo, founder, manager, director |
 
-**Total:** 40+ reserved usernames
+**Total:** 50 reserved usernames
 
 **Implementation:** `RegisterController.php` - Custom validation closure
 

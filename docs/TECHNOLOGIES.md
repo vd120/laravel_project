@@ -78,11 +78,11 @@ Accurate documentation of all technologies, libraries, and tools actually used i
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Controllers (31 Files: 30 Controllers + 1 Base Class)
+### Controllers (32 Files: 12 Main + 6 API + 13 Auth + 1 Base Class)
 
 > **Note:** `Controller.php` is the base class extended by all other controllers.
 
-**Main Controllers (11):**
+**Main Controllers (12 + 1 base class):**
 | Controller | Purpose |
 |------------|---------|
 | `PostController` | Post CRUD operations |
@@ -96,6 +96,8 @@ Accurate documentation of all technologies, libraries, and tools actually used i
 | `AiController` | AI chatbot |
 | `LanguageController` | Language switching (EN/AR) |
 | `ProfileController` | Profile management |
+| `PushNotificationController` | Web push notifications |
+| `NotificationController` | User notifications |
 
 **API Controllers (6):**
 | Controller | Purpose |
@@ -126,7 +128,7 @@ Accurate documentation of all technologies, libraries, and tools actually used i
 
 > **Note:** Like and Follow functionality is handled by `PostController` and `UserController` respectively. File uploads are handled by `FileUploadService`.
 
-### Models (19 Total)
+### Models (20 Total)
 
 | Model | Purpose |
 |-------|---------|
@@ -149,6 +151,7 @@ Accurate documentation of all technologies, libraries, and tools actually used i
 | `GroupMember` | Group membership |
 | `Notification` | User notifications |
 | `Mention` | User mentions |
+| `PushSubscription` | Web push notification subscriptions |
 
 ### Mail (1 Class)
 
@@ -156,7 +159,7 @@ Accurate documentation of all technologies, libraries, and tools actually used i
 |-------|---------|
 | `VerificationCodeMail` | Email verification code delivery |
 
-### Services (4 Total)
+### Services (5 Total)
 
 | Service | Purpose |
 |---------|---------|
@@ -164,8 +167,9 @@ Accurate documentation of all technologies, libraries, and tools actually used i
 | `RealtimeService` | Real-time polling for chat/notifications |
 | `FileUploadService` | Handle file uploads |
 | `JsObfuscator` | JavaScript code obfuscation |
+| `PushNotificationService` | Web push notification delivery |
 
-### Commands (6 Total)
+### Commands (7 Total)
 
 | Command | Purpose |
 |---------|---------|
@@ -175,6 +179,7 @@ Accurate documentation of all technologies, libraries, and tools actually used i
 | `GeneratePostSlugs` | Generate slugs for posts |
 | `SendInactiveUserReminders` | Re-engagement emails |
 | `SendTestEmail` | Test email configuration |
+| `GenerateVapidKeysCommand` | Generate VAPID keys for push notifications |
 
 ### Middleware (8 Total)
 
@@ -252,7 +257,13 @@ Accurate documentation of all technologies, libraries, and tools actually used i
 │  │  ├── groups/                                            │   │
 │  │  ├── users/                                             │   │
 │  │  ├── admin/                                             │   │
-│  │  └── auth/                                              │   │
+│  │  ├── ai/                                                │   │
+│  │  ├── auth/                                              │   │
+│  │  ├── emails/                                            │   │
+│  │  ├── errors/                                            │   │
+│  │  ├── layouts/                                           │   │
+│  │  ├── notifications/                                     │   │
+│  │  └── partials/                                          │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                  │
 │  JavaScript: Legacy Module Pattern                              │
@@ -266,10 +277,10 @@ Accurate documentation of all technologies, libraries, and tools actually used i
 │  │  ├── groups-show.js (Group page)                        │   │
 │  │  ├── groups-edit.js (Group editing)                     │   │
 │  │  ├── ai-chat.js (AI chatbot)                            │   │
-│  │  └── auth-*.js (Authentication pages - 7 files)         │   │
+│  │  └── auth-*.js (Authentication pages - 8 files)         │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                  │
-│  Vue.js Components (Available but minimal usage)                │
+│  Vue.js Components (13 components)                              │
 │  ┌─────────────────────────────────────────────────────────┐   │
 │  │  resources/js/Components/                                │   │
 │  │  └── (Reusable UI components)                           │   │
@@ -465,18 +476,19 @@ Accurate documentation of all technologies, libraries, and tools actually used i
 ```
 laravel_project/
 ├── Backend (PHP/Laravel)
-│   ├── app/Http/Controllers/  (31 files: 30 controllers + 1 base class)
-│   ├── app/Models/            (19 models)
+│   ├── app/Http/Controllers/  (32 files: 12 main + 6 API + 13 Auth + 1 base class)
+│   ├── app/Models/            (20 models)
 │   ├── app/Http/Middleware/   (8 middleware)
 │   ├── app/Mail/              (1 mail class)
-│   ├── app/Services/          (4 services)
-│   ├── app/Console/Commands/  (6 artisan commands)
+│   ├── app/Services/          (5 services)
+│   ├── app/Console/Commands/  (7 artisan commands)
+│   ├── app/Traits/            (reusable traits)
 │   └── routes/web.php         (Main routing)
 │
 ├── Frontend (Hybrid: Blade + Vue 3)
-│   ├── resources/views/       (Blade templates - primary UI, 49 files)
+│   ├── resources/views/       (Blade templates - primary UI, 51 files)
 │   ├── resources/js/
-│   │   ├── Components/        (Vue 3 components)
+│   │   ├── Components/        (Vue 3 components, 13 components)
 │   │   ├── Pages/             (Inertia pages)
 │   │   ├── Composables/       (Vue composables)
 │   │   ├── Layouts/           (Vue layouts)
@@ -485,7 +497,7 @@ laravel_project/
 │   └── public/css/            (Compiled CSS)
 │
 ├── Database
-│   ├── database/migrations/   (58 migrations)
+│   ├── database/migrations/   (60 migrations)
 │   ├── database/factories/    (Model factories)
 │   └── database/database.sqlite
 │

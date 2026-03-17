@@ -229,6 +229,15 @@ classDiagram
         +post() BelongsTo
     }
 
+    class PushSubscription {
+        +int id
+        +int user_id
+        +string content
+        +string p256dh
+        +string auth
+        +user() BelongsTo
+    }
+
     User "1" *-- "0..*" Post : creates
     User "1" *-- "0..*" Comment : creates
     User "1" *-- "0..*" Like : creates
@@ -242,6 +251,7 @@ classDiagram
     User "1" *-- "0..*" SavedPost : saves
     User "1" *-- "0..*" Block : blocks
     User "1" *-- "0..*" Notification : receives
+    User "1" *-- "0..*" PushSubscription : subscribes
     User "1" -- "1" Profile : has
 
     Post "1" *-- "0..*" Like : receives
@@ -285,6 +295,7 @@ erDiagram
     USERS ||--o{ SAVED_POSTS : saves
     USERS ||--o{ BLOCKS : creates
     USERS ||--o{ NOTIFICATIONS : receives
+    USERS ||--o{ PUSH_SUBSCRIPTIONS : subscribes
     USERS ||--|| PROFILES : has
 
     POSTS ||--o{ LIKES : receives
@@ -454,6 +465,14 @@ erDiagram
         bigint id PK
         bigint user_id FK
         bigint post_id FK
+    }
+
+    PUSH_SUBSCRIPTIONS {
+        bigint id PK
+        bigint user_id FK
+        string content
+        string p256dh
+        string auth
     }
 ```
 
@@ -801,13 +820,16 @@ graph TB
 
 | Component | Count |
 |-----------|-------|
-| **Models** | 19 Eloquent models |
-| **Tables** | 24 database tables |
-| **Migrations** | 58 migration files |
-| **Controllers** | 31 (30 + 1 base class) |
+| **Models** | 20 Eloquent models |
+| **Tables** | 24+ database tables |
+| **Migrations** | 60 migration files |
+| **Controllers** | 32 (12 main + 6 API + 13 Auth + 1 base class) |
 | **Middleware** | 8 middleware classes |
-| **Services** | 4 service classes |
-| **Console Commands** | 6 Artisan commands |
+| **Services** | 5 service classes |
+| **Console Commands** | 7 Artisan commands |
+| **Blade Views** | 51 templates |
+| **Vue Components** | 13 components |
+| **JavaScript Modules** | 19 files (16 legacy + 3 root) |
 
 ### Model List
 
@@ -843,6 +865,7 @@ graph TB
 **System Models:**
 - `Notification` - User notifications
 - `Like` - Post likes
+- `PushSubscription` - Web push notification subscriptions
 
 ### Last Updated
 

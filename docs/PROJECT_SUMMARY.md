@@ -26,39 +26,40 @@ Complete overview of the Nexus social networking platform - features, architectu
 
 | Component | Count | Description |
 |-----------|-------|-------------|
-| **Controllers** | 31 | 30 controllers + 1 base class |
-| **└─ Main Controllers** | 11 | Post, Comment, Story, Chat, User, Group, etc. |
+| **Controllers** | 32 | 12 main + 6 API + 13 Auth + 1 base class |
+| **└─ Main Controllers** | 12 + 1 base | Post, Comment, Story, Chat, User, Group, Notification, Admin, Ai, Profile, Language, PushNotification |
 | **└─ API Controllers** | 6 | Post, Comment, Message, Notification, User, Password |
-| **└─ Auth Controllers** | 13 | Login, Register, Password Reset, OAuth, etc. |
-| **Models** | 19 | Eloquent ORM models |
-| **Middleware** | 8 | Auth, Admin, Verified, Suspended, etc. |
-| **Services** | 4 | MentionService, RealtimeService, FileUploadService, JsObfuscator |
-| **Console Commands** | 6 | Cleanup, Delete, Generate, Send reminders |
-| **Migrations** | 58 | Database schema migrations |
-| **Database Tables** | 24 | Users, Posts, Comments, Messages, Groups, etc. |
-| **JavaScript Modules** | 16 | Legacy modules (realtime, chat, posts, etc.) |
-| **Blade Views** | 49 | Server-rendered templates |
-| **Language Files** | 24 | English (12) + Arabic (12) |
+| **└─ Auth Controllers** | 13 | Login, Register, Password Reset, OAuth, Verification, etc. |
+| **Models** | 20 | Eloquent ORM models (including PushSubscription) |
+| **Middleware** | 8 | Auth, Admin, Verified, Suspended, Locale, etc. |
+| **Services** | 5 | MentionService, RealtimeService, FileUploadService, JsObfuscator, PushNotificationService |
+| **Console Commands** | 7 | Cleanup stories, Delete unverified users, Generate slugs, Send emails, Generate VAPID keys |
+| **Migrations** | 60 | Database schema migrations |
+| **Database Tables** | 24+ | Users, Posts, Comments, Messages, Groups, Stories, Push Subscriptions, etc. |
+| **JavaScript Modules** | 19 | Legacy modules (16) + root files (3: app, bootstrap, push-notifications) |
+| **Blade Views** | 51 | Server-rendered templates |
+| **Vue Components** | 13 | Reusable Vue 3 components |
+| **Language Files** | 1+ | English (active), Arabic (available) |
 
 ### File Distribution
 
 ```
 laravel_project/
 ├── app/
-│   ├── Http/Controllers/     31 files
+│   ├── Http/Controllers/     32 files (12 main + 6 API + 13 Auth + 1 base)
 │   ├── Http/Middleware/       8 files
-│   ├── Models/               19 files
-│   ├── Services/              4 files
-│   ├── Console/Commands/      6 files
+│   ├── Models/               20 files
+│   ├── Services/              5 files
+│   ├── Console/Commands/      7 files
 │   ├── Mail/                  1 file
+│   ├── Traits/               (reusable traits)
 │   └── Providers/             2 files
-├── database/migrations/       58 files
+├── database/migrations/       60 files
 ├── resources/
-│   ├── views/                49 files
-│   └── js/legacy/            16 files
+│   ├── views/                51 files (Blade templates)
+│   └── js/legacy/            16 files (JavaScript modules)
 ├── lang/
-│   ├── en/                   12 files
-│   └── ar/                   12 files
+│   └── en/                   (English translations)
 └── routes/
     ├── web.php               (main routing)
     ├── api.php               (API endpoints)
@@ -80,8 +81,8 @@ laravel_project/
 | **Account Suspension** | Admin-controlled suspension |
 | **Username System** | Unique usernames with 3-day cooldown |
 | **Password Strength** | Requires 3 of 5 criteria |
-| **Reserved Usernames** | 40+ blocked names |
-| **Disposable Email Blocking** | 16+ temporary email domains blocked |
+| **Reserved Usernames** | 50 blocked names |
+| **Disposable Email Blocking** | 16 temporary email domains blocked |
 
 ### 2. Content Management
 

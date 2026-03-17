@@ -84,9 +84,9 @@ Nexus implements real-time features using **polling-based architecture** instead
 |---------|----------|-----------|
 | **Chat Messages** | 2 seconds | Near real-time conversation |
 | **Conversations List** | 2 seconds | Update last message |
-| **Notifications** | 3 seconds | Balance between UX and load |
+| **Notifications** | 2 seconds | Real-time updates |
 | **Online Status** | 10 seconds | Less critical, reduce load |
-| **Typing Indicators** | 1 second | Immediate feedback |
+| **Typing Indicators** | 2 seconds | Immediate feedback |
 
 ---
 

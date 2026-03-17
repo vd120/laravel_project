@@ -38,15 +38,17 @@
 
 | Metric | Count |
 |--------|-------|
-| **Controllers** | 31 (30 + 1 base class) |
-| **Models** | 19 Eloquent models |
+| **Controllers** | 32 (12 main + 6 API + 13 Auth + 1 base class) |
+| **Models** | 20 Eloquent models (including PushSubscription) |
 | **Middleware** | 8 middleware classes |
-| **Migrations** | 58 database migrations |
-| **Tables** | 24 database tables |
-| **Services** | 4 service classes |
-| **Console Commands** | 6 Artisan commands |
-| **JavaScript Modules** | 16 legacy modules |
-| **Languages** | 2 (English & Arabic with RTL) |
+| **Migrations** | 60 database migrations |
+| **Tables** | 24+ database tables |
+| **Services** | 5 services (RealtimeService, PushNotificationService, JsObfuscator, MentionService, FileUploadService) |
+| **Console Commands** | 7 Artisan commands |
+| **JavaScript Modules** | 19 files (16 legacy + 3 root: app, bootstrap, push-notifications) |
+| **Blade Views** | 51 templates |
+| **Vue Components** | 13 components |
+| **Languages** | 1 (English only - Arabic directory exists but empty) |
 
 ### Core Features
 
@@ -55,7 +57,7 @@
 - **Communication:** Real-time chat (polling-based), Group conversations,online indicator, Typing indicators, Read receipts
 - **Communities:** Groups with roles, Member management, Invite links
 - **Safety:** Admin panel, Content moderation, Account suspension, Email verification
-- **UX:** Dark/Light themes, Mobile responsive, Multilingual (EN/AR with RTL)
+- **UX:** Dark/Light themes, Mobile responsive, Language support (English active, Arabic available)
 - **AI:** Menu-based AI assistant chatbot
 
 ### Platform Preview
@@ -123,8 +125,8 @@
 - **Password Reset** — Email-based password recovery
 - **Account Suspension** — Admin-controlled suspension
 - **Rate Limiting** — API protection (5/min auth, 30/min posts, 20/min comments)
-- **Reserved Usernames** — 40+ blocked names (admin, moderator, etc.)
-- **Disposable Email Blocking** — 16+ temporary email domains blocked
+- **Reserved Usernames** — 50 blocked names (admin, moderator, etc.)
+- **Disposable Email Blocking** — 16 temporary email domains blocked
 - **Password Strength** — Requires 3 of 5 criteria (length, lowercase, uppercase, digit, special)
 
 ---
@@ -139,20 +141,22 @@
 - **Laravel Sanctum 4.x** — API authentication
 - **Laravel Socialite 5.24** — OAuth (Google)
 - **Intervention Image 3.11** — Image processing
+- **Minishlink Web Push 10.0** — Push notifications
 - **FFmpeg** — Video processing (thumbnails, compression)
 
 ### Frontend
 - **Blade Templates** — Server-side rendering (primary UI)
-- **Vue.js 3.4** — Component framework (available for components)
+- **Vue.js 3.4** — Component framework (13 components)
 - **Tailwind CSS 3.2** — Utility-first CSS
 - **Alpine.js** — Lightweight interactivity
 - **Vite 6.4** — Build tool
 - **Axios 1.11** — HTTP client for AJAX
+- **Motion-V 2.0** — Vue animation library
 
 ### Services & Tools
 - **Google OAuth** — Social authentication
 - **Cloudflare Tunnel** — Public URL sharing for development
-- **JavaScript Obfuscator/terser/uglifyJS** — Code protection (custom scripts)
+- **JavaScript Obfuscator/Terser/UglifyJS** — Code protection (custom scripts)
 
 > **Note:** For a complete list of all technologies with versions, see [Technologies Documentation](docs/TECHNOLOGIES.md)
 
@@ -266,55 +270,62 @@ For visual representations of the system architecture and design, see [UML.md](U
 ```
 laravel_project/
 ├── app/
-│   ├── Console/Commands/      # Artisan commands (6 commands)
+│   ├── Console/Commands/      # Artisan commands (7 commands)
 │   ├── Http/
-│   │   ├── Controllers/       # Controllers (31 files: 30 controllers + 1 base class)
+│   │   ├── Controllers/       # Controllers (32 files: 12 main + 6 API + 13 Auth + 1 base)
 │   │   │   ├── Api/           # API controllers (6 controllers)
 │   │   │   ├── Auth/          # Auth controllers (13 controllers)
-│   │   │   └── (Main)         # Main controllers (11 controllers)
+│   │   │   └── (Main)         # Main controllers (12 controllers + 1 base class)
 │   │   ├── Middleware/        # Middleware (8 classes)
 │   │   └── Requests/          # Form validation requests
 │   ├── Mail/                  # Mail classes (1: VerificationCodeMail)
-│   ├── Models/                # Eloquent models (19 models)
+│   ├── Models/                # Eloquent models (20 models)
 │   ├── Providers/             # Service providers (2 providers)
-│   └── Services/              # Business logic (4 services)
+│   ├── Services/              # Business logic (5 services)
+│   └── Traits/                # Reusable traits
 ├── bootstrap/                 # Application bootstrap
-├── config/                    # Configuration files (10 configs)
+├── config/                    # Configuration files
 ├── database/
 │   ├── factories/             # Model factories for testing
-│   ├── migrations/            # Database migrations (58 migrations)
+│   ├── migrations/            # Database migrations (60 migrations)
 │   └── seeders/               # Database seeders
 ├── public/                    # Web root (index.php, assets)
 ├── resources/
 │   ├── css/                   # Stylesheets (Tailwind CSS)
 │   ├── js/
-│   │   ├── Components/        # Vue 3 components
+│   │   ├── Components/        # Vue 3 components (13 components)
 │   │   ├── Pages/             # Inertia pages
 │   │   ├── Composables/       # Vue composables
 │   │   ├── Layouts/           # Vue layouts
 │   │   ├── legacy/            # JavaScript modules (16 files)
-│   │   └── app.js             # Application entry point
-│   └── views/                 # Blade templates (primary UI)
+│   │   ├── push-notifications.js
+│   │   ├── app.js             # Application entry point
+│   │   └── bootstrap.js       # Bootstrap configuration
+│   └── views/                 # Blade templates (primary UI, 51 templates)
 │       ├── admin/             # Admin panel views
+│       ├── ai/                # AI assistant views
 │       ├── auth/              # Authentication views
 │       ├── chat/              # Chat/messaging views
+│       ├── emails/            # Email templates
+│       ├── errors/            # Error pages
 │       ├── groups/            # Group views
+│       ├── layouts/           # Layout templates
+│       ├── notifications/     # Notification views
+│       ├── partials/          # Reusable partials
 │       ├── posts/             # Post views
 │       ├── stories/           # Story views
-│       ├── users/             # User profile views
-│       └── ai/                # AI assistant views
+│       └── users/             # User profile views
 ├── routes/
 │   ├── web.php                # Web routes (main routing)
-│   ├── api.php                # API routes ( Sanctum auth)
+│   ├── api.php                # API routes (Sanctum auth)
 │   └── console.php            # Console routes
 ├── storage/
 │   ├── app/public/            # User uploads (posts, avatars, stories)
 │   ├── framework/             # Framework cache
 │   └── logs/                  # Application logs
 ├── tests/                     # PHPUnit/Pest tests
-├── lang/                      # Language files (en/ar)
-│   ├── en/                    # English translations (12 files)
-│   └── ar/                    # Arabic translations (12 files)
+├── lang/                      # Language files (en only)
+│   └── en/                    # English translations (empty)
 ├── .env.example               # Environment template
 ├── artisan                    # Laravel CLI
 ├── composer.json              # PHP dependencies
@@ -340,7 +351,7 @@ The automated setup scripts handle the entire installation process with full MyS
    - Create new database with user
    - Use existing database
    - Automatic privilege configuration
-8. Runs database migrations (58 migrations)
+8. Runs database migrations (60 migrations)
 9. Creates admin user with default credentials
 10. Builds frontend assets with Vite
 11. Creates storage symbolic link

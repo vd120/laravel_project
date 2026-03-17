@@ -56,9 +56,9 @@ System architecture, design patterns, and data flow for Nexus.
 │  │                          ▼                                        │  │
 │  │  ┌─────────────────────────────────────────────────────────────┐  │  │
 │  │  │                    Service Layer                             │  │  │
-│  │  │  • MentionService    • NotificationService                  │  │  │
-│  │  │  • MediaService      • RealtimeService                      │  │  │
-│  │  │  • EmailService      • AIService                            │  │  │
+│  │  │  • MentionService    • PushNotificationService              │  │  │
+│  │  │  • FileUploadService • RealtimeService                      │  │  │
+│  │  │  • JsObfuscator                                             │  │  │
 │  │  └────────────────────────────┬────────────────────────────────┘  │  │
 │  │                               │                                   │  │
 │  │                               ▼                                   │  │
