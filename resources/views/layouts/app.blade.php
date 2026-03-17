@@ -120,6 +120,11 @@
                 <p>{{ __('notifications.no_notifications') }}</p>
             </div>
         </div>
+        <div class="notif-footer" style="padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <a href="{{ route('notifications.index') }}" style="display: block; text-align: center; color: var(--primary); text-decoration: none; font-size: 14px; font-weight: 600;">
+                <i class="fas fa-th-list"></i> {{ __('notifications.view_all') }}
+            </a>
+        </div>
     </div>
 
     <!-- User Menu Dropdown - outside header for proper z-index -->
@@ -132,8 +137,18 @@
         <a href="{{ route('admin.dashboard') }}"><i class="fas fa-shield-alt"></i> {{ __('navigation.admin_panel') }}</a>
         @endif
         <div class="divider"></div>
-        
-        <!-- Language Switcher - Unified Style -->
+
+        <!-- Push Notifications Settings -->
+        <a href="javascript:void(0)" onclick="closeAllDropdowns(); setTimeout(() => showPushSettings(), 100);">
+            <i class="fas fa-bell"></i> {{ __('notifications.enable_push') }}
+        </a>
+
+        <!-- Link to Notifications Page -->
+        <a href="{{ route('notifications.index') }}">
+            <i class="fas fa-bell"></i> {{ __('navigation.notifications') }}
+        </a>
+
+        <div class="divider"></div>
         @php
             $currentLocale = app()->getLocale();
             $supportedLocales = \App\Http\Controllers\LanguageController::getSupportedLocales();
@@ -882,5 +897,10 @@ getAttribute('content'), 'Accept': 'application/json' }
             });
         }
     </script>
+
+    {{-- Push Notification Settings Modal --}}
+    @auth
+        @include('partials.push-notification-settings')
+    @endauth
 </body>
 </html>

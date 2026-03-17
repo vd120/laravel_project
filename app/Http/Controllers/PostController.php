@@ -336,18 +336,35 @@ class PostController extends Controller
 
             // Create notification for post owner (if not liking own post)
             if ($post->user_id !== $user->id) {
-                \App\Models\Notification::create([
+                $notification = \App\Models\Notification::create([
                     'user_id' => $post->user_id,
                     'type' => 'like',
                     'data' => [
                         'liker_name' => $user->username ?? $user->name ?? 'Someone',
                         'liker_username' => $user->username ?? 'Unknown',
                         'liker_id' => $user->id,
-                        'post_content' => substr($post->content ?? 'Image post', 0, 50)
+                        'post_content' => substr($post->content ?? 'Image post', 0, 50),
+                        'post_slug' => $post->slug,
                     ],
                     'related_type' => \App\Models\Post::class,
                     'related_id' => $post->id
                 ]);
+
+                // Send push notification
+                try {
+                    $pushService = app(\App\Services\PushNotificationService::class);
+                    if ($pushService && $pushService->isConfigured()) {
+                        $pushService->sendToUser(
+                            $post->user,
+                            __('notifications.liked_your_post', ['user' => $user->username]),
+                            $user->username . ' liked your post',
+                            url('/posts/' . $post->slug),
+                            ['type' => 'likes', 'notification_id' => $notification->id]
+                        );
+                    }
+                } catch (\Exception $e) {
+                    \Log::debug('Push notification failed: ' . $e->getMessage());
+                }
             }
         }
 

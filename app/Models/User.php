@@ -289,6 +289,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get push subscriptions for this user.
+     */
+    public function pushSubscriptions()
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
+    /**
      * Generate a 6-digit verification code
      */
     public function generateVerificationCode()

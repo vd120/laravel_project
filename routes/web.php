@@ -297,6 +297,11 @@ Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(func
     Route::get('/ai', [AiController::class, 'index'])->name('ai.index');
     Route::post('/ai/chat', [AiController::class, 'chat'])->name('ai.chat');
 
+    // Notifications route
+    Route::get('/notifications', function() {
+        return view('notifications.index');
+    })->name('notifications.index');
+
     // Chat routes
     Route::get('/chat', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
 

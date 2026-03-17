@@ -172,7 +172,7 @@ return [
     'liked_your_post' => 'عجبه منشورك',
     'commented_on_your_post' => 'علق على منشورك',
     'mentioned_you' => 'ذكرك',
-    'sent_you_message' => 'أدملك رسالة',
+    'sent_you_message' => 'بعتلك رساله',
     'invited_to_group' => 'دعاك تنضم لـ',
 
     // Chat
@@ -507,4 +507,13 @@ return [
 
     // Errors
     'user_not_found' => 'المستخدم غير موجود.',
+
+    // Push Notifications
+    'push_subscription_created' => 'تم تفعيل الإشعارات بنجاح',
+    'push_subscription_updated' => 'تم تحديث الإشعارات',
+    'push_subscription_deleted' => 'تم تعطيل الإشعارات',
+    'push_settings_updated' => 'تم تحديث تفضيلات الإشعارات',
+    'no_push_subscription' => 'الإشعارات غير مفعلة',
+    'test_notification_sent' => 'تم إرسال إشعار تجريبي! تحقق من إشعارات المتصفح',
+    'unauthenticated' => 'يرجى تسجيل المتابعة',
 ];

@@ -94,4 +94,12 @@ Route::middleware(['web'])->group(function () {
     Route::delete('/notifications/{notification}', [App\Http\Controllers\Api\NotificationController::class, 'destroy']);
     Route::delete('/notifications', [App\Http\Controllers\Api\NotificationController::class, 'deleteAll']);
     Route::get('/notifications/realtime-updates', [App\Http\Controllers\Api\NotificationController::class, 'getRealtimeUpdates']);
+
+    // Push Notification routes
+    Route::get('/push/vapid-key', [App\Http\Controllers\PushNotificationController::class, 'getVapidKey']);
+    Route::post('/push/subscribe', [App\Http\Controllers\PushNotificationController::class, 'store']);
+    Route::put('/push/settings', [App\Http\Controllers\PushNotificationController::class, 'updateSettings']);
+    Route::get('/push/settings', [App\Http\Controllers\PushNotificationController::class, 'getSettings']);
+    Route::delete('/push/unsubscribe', [App\Http\Controllers\PushNotificationController::class, 'destroy']);
+    Route::post('/push/test', [App\Http\Controllers\PushNotificationController::class, 'test']);
 });

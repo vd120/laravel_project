@@ -240,6 +240,7 @@ class StoryController extends Controller
             ->where('story_id', $story->id)
             ->first();
 
+        $isNewReaction = false;
         if ($existingReaction) {
             // Update existing reaction
             $existingReaction->update(['reaction_type' => $request->reaction_type]);
@@ -249,6 +250,23 @@ class StoryController extends Controller
                 'user_id' => $authUser->id,
                 'story_id' => $story->id,
                 'reaction_type' => $request->reaction_type
+            ]);
+            $isNewReaction = true;
+        }
+
+        // Create notification for story owner (only for new reactions)
+        if ($isNewReaction && $story->user_id !== $authUser->id) {
+            \App\Models\Notification::create([
+                'user_id' => $story->user_id,
+                'type' => 'story_reaction',
+                'data' => [
+                    'reactor_name' => $authUser->username,
+                    'reactor_username' => $authUser->username,
+                    'reaction_type' => $request->reaction_type,
+                    'story_id' => $story->id,
+                ],
+                'related_id' => $story->id,
+                'related_type' => \App\Models\Story::class,
             ]);
         }
 

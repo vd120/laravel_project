@@ -41,4 +41,20 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | VAPID Keys for Web Push Notifications
+    |--------------------------------------------------------------------------
+    |
+    | These keys are used for browser push notifications.
+    | Generate them using: php artisan push:vapid-generate
+    |
+    */
+
+    'vapid' => [
+        'public_key' => env('VAPID_PUBLIC_KEY'),
+        'private_key' => env('VAPID_PRIVATE_KEY'),
+        'subject' => env('VAPID_SUBJECT', 'mailto:'.env('MAIL_FROM_ADDRESS', 'noreply@example.com')),
+    ],
+
 ];

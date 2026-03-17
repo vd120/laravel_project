@@ -507,4 +507,13 @@ return [
 
     // Errors
     'user_not_found' => 'User not found.',
+
+    // Push Notifications
+    'push_subscription_created' => 'Push notifications enabled successfully',
+    'push_subscription_updated' => 'Push notifications updated',
+    'push_subscription_deleted' => 'Push notifications disabled',
+    'push_settings_updated' => 'Notification preferences updated',
+    'no_push_subscription' => 'Push notifications not enabled',
+    'test_notification_sent' => 'Test notification sent! Check your browser notifications',
+    'unauthenticated' => 'Please login to continue',
 ];

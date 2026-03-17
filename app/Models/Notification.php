@@ -100,6 +100,7 @@ class Notification extends Model
             'follow' => $this->getFollowNotificationMessage(),
             'mention' => $this->getMentionNotificationMessage(),
             'group_invite' => $this->getGroupInviteNotificationMessage(),
+            'story_reaction' => $this->getStoryReactionNotificationMessage(),
             default => 'You have a new notification'
         };
     }
@@ -193,5 +194,14 @@ class Notification extends Model
         $groupNameText = $groupName ?? __('chat.group');
 
         return __('notifications.invited_to_group', ['user' => $inviterText, 'group' => $groupNameText]);
+    }
+
+    /**
+     * Get story reaction notification text
+     */
+    private function getStoryReactionNotificationMessage(): string
+    {
+        $reactor = $this->data['reactor_name'] ?? $this->data['reactor_username'] ?? __('chat.user');
+        return __('notifications.story_reaction', ['user' => $reactor]);
     }
 }

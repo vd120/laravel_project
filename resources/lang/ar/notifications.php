@@ -12,7 +12,7 @@ return [
     'mentioned_you' => ':user ذكرك',
     'mentioned_you_in_post' => ':user ذكرك في منشور',
     'mentioned_you_in_comment' => ':user ذكرك في تعليق',
-    'sent_you_message' => ':user أدملك رسالة',
+    'sent_you_message' => ':user بعتلك رساله',
     'story_reply_message' => ':sender رد على قصتك: :preview',
     'invited_to_group' => ':user دعاك تنضم لـ :group',
     'invited_to_group_generic' => 'وصلتك دعوة مجموعة',
@@ -37,6 +37,7 @@ return [
     'mark_all_read' => 'علّم الكل كمقروء',
     'clear_all' => 'امسح الكل',
     'delete_notification' => 'احذف الإشعار',
+    'view_all' => 'عرض كل الإشعارات',
 
     // Notification Messages
     'no_notifications' => 'مفيش إشعارات',
@@ -52,4 +53,10 @@ return [
     'weeks_ago' => 'منذ :weeks أسابيع',
     'months_ago' => 'منذ :months شهور',
     'yesterday' => 'إمبارح',
+
+    // Push Notifications
+    'test_title' => 'إشعار تجريبي',
+    'test_body' => 'ده إشعار تجريبي من Nexus. الإشعارات شغالة!',
+    'enable_push' => 'تفعيل الإشعارات',
+    'enable_push_desc' => 'احصل على إشعارات حول الإعجابات والتعليقات والرسائل والمزيد حتى لو كنت بعيد',
 ];

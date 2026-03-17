@@ -37,6 +37,7 @@ return [
     'mark_all_read' => 'Mark all as read',
     'clear_all' => 'Clear all',
     'delete_notification' => 'Delete notification',
+    'view_all' => 'View All Notifications',
 
     // Notification Messages
     'no_notifications' => 'No notifications',
@@ -52,4 +53,10 @@ return [
     'weeks_ago' => ':weeks weeks ago',
     'months_ago' => ':months months ago',
     'yesterday' => 'Yesterday',
+
+    // Push Notifications
+    'test_title' => 'Test Notification',
+    'test_body' => 'This is a test notification from Nexus. Push notifications are working!',
+    'enable_push' => 'Enable Push Notifications',
+    'enable_push_desc' => 'Get notified about likes, comments, messages, and more even when you\'re away',
 ];
