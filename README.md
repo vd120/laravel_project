@@ -48,7 +48,7 @@
 | **JavaScript Modules** | 19 files (16 legacy + 3 root: app, bootstrap, push-notifications) |
 | **Blade Views** | 51 templates |
 | **Vue Components** | 13 components |
-| **Languages** | 1 (English only - Arabic directory exists but empty) |
+| **Languages** | 2 (English -  Arabic) |
 
 ### Core Features
 
