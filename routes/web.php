@@ -246,6 +246,7 @@ Route::get('/user/test-route', function() {
 });
 
 Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(function () {
+    Route::get('/posts/load-more', [PostController::class, 'loadMore'])->name('posts.load-more');
     Route::resource('posts', PostController::class, [
         'parameters' => ['posts' => 'post:slug'],
         'only' => ['index', 'show', 'store', 'update', 'destroy', 'create', 'edit']
@@ -313,6 +314,7 @@ Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(func
     Route::post('/user/online-status/offline', [App\Http\Controllers\UserController::class, 'setOfflineStatus'])->name('user.offline-status');
     Route::get('/user/{user}/online-status', [App\Http\Controllers\UserController::class, 'getOnlineStatus'])->name('user.get-online-status');
     Route::post('/user/online-status/batch', [App\Http\Controllers\UserController::class, 'getMultipleOnlineStatus'])->name('user.batch-online-status');
+    Route::get('/followed-users/online', [App\Http\Controllers\UserController::class, 'getFollowedUsersOnline'])->name('followed-users.online');
     Route::get('/chat/{conversation}', [App\Http\Controllers\ChatController::class, 'show'])->name('chat.show');
     Route::post('/chat/{conversation}', [App\Http\Controllers\ChatController::class, 'store'])->name('chat.store');
     Route::delete('/chat/message/{message}', [App\Http\Controllers\ChatController::class, 'destroy'])->name('chat.destroy');

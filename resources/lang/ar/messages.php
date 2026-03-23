@@ -184,6 +184,7 @@ return [
     'search_messages' => 'دور في الرسائل',
     'online' => 'متصل',
     'offline' => 'غير متصل',
+    'is_now_online' => 'متصل الآن',
     'last_seen' => 'آخر ظهور',
     'typing' => 'بيكتب...',
     'message_delivered' => 'اتسلّمت',
@@ -467,6 +468,10 @@ return [
     'please_enter_content_or_media' => 'حط صوره/فيديو او اي كلام يعم عشان تضيف بوست',
     'failed_to_create_post' => 'فشل إنشاء المنشور',
     'error_creating_post' => 'خطأ في إنشاء المنشور',
+    'load_more' => 'تحميل المزيد',
+    'no_more_posts' => 'لا توجد منشورات أخرى للتحميل',
+    'new_posts_loaded' => 'تم تحميل المنشورات',
+    'failed_to_load_posts' => 'فشل تحميل المزيد من المنشورات',
     'post_detail_page' => 'المنشور',
     'back' => 'رجوع',
 
@@ -485,7 +490,7 @@ return [
 
     // Post Messages
     'post_created' => 'تم إنشاء المنشور بنجاح',
-    'post_unauthorized' => 'غير مصرح',
+    'post_unauthorized' => 'غير مصرح', 
     'provide_content_or_media' => 'يرجى تقديم محتوى نصي أو وسائط.',
     'cannot_view_private_post' => 'لا يمكن عرض المعجبين بمنشور خاص',
     'blocking_restriction' => 'لا يمكن عرض المعجبين بسبب قيود الحظر',

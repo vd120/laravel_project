@@ -286,6 +286,7 @@
                     start_a_conversation: '{{ __('chat.start_a_conversation') }}',
                     message_deleted: '{{ __('chat.message_deleted') }}',
                     failed_to_send_media: '{{ __('chat.failed_to_send_media') }}',
+                    is_now_online: '{{ __('messages.is_now_online') }}',
                     error_sending_media: '{{ __('chat.error_sending_media') }}',
                     group: '{{ __('chat.group') }}',
                     invited_you_to_join: '{{ __('chat.invited_you_to_join') }}',
@@ -418,6 +419,9 @@
                     delete_comment_confirm: '{{ __('messages.delete_comment_confirm') }}',
                     post_deleted: '{{ __('messages.post_deleted') }}',
                     failed_to_delete_post: '{{ __('messages.failed_to_delete_post') }}',
+                    new_posts_loaded: '{{ __('messages.new_posts_loaded') }}',
+                    failed_to_load_posts: '{{ __('messages.failed_to_load_posts') }}',
+                    load_more: '{{ __('messages.load_more') }}',
                 };
             </script>
             @yield('content')

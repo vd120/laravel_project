@@ -237,3 +237,52 @@ body.light-theme .btn-primary {
 body.light-theme .btn-primary:hover {
     box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
 }
+
+/* Load More Button */
+.load-more-container {
+    display: flex;
+    justify-content: center;
+    margin: 24px 0;
+    padding: 16px;
+}
+
+#load-more-btn {
+    min-width: 160px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+#load-more-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+#load-more-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#infinite-scroll-loader {
+    padding: 20px;
+    margin: 16px 0;
+}
+
+#no-more-posts {
+    padding: 40px 20px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+#no-more-posts i {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--primary);
+}

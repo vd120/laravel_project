@@ -15,7 +15,7 @@ class PostController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $perPage = $request->get('per_page', 10);
+        $perPage = $request->get('per_page', 15);
         $page = $request->get('page', 1);
 
         if ($user) {
@@ -63,6 +63,64 @@ class PostController extends Controller
         }
 
         return view('posts.index', compact('posts', 'followedUsersWithStories', 'myStories'));
+    }
+
+    /**
+     * Load more posts for infinite scroll.
+     */
+    public function loadMore(Request $request)
+    {
+        $user = auth()->user();
+        $perPage = $request->get('per_page', 15);
+        $page = $request->get('page', 1);
+
+        if ($user) {
+            $posts = Post::with(['user', 'media', 'likes', 'savedPosts', 'comments.replies.user', 'comments.likes'])
+                ->where(function($query) use ($user) {
+                    $query->where(function($q) use ($user) {
+                            $q->where('user_id', $user->id);
+                        })
+                        ->orWhere(function($q) use ($user) {
+                            $q->whereHas('user.followers', function($followerQuery) use ($user) {
+                                $followerQuery->where('follower_id', $user->id);
+                            });
+                        })
+                        ->orWhere(function($q) use ($user) {
+                            $q->where('is_private', false);
+                        });
+                })
+                ->whereDoesntHave('user.blockedBy', function($blockedByQuery) use ($user) {
+                    $blockedByQuery->where('blocker_id', $user->id);
+                })
+                ->whereDoesntHave('user.blockedUsers', function($blockedUsersQuery) use ($user) {
+                    $blockedUsersQuery->where('blocked_id', $user->id);
+                })
+                ->latest()
+                ->paginate($perPage, ['*'], 'page', $page)
+                ->withQueryString();
+        } else {
+            $posts = Post::with(['user', 'media', 'likes', 'comments.replies.user', 'comments.likes'])
+                ->where('is_private', false)
+                ->whereHas('user.profile', function($profileQuery) {
+                    $profileQuery->where('is_private', false);
+                })
+                ->latest()
+                ->paginate($perPage, ['*'], 'page', $page)
+                ->withQueryString();
+
+            $followedUsersWithStories = collect();
+            $myStories = collect();
+        }
+
+        // Render the posts into HTML
+        $html = view('partials.posts-list', compact('posts'))->render();
+
+        return response()->json([
+            'success' => true,
+            'html' => $html,
+            'next_page' => $posts->hasMorePages() ? $posts->currentPage() + 1 : null,
+            'has_more' => $posts->hasMorePages()
+        ]);
     }
 
     /**

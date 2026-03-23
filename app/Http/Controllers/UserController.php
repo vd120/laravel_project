@@ -641,6 +641,77 @@ class UserController extends Controller
     }
 
     /**
+     * Get followed users' online status with notification for newly online users
+     */
+    public function getFollowedUsersOnline(Request $request)
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => __('messages.unauthenticated')], 401);
+        }
+
+        // Get the last check timestamp from the request
+        $lastCheck = $request->get('last_check');
+
+        // Get all users that the current user follows
+        $followedUsers = $user->following()->get();
+
+        // Get users who are currently online (active in last 2 minutes)
+        $onlineUsers = $followedUsers->filter(function($followedUser) {
+            return $followedUser->is_online && 
+                   $followedUser->last_active && 
+                   $followedUser->last_active->diffInSeconds(now()) < 120;
+        });
+
+        // If last_check is provided, find users who just came online
+        $newlyOnlineUsers = collect();
+        if ($lastCheck) {
+            $lastCheckTime = \Carbon\Carbon::parse($lastCheck);
+            
+            $newlyOnlineUsers = $onlineUsers->filter(function($followedUser) use ($lastCheckTime) {
+                // User is now online but was offline at last check
+                // We check if they came online after the last check time
+                return $followedUser->last_active && 
+                       $followedUser->last_active->gt($lastCheckTime);
+            });
+        } else {
+            // First check, return all currently online users
+            $newlyOnlineUsers = $onlineUsers;
+        }
+
+        // Format the response
+        $onlineUsersData = $onlineUsers->map(function($followedUser) {
+            return [
+                'id' => $followedUser->id,
+                'username' => $followedUser->username,
+                'name' => $followedUser->name,
+                'avatar_url' => $followedUser->avatar_url,
+                'is_online' => true,
+                'last_active' => $followedUser->last_active ? $followedUser->last_active->toISOString() : null
+            ];
+        });
+
+        $newlyOnlineData = $newlyOnlineUsers->map(function($followedUser) {
+            return [
+                'id' => $followedUser->id,
+                'username' => $followedUser->username,
+                'name' => $followedUser->name,
+                'avatar_url' => $followedUser->avatar_url,
+                'is_online' => true,
+                'last_active' => $followedUser->last_active ? $followedUser->last_active->toISOString() : null
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'online_users' => $onlineUsersData->values()->all(),
+            'newly_online' => $newlyOnlineData->values()->all(),
+            'current_time' => now()->toISOString()
+        ]);
+    }
+
+    /**
      * Get username from user ID (API endpoint)
      */
     public function getUsername($userId)

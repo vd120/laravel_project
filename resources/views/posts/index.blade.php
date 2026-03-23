@@ -102,6 +102,27 @@
                 <p>{{ __('messages.be_first_to_post') }}</p>
             </div>
         @endforelse
+        
+        {{-- Load More Button --}}
+        @if($posts->hasMorePages())
+        <div class="load-more-container" id="load-more-container">
+            <button id="load-more-btn" class="btn btn-primary" onclick="loadMorePosts()">
+                <i class="fas fa-spinner fa-spin" id="load-more-spinner" style="display: none;"></i>
+                {{ __('messages.load_more') }}
+            </button>
+        </div>
+        @endif
+        
+        {{-- Loading Indicator for Infinite Scroll --}}
+        <div id="infinite-scroll-loader" style="display: none; text-align: center; padding: 20px;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary-color);"></i>
+        </div>
+        
+        {{-- No More Posts Message --}}
+        <div id="no-more-posts" style="display: none; text-align: center; padding: 30px; color: var(--text-muted);">
+            <i class="fas fa-check-circle" style="font-size: 32px; margin-bottom: 10px; opacity: 0.5;"></i>
+            <p>{{ __('messages.no_more_posts') }}</p>
+        </div>
     </div>
 
     @guest
@@ -365,6 +386,216 @@ function submitPost() {
         submitBtn.disabled = false;
     });
 }
+
+// Infinite Scroll and Load More Functionality
+let currentPage = {{ $posts->currentPage() }};
+let lastPage = {{ $posts->lastPage() }};
+let isLoading = false;
+let hasMorePosts = {{ $posts->hasMorePages() ? 'true' : 'false' }};
+
+// Load more posts function
+function loadMorePosts() {
+    if (isLoading || !hasMorePosts || currentPage >= lastPage) return;
+    
+    isLoading = true;
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const loadMoreSpinner = document.getElementById('load-more-spinner');
+    const loadMoreContainer = document.getElementById('load-more-container');
+    const infiniteScrollLoader = document.getElementById('infinite-scroll-loader');
+    
+    // Show loading state
+    if (loadMoreBtn) {
+        loadMoreBtn.disabled = true;
+        loadMoreSpinner.style.display = 'inline';
+    }
+    if (infiniteScrollLoader) {
+        infiniteScrollLoader.style.display = 'block';
+    }
+    
+    const nextPage = currentPage + 1;
+    const perPage = 15;
+    
+    fetch(`{{ route('posts.load-more') }}?page=${nextPage}&per_page=${perPage}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.html) {
+            // Insert new posts before the load more button
+            const postsContainer = document.getElementById('posts-container');
+            
+            // Create temporary container to parse HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = data.html;
+            
+            // Insert each new post
+            Array.from(tempDiv.children).forEach(child => {
+                if (loadMoreContainer) {
+                    loadMoreContainer.before(child);
+                } else {
+                    postsContainer.appendChild(child);
+                }
+            });
+            
+            // Update pagination state
+            currentPage = data.next_page || currentPage + 1;
+            hasMorePosts = data.has_more;
+            
+            // Hide or update load more button
+            if (!hasMorePosts) {
+                // Hide the load more button container completely
+                if (loadMoreContainer) {
+                    loadMoreContainer.style.display = 'none';
+                }
+                // Show "no more posts" message
+                const noMorePosts = document.getElementById('no-more-posts');
+                if (noMorePosts) {
+                    noMorePosts.style.display = 'block';
+                }
+            }
+            
+            // Show success toast with translation
+            showToast(window.postTranslations.new_posts_loaded, 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Error loading more posts:', error);
+        showToast(window.postTranslations.failed_to_load_posts, 'error');
+    })
+    .finally(() => {
+        isLoading = false;
+        if (loadMoreBtn) {
+            loadMoreBtn.disabled = false;
+            loadMoreSpinner.style.display = 'none';
+        }
+        if (infiniteScrollLoader) {
+            infiniteScrollLoader.style.display = 'none';
+        }
+    });
+}
+
+// Infinite scroll trigger
+function handleInfiniteScroll() {
+    if (isLoading || !hasMorePosts) return;
+    
+    const scrollPosition = window.innerHeight + window.scrollY;
+    const documentHeight = document.documentElement.offsetHeight;
+    const threshold = 200; // pixels from bottom
+    
+    // Auto-load when user is near bottom
+    if (scrollPosition >= documentHeight - threshold) {
+        loadMorePosts();
+    }
+}
+
+// Initialize infinite scroll listener
+if (hasMorePosts) {
+    window.addEventListener('scroll', function() {
+        // Debounce scroll events
+        if (window.scrollTimeout) {
+            clearTimeout(window.scrollTimeout);
+        }
+        window.scrollTimeout = setTimeout(handleInfiniteScroll, 150);
+    });
+}
+
+// Track followed users online status
+let followedUsersOnlineState = {
+    lastCheck: null,
+    onlineUserIds: new Set(),
+    pollInterval: null,
+    pollingActive: false
+};
+
+// Poll for followed users' online status
+function pollFollowedUsersOnline() {
+    if (!document.visibilityState || document.visibilityState === 'visible') {
+        fetch(`{{ route('followed-users.online') }}${followedUsersOnlineState.lastCheck ? `?last_check=${followedUsersOnlineState.lastCheck}` : ''}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update last check time
+                followedUsersOnlineState.lastCheck = data.current_time;
+                
+                // Show toast for newly online users
+                if (data.newly_online && data.newly_online.length > 0) {
+                    data.newly_online.forEach(onlineUser => {
+                        // Only show toast if we haven't already shown it for this user
+                        if (!followedUsersOnlineState.onlineUserIds.has(onlineUser.id)) {
+                            showFollowedUserOnlineToast(onlineUser);
+                            followedUsersOnlineState.onlineUserIds.add(onlineUser.id);
+                        }
+                    });
+                }
+                
+                // Track all currently online users
+                data.online_users.forEach(onlineUser => {
+                    followedUsersOnlineState.onlineUserIds.add(onlineUser.id);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error polling followed users online status:', error);
+        });
+    }
+}
+
+// Show toast when a followed user comes online
+function showFollowedUserOnlineToast(user) {
+    const avatarHtml = user.avatar_url 
+        ? `<img src="${user.avatar_url}" alt="${user.username}" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px;">`
+        : `<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; margin-right: 10px; color: white; font-weight: bold;">${user.username.charAt(0).toUpperCase()}</div>`;
+    
+    const message = `
+        <div style="display: flex; align-items: center;">
+            ${avatarHtml}
+            <div>
+                <strong>${user.username}</strong>
+                <span style="display: block; font-size: 13px; opacity: 0.8;">${window.chatTranslations.is_now_online || 'is now online'}</span>
+            </div>
+        </div>
+    `;
+    
+    showToast(message, 'success', 3000);
+}
+
+// Start polling for followed users' online status
+function startFollowedUsersOnlinePolling() {
+    if (followedUsersOnlineState.pollingActive) return;
+    
+    followedUsersOnlineState.pollingActive = true;
+    
+    // Initial poll
+    pollFollowedUsersOnline();
+    
+    // Poll every 10 seconds
+    followedUsersOnlineState.pollInterval = setInterval(pollFollowedUsersOnline, 10000);
+}
+
+// Stop polling when page is hidden
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') {
+        if (followedUsersOnlineState.pollInterval) {
+            clearInterval(followedUsersOnlineState.pollInterval);
+            followedUsersOnlineState.pollingActive = false;
+        }
+    } else {
+        startFollowedUsersOnlinePolling();
+    }
+});
+
+// Start polling on page load
+startFollowedUsersOnlinePolling();
 
 // Initialize - using global showToast from layout
 </script>

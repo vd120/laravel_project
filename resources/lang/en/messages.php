@@ -184,6 +184,7 @@ return [
     'search_messages' => 'Search messages',
     'online' => 'Online',
     'offline' => 'Offline',
+    'is_now_online' => 'is now online',
     'last_seen' => 'Last seen',
     'typing' => 'typing...',
     'message_delivered' => 'Delivered',
@@ -467,6 +468,10 @@ return [
     'please_enter_content_or_media' => 'Please enter content or add media',
     'failed_to_create_post' => 'Failed to create post',
     'error_creating_post' => 'Error creating post',
+    'load_more' => 'Load More',
+    'no_more_posts' => 'No more posts to load',
+    'new_posts_loaded' => 'Posts loaded',
+    'failed_to_load_posts' => 'Failed to load more posts',
     'post_detail_page' => 'Post',
     'back' => 'Back',
 
