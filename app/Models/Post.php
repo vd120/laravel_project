@@ -71,4 +71,14 @@ class Post extends Model
     {
         return $this->hasMany(SavedPost::class);
     }
+
+    public function reports()
+    {
+        return $this->hasMany(PostReport::class);
+    }
+
+    public function pendingReports()
+    {
+        return $this->hasMany(PostReport::class)->where('status', PostReport::STATUS_PENDING);
+    }
 }

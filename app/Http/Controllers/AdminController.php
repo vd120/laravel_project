@@ -8,6 +8,7 @@ use App\Models\Comment;
 use App\Models\Story;
 use App\Models\Block;
 use App\Models\Follow;
+use App\Models\PostReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +25,8 @@ class AdminController extends Controller
             'total_stories' => Story::count(),
             'total_follows' => Follow::count(),
             'total_blocks' => Block::count(),
+            'total_reports' => PostReport::count(),
+            'pending_reports' => PostReport::where('status', PostReport::STATUS_PENDING)->count(),
             'admin_users' => User::where('is_admin', true)->count(),
             'private_profiles' => User::whereHas('profile', function($q) {
                 $q->where('is_private', true);

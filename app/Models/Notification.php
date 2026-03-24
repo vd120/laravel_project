@@ -101,6 +101,8 @@ class Notification extends Model
             'mention' => $this->getMentionNotificationMessage(),
             'group_invite' => $this->getGroupInviteNotificationMessage(),
             'story_reaction' => $this->getStoryReactionNotificationMessage(),
+            'report_accepted' => $this->getReportAcceptedNotificationMessage(),
+            'report_rejected' => $this->getReportRejectedNotificationMessage(),
             default => 'You have a new notification'
         };
     }
@@ -203,5 +205,25 @@ class Notification extends Model
     {
         $reactor = $this->data['reactor_name'] ?? $this->data['reactor_username'] ?? __('chat.user');
         return __('notifications.story_reaction', ['user' => $reactor]);
+    }
+
+    /**
+     * Get report accepted notification text
+     */
+    private function getReportAcceptedNotificationMessage(): string
+    {
+        $title = $this->data['title'] ?? __('messages.report_accepted');
+        $message = $this->data['message'] ?? __('messages.your_report_was_accepted_and');
+        return "{$title}: {$message}";
+    }
+
+    /**
+     * Get report rejected notification text
+     */
+    private function getReportRejectedNotificationMessage(): string
+    {
+        $title = $this->data['title'] ?? __('messages.report_rejected');
+        $message = $this->data['message'] ?? __('messages.your_report_was_reviewed_but_not_accepted');
+        return "{$title}: {$message}";
     }
 }

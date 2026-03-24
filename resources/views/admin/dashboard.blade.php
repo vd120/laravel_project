@@ -99,6 +99,19 @@
                     <span class="stat-label">{{ __('admin.private_profiles') }}</span>
                 </div>
             </div>
+
+            <div class="stat-box small">
+                <div class="stat-icon-wrap reports" style="background: linear-gradient(135deg, #EF4444, #F97316);">
+                    <i class="fas fa-flag"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ number_format($stats['total_reports']) }}</span>
+                    <span class="stat-label">{{ __('admin.reports') }}</span>
+                    @if($stats['pending_reports'] > 0)
+                    <span class="stat-sub">{{ number_format($stats['pending_reports']) }} {{ __('admin.pending') }}</span>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 
@@ -125,6 +138,18 @@
                 <div class="action-icon"><i class="fas fa-camera"></i></div>
                 <span>{{ __('admin.stories') }}</span>
             </a>
+            @if($stats['pending_reports'] > 0)
+            <a href="{{ route('admin.reports') }}" class="action-btn highlight" style="position: relative;">
+                <div class="action-icon"><i class="fas fa-flag"></i></div>
+                <span>{{ __('admin.reports') }}</span>
+                <span class="notification-badge">{{ $stats['pending_reports'] }}</span>
+            </a>
+            @else
+            <a href="{{ route('admin.reports') }}" class="action-btn">
+                <div class="action-icon"><i class="fas fa-flag"></i></div>
+                <span>{{ __('admin.reports') }}</span>
+            </a>
+            @endif
             <a href="#" onclick="showCreateAdminModal()" class="action-btn highlight">
                 <div class="action-icon"><i class="fas fa-user-plus"></i></div>
                 <span>{{ __('admin.new_admin') }}</span>

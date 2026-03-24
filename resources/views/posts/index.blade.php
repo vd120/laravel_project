@@ -599,4 +599,57 @@ startFollowedUsersOnlinePolling();
 
 // Initialize - using global showToast from layout
 </script>
+
+<!-- Report Modal -->
+<div id="report-modal" class="modal report-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-flag"></i> {{ __('messages.report_post') }}</h3>
+            <button type="button" class="modal-close" onclick="closeReportModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="report-form" method="POST">
+            @csrf
+            <div class="modal-body">
+                <p class="report-description">{{ __('messages.report_description') }}</p>
+                
+                <div class="form-group">
+                    <label for="report-reason">{{ __('messages.select_reason') }}:</label>
+                    <select name="reason" id="report-reason" required onchange="toggleOtherReason()">
+                        <option value="">{{ __('messages.choose_reason') }}</option>
+                        <option value="spam">{{ __('messages.reason_spam') }}</option>
+                        <option value="inappropriate">{{ __('messages.reason_inappropriate') }}</option>
+                        <option value="harassment">{{ __('messages.reason_harassment') }}</option>
+                        <option value="hate_speech">{{ __('messages.reason_hate_speech') }}</option>
+                        <option value="violence">{{ __('messages.reason_violence') }}</option>
+                        <option value="misinformation">{{ __('messages.reason_misinformation') }}</option>
+                        <option value="copyright">{{ __('messages.reason_copyright') }}</option>
+                        <option value="other">{{ __('messages.reason_other') }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="other-reason-group" style="display: none;">
+                    <label for="report-content">{{ __('messages.additional_details') }} ({{ __('messages.optional') }}):</label>
+                    <textarea name="content" id="report-content" rows="4" maxlength="1000" placeholder="{{ __('messages.report_details_placeholder') }}"></textarea>
+                    <small class="char-count"><span id="char-count">0</span>/1000</small>
+                </div>
+
+                <div class="report-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>{{ __('messages.report_warning') }}</p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeReportModal()">
+                    {{ __('messages.cancel') }}
+                </button>
+                <button type="submit" class="btn btn-danger" id="submit-report-btn" disabled>
+                    <i class="fas fa-flag"></i> {{ __('messages.submit_report') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

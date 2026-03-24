@@ -363,6 +363,26 @@ Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(func
         Route::get('/stories', [App\Http\Controllers\AdminController::class, 'stories'])->name('stories');
         Route::delete('/stories/{story}', [App\Http\Controllers\AdminController::class, 'deleteStory'])->name('stories.delete');
         Route::post('/create-admin', [App\Http\Controllers\AdminController::class, 'createAdminAccount'])->name('create-admin');
+        
+        // Report management routes
+        Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports');
+        Route::get('/reports/{report}', [App\Http\Controllers\ReportController::class, 'show'])->name('reports.show');
+        Route::post('/reports/{report}/accept', [App\Http\Controllers\ReportController::class, 'accept'])->name('reports.accept');
+        Route::post('/reports/{report}/reject', [App\Http\Controllers\ReportController::class, 'reject'])->name('reports.reject');
+        Route::post('/reports/bulk-accept', [App\Http\Controllers\ReportController::class, 'bulkAccept'])->name('reports.bulk-accept');
+        Route::post('/reports/bulk-reject', [App\Http\Controllers\ReportController::class, 'bulkReject'])->name('reports.bulk-reject');
+    });
+
+    // User report routes (authenticated users can report posts)
+    Route::get('/posts/{post}/report', [App\Http\Controllers\ReportController::class, 'create'])->name('posts.report.create')->where('post', '[a-zA-Z0-9]{24}');
+    Route::post('/posts/{post}/report', [App\Http\Controllers\ReportController::class, 'store'])->name('posts.report.store')->where('post', '[a-zA-Z0-9]{24}');
+
+    // User reports management (authenticated users can view their reports)
+    Route::middleware(['auth', 'verified', 'password.set'])->group(function () {
+        Route::get('/my-reports', [App\Http\Controllers\ReportController::class, 'myReports'])->name('reports.my-reports');
+        Route::get('/my-reports/{slug}', [App\Http\Controllers\ReportController::class, 'showReport'])->name('reports.show-user');
+        Route::delete('/reports/{report}', [App\Http\Controllers\ReportController::class, 'deleteReport'])->name('reports.delete');
+        Route::delete('/my-reports/delete-all', [App\Http\Controllers\ReportController::class, 'deleteAllReports'])->name('reports.delete-all');
     });
 
 

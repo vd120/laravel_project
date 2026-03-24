@@ -84,4 +84,10 @@ return [
     'will_receive_notifications' => 'You\'ll now receive push notifications based on your preferences',
     'adjust_settings' => 'Adjust Settings',
     'test_notification' => 'Test Notification',
+
+    // Report Notifications
+    'report_accepted' => 'Report Accepted',
+    'report_accepted_message' => 'Your report was accepted and action was taken.',
+    'report_rejected' => 'Report Not Accepted',
+    'report_rejected_message' => 'Your report was reviewed but not accepted.',
 ];

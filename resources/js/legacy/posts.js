@@ -611,5 +611,174 @@
                 }
             });
         };
+
+        // Report Modal Functions
+        let currentPostSlug = null;
+
+        window.togglePostMenu = function(postId) {
+            // Close all other menus first
+            document.querySelectorAll('.post-menu-dropdown').forEach(menu => {
+                if (menu.id !== 'post-menu-' + postId) {
+                    menu.style.display = 'none';
+                }
+            });
+            
+            const menu = document.getElementById('post-menu-' + postId);
+            if (menu) {
+                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            }
+        };
+
+        // Close menus when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.post-header-actions')) {
+                document.querySelectorAll('.post-menu-dropdown').forEach(menu => {
+                    menu.style.display = 'none';
+                });
+            }
+        });
+
+        window.openReportModal = function(slug, postId) {
+            // Close the menu first
+            document.querySelectorAll('.post-menu-dropdown').forEach(menu => {
+                menu.style.display = 'none';
+            });
+            
+            currentPostSlug = slug;
+            const modal = document.getElementById('report-modal');
+            const form = document.getElementById('report-form');
+
+            if (modal && form) {
+                form.action = '/posts/' + slug + '/report';
+                form.reset();
+                document.getElementById('other-reason-group').style.display = 'none';
+                document.getElementById('submit-report-btn').disabled = true;
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        };
+
+        window.closeReportModal = function() {
+            const modal = document.getElementById('report-modal');
+            if (modal) {
+                modal.classList.remove('show');
+                document.body.style.overflow = '';
+                currentPostSlug = null;
+            }
+        };
+
+        window.toggleOtherReason = function() {
+            const reasonSelect = document.getElementById('report-reason');
+            const otherGroup = document.getElementById('other-reason-group');
+            const submitBtn = document.getElementById('submit-report-btn');
+            
+            if (reasonSelect && otherGroup) {
+                if (reasonSelect.value === 'other') {
+                    otherGroup.style.display = 'block';
+                } else {
+                    otherGroup.style.display = 'none';
+                }
+            }
+            
+            if (submitBtn && reasonSelect) {
+                submitBtn.disabled = !reasonSelect.value;
+            }
+        };
+
+        // Character count for report content
+        document.addEventListener('DOMContentLoaded', function() {
+            const contentTextarea = document.getElementById('report-content');
+            const charCount = document.getElementById('char-count');
+            
+            if (contentTextarea && charCount) {
+                contentTextarea.addEventListener('input', function() {
+                    charCount.textContent = this.value.length;
+                });
+            }
+
+            // Close modal on outside click
+            const modal = document.getElementById('report-modal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeReportModal();
+                    }
+                });
+            }
+
+            // Handle form submission
+            const reportForm = document.getElementById('report-form');
+            if (reportForm) {
+                reportForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+                    const submitBtn = document.getElementById('submit-report-btn');
+
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                    }
+
+                    // Get CSRF token
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { 
+                                throw err; 
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            closeReportModal();
+                            if (typeof window.showToast === 'function') {
+                                window.showToast('Report submitted successfully', 'success');
+                            }
+                        } else {
+                            const message = data.message || data.error || 'Failed to submit report';
+                            if (typeof window.showToast === 'function') {
+                                window.showToast(message, 'error');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        let errorMessage = 'Failed to submit report';
+                        
+                        // Handle validation errors
+                        if (error.errors) {
+                            const firstError = Object.values(error.errors)[0];
+                            errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+                        } else if (error.message) {
+                            errorMessage = error.message;
+                        } else if (error.error) {
+                            errorMessage = error.error;
+                        }
+                        
+                        if (typeof window.showToast === 'function') {
+                            window.showToast(errorMessage, 'error');
+                        }
+                    })
+                    .finally(() => {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<i class="fas fa-flag"></i> Submit Report';
+                        }
+                    });
+                });
+            }
+        });
     }
 })();

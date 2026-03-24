@@ -288,6 +288,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Notification::class);
     }
 
+    public function reportedPosts()
+    {
+        return $this->hasMany(PostReport::class, 'user_id');
+    }
+
+    public function reviewedReports()
+    {
+        return $this->hasMany(PostReport::class, 'reviewed_by');
+    }
+
     /**
      * Get push subscriptions for this user.
      */

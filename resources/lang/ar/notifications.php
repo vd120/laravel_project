@@ -84,4 +84,10 @@ return [
     'will_receive_notifications' => 'هتحصل دلوقتي على إشعارات حسب الإعدادات اللي اخترتها',
     'adjust_settings' => 'تعديل الإعدادات',
     'test_notification' => 'تجربة الإشعار',
+
+    // Report Notifications
+    'report_accepted' => 'تم قبول البلاغ',
+    'report_accepted_message' => 'تم قبول بلاغك واتخاذ إجراء.',
+    'report_rejected' => 'لم يتم قبول البلاغ',
+    'report_rejected_message' => 'تم مراجعة بلاغك ولكن لم يتم قبوله.',
 ];

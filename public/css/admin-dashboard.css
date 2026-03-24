@@ -509,3 +509,30 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* Notification badge for reports */
+.action-btn .notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #EF4444;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+}
+
+.stat-box .stat-sub {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.stat-icon-wrap.reports {
+    background: linear-gradient(135deg, #EF4444, #F97316);
+}

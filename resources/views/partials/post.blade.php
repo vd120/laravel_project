@@ -18,11 +18,30 @@
                 <span class="privacy-badge"><i class="fas fa-lock"></i> {{ __('messages.private') }}</span>
             @endif
         </div>
-        @if($post->user_id === auth()->id())
+        <div class="post-header-actions">
+            @auth
+            <button type="button" class="post-menu-btn" onclick="togglePostMenu('{{ $post->id }}')" title="{{ __('messages.options') }}">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="post-menu-dropdown" id="post-menu-{{ $post->id }}" style="display: none;">
+                @if($post->user_id === auth()->id())
+                <button type="button" class="menu-item" onclick="deletePost('{{ $post->slug }}', this)">
+                    <i class="fas fa-trash"></i> {{ __('messages.delete_post') }}
+                </button>
+                @else
+                <button type="button" class="menu-item" onclick="openReportModal('{{ $post->slug }}', '{{ $post->id }}')">
+                    <i class="fas fa-flag"></i> {{ __('messages.report_post') }}
+                </button>
+                @endif
+            </div>
+            @else
+            @if($post->user_id === auth()->id())
             <button type="button" class="delete-post-btn" onclick="deletePost('{{ $post->slug }}', this)" title="{{ __('messages.delete_post') }}">
                 <i class="fas fa-trash"></i>
             </button>
-        @endif
+            @endif
+            @endauth
+        </div>
     </div>
 
     @if($post->content)
@@ -180,6 +199,7 @@
         <div class="media-modal-counter" id="media-modal-counter"></div>
     </div>
 </div>
+
 <link rel="stylesheet" href="{{ asset('css/partial-posts.css') }}">
 @vite(['resources/js/legacy/posts.js'])
 <div id="post-translations" style="display:none;">{"delete_post_confirm":"{{ __('messages.delete_post_confirm') }}","post_deleted":"{{ __('messages.post_deleted') }}","failed_to_delete_post":"{{ __('messages.failed_to_delete_post') }}","delete_comment_confirm":"{{ __('messages.delete_comment_confirm') }}"}</div>

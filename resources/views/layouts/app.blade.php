@@ -158,6 +158,11 @@
             <i class="fas fa-bell"></i> {{ __('navigation.notifications') }}
         </a>
 
+        <!-- Link to My Reports Page -->
+        <a href="{{ route('reports.my-reports') }}">
+            <i class="fas fa-flag"></i> {{ __('messages.my_reports') }}
+        </a>
+
         <div class="divider"></div>
         @php
             $currentLocale = app()->getLocale();
