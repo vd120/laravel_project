@@ -151,7 +151,7 @@
         username_taken: "{{ __('messages.username_taken') }}"
     };
 </script>
-@vite(['resources/js/legacy/auth-register.js'])
+@vite(['resources/js/legacy/ui-utils.js', 'resources/js/legacy/auth-register.js'])
 
 </body>
 </html>

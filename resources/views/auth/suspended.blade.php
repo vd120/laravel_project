@@ -49,7 +49,7 @@
     </div>
 </div>
 
-@vite(['resources/js/legacy/auth-suspended.js'])
+@vite(['resources/js/legacy/ui-utils.js', 'resources/js/legacy/auth-suspended.js'])
 
 </body>
 </html>

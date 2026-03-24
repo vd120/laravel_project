@@ -1138,7 +1138,6 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('Realtime: Chat list page loaded, legacy realtime.js will handle chat list polling and online status updates');
         startMobileBadgePolling();
     });
 

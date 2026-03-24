@@ -19,7 +19,9 @@
 <div class="animated-bg"></div>
 <nav>
     <div class="nav-container">
-        <a href="/" class="nav-brand">Nexus</a>
+        <a href="/" class="nav-brand">
+            <span class="nav-brand-text">Nexus</span>
+        </a>
         <div style="display:flex;align-items:center;gap:20px;">
             @include('partials.language-switcher')
             <button id="themeToggle" title="{{ __('home.toggle_theme') }}">
@@ -46,7 +48,7 @@
         <div class="hero-bg-overlay"></div>
     </div>
     <div class="hero-content">
-        <h1 id="nexus-title">{{ __('home.nexus') }}</h1>
+        <h1 id="nexus-title" class="hero-nexus-title">{{ __('home.nexus') }}</h1>
         <h2>{{ __('home.connect_share_belong') }}</h2>
     </div>
     <div class="scroll-arrow" onclick="scrollToSection()">
@@ -202,6 +204,73 @@
 @vite(['resources/js/legacy/home.js'])
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+<style>
+/* Header brand visibility on scroll - Optimized */
+.nav-brand-text {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    display: inline-block;
+    will-change: opacity, transform;
+}
+
+.nav-brand-text.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Hero nexus title - Optimized fade */
+.hero-nexus-title {
+    opacity: 1;
+    will-change: opacity, transform;
+}
+
+.hero-nexus-title.faded {
+    opacity: 0;
+}
+
+/* Subtle glow - GPU accelerated */
+.nav-brand-text.visible {
+    filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
+}
+</style>
+<script defer>
+// Optimized scroll handler - no lag
+let scrollTimeout;
+let lastKnownScrollPosition = 0;
+let ticking = false;
+
+function updateNavVisibility(scrollPos, triggerPoint) {
+    const navBrandText = document.querySelector('.nav-brand-text');
+    const heroNexusTitle = document.querySelector('.hero-nexus-title');
+    
+    if (!navBrandText || !heroNexusTitle) return;
+    
+    if (scrollPos > triggerPoint) {
+        navBrandText.classList.add('visible');
+        heroNexusTitle.classList.add('faded');
+    } else {
+        navBrandText.classList.remove('visible');
+        heroNexusTitle.classList.remove('faded');
+    }
+}
+
+window.addEventListener('scroll', function() {
+    lastKnownScrollPosition = window.scrollY;
+    
+    if (!ticking) {
+        window.requestAnimationFrame(function() {
+            const heroSection = document.querySelector('.hero');
+            if (heroSection) {
+                const triggerPoint = heroSection.offsetHeight * 0.5;
+                updateNavVisibility(lastKnownScrollPosition, triggerPoint);
+            }
+            ticking = false;
+        });
+        ticking = true;
+    }
+}, { passive: true }); // Passive listener for better scroll performance
+</script>
 <script defer>
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof gsap !== 'undefined') {

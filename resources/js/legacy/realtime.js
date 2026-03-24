@@ -37,8 +37,15 @@
 
         console.log('RealTime: Initializing for user', window.RealTimeConfig.userId);
 
-        // Request notification permission
-        requestNotificationPermission();
+        // Request notification permission on user interaction (not on page load)
+        // This prevents the browser error: "Notification permission may only be requested from inside a short running user-generated event handler"
+        document.addEventListener('click', function requestPermissionOnClick() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                requestNotificationPermission();
+                // Remove listener after first click to avoid repeated requests
+                document.removeEventListener('click', requestPermissionOnClick);
+            }
+        }, { once: true });
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('beforeunload', cleanup);

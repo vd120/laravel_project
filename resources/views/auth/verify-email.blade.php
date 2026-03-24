@@ -148,7 +148,7 @@
         sending: "{{ __('messages.sending') }}"
     };
 </script>
-@vite(['resources/js/legacy/auth-verify-email.js'])
+@vite(['resources/js/legacy/ui-utils.js', 'resources/js/legacy/auth-verify-email.js'])
 
 </body>
 </html>

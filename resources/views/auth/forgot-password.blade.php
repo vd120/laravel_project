@@ -69,7 +69,7 @@
     </div>
 </div>
 
-@vite(['resources/js/legacy/auth-forgot-password.js'])
+@vite(['resources/js/legacy/ui-utils.js', 'resources/js/legacy/auth-forgot-password.js'])
 
 </body>
 </html>

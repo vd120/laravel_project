@@ -110,7 +110,7 @@
         passwords_do_not_match: "{{ __('messages.passwords_do_not_match') }}"
     };
 </script>
-@vite(['resources/js/legacy/auth-password-change.js'])
+@vite(['resources/js/legacy/ui-utils.js', 'resources/js/legacy/auth-password-change.js'])
 
 </body>
 </html>

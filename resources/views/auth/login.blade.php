@@ -108,7 +108,7 @@
     </div>
 </div>
 
-@vite(['resources/js/legacy/auth-login.js'])
+@vite(['resources/js/legacy/ui-utils.js', 'resources/js/legacy/auth-login.js'])
 <div id="login-config" 
      data-status="{{ session('status') }}" 
      data-error="{{ session('error') }}"

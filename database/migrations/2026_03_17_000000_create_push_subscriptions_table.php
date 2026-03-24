@@ -22,9 +22,8 @@ return new class extends Migration
             $table->timestamp('last_used_at')->nullable();
             $table->timestamps();
 
-            // Index for faster lookups (using prefix for text field)
+            // Index for faster lookups
             $table->index('user_id');
-            $table->index('endpoint', null, 255); // Index only first 255 chars
         });
     }
 

@@ -6,14 +6,24 @@
     <meta name="theme-color" content="#111111">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Nexus')</title>
+    
+    {{-- Performance: Preconnect to external resources --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    {{-- Inter font for English, Cairo for Arabic - Reduced font weights for performance --}}
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    
+    {{-- Fonts - Load asynchronously --}}
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Cairo:wght@400;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Cairo:wght@400;600;700&display=swap"></noscript>
+    
+    {{-- Icons --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    {{-- Critical CSS --}}
     <link rel="stylesheet" href="{{ asset('css/app-layout.css') }}">
     <link rel="stylesheet" href="{{ asset('css/comments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/mobile-header.css') }}">
+    
     <style>
     /* Mobile message badge */
     .mobile-msg-badge {
@@ -452,8 +462,11 @@
             };
         </script>
     @endauth
-    
-    @vite(['resources/js/app.js', 'resources/js/legacy/ui-utils.js', 'resources/js/legacy/realtime.js', 'resources/js/legacy/comments.js'])
+
+    @vite(['resources/js/app.js', 'resources/js/legacy/ui-utils.js', 'resources/js/legacy/comments.js'])
+    @auth
+        @vite(['resources/js/legacy/realtime.js'])
+    @endauth
     <script>
         function toggleUserMenu(event) {
             event.stopPropagation();
@@ -551,35 +564,27 @@
             return div.innerHTML;
         }
 
-        function loadNotifications() {                                                       
-            console.log('loadNotifications: Fetching notifications...');
-            fetch('/api/notifications', {                                                    
-                credentials: 'include',                                                      
-                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').
-getAttribute('content'), 'Accept': 'application/json' }                                      
-            })                                                                               
+        function loadNotifications() {
+            fetch('/api/notifications', {
+                credentials: 'include',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
+            })
             .then(r => {
-                console.log('loadNotifications: Response status:', r.status);
                 return r.json();
             })
             .then(data => {
-                console.log('loadNotifications: Data received:', data);
-                const list = document.getElementById('notif-list');                          
-                const badge = document.getElementById('notif-badge');                        
-                if (data.unread_count > 0) { 
-                    badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count; 
-                    badge.style.display = 'flex'; 
-                } else { 
-                    badge.style.display = 'none'; 
+                const list = document.getElementById('notif-list');
+                const badge = document.getElementById('notif-badge');
+                if (data.unread_count > 0) {
+                    badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
                 }
-                console.log('loadNotifications: Notifications array:', data.notifications);
-                console.log('loadNotifications: Array length:', data.notifications ? data.notifications.length : 'undefined');
-                if (!data.notifications || data.notifications.length === 0) {                
-                    console.log('loadNotifications: No notifications to display');
+                if (!data.notifications || data.notifications.length === 0) {
                     list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>{{ __('notifications.no_notifications') }}</p></div>`;
-                    return;                                                                  
+                    return;
                 }
-                console.log('loadNotifications: Rendering', data.notifications.length, 'notifications');
                 list.innerHTML = data.notifications.map(n => {
                     const iconClass = getNotificationIconClass(n.type);                      
                     const notifIcon = getNotificationIcon(n.type);                           
@@ -597,10 +602,9 @@ getAttribute('content'), 'Accept': 'application/json' }
                         <div class="notif-item-actions">                                     
                             ${!n.read_at ? `<button class="notif-item-btn" onclick="markAsRead(${n.id}); return false;" title="${window.chatTranslations.mark_as_read}"><i class="fas fa-check"></i></button>` : ''}
                             <button class="notif-item-btn delete" onclick="dismissNotification(${n.id}); return false;" title="${window.chatTranslations.delete}"><i class="fas fa-trash"></i></button>
-                        </div>                                                               
-                    </div>                                                                   
+                        </div>
+                    </div>
                 `}).join('');
-                console.log('loadNotifications: Rendering complete');
             })
             .catch(err => {
                 console.error('loadNotifications: Error:', err);

@@ -6,88 +6,157 @@ $currentLocale = app()->getLocale();
 <div id="pushSettingsModal" class="modal-overlay" style="display: none;" onclick="if(event.target === this) hidePushSettings()">
     <div class="modal-content push-settings-modal">
         <div class="modal-header">
-            <h3>{{ __('notifications.enable_push') }}</h3>
-            <button class="modal-close" onclick="hidePushSettings()">×</button>
-        </div>
-        <div class="modal-body">
-            <div class="push-settings-content">
-                <div class="push-icon">
+            <div class="header-left">
+                <div class="header-icon">
                     <i class="fas fa-bell"></i>
                 </div>
-                <p class="push-description">{{ __('notifications.enable_push_desc') }}</p>
-
-                <div id="pushPermissionStatus" class="permission-status"></div>
-
-                <div class="push-settings-form" id="pushSettingsForm" style="display: none;">
-                    <h4>{{ __('notifications.settings') }}</h4>
-
-                    <div class="setting-item">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="pushLikes" checked>
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">{{ __('notifications.liked_your_post') }}</span>
-                        </label>
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="pushComments" checked>
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">{{ __('notifications.commented_on_your_post') }}</span>
-                        </label>
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="pushFollows" checked>
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">{{ __('notifications.new_follower') }}</span>
-                        </label>
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="pushMessages" checked>
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">{{ __('notifications.sent_you_message') }}</span>
-                        </label>
-                    </div>
-
-                    <div class="setting-item">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="pushMentions" checked>
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">{{ __('notifications.mentioned_you') }}</span>
-                        </label>
-                    </div>
-
-                    <div class="push-actions">
-                        <button class="btn btn-primary" onclick="savePushSettings()">
-                            <i class="fas fa-save"></i> {{ __('messages.save') }}
-                        </button>
-                        <button class="btn btn-danger" onclick="disablePushNotifications()">
-                            <i class="fas fa-bell-slash"></i> Disable Notifications
-                        </button>
-                    </div>
+                <div class="header-title">
+                    <h3>{{ __('notifications.push_notifications') }}</h3>
+                    <p>{{ __('notifications.stay_updated') }}</p>
                 </div>
-
+            </div>
+            <button class="modal-close" onclick="hidePushSettings()" title="{{ __('messages.close') }}">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="push-settings-content">
+                <!-- Not Enabled State -->
                 <div id="pushNotEnabled" class="push-not-enabled">
-                    <button class="btn btn-primary btn-lg" onclick="enablePushNotifications()">
-                        <i class="fas fa-bell"></i> {{ __('notifications.enable_push') }}
-                    </button>
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-bell"></i>
+                            <div class="pulse-ring"></div>
+                        </div>
+                        <h4>{{ __('notifications.never_miss_moment') }}</h4>
+                        <p>{{ __('notifications.enable_push_desc_detailed') }}</p>
+                        <button class="btn btn-primary btn-enable" onclick="enablePushNotifications()">
+                            <i class="fas fa-bell"></i> {{ __('notifications.enable_push') }}
+                        </button>
+                        <p class="hint"><i class="fas fa-shield-alt"></i> {{ __('notifications.safe_secure') }}</p>
+                    </div>
                 </div>
 
-                <div id="pushEnabled" class="push-enabled" style="display: none;">
-                    <div class="success-message">
-                        <i class="fas fa-check-circle"></i>
-                        <span>{{ __('messages.push_subscription_created') }}</span>
+                <!-- Settings Form State -->
+                <div class="push-settings-form" id="pushSettingsForm" style="display: none;">
+                    <div class="form-section">
+                        <div class="section-title">
+                            <i class="fas fa-sliders-h"></i>
+                            <span>{{ __('notifications.notification_preferences') }}</span>
+                        </div>
+                        <p class="section-desc">{{ __('notifications.choose_notifications') }}</p>
                     </div>
-                    <button class="btn btn-secondary" onclick="showPushSettingsForm()">
-                        <i class="fas fa-cog"></i> {{ __('notifications.settings') }}
-                    </button>
-                    <button class="btn btn-test" onclick="testPushNotification()">
-                        <i class="fas fa-flask"></i> {{ __('messages.test_notification_sent') }}
-                    </button>
+
+                    <div class="settings-list">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-icon likes">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="setting-text">
+                                    <span class="setting-label">{{ __('notifications.likes') }}</span>
+                                    <span class="setting-desc">{{ __('notifications.when_likes_post') }}</span>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="pushLikes" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-icon comments">
+                                    <i class="fas fa-comment"></i>
+                                </div>
+                                <div class="setting-text">
+                                    <span class="setting-label">{{ __('notifications.comments') }}</span>
+                                    <span class="setting-desc">{{ __('notifications.when_comments_post') }}</span>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="pushComments" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-icon follows">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div class="setting-text">
+                                    <span class="setting-label">{{ __('notifications.new_followers') }}</span>
+                                    <span class="setting-desc">{{ __('notifications.when_follows_you') }}</span>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="pushFollows" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-icon messages">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="setting-text">
+                                    <span class="setting-label">{{ __('notifications.messages') }}</span>
+                                    <span class="setting-desc">{{ __('notifications.when_new_message') }}</span>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="pushMessages" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-icon mentions">
+                                    <i class="fas fa-at"></i>
+                                </div>
+                                <div class="setting-text">
+                                    <span class="setting-label">{{ __('notifications.mentions') }}</span>
+                                    <span class="setting-desc">{{ __('notifications.when_mentions_you') }}</span>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="pushMentions" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-block" onclick="savePushSettings()">
+                            <i class="fas fa-save"></i> {{ __('notifications.save_preferences') }}
+                        </button>
+                        <button class="btn btn-danger btn-block" onclick="disablePushNotifications()">
+                            <i class="fas fa-bell-slash"></i> {{ __('notifications.disable_all') }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Enabled State -->
+                <div id="pushEnabled" class="push-enabled" style="display: none;">
+                    <div class="success-state">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h4>{{ __('notifications.all_set') }}</h4>
+                        <p>{{ __('notifications.will_receive_notifications') }}</p>
+                    </div>
+                    <div class="success-actions">
+                        <button class="btn btn-secondary" onclick="showPushSettingsForm()">
+                            <i class="fas fa-cog"></i> {{ __('notifications.adjust_settings') }}
+                        </button>
+                        <button class="btn btn-test" onclick="testPushNotification()">
+                            <i class="fas fa-flask"></i> {{ __('notifications.test_notification') }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -95,27 +164,25 @@ $currentLocale = app()->getLocale();
 </div>
 
 <style>
-/* Push Notification Modal Styles */
+/* Push Notification Modal - Modern & Responsive */
 #pushSettingsModal {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    width: 100%;
-    height: 100%;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    padding: 20px;
+    padding: 16px;
+    animation: fadeIn 0.2s ease;
 }
 
 #pushSettingsModal.modal-visible {
     display: flex;
-    animation: fadeIn 0.2s ease;
 }
 
 @keyframes fadeIn {
@@ -124,136 +191,281 @@ $currentLocale = app()->getLocale();
 }
 
 .push-settings-modal {
-    max-width: 500px;
+    max-width: 480px;
     width: 100%;
     max-height: 90vh;
-    overflow-y: auto;
+    overflow: hidden;
     border-radius: 16px;
     background: var(--bg, #1a1a2e);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
     animation: slideUp 0.3s ease;
 }
 
 @keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.push-settings-modal .modal-header {
+/* Header */
+.modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    position: sticky;
-    top: 0;
-    background: var(--bg, #1a1a2e);
-    z-index: 1;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
 }
 
-.push-settings-modal .modal-header h3 {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text, #fff);
-    margin: 0;
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-.push-settings-modal .modal-close {
-    background: none;
-    border: none;
-    font-size: 28px;
-    color: var(--text-muted, #888);
-    cursor: pointer;
-    padding: 0;
-    width: 32px;
-    height: 32px;
+.header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    transition: all 0.2s;
+    font-size: 20px;
+    color: white;
+    flex-shrink: 0;
 }
 
-.push-settings-modal .modal-close:hover {
+.header-title h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text, #fff);
+    margin: 0 0 2px;
+}
+
+.header-title p {
+    font-size: 13px;
+    color: var(--text-muted, #888);
+    margin: 0;
+}
+
+.modal-close {
+    background: rgba(255,255,255,0.05);
+    border: none;
+    font-size: 18px;
+    color: var(--text-muted, #888);
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.modal-close:hover {
     background: rgba(255,255,255,0.1);
     color: var(--text, #fff);
+    transform: rotate(90deg);
 }
 
-.push-settings-modal .modal-body {
-    padding: 24px;
+/* Body */
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
 }
 
 .push-settings-content {
     text-align: center;
 }
 
-.push-icon {
+/* Empty State */
+.empty-state {
+    padding: 20px 10px;
+}
+
+.empty-icon {
     width: 80px;
     height: 80px;
     margin: 0 auto 20px;
-    background: linear-gradient(135deg, var(--primary, #6366f1), #8b5cf6);
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 36px;
     color: white;
+    position: relative;
 }
 
-.push-description {
+.pulse-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 3px solid #6366f1;
+    border-radius: 50%;
+    animation: pulse 2s ease-out infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+.empty-state h4 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text, #fff);
+    margin: 0 0 10px;
+}
+
+.empty-state p {
     color: var(--text-muted, #888);
-    font-size: 15px;
-    line-height: 1.6;
-    margin-bottom: 24px;
-}
-
-.permission-status {
-    margin-bottom: 20px;
-    padding: 12px;
-    border-radius: 8px;
     font-size: 14px;
-    display: none;
+    line-height: 1.6;
+    margin: 0 0 20px;
 }
 
-.permission-status.info {
-    display: block;
-    background: rgba(59, 130, 246, 0.1);
-    color: #3b82f6;
-    border: 1px solid rgba(59, 130, 246, 0.3);
+.btn-enable {
+    width: 100%;
+    max-width: 280px;
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
-.permission-status.error {
-    display: block;
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+.btn-enable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
 }
 
-.push-settings-form h4 {
-    text-align: left;
+.hint {
+    font-size: 12px;
+    color: var(--text-muted, #888);
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* Form Section */
+.form-section {
+    margin-bottom: 16px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.section-title i {
+    color: #6366f1;
+    font-size: 18px;
+}
+
+.section-title span {
     font-size: 16px;
     font-weight: 600;
     color: var(--text, #fff);
-    margin: 0 0 16px;
 }
 
-.setting-item {
-    text-align: left;
-    margin-bottom: 12px;
+.section-desc {
+    font-size: 13px;
+    color: var(--text-muted, #888);
+    margin: 0;
 }
 
-.toggle-switch {
+/* Settings List */
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.2s;
+}
+
+.setting-row:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+}
+
+.setting-info {
     display: flex;
     align-items: center;
     gap: 12px;
-    cursor: pointer;
+    flex: 1;
+}
+
+.setting-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.setting-icon.likes { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.setting-icon.comments { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.setting-icon.follows { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.setting-icon.messages { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+.setting-icon.mentions { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+
+.setting-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+}
+
+.setting-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text, #fff);
+}
+
+.setting-desc {
+    font-size: 12px;
+    color: var(--text-muted, #888);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    flex-shrink: 0;
 }
 
 .toggle-switch input {
@@ -261,79 +473,132 @@ $currentLocale = app()->getLocale();
 }
 
 .toggle-slider {
-    width: 44px;
-    height: 24px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
     background: rgba(255,255,255,0.2);
-    border-radius: 12px;
-    position: relative;
+    border-radius: 13px;
+    cursor: pointer;
     transition: all 0.3s;
-    flex-shrink: 0;
 }
 
 .toggle-slider::before {
     content: '';
     position: absolute;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     background: white;
     border-radius: 50%;
     top: 3px;
     left: 3px;
     transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .toggle-switch input:checked + .toggle-slider {
-    background: var(--primary, #6366f1);
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
-    transform: translateX(20px);
+    transform: translateX(22px);
 }
 
-.toggle-label {
-    color: var(--text, #fff);
+/* Form Actions */
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.btn-block {
+    width: 100%;
+    padding: 12px 16px;
     font-size: 14px;
-    flex: 1;
-}
-
-.push-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-    justify-content: center;
-}
-
-.push-actions .btn {
-    flex: 1;
-    max-width: 200px;
-}
-
-.push-not-enabled, .push-enabled {
-    margin-top: 20px;
-}
-
-.push-not-enabled .btn-lg {
-    padding: 16px 32px;
-    font-size: 16px;
     font-weight: 600;
-}
-
-.success-message {
-    display: flex;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 16px;
-    background: rgba(34, 197, 94, 0.1);
-    color: #22c55e;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    font-size: 15px;
-    font-weight: 500;
+    transition: all 0.2s;
 }
 
-.success-message i {
-    font-size: 20px;
+.btn-primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* Success State */
+.success-state {
+    padding: 20px 10px;
+}
+
+.success-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: white;
+    animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.success-state h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text, #fff);
+    margin: 0 0 8px;
+}
+
+.success-state p {
+    font-size: 14px;
+    color: var(--text-muted, #888);
+    margin: 0 0 20px;
+}
+
+.success-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-secondary {
+    background: rgba(255,255,255,0.1);
+    color: var(--text, #fff);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.btn-secondary:hover {
+    background: rgba(255,255,255,0.15);
 }
 
 .btn-test {
@@ -347,37 +612,91 @@ $currentLocale = app()->getLocale();
 }
 
 /* RTL Support */
-[dir="rtl"] .setting-item {
+[dir="rtl"] .setting-text {
     text-align: right;
 }
 
 [dir="rtl"] .toggle-switch {
-    flex-direction: row-reverse;
+    margin-right: 0;
 }
 
-[dir="rtl"] .toggle-slider::before {
-    left: auto;
-    right: 3px;
-}
-
-[dir="rtl"] .toggle-switch input:checked + .toggle-slider::before {
-    transform: translateX(-20px);
-}
-
-/* Mobile Responsive */
-@media (max-width: 640px) {
+/* Responsive */
+@media (max-width: 480px) {
+    #pushSettingsModal {
+        padding: 12px;
+        align-items: flex-end;
+    }
+    
     .push-settings-modal {
-        margin: 20px;
-        max-width: calc(100% - 40px);
+        max-height: 95vh;
+        border-radius: 16px 16px 0 0;
+        animation: slideUpBottom 0.3s ease;
     }
+    
+    @keyframes slideUpBottom {
+        from { opacity: 0; transform: translateY(100%); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .modal-header {
+        padding: 16px;
+    }
+    
+    .header-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    
+    .header-title h3 {
+        font-size: 16px;
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
+    
+    .empty-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 30px;
+    }
+    
+    .setting-row {
+        padding: 12px;
+    }
+    
+    .setting-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+    
+    .setting-label {
+        font-size: 13px;
+    }
+    
+    .setting-desc {
+        font-size: 11px;
+    }
+}
 
-    .push-actions {
-        flex-direction: column;
-    }
+/* Scrollbar */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
 
-    .push-actions .btn {
-        max-width: 100%;
-    }
+.modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.3);
 }
 </style>
 
@@ -398,14 +717,14 @@ function hidePushSettings() {
 }
 
 async function checkPushStatus() {
-    const statusDiv = document.getElementById('pushPermissionStatus');
     const form = document.getElementById('pushSettingsForm');
     const notEnabled = document.getElementById('pushNotEnabled');
     const enabled = document.getElementById('pushEnabled');
 
     if (!window.pushManager) {
-        statusDiv.className = 'permission-status error';
-        statusDiv.textContent = '{{ __('messages.notSupported') }}';
+        notEnabled.style.display = 'block';
+        form.style.display = 'none';
+        enabled.style.display = 'none';
         return;
     }
 
@@ -413,18 +732,19 @@ async function checkPushStatus() {
     const isEnabled = window.pushManager.isEnabled();
 
     if (!isSupported) {
-        statusDiv.className = 'permission-status error';
-        statusDiv.textContent = window.pushManager.t('notSupported');
         notEnabled.style.display = 'none';
+        form.style.display = 'none';
+        enabled.style.display = 'none';
         return;
     }
 
     if (isEnabled) {
-        form.style.display = 'block';
+        // User has enabled push notifications - show success state with settings button
+        form.style.display = 'none';
         notEnabled.style.display = 'none';
         enabled.style.display = 'block';
 
-        // Load current settings
+        // Load current settings for when user clicks "Adjust Settings"
         try {
             const response = await fetch('/api/push/settings', {
                 headers: {
@@ -445,6 +765,7 @@ async function checkPushStatus() {
             console.error('[Push] Error loading settings:', error);
         }
     } else {
+        // User has NOT enabled push notifications - show enable button only
         form.style.display = 'none';
         notEnabled.style.display = 'block';
         enabled.style.display = 'none';
@@ -454,8 +775,20 @@ async function checkPushStatus() {
 async function enablePushNotifications() {
     const result = await window.pushManager.requestPermission();
     if (result) {
+        // After enabling, show success state
         checkPushStatus();
     }
+}
+
+function showPushSettingsForm() {
+    // Show the settings form to edit preferences
+    const form = document.getElementById('pushSettingsForm');
+    const notEnabled = document.getElementById('pushNotEnabled');
+    const enabled = document.getElementById('pushEnabled');
+    
+    form.style.display = 'block';
+    notEnabled.style.display = 'none';
+    enabled.style.display = 'none';
 }
 
 async function savePushSettings() {
@@ -471,7 +804,8 @@ async function savePushSettings() {
         const response = await window.pushManager.updateSettings(settings);
         if (response.success) {
             window.pushManager.showToast('{{ __('messages.push_settings_updated') }}', 'success');
-            hidePushSettings();
+            // Go back to success state after saving
+            checkPushStatus();
         }
     } catch (error) {
         window.pushManager.showToast(error.message || '{{ __('messages.error') }}', 'error');
