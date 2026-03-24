@@ -21,7 +21,7 @@
             <button type="button" id="themeToggle" onclick="toggleTheme()" title="{{ __('messages.theme') }}">
                 <i class="fas fa-moon" id="theme-icon"></i>
             </button>
-            <a href="{{ route('home') }}" class="back-btn">← {{ __('messages.back') }}</a>
+            <a href="{{ route('home') }}" class="back-btn">{{ __('messages.back') }}</a>
         </div>
     </div>
 </nav>
@@ -148,7 +148,9 @@
         passwords_match: "{{ __('messages.passwords_match') }}",
         passwords_do_not_match: "{{ __('messages.passwords_do_not_match') }}",
         username_available: "{{ __('messages.username_available') }}",
-        username_taken: "{{ __('messages.username_taken') }}"
+        username_taken: "{{ __('messages.username_taken') }}",
+        username_min_length: "{{ __('messages.username_min_length') }}",
+        username_checking: "{{ __('messages.username_checking') }}"
     };
 </script>
 @vite(['resources/js/legacy/ui-utils.js', 'resources/js/legacy/auth-register.js'])

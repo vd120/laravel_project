@@ -123,7 +123,8 @@ return [
     'password_confirmation_mismatch' => 'كلمات المرور مش متطابقة.',
     'username_taken' => 'اسم المستخدم ده مستخدم بالفعل.',
     'username_available' => 'اسم المستخدم متاح.',
-    'username_checking' => 'جاري التحقق من التوفر...',
+    'username_checking' => 'استني هشوفه..',
+    'username_min_length' => 'اسم المستخدم لازم يكون 3 أحرف على الأقل',
 
     // Profile
     'edit_profile' => 'تعديل البروفايل',

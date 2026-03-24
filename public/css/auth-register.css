@@ -394,7 +394,7 @@ nav{
 }
 .field-status.checking { color: var(--warning); }
 .field-status.available { color: var(--success); }
-.field-status.taken, .field-status.invalid { color: var(--error); }
+.field-status.taken, .field-status.invalid, .field-status.error { color: var(--error); }
 .field-status.warning { color: var(--warning); }
 .field-status.matching { color: var(--success); }
 .field-status.not-matching { color: var(--error); }

@@ -152,10 +152,10 @@ Route::post('/email/verification-notification', function (Request $request) {
 
         // Return JSON response for AJAX
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Verification code sent!']);
+            return response()->json(['message' => __('messages.verification_code_sent')]);
         }
 
-        return back()->with('message', 'New verification code sent!');
+        return back()->with('message', __('messages.verification_code_sent'));
     }
 
     // Return JSON response for AJAX

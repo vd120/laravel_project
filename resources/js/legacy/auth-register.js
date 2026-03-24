@@ -98,14 +98,15 @@
         usernameInput.addEventListener('input', function() {
             clearTimeout(checkTimeout);
             const val = this.value.trim();
+            const t = window.authTranslations || {};
 
             if (val.length < 3) {
-                statusDiv.textContent = '';
-                statusDiv.className = 'field-status';
+                statusDiv.textContent = t.username_min_length || 'Username must be at least 3 characters';
+                statusDiv.className = 'field-status error';
                 return;
             }
 
-            statusDiv.textContent = 'Checking...';
+            statusDiv.textContent = t.username_checking || 'Checking...';
             statusDiv.className = 'field-status checking';
 
             checkTimeout = setTimeout(() => {
@@ -118,7 +119,6 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    const t = window.chatTranslations || window.authTranslations || {};
                     if (data.available) {
                         statusDiv.textContent = t.username_available || 'Username available';
                         statusDiv.className = 'field-status available';

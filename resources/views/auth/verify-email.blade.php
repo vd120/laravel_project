@@ -23,13 +23,14 @@
             @if(auth()->check())
                 <a href="{{ route('users.show', auth()->user()) }}" class="back-btn">← {{ __('auth.back_to_profile') }}</a>
             @else
-                <a href="{{ route('login') }}" class="back-btn">← {{ __('auth.back') }}</a>
+                <a href="{{ route('login') }}" class="back-btn">{{ __('auth.back') }}</a>
             @endif
         </div>
     </div>
 </nav>
 
 <div class="page">
+    <div id="toast-container"></div>
     <div class="login-card">
         <div class="auth-icon">
             <i class="fas fa-envelope-open-text"></i>

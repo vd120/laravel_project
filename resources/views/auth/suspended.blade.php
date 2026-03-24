@@ -20,7 +20,7 @@
             <button type="button" onclick="toggleTheme()" style="background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 8px; border-radius: 50%;" title="{{ __('auth.toggle_theme') }}">
                 <i class="fas fa-moon" id="theme-icon"></i>
             </button>
-            <a href="{{ route('login') }}" class="nav-link">← {{ __('auth.back_to_login') }}</a>
+            <a href="{{ route('login') }}" class="nav-link">{{ __('auth.back_to_login') }}</a>
         </div>
     </div>
 </nav>

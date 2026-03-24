@@ -124,6 +124,7 @@ return [
     'username_taken' => 'This username is already taken.',
     'username_available' => 'Username is available.',
     'username_checking' => 'Checking availability...',
+    'username_min_length' => 'Username must be at least 3 characters',
 
     // Profile
     'edit_profile' => 'Edit Profile',

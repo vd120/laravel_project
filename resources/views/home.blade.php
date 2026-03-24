@@ -20,7 +20,25 @@
 <nav>
     <div class="nav-container">
         <a href="/" class="nav-brand">
-            <span class="nav-brand-text">Nexus</span>
+            <div class="nav-brand-wrapper">
+                <span class="nav-brand-text">Nexus</span>
+                <svg class="nav-scribble" viewBox="0 0 150 60" preserveAspectRatio="none">
+                    <path class="scribble-path" d="M5,15 L25,45 L45,15 L65,45 L85,15 L105,45 L125,15 L145,45" stroke="white" stroke-width="1.5" fill="none" opacity="0.9"/>
+                    <path class="scribble-path" d="M10,20 L30,40 L50,20 L70,40 L90,20 L110,40 L130,20 L140,40" stroke="white" stroke-width="1" fill="none" opacity="0.7"/>
+                    <path class="scribble-path" d="M8,10 L28,50 L48,10 L68,50 L88,10 L108,50 L128,10 L148,50" stroke="white" stroke-width="1" fill="none" opacity="0.6"/>
+                    <path class="scribble-path" d="M12,25 L32,35 L52,25 L72,35 L92,25 L112,35 L132,25 L142,35" stroke="white" stroke-width="1" fill="none" opacity="0.5"/>
+                    <line class="scribble-line" x1="0" y1="30" x2="150" y2="30" stroke="black" stroke-width="0.5" opacity="0.3"/>
+                    <defs>
+                        <filter id="scribble-glow">
+                            <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                </svg>
+            </div>
         </a>
         <div style="display:flex;align-items:center;gap:20px;">
             @include('partials.language-switcher')
@@ -206,12 +224,104 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
 <style>
 /* Header brand visibility on scroll - Optimized */
-.nav-brand-text {
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity 0.4s ease, transform 0.4s ease;
+.nav-brand-wrapper {
+    position: relative;
     display: inline-block;
+}
+
+.nav-brand-text {
+    display: inline-block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(255,255,255,0.3);
     will-change: opacity, transform;
+}
+
+/* Light theme colors */
+[data-theme="light"] .nav-brand-text {
+    color: #1a1a2e;
+    text-shadow: none;
+}
+
+[data-theme="light"] .scribble-path {
+    stroke: #1a1a2e;
+}
+
+[data-theme="light"] .scribble-dot {
+    fill: #1a1a2e;
+}
+
+[data-theme="light"] .scribble-line {
+    stroke: #1a1a2e;
+    opacity: 0.3;
+}
+
+.nav-scribble {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 140px;
+    height: 50px;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+
+.nav-scribble.hidden {
+    opacity: 0;
+}
+
+.scribble-path {
+    stroke-dasharray: 300;
+    stroke-dashoffset: 0;
+    animation: scribbleDraw 3s ease-in-out infinite;
+    filter: url(#scribble-glow);
+}
+
+.scribble-path:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.scribble-path:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.scribble-path:nth-child(3) {
+    animation-delay: 1s;
+}
+
+.scribble-path:nth-child(4) {
+    animation-delay: 1.5s;
+}
+
+.scribble-line {
+    stroke-dasharray: 150;
+    animation: lineMove 4s ease-in-out infinite;
+    opacity: 0.3;
+}
+
+.scribble-line:nth-child(5) {
+    animation-delay: 0s;
+}
+
+@keyframes scribbleDraw {
+    0%, 100% {
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dashoffset: 150;
+    }
+}
+
+@keyframes lineMove {
+    0%, 100% {
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dashoffset: 150;
+    }
 }
 
 .nav-brand-text.visible {
@@ -241,16 +351,16 @@ let lastKnownScrollPosition = 0;
 let ticking = false;
 
 function updateNavVisibility(scrollPos, triggerPoint) {
-    const navBrandText = document.querySelector('.nav-brand-text');
+    const navScribble = document.querySelector('.nav-scribble');
     const heroNexusTitle = document.querySelector('.hero-nexus-title');
-    
-    if (!navBrandText || !heroNexusTitle) return;
-    
+
+    if (!navScribble || !heroNexusTitle) return;
+
     if (scrollPos > triggerPoint) {
-        navBrandText.classList.add('visible');
+        navScribble.classList.add('hidden');
         heroNexusTitle.classList.add('faded');
     } else {
-        navBrandText.classList.remove('visible');
+        navScribble.classList.remove('hidden');
         heroNexusTitle.classList.remove('faded');
     }
 }

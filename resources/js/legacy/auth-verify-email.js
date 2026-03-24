@@ -79,4 +79,82 @@
         icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
         localStorage.setItem('theme', newTheme);
     };
+
+    // Code input auto-focus and combine logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const codeInputs = document.querySelectorAll('.code-input');
+        const fullCodeInput = document.getElementById('fullCode');
+        const verifyForm = document.getElementById('verifyForm');
+
+        if (!codeInputs.length || !verifyForm) return;
+
+        codeInputs.forEach((input, index) => {
+            // Handle input
+            input.addEventListener('input', function(e) {
+                const value = e.target.value;
+                
+                // Only allow numbers
+                if (!/^\d*$/.test(value)) {
+                    e.target.value = '';
+                    return;
+                }
+
+                // Move to next input if value entered
+                if (value.length === 1 && index < codeInputs.length - 1) {
+                    codeInputs[index + 1].focus();
+                }
+
+                // Combine all codes
+                updateFullCode();
+            });
+
+            // Handle backspace
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    codeInputs[index - 1].focus();
+                }
+            });
+
+            // Handle paste
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+                const numbers = pasteData.replace(/\D/g, '').slice(0, 6);
+                
+                numbers.split('').forEach((char, i) => {
+                    if (codeInputs[i]) {
+                        codeInputs[i].value = char;
+                    }
+                });
+
+                // Focus on the next empty input or last input
+                const nextIndex = Math.min(numbers.length, codeInputs.length - 1);
+                codeInputs[nextIndex].focus();
+
+                // Update full code
+                updateFullCode();
+            });
+        });
+
+        // Update hidden full code input before submit
+        verifyForm.addEventListener('submit', function(e) {
+            updateFullCode();
+            
+            const fullCode = fullCodeInput.value;
+            if (fullCode.length !== 6) {
+                e.preventDefault();
+                showToast(window.verifyEmailTranslations.enter6DigitCode, 'error');
+            }
+        });
+
+        function updateFullCode() {
+            let code = '';
+            codeInputs.forEach(input => {
+                code += input.value;
+            });
+            if (fullCodeInput) {
+                fullCodeInput.value = code;
+            }
+        }
+    });
 })();
