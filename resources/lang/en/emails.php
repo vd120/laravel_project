@@ -1,20 +1,34 @@
 <?php
 
 return [
-    // Inactive User Reminders - Generic (no specific days)
-    'inactive_subject' => 'We miss you at :app!',
-    'inactive_greeting' => 'Hey :name!',
-    'inactive_message' => 'It\'s been a while since you last visited :app. We miss you! A lot has happened while you were away - new posts, messages, and people waiting for you. Come back and see what you\'ve missed!',
-    'inactive_cta' => 'Come Back',
-
-    // Verification Email
-    'verification_subject' => 'Verify Your Email - :app',
-    'verification_code' => 'Your verification code is: :code',
-    'verification_valid' => 'This code is valid for 10 minutes.',
-
-    // Password Reset
-    'password_reset_subject' => 'Password Reset - :app',
-    'password_reset_link' => 'Click here to reset your password: :link',
-    'password_reset_valid' => 'This link expires in 60 minutes.',
-    'password_reset_ignore' => 'If you didn\'t request this, you can safely ignore this email.',
+    // Login Notification (simpler, friendly)
+    'login_notification_subject' => '✅ Login Notification - :app_name',
+    'login_notification_title' => 'Login Successful',
+    'login_notification_subtitle' => 'A new login was detected on your account',
+    
+    // Greeting
+    'hello' => 'Hello',
+    
+    // Message
+    'login_notification_message' => 'We wanted to let you know that a new login was detected on your account. Here are the details:',
+    
+    // Sections
+    'login_details' => 'Login Details',
+    'location' => 'Location',
+    'coordinates' => 'Coordinates',
+    'ip_address' => 'IP Address',
+    'device_type' => 'Device Type',
+    'browser' => 'Browser',
+    'operating_system' => 'Operating System',
+    'login_time' => 'Login Time',
+    'timezone' => 'Timezone',
+    'isp' => 'ISP',
+    'unknown' => 'Unknown',
+    
+    // Call to Action
+    'view_activity_logs' => 'View All Activity',
+    
+    // Footer
+    'footer_notification_text' => 'This email was sent to notify you about login activity on your account.',
+    'footer_ignore' => 'If this was you, you can safely ignore this email.',
 ];

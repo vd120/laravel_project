@@ -960,9 +960,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const hashtagSuggestions = document.getElementById('hashtag-suggestions');
     let userSuggestions = document.getElementById('user-suggestions');
 
-    console.log('Post content element:', postContent);
-    console.log('Hashtag suggestions element:', hashtagSuggestions);
-
     // Create user suggestions container if it doesn't exist
     if (!userSuggestions) {
         userSuggestions = document.createElement('div');
@@ -971,11 +968,8 @@ document.addEventListener('DOMContentLoaded', function() {
         userSuggestions.style.display = 'none';
         if (postContent && postContent.parentNode) {
             postContent.parentNode.appendChild(userSuggestions);
-            console.log('Created user suggestions container');
         }
     }
-
-    console.log('User suggestions element:', userSuggestions);
 
     if (postContent) {
         postContent.addEventListener('input', handleInput);
@@ -1167,29 +1161,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function selectHashtag(hashtag) {
-        console.log('selectHashtag called with:', hashtag);
-        console.log('postContent element:', postContent);
-        if (!postContent) {
-            console.error('postContent is null!');
-            return;
-        }
+        if (!postContent) return;
         const cursorPos = postContent.selectionStart;
         const text = postContent.value;
         const beforeCursor = text.substring(0, cursorPos);
-        // Match # with zero or more word characters (not just one or more)
         const match = beforeCursor.match(/#(\w*)$/);
-        console.log('Match result:', match);
         if (match !== null) {
             const startPos = cursorPos - match[0].length;
             const newText = text.substring(0, startPos) + '#' + hashtag.name + ' ';
-            console.log('New text:', newText);
             postContent.value = newText;
             postContent.focus();
             postContent.selectionStart = postContent.selectionEnd = startPos + hashtag.name.length + 2;
-            console.log('Cursor position set to:', startPos + hashtag.name.length + 2);
         }
         closeHashtagSuggestions();
-        console.log('Hashtag suggestions closed');
     }
 
     function handleUserMentionInput(e) {
@@ -1328,29 +1312,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function selectUser(user) {
-        console.log('selectUser called with:', user);
-        console.log('postContent element:', postContent);
-        if (!postContent) {
-            console.error('postContent is null!');
-            return;
-        }
+        if (!postContent) return;
         const cursorPos = postContent.selectionStart;
         const text = postContent.value;
         const beforeCursor = text.substring(0, cursorPos);
-        // Match @ with zero or more word characters (not just one or more)
         const match = beforeCursor.match(/@(\w*)$/);
-        console.log('Match result:', match);
         if (match !== null) {
             const startPos = cursorPos - match[0].length;
             const newText = text.substring(0, startPos) + '@' + user.username + ' ';
-            console.log('New text:', newText);
             postContent.value = newText;
             postContent.focus();
             postContent.selectionStart = postContent.selectionEnd = startPos + user.username.length + 2;
-            console.log('Cursor position set to:', startPos + user.username.length + 2);
         }
         closeUserSuggestions();
-        console.log('User suggestions closed');
     }
 
     function escapeHtml(text) {
@@ -1363,54 +1337,36 @@ document.addEventListener('DOMContentLoaded', function() {
     window.selectHashtagByClick = selectHashtagByClick;
     window.selectUserByClick = selectUserByClick;
 
-    console.log('Setting up event delegation...');
-    console.log('Hashtag suggestions:', hashtagSuggestions);
-    console.log('User suggestions:', userSuggestions);
-
     // Use event delegation for hashtag suggestions
     if (hashtagSuggestions) {
         hashtagSuggestions.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent handleOutsideClick from closing
-            console.log('Hashtag click event triggered');
+            e.stopPropagation();
             const hashtagItem = e.target.closest('.hashtag-item');
-            console.log('Hashtag item:', hashtagItem);
             if (hashtagItem) {
                 e.preventDefault();
                 const hashtagName = hashtagItem.getAttribute('data-hashtag');
-                console.log('Hashtag name from data attribute:', hashtagName);
-                console.log('Hashtag suggestions array:', hashtagState.suggestions);
                 const hashtag = hashtagState.suggestions.find(h => h.name === hashtagName);
-                console.log('Found hashtag:', hashtag);
                 if (hashtag) {
-                    console.log('Calling selectHashtag');
                     selectHashtag(hashtag);
                 }
             }
         });
-        console.log('Hashtag click listener attached');
     }
 
     // Use event delegation for user suggestions
     if (userSuggestions) {
         userSuggestions.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent handleOutsideClick from closing
-            console.log('User click event triggered');
+            e.stopPropagation();
             const userItem = e.target.closest('.user-item');
-            console.log('User item:', userItem);
             if (userItem) {
                 e.preventDefault();
                 const username = userItem.getAttribute('data-username');
-                console.log('Username from data attribute:', username);
-                console.log('User suggestions array:', userMentionState.suggestions);
                 const user = userMentionState.suggestions.find(u => u.username === username);
-                console.log('Found user:', user);
                 if (user) {
-                    console.log('Calling selectUser');
                     selectUser(user);
                 }
             }
         });
-        console.log('User click listener attached');
     }
 });
 </script>

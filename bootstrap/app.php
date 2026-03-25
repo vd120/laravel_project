@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Trust proxies for proper header handling (Cloudflare, etc.)
         $middleware->trustProxies(at: '*');
+        
+        // Trust Cloudflare IPs and use their headers
+        $middleware->web(append: [
+            \App\Http\Middleware\TrustCloudflare::class,
+        ]);
 
         // Set locale for multilingual support
         $middleware->web(append: [
@@ -44,6 +49,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'password.set' => \App\Http\Middleware\RequirePasswordSet::class,
         ]);
     })
+    ->withCommands([
+        \App\Console\Commands\BackfillIpLocations::class,
+    ])
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException $e) {
             return response()->view('errors.404', [], 404);

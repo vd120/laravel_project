@@ -124,6 +124,7 @@
         <div class="profile-actions">
             @if(auth()->check() && auth()->id() === $user->id)
                 <a href="{{ route('profile.edit', $user) }}" class="btn"><i class="fas fa-edit"></i> {{ __('users.edit_profile') }}</a>
+                <a href="{{ route('activity.index') }}" class="btn"><i class="fas fa-history"></i> {{ __('activity.activity_logs') }}</a>
             @elseif(auth()->check() && $isBlockedBy)
                 <div style="color: var(--text-muted); font-size: 14px;">
                     <i class="fas fa-ban"></i> {{ __('users.blocked_you') }}
