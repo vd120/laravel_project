@@ -31,7 +31,12 @@ class MentionService
             return;
         }
 
-        
+        // Get the mentioner's info
+        $mentioner = User::find($mentionerId);
+        if (!$mentioner) {
+            return;
+        }
+
         $mentionedUsers = User::whereIn('username', $mentionedUsernames)
             ->where('id', '!=', $mentionerId)
             ->whereDoesntHave('blockedBy', function($query) use ($mentionerId) {
@@ -43,7 +48,7 @@ class MentionService
             ->get();
 
         foreach ($mentionedUsers as $mentionedUser) {
-            
+
             Mention::create([
                 'mentioner_id' => $mentionerId,
                 'mentioned_id' => $mentionedUser->id,
@@ -51,12 +56,13 @@ class MentionService
                 'mentionable_id' => $mentionable->id,
             ]);
 
-            
+
             Notification::create([
                 'user_id' => $mentionedUser->id,
                 'type' => 'mention',
                 'data' => [
-                    'mentioner_username' => $mentionedUser->username,
+                    'mentioner_name' => $mentioner->name,
+                    'mentioner_username' => $mentioner->username,
                     'mentionable_type' => get_class($mentionable),
                 ],
                 'related_type' => get_class($mentionable),
@@ -77,7 +83,8 @@ class MentionService
                 $user = User::where('username', $username)->first();
 
                 if ($user) {
-                    return '<a href="' . route('users.show', $user) . '" class="mention-link">@' . $username . '</a>';
+                    // Add dir="ltr" and unicode-bidi to ensure proper display in RTL
+                    return '<a href="' . route('users.show', $user) . '" class="mention-link" dir="ltr" style="unicode-bidi: isolate;">@' . $username . '</a>';
                 }
 
                 return '@' . $username;

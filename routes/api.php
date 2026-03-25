@@ -62,8 +62,12 @@ Route::get('/check-username/{username}', function ($username) {
     ]);
 });
 
-// User search (web authenticated endpoint)
+// Hashtag suggestions API (public, no auth required)
+Route::get('/hashtags/suggestions', [App\Http\Controllers\Api\HashtagApiController::class, 'suggestions']);
+
+// User mention suggestions (web authenticated endpoint)
 Route::middleware(['web'])->group(function () {
+    Route::get('/users/following/suggestions', [App\Http\Controllers\Api\UserMentionApiController::class, 'following']);
     Route::get('/search-users', [UserController::class, 'search']);
 });
 

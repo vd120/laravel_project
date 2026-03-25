@@ -69,7 +69,11 @@
             <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="create-post-avatar">
             <span class="create-post-author">{{ auth()->user()->name }}</span>
         </div>
-        <textarea id="post-content" placeholder="{{ __('messages.whats_on_your_mind') }}"></textarea>
+        <textarea id="post-content" placeholder="{{ __('messages.whats_on_your_mind') }}" dir="auto"></textarea>
+        
+        {{-- Hashtag Autocomplete Dropdown --}}
+        <div id="hashtag-suggestions" class="hashtag-suggestions" style="display: none;"></div>
+        
         <div class="post-actions">
             <div class="post-actions-left">
                 <label for="media" class="post-action-btn" style="cursor: pointer;">
@@ -506,7 +510,8 @@ if (hasMorePosts) {
 // Track followed users online status
 let followedUsersOnlineState = {
     lastCheck: null,
-    onlineUserIds: new Set(),
+    onlineUserIds: new Set(JSON.parse(sessionStorage.getItem('shownOnlineUsers') || '[]')),
+    offlineUserIds: new Set(), // Track users who went offline
     pollInterval: null,
     pollingActive: false
 };
@@ -526,18 +531,34 @@ function pollFollowedUsersOnline() {
             if (data.success) {
                 // Update last check time
                 followedUsersOnlineState.lastCheck = data.current_time;
-                
+
+                // Get current online user IDs
+                const currentOnlineIds = new Set(data.online_users.map(u => u.id));
+
+                // Check which users went offline (were online before but not now)
+                followedUsersOnlineState.onlineUserIds.forEach(userId => {
+                    if (!currentOnlineIds.has(userId)) {
+                        // User went offline, remove from shown list so toast can show again
+                        followedUsersOnlineState.offlineUserIds.add(userId);
+                        followedUsersOnlineState.onlineUserIds.delete(userId);
+                    }
+                });
+
                 // Show toast for newly online users
                 if (data.newly_online && data.newly_online.length > 0) {
                     data.newly_online.forEach(onlineUser => {
-                        // Only show toast if we haven't already shown it for this user
-                        if (!followedUsersOnlineState.onlineUserIds.has(onlineUser.id)) {
+                        // Show toast if user was offline before or never shown
+                        if (followedUsersOnlineState.offlineUserIds.has(onlineUser.id) || 
+                            !followedUsersOnlineState.onlineUserIds.has(onlineUser.id)) {
                             showFollowedUserOnlineToast(onlineUser);
                             followedUsersOnlineState.onlineUserIds.add(onlineUser.id);
+                            followedUsersOnlineState.offlineUserIds.delete(onlineUser.id);
+                            // Save to sessionStorage
+                            sessionStorage.setItem('shownOnlineUsers', JSON.stringify(Array.from(followedUsersOnlineState.onlineUserIds)));
                         }
                     });
                 }
-                
+
                 // Track all currently online users
                 data.online_users.forEach(onlineUser => {
                     followedUsersOnlineState.onlineUserIds.add(onlineUser.id);
@@ -652,4 +673,745 @@ startFollowedUsersOnlinePolling();
         </form>
     </div>
 </div>
+
+{{-- Hashtag Autocomplete Styles --}}
+<style>
+.hashtag-suggestions {
+    position: absolute;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 8px;
+    min-width: 280px;
+    max-width: 400px;
+}
+
+.hashtag-section {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.hashtag-section:last-child {
+    border-bottom: none;
+}
+
+.hashtag-section-title {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hashtag-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0.875rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.hashtag-item:hover,
+.hashtag-item.selected {
+    background: var(--bg-secondary);
+}
+
+.hashtag-item-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.hashtag-item-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    margin-left: 8px;
+}
+
+/* Loading state */
+.hashtag-loading {
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.hashtag-loading i {
+    margin-right: 8px;
+}
+
+/* No results state */
+.hashtag-no-results {
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+    .hashtag-suggestions {
+        min-width: calc(100vw - 32px);
+        max-width: calc(100vw - 32px);
+        max-height: 250px;
+    }
+
+    .hashtag-item {
+        padding: 0.75rem 1rem;
+    }
+
+    .hashtag-item-name {
+        font-size: 15px;
+    }
+
+    .hashtag-item-count {
+        font-size: 12px;
+    }
+}
+
+/* User Mention Autocomplete Styles */
+.user-suggestions {
+    position: absolute;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 8px;
+    min-width: 280px;
+    max-width: 400px;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.65rem 0.875rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.user-item:hover,
+.user-item.selected {
+    background: var(--bg-secondary);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.user-avatar-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-username {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Mobile responsive for user suggestions */
+@media (max-width: 640px) {
+    .user-suggestions {
+        min-width: calc(100vw - 32px);
+        max-width: calc(100vw - 32px);
+        max-height: 250px;
+    }
+
+    .user-item {
+        padding: 0.75rem 1rem;
+    }
+
+    .user-avatar,
+    .user-avatar-placeholder {
+        width: 40px;
+        height: 40px;
+    }
+
+    .user-name {
+        font-size: 15px;
+    }
+
+    .user-username {
+        font-size: 13px;
+    }
+}
+
+/* Mobile responsive for hashtag and user suggestions */
+@media (max-width: 640px) {
+    .hashtag-suggestions,
+    .user-suggestions {
+        min-width: calc(100% - 16px) !important;
+        max-width: calc(100% - 16px) !important;
+        max-height: 300px;
+        left: 8px !important;
+        right: auto !important;
+    }
+
+    .hashtag-item,
+    .user-item {
+        padding: 0.875rem 1rem;
+        touch-action: manipulation;
+    }
+
+    .hashtag-item-name {
+        font-size: 15px;
+    }
+
+    .hashtag-item-count {
+        font-size: 12px;
+    }
+
+    .user-name {
+        font-size: 15px;
+    }
+
+    .user-username {
+        font-size: 13px;
+    }
+
+    .user-avatar,
+    .user-avatar-placeholder {
+        width: 44px;
+        height: 44px;
+        font-size: 16px;
+    }
+}
+</style>
+
+<script>
+// Get translations from data attributes or use defaults
+const autocompleteTranslations = {
+    loading: "{{ __('messages.loading') }}",
+    noHashtagsFound: "{{ __('messages.no_hashtags_found') }}",
+    noUsersFound: "{{ __('messages.no_users_found') }}",
+    trendingHashtags: "{{ __('messages.trending_hashtags') }}",
+    suggestions: "{{ __('messages.suggestions') }}",
+    posts: "{{ __('messages.posts') }}"
+};
+
+// Hashtag Autocomplete
+let hashtagState = {
+    isOpen: false,
+    selectedIndex: -1,
+    suggestions: [],
+    debounceTimer: null,
+    isLoading: false
+};
+
+// User Mention Autocomplete
+let userMentionState = {
+    isOpen: false,
+    selectedIndex: -1,
+    suggestions: [],
+    debounceTimer: null,
+    isLoading: false
+};
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    const postContent = document.getElementById('post-content');
+    const hashtagSuggestions = document.getElementById('hashtag-suggestions');
+    let userSuggestions = document.getElementById('user-suggestions');
+
+    console.log('Post content element:', postContent);
+    console.log('Hashtag suggestions element:', hashtagSuggestions);
+
+    // Create user suggestions container if it doesn't exist
+    if (!userSuggestions) {
+        userSuggestions = document.createElement('div');
+        userSuggestions.id = 'user-suggestions';
+        userSuggestions.className = 'user-suggestions';
+        userSuggestions.style.display = 'none';
+        if (postContent && postContent.parentNode) {
+            postContent.parentNode.appendChild(userSuggestions);
+            console.log('Created user suggestions container');
+        }
+    }
+
+    console.log('User suggestions element:', userSuggestions);
+
+    if (postContent) {
+        postContent.addEventListener('input', handleInput);
+        postContent.addEventListener('keydown', handleKeydown);
+        postContent.addEventListener('click', handleClick);
+        document.addEventListener('click', handleOutsideClick);
+    }
+
+    function handleInput(e) {
+        handleHashtagInput(e);
+        handleUserMentionInput(e);
+    }
+
+    function handleKeydown(e) {
+        if (hashtagState.isOpen) {
+            handleHashtagKeydown(e);
+            return;
+        }
+        if (userMentionState.isOpen) {
+            handleUserMentionKeydown(e);
+            return;
+        }
+    }
+
+    function handleClick() {
+        if (hashtagState.isOpen) openHashtagSuggestions();
+        if (userMentionState.isOpen) openUserSuggestions();
+    }
+
+    function handleOutsideClick(e) {
+        if (!hashtagSuggestions.contains(e.target) && e.target !== postContent) {
+            closeHashtagSuggestions();
+        }
+        if (userSuggestions && !userSuggestions.contains(e.target) && e.target !== postContent) {
+            closeUserSuggestions();
+        }
+    }
+
+    function handleHashtagInput(e) {
+        const cursorPos = e.target.selectionStart;
+        const text = e.target.value;
+        const beforeCursor = text.substring(0, cursorPos);
+        const match = beforeCursor.match(/#(\w*)$/);
+
+        if (match !== null) {
+            const searchTerm = match[1] || '';
+            if (searchTerm === '') {
+                fetchHashtagSuggestions('');
+            } else {
+                fetchHashtagSuggestions(searchTerm);
+            }
+        } else {
+            closeHashtagSuggestions();
+        }
+    }
+
+    function handleHashtagKeydown(e) {
+        if (!hashtagState.isOpen) return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            hashtagState.selectedIndex = Math.min(hashtagState.selectedIndex + 1, hashtagState.suggestions.length - 1);
+            updateSelectedHashtag();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            hashtagState.selectedIndex = Math.max(hashtagState.selectedIndex - 1, 0);
+            updateSelectedHashtag();
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            if (hashtagState.selectedIndex >= 0) {
+                e.preventDefault();
+                selectHashtag(hashtagState.suggestions[hashtagState.selectedIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            closeHashtagSuggestions();
+        }
+    }
+
+    async function fetchHashtagSuggestions(search = '') {
+        clearTimeout(hashtagState.debounceTimer);
+        hashtagState.isLoading = true;
+        showLoadingState();
+
+        hashtagState.debounceTimer = setTimeout(async () => {
+            try {
+                const response = await fetch(`/api/hashtags/suggestions?search=${encodeURIComponent(search)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const allSuggestions = [...(data.data.top || []), ...(data.data.matching || [])];
+                    const seen = new Set();
+                    hashtagState.suggestions = allSuggestions.filter(tag => {
+                        const key = tag.name.toLowerCase();
+                        if (seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    }).slice(0, 10);
+
+                    if (hashtagState.suggestions.length > 0) {
+                        renderHashtagSuggestions(data.data);
+                        openHashtagSuggestions();
+                    } else {
+                        showNoResultsState();
+                    }
+                } else {
+                    closeHashtagSuggestions();
+                }
+            } catch (error) {
+                console.error('Error fetching hashtags:', error);
+                closeHashtagSuggestions();
+            } finally {
+                hashtagState.isLoading = false;
+            }
+        }, 250);
+    }
+
+    function renderHashtagSuggestions(data) {
+        let html = '';
+        if (data.top && data.top.length > 0) {
+            html += '<div class="hashtag-section"><div class="hashtag-section-title"><i class="fas fa-fire"></i> ' + autocompleteTranslations.trendingHashtags + '</div>';
+            data.top.forEach((tag, index) => { html += renderHashtagItem(tag, index); });
+            html += '</div>';
+        }
+        if (data.matching && data.matching.length > 0) {
+            html += '<div class="hashtag-section"><div class="hashtag-section-title"><i class="fas fa-search"></i> ' + autocompleteTranslations.suggestions + '</div>';
+            data.matching.forEach((tag, index) => { html += renderHashtagItem(tag, index); });
+            html += '</div>';
+        }
+        hashtagSuggestions.innerHTML = html;
+    }
+
+    function renderHashtagItem(tag, index) {
+        return `<div class="hashtag-item" data-hashtag="${escapeHtml(tag.name)}" data-index="${index}"><div class="hashtag-item-name"><i class="fas fa-hashtag"></i><span>${escapeHtml(tag.name)}</span></div><div class="hashtag-item-count">${tag.usage_count} ${autocompleteTranslations.posts}</div></div>`;
+    }
+
+    function showLoadingState() {
+        hashtagSuggestions.innerHTML = '<div class="hashtag-loading"><i class="fas fa-spinner fa-spin"></i> ' + autocompleteTranslations.loading + '</div>';
+    }
+
+    function showNoResultsState() {
+        hashtagSuggestions.innerHTML = '<div class="hashtag-no-results">' + autocompleteTranslations.noHashtagsFound + '</div>';
+        openHashtagSuggestions();
+    }
+
+    function openHashtagSuggestions() {
+        if (!postContent) return;
+        const textareaRect = postContent.getBoundingClientRect();
+        const cursorPos = postContent.selectionStart;
+        const text = postContent.value.substring(0, cursorPos);
+        const lines = text.split('\n');
+        const currentLine = lines.length - 1;
+        const lineHeight = parseInt(window.getComputedStyle(postContent).lineHeight) || 24;
+        const paddingTop = parseInt(window.getComputedStyle(postContent).paddingTop) || 12;
+        const scrollTop = postContent.scrollTop;
+        const top = textareaRect.top + (currentLine * lineHeight) + paddingTop - scrollTop + 40;
+        
+        // Mobile responsive positioning
+        const isMobile = window.innerWidth <= 640;
+        const left = isMobile ? 8 : textareaRect.left;
+        
+        hashtagSuggestions.style.top = `${Math.max(top, textareaRect.bottom)}px`;
+        hashtagSuggestions.style.left = `${left}px`;
+        hashtagSuggestions.style.width = isMobile ? 'calc(100% - 16px)' : '';
+        hashtagSuggestions.style.display = 'block';
+        hashtagState.isOpen = true;
+        hashtagState.selectedIndex = -1;
+    }
+
+    function closeHashtagSuggestions() {
+        if (hashtagSuggestions) hashtagSuggestions.style.display = 'none';
+        hashtagState.isOpen = false;
+        hashtagState.selectedIndex = -1;
+        hashtagState.suggestions = [];
+        hashtagState.isLoading = false;
+    }
+
+    function updateSelectedHashtag() {
+        const items = hashtagSuggestions.querySelectorAll('.hashtag-item');
+        items.forEach((item, index) => {
+            if (index === hashtagState.selectedIndex) {
+                item.classList.add('selected');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    }
+
+    function selectHashtagByClick(index) {
+        if (hashtagState.suggestions[index]) selectHashtag(hashtagState.suggestions[index]);
+    }
+
+    function selectHashtag(hashtag) {
+        console.log('selectHashtag called with:', hashtag);
+        console.log('postContent element:', postContent);
+        if (!postContent) {
+            console.error('postContent is null!');
+            return;
+        }
+        const cursorPos = postContent.selectionStart;
+        const text = postContent.value;
+        const beforeCursor = text.substring(0, cursorPos);
+        // Match # with zero or more word characters (not just one or more)
+        const match = beforeCursor.match(/#(\w*)$/);
+        console.log('Match result:', match);
+        if (match !== null) {
+            const startPos = cursorPos - match[0].length;
+            const newText = text.substring(0, startPos) + '#' + hashtag.name + ' ';
+            console.log('New text:', newText);
+            postContent.value = newText;
+            postContent.focus();
+            postContent.selectionStart = postContent.selectionEnd = startPos + hashtag.name.length + 2;
+            console.log('Cursor position set to:', startPos + hashtag.name.length + 2);
+        }
+        closeHashtagSuggestions();
+        console.log('Hashtag suggestions closed');
+    }
+
+    function handleUserMentionInput(e) {
+        const cursorPos = e.target.selectionStart;
+        const text = e.target.value;
+        const beforeCursor = text.substring(0, cursorPos);
+        const match = beforeCursor.match(/@(\w*)$/);
+        if (match !== null) {
+            const searchTerm = match[1] || '';
+            if (searchTerm === '') {
+                fetchUserSuggestions('');
+            } else {
+                fetchUserSuggestions(searchTerm);
+            }
+        } else {
+            closeUserSuggestions();
+        }
+    }
+
+    function handleUserMentionKeydown(e) {
+        if (!userMentionState.isOpen) return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            userMentionState.selectedIndex = Math.min(userMentionState.selectedIndex + 1, userMentionState.suggestions.length - 1);
+            updateSelectedUser();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            userMentionState.selectedIndex = Math.max(userMentionState.selectedIndex - 1, 0);
+            updateSelectedUser();
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            if (userMentionState.selectedIndex >= 0) {
+                e.preventDefault();
+                selectUser(userMentionState.suggestions[userMentionState.selectedIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            closeUserSuggestions();
+        }
+    }
+
+    async function fetchUserSuggestions(search = '') {
+        clearTimeout(userMentionState.debounceTimer);
+        userMentionState.isLoading = true;
+        showUserLoadingState();
+
+        userMentionState.debounceTimer = setTimeout(async () => {
+            try {
+                const response = await fetch(`/api/users/following/suggestions?search=${encodeURIComponent(search)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    userMentionState.suggestions = data.data.slice(0, 10);
+                    if (userMentionState.suggestions.length > 0) {
+                        renderUserSuggestions(data.data);
+                        openUserSuggestions();
+                    } else {
+                        showUserNoResultsState();
+                    }
+                } else {
+                    closeUserSuggestions();
+                }
+            } catch (error) {
+                console.error('Error fetching users:', error);
+                closeUserSuggestions();
+            } finally {
+                userMentionState.isLoading = false;
+            }
+        }, 250);
+    }
+
+    function renderUserSuggestions(users) {
+        let html = '';
+        users.forEach((user, index) => { html += renderUserItem(user, index); });
+        userSuggestions.innerHTML = html;
+    }
+
+    function renderUserItem(user, index) {
+        const avatarHtml = user.avatar_url ? `<img src="${user.avatar_url}" alt="${user.name}" class="user-avatar">` : `<div class="user-avatar-placeholder">${user.name.charAt(0).toUpperCase()}</div>`;
+        return `<div class="user-item" data-username="${escapeHtml(user.username)}" data-index="${index}">${avatarHtml}<div class="user-info"><div class="user-name">${escapeHtml(user.name)}</div><div class="user-username">@${escapeHtml(user.username)}</div></div></div>`;
+    }
+
+    function showUserLoadingState() {
+        userSuggestions.innerHTML = '<div class="hashtag-loading"><i class="fas fa-spinner fa-spin"></i> ' + autocompleteTranslations.loading + '</div>';
+    }
+
+    function showUserNoResultsState() {
+        userSuggestions.innerHTML = '<div class="hashtag-no-results">' + autocompleteTranslations.noUsersFound + '</div>';
+        openUserSuggestions();
+    }
+
+    function openUserSuggestions() {
+        if (!postContent) return;
+        const textareaRect = postContent.getBoundingClientRect();
+        const cursorPos = postContent.selectionStart;
+        const text = postContent.value.substring(0, cursorPos);
+        const lines = text.split('\n');
+        const currentLine = lines.length - 1;
+        const lineHeight = parseInt(window.getComputedStyle(postContent).lineHeight) || 24;
+        const paddingTop = parseInt(window.getComputedStyle(postContent).paddingTop) || 12;
+        const scrollTop = postContent.scrollTop;
+        const top = textareaRect.top + (currentLine * lineHeight) + paddingTop - scrollTop + 40;
+        
+        // Mobile responsive positioning
+        const isMobile = window.innerWidth <= 640;
+        const left = isMobile ? 8 : textareaRect.left;
+        
+        userSuggestions.style.top = `${Math.max(top, textareaRect.bottom)}px`;
+        userSuggestions.style.left = `${left}px`;
+        userSuggestions.style.width = isMobile ? 'calc(100% - 16px)' : '';
+        userSuggestions.style.display = 'block';
+        userMentionState.isOpen = true;
+        userMentionState.selectedIndex = -1;
+    }
+
+    function closeUserSuggestions() {
+        if (userSuggestions) userSuggestions.style.display = 'none';
+        userMentionState.isOpen = false;
+        userMentionState.selectedIndex = -1;
+        userMentionState.suggestions = [];
+        userMentionState.isLoading = false;
+    }
+
+    function updateSelectedUser() {
+        const items = userSuggestions.querySelectorAll('.user-item');
+        items.forEach((item, index) => {
+            if (index === userMentionState.selectedIndex) {
+                item.classList.add('selected');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    }
+
+    function selectUserByClick(index) {
+        if (userMentionState.suggestions[index]) selectUser(userMentionState.suggestions[index]);
+    }
+
+    function selectUser(user) {
+        console.log('selectUser called with:', user);
+        console.log('postContent element:', postContent);
+        if (!postContent) {
+            console.error('postContent is null!');
+            return;
+        }
+        const cursorPos = postContent.selectionStart;
+        const text = postContent.value;
+        const beforeCursor = text.substring(0, cursorPos);
+        // Match @ with zero or more word characters (not just one or more)
+        const match = beforeCursor.match(/@(\w*)$/);
+        console.log('Match result:', match);
+        if (match !== null) {
+            const startPos = cursorPos - match[0].length;
+            const newText = text.substring(0, startPos) + '@' + user.username + ' ';
+            console.log('New text:', newText);
+            postContent.value = newText;
+            postContent.focus();
+            postContent.selectionStart = postContent.selectionEnd = startPos + user.username.length + 2;
+            console.log('Cursor position set to:', startPos + user.username.length + 2);
+        }
+        closeUserSuggestions();
+        console.log('User suggestions closed');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Make these available globally for onclick handlers
+    window.selectHashtagByClick = selectHashtagByClick;
+    window.selectUserByClick = selectUserByClick;
+
+    console.log('Setting up event delegation...');
+    console.log('Hashtag suggestions:', hashtagSuggestions);
+    console.log('User suggestions:', userSuggestions);
+
+    // Use event delegation for hashtag suggestions
+    if (hashtagSuggestions) {
+        hashtagSuggestions.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent handleOutsideClick from closing
+            console.log('Hashtag click event triggered');
+            const hashtagItem = e.target.closest('.hashtag-item');
+            console.log('Hashtag item:', hashtagItem);
+            if (hashtagItem) {
+                e.preventDefault();
+                const hashtagName = hashtagItem.getAttribute('data-hashtag');
+                console.log('Hashtag name from data attribute:', hashtagName);
+                console.log('Hashtag suggestions array:', hashtagState.suggestions);
+                const hashtag = hashtagState.suggestions.find(h => h.name === hashtagName);
+                console.log('Found hashtag:', hashtag);
+                if (hashtag) {
+                    console.log('Calling selectHashtag');
+                    selectHashtag(hashtag);
+                }
+            }
+        });
+        console.log('Hashtag click listener attached');
+    }
+
+    // Use event delegation for user suggestions
+    if (userSuggestions) {
+        userSuggestions.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent handleOutsideClick from closing
+            console.log('User click event triggered');
+            const userItem = e.target.closest('.user-item');
+            console.log('User item:', userItem);
+            if (userItem) {
+                e.preventDefault();
+                const username = userItem.getAttribute('data-username');
+                console.log('Username from data attribute:', username);
+                console.log('User suggestions array:', userMentionState.suggestions);
+                const user = userMentionState.suggestions.find(u => u.username === username);
+                console.log('Found user:', user);
+                if (user) {
+                    console.log('Calling selectUser');
+                    selectUser(user);
+                }
+            }
+        });
+        console.log('User click listener attached');
+    }
+});
+</script>
 @endsection

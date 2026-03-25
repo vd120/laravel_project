@@ -1637,6 +1637,12 @@ html[dir="rtl"] .cancel-reply {
     animation: menuSlideIn 0.2s ease-out;
 }
 
+/* RTL support for post menu dropdown */
+[dir="rtl"] .post-menu-dropdown {
+    right: auto;
+    left: 0;
+}
+
 @keyframes menuSlideIn {
     from {
         opacity: 0;

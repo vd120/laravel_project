@@ -47,15 +47,15 @@
     @if($post->content)
         <div class="post-content">
             @php
-                $content = app(\App\Services\MentionService::class)->convertMentionsToLinks($post->content);
+                $content = $post->content_html;
                 $contentLength = strlen(strip_tags($post->content));
                 $shouldTruncate = $contentLength > 300;
                 $truncatedContent = $shouldTruncate ? substr(strip_tags($post->content), 0, 300) . '...' : $post->content;
                 if ($shouldTruncate) {
-                    $truncatedContent = app(\App\Services\MentionService::class)->convertMentionsToLinks($truncatedContent);
+                    $truncatedContent = app(\App\Services\HashtagService::class)->linkify(app(\App\Services\MentionService::class)->convertMentionsToLinks($truncatedContent));
                 }
             @endphp
-            <p class="post-text {{ $shouldTruncate ? 'truncated' : '' }}" 
+            <p class="post-text {{ $shouldTruncate ? 'truncated' : '' }}"
                data-full-content="{{ htmlspecialchars($content, ENT_QUOTES, 'UTF-8') }}"
                data-truncated-content="{{ htmlspecialchars($truncatedContent, ENT_QUOTES, 'UTF-8') }}">
                 {!! $shouldTruncate ? $truncatedContent : $content !!}

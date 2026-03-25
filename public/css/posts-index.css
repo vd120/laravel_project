@@ -107,6 +107,12 @@
     color: var(--text-muted);
 }
 
+/* RTL support for textarea */
+[dir="rtl"] .create-post textarea {
+    text-align: right;
+    direction: rtl;
+}
+
 .post-actions {
     display: flex;
     justify-content: space-between;

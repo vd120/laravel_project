@@ -13,6 +13,7 @@ return [
     'my_profile' => 'بروفايلي',
     'edit_profile' => 'تعديل البروفايل',
     'saved_posts' => 'المنشورات المحفوظة',
+    'hashtags' => 'الهاشتاقات',
     'blocked_users' => 'المستخدمين المحظورين',
     'account_settings' => 'إعدادات الحساب',
     'logout' => 'تسجيل الخروج',

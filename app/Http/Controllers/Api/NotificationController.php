@@ -75,8 +75,19 @@ class NotificationController extends Controller
                             $comment = \App\Models\Comment::find($notification->related_id);
                             $post = $comment ? $comment->post : null;
                             $link = $post ? '/posts/' . $post->slug : null;
-                        } elseif ($notification->type === 'mention' && $triggerUser) {
-                            $link = '/users/' . ($triggerUser->username ?? $triggerUser->id);
+                        } elseif ($notification->type === 'mention' && $notification->related_id) {
+                            // For mention notifications, redirect to the post/comment where user was mentioned
+                            if ($notification->related_type === 'App\\Models\\Post') {
+                                $post = \App\Models\Post::find($notification->related_id);
+                                $link = $post ? '/posts/' . $post->slug : null;
+                            } elseif ($notification->related_type === 'App\\Models\\Comment') {
+                                $comment = \App\Models\Comment::find($notification->related_id);
+                                $post = $comment ? $comment->post : null;
+                                $link = $post ? '/posts/' . $post->slug . '#comment-' . $comment->id : null;
+                            } else {
+                                // Fallback to mentioner's profile
+                                $link = $triggerUser ? '/users/' . ($triggerUser->username ?? $triggerUser->id) : null;
+                            }
                         } elseif ($notification->type === 'message' && ($notification->data['conversation_id'] ?? null)) {
                             // Conversations use slug, not ID
                             $conversation = \App\Models\Conversation::find($notification->data['conversation_id']);

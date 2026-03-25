@@ -377,6 +377,10 @@ Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(func
     Route::get('/posts/{post}/report', [App\Http\Controllers\ReportController::class, 'create'])->name('posts.report.create')->where('post', '[a-zA-Z0-9]{24}');
     Route::post('/posts/{post}/report', [App\Http\Controllers\ReportController::class, 'store'])->name('posts.report.store')->where('post', '[a-zA-Z0-9]{24}');
 
+    // Hashtag routes
+    Route::get('/hashtags', [App\Http\Controllers\HashtagController::class, 'index'])->name('hashtags.index');
+    Route::get('/hashtags/{slug}', [App\Http\Controllers\HashtagController::class, 'show'])->name('hashtags.show')->where('slug', '(?!api)[a-zA-Z0-9_-]+');
+
     // User reports management (authenticated users can view their reports)
     Route::middleware(['auth', 'verified', 'password.set'])->group(function () {
         Route::get('/my-reports', [App\Http\Controllers\ReportController::class, 'myReports'])->name('reports.my-reports');
@@ -384,6 +388,4 @@ Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(func
         Route::delete('/reports/{report}', [App\Http\Controllers\ReportController::class, 'deleteReport'])->name('reports.delete');
         Route::delete('/my-reports/delete-all', [App\Http\Controllers\ReportController::class, 'deleteAllReports'])->name('reports.delete-all');
     });
-
-
 });

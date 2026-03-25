@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\SavedPost;
 use App\Services\FileUploadService;
+use App\Services\HashtagService;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
@@ -188,6 +189,11 @@ class PostController extends Controller
             app(\App\Services\MentionService::class)->processMentions($post, $post->content, auth()->id());
         }
 
+        // Process hashtags in the post content
+        if ($post->content) {
+            app(HashtagService::class)->syncHashtags($post, $post->content);
+        }
+
         // Handle multiple media uploads with validated files
         if ($validatedFiles) {
             $files = $validatedFiles;
@@ -369,7 +375,10 @@ class PostController extends Controller
         if ($post->user_id !== auth()->id()) {
             abort(403);
         }
-        
+
+        // Remove hashtags associated with this post
+        app(HashtagService::class)->removePostHashtags($post);
+
         $post->delete();
 
         // Check if it's an AJAX request

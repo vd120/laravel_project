@@ -37,6 +37,14 @@ class Post extends Model
         return $slug;
     }
 
+    public function getContentHtmlAttribute(): string
+    {
+        if (!$this->content) {
+            return '';
+        }
+        return app(\App\Services\HashtagService::class)->convertToLinks($this->content);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -80,5 +88,10 @@ class Post extends Model
     public function pendingReports()
     {
         return $this->hasMany(PostReport::class)->where('status', PostReport::STATUS_PENDING);
+    }
+
+    public function hashtags()
+    {
+        return $this->belongsToMany(Hashtag::class)->withTimestamps();
     }
 }

@@ -32,6 +32,14 @@ return [
     'show_less' => 'عرض أقل',
     'select_language' => 'اختار اللغة',
 
+    // Autocomplete (Hashtags & Mentions)
+    'loading' => 'جاري التحميل...',
+    'no_hashtags_found' => 'مفيش هاشتاجات',
+    'no_users_found' => 'مفيش مستخدمين',
+    'trending_hashtags' => 'الهاشتاجات الشائعه',
+    'suggestions' => 'اقتراحات',
+    'posts' => 'منشورات',
+
     // Home/Landing Page
     'home' => 'الرئيسية',
     'nexus' => 'Nexus',

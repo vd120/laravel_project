@@ -32,6 +32,14 @@ return [
     'show_less' => 'Show Less',
     'select_language' => 'Select Language',
 
+    // Autocomplete (Hashtags & Mentions)
+    'loading' => 'Loading...',
+    'no_hashtags_found' => 'No hashtags found',
+    'no_users_found' => 'No users found',
+    'trending_hashtags' => 'Trending Hashtags',
+    'suggestions' => 'Suggestions',
+    'posts' => 'posts',
+
     // Home/Landing Page
     'home' => 'Home',
     'nexus' => 'Nexus',
