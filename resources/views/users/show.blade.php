@@ -125,6 +125,7 @@
             @if(auth()->check() && auth()->id() === $user->id)
                 <a href="{{ route('profile.edit', $user) }}" class="btn"><i class="fas fa-edit"></i> {{ __('users.edit_profile') }}</a>
                 <a href="{{ route('activity.index') }}" class="btn"><i class="fas fa-history"></i> {{ __('activity.activity_logs') }}</a>
+                <button class="btn" onclick="showQrCodeModal()"><i class="fas fa-qrcode"></i> {{ __('users.qr_code') }}</button>
             @elseif(auth()->check() && $isBlockedBy)
                 <div style="color: var(--text-muted); font-size: 14px;">
                     <i class="fas fa-ban"></i> {{ __('users.blocked_you') }}
@@ -179,6 +180,28 @@
             </div>
         @endforelse
         {{ $posts->links() }}
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div id="qr-code-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9998;align-items:center;justify-content:center;" onclick="closeQrCodeModal(event)">
+    <div style="background:var(--surface);border-radius:var(--radius-lg);padding:32px;max-width:400px;width:90%;text-align:center;position:relative;" onclick="event.stopPropagation()">
+        <button style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text-muted);font-size:24px;cursor:pointer;padding:4px;" onclick="closeQrCodeModal()">×</button>
+        <h3 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;"><i class="fas fa-qrcode" style="color:var(--primary);"></i> {{ __('users.profile_qr_code') }}</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin-bottom:24px;">{{ __('users.scan_to_visit_profile') }}</p>
+        
+        <div id="qr-code-loading" style="display:flex;align-items:center;justify-content:center;padding:40px;">
+            <i class="fas fa-spinner fa-spin" style="font-size:32px;color:var(--primary);"></i>
+        </div>
+        
+        <div id="qr-code-content" style="display:none;">
+            <div id="qr-code-display" style="background:white;padding:16px;border-radius:var(--radius-md);display:inline-block;margin-bottom:20px;"></div>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;word-break:break-all;" id="qr-profile-url"></p>
+            <div style="display:flex;gap:12px;justify-content:center;">
+                <button class="btn btn-primary" onclick="downloadQrCode()"><i class="fas fa-download"></i> {{ __('users.download_qr') }}</button>
+                <button class="btn" onclick="closeQrCodeModal()"><i class="fas fa-times"></i> {{ __('users.close') }}</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -279,5 +302,95 @@ document.addEventListener('DOMContentLoaded', function() {
     showToast({!! json_encode(session('success')) !!}, 'success');
 });
 @endif
+
+// QR Code Modal Functions
+const loadingQRCodeText = {!! json_encode(__('users.loading_qr_code')) !!};
+const errorLoadingQRText = {!! json_encode(__('users.error_loading_qr_code')) !!};
+const downloadQRText = {!! json_encode(__('users.download_qr')) !!};
+
+function showQrCodeModal() {
+    const modal = document.getElementById('qr-code-modal');
+    const loading = document.getElementById('qr-code-loading');
+    const content = document.getElementById('qr-code-content');
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Show loading state
+    loading.style.display = 'flex';
+    content.style.display = 'none';
+    
+    // Fetch QR code
+    fetch(`{{ route('users.qr-code', $user) }}`, {
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('qr-code-display').innerHTML = data.qr_code;
+            document.getElementById('qr-profile-url').textContent = data.profile_url;
+            
+            loading.style.display = 'none';
+            content.style.display = 'block';
+        } else {
+            throw new Error('Failed to load QR code');
+        }
+    })
+    .catch(() => {
+        loading.innerHTML = '<i class="fas fa-exclamation-circle" style="font-size:32px;color:#ef4444;"></i><p style="color:var(--text-muted);margin-top:12px;">' + errorLoadingQRText + '</p>';
+    });
+}
+
+function downloadQrCode() {
+    const downloadUrl = `{{ route('users.qr-code.download', $user) }}`;
+    
+    // Create temporary link and trigger download
+    fetch(downloadUrl)
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'profile-qr-{{ $user->username }}.svg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(() => {
+            // Fallback: open in new tab
+            window.open(downloadUrl, '_blank');
+        });
+}
+
+function closeQrCodeModal(event) {
+    if (event && event.target !== event.currentTarget) return;
+    const modal = document.getElementById('qr-code-modal');
+    const loading = document.getElementById('qr-code-loading');
+    
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    
+    // Reset loading state for next open
+    loading.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:32px;color:var(--primary);"></i>';
+}
+
+// Close modals on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const qrModal = document.getElementById('qr-code-modal');
+        const imgModal = document.getElementById('image-modal');
+        
+        if (qrModal.style.display === 'flex') {
+            closeQrCodeModal();
+        }
+        if (imgModal.style.display === 'flex') {
+            closeImageModal();
+        }
+    }
+});
 </script>
 @endsection

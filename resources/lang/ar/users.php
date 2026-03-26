@@ -130,4 +130,13 @@ return [
     'block_user_confirm' => 'تحظر :username؟',
     'error_unblocking' => 'غلط في إلغاء الحظر',
     'error_blocking' => 'غلط في الحظر',
+
+    // QR Code Profile Sharing
+    'qr_code' => 'رمز QR',
+    'profile_qr_code' => 'رمز QR للبروفايل',
+    'scan_to_visit_profile' => 'امسح الضوئي لزيارة البروفايل فوراً',
+    'download_qr' => 'تحميل QR',
+    'close' => 'إغلاق',
+    'loading_qr_code' => 'جاري تحميل رمز QR...',
+    'error_loading_qr_code' => 'فشل تحميل رمز QR. لو سمحت حاول تاني.',
 ];

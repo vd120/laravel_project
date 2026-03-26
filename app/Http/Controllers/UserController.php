@@ -4,11 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Block;
 use App\Models\User;
+use App\Services\QrCodeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct(protected QrCodeService $qrCodeService)
+    {
+    }
     public function show(User $user)
     {
         $user->load(['profile']);
@@ -856,5 +863,39 @@ class UserController extends Controller
             'status' => 'active',
             'message' => __('messages.account_active')
         ]);
+    }
+
+    /**
+     * Generate QR code for user profile.
+     */
+    public function generateQrCode(User $user)
+    {
+        $qrCodeSvg = $this->qrCodeService->generateProfileQrCode($user);
+        $profileUrl = $this->qrCodeService->getProfileUrl($user);
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'qr_code' => $qrCodeSvg,
+                'profile_url' => $profileUrl,
+                'username' => $user->username,
+            ]);
+        }
+
+        return view('users.qr-code', compact('user', 'qrCodeSvg', 'profileUrl'));
+    }
+
+    /**
+     * Download QR code as SVG image.
+     */
+    public function downloadQrCode(User $user)
+    {
+        $svgData = $this->qrCodeService->generateProfileQrCode($user, 400);
+        
+        $filename = 'profile-qr-' . $user->username . '.svg';
+        
+        return response($svgData, 200)
+            ->header('Content-Type', 'image/svg+xml')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
 }

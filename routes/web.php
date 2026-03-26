@@ -287,6 +287,10 @@ Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(func
     Route::delete('/profile/delete-cover', [UserController::class, 'deleteCoverImage'])->name('profile.delete-cover');
     Route::delete('/profile/delete-account', [UserController::class, 'deleteAccount'])->name('profile.delete-account');
     
+    // QR Code Profile Sharing routes
+    Route::get('/users/{user}/qr-code', [UserController::class, 'generateQrCode'])->name('users.qr-code');
+    Route::get('/users/{user}/qr-code/download', [UserController::class, 'downloadQrCode'])->name('users.qr-code.download');
+    
     // Set password for Google OAuth users
     Route::get('/set-password', [App\Http\Controllers\Auth\PasswordController::class, 'showSetPassword'])->name('password.set-password');
     Route::post('/set-password', [App\Http\Controllers\Auth\PasswordController::class, 'setPassword'])->name('password.set-password.store');

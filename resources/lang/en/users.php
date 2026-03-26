@@ -132,4 +132,13 @@ return [
     'block_user_confirm' => 'Block :username?',
     'error_unblocking' => 'Error unblocking user',
     'error_blocking' => 'Error blocking user',
+
+    // QR Code Profile Sharing
+    'qr_code' => 'QR Code',
+    'profile_qr_code' => 'Profile QR Code',
+    'scan_to_visit_profile' => 'Scan to visit profile instantly',
+    'download_qr' => 'Download QR',
+    'close' => 'Close',
+    'loading_qr_code' => 'Loading QR code...',
+    'error_loading_qr_code' => 'Failed to load QR code. Please try again.',
 ];
