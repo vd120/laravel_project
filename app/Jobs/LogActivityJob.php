@@ -16,49 +16,78 @@ class LogActivityJob implements ShouldQueue
 
     public int $userId;
     public string $action;
+    public string $ipAddress;
+    public string $userAgent;
+    public ?string $countryCode;
+    public string $sessionId; // NEW: Store current session ID
 
-    /**
-     * The number of times the queued job may be attempted before failing.
-     *
-     * @var int
-     */
     public $tries = 3;
-
-    /**
-     * The number of seconds to wait before retrying the job.
-     *
-     * @var int
-     */
     public $backoff = 10;
 
     /**
-     * Create a new job instance.
+     * Create new job - capture session ID + essentials
      */
     public function __construct(User $user, string $action = 'login')
     {
         $this->userId = $user->id;
         $this->action = $action;
+        
+        // Capture session ID immediately - this must happen during HTTP request
+        try {
+            $this->sessionId = request()->session()->getId();
+        } catch (\Exception $e) {
+            $this->sessionId = null;
+        }
+
+        // Capture ONLY what can't be detected later
+        $this->ipAddress = request()->header('CF-Connecting-IP')
+            ?? (request()->header('X-Forwarded-For') ? explode(',', request()->header('X-Forwarded-For'))[0] : null)
+            ?? request()->ip() ?? 'unknown';
+
+        $this->userAgent = request()->userAgent() ?? '';
+        $this->countryCode = request()->header('CF-IPCountry');
     }
 
     /**
-     * Execute the job.
+     * Execute job - ActivityService does EVERYTHING (API + detection)
      */
     public function handle(ActivityService $activityService): void
     {
         try {
-            $activityService->logActivity($this->action, $this->userId);
+            // If sessionId is null, we're running in a non-HTTP context - skip logging
+            if (empty($this->sessionId)) {
+                \Log::warning('LogActivityJob: sessionId is empty, skipping activity log for user ' . $this->userId);
+                return;
+            }
+
+            $mockRequest = new \Illuminate\Http\Request();
+            $mockRequest->server->set('REMOTE_ADDR', $this->ipAddress);
+            $mockRequest->headers->set('HTTP_USER_AGENT', $this->userAgent);
+            $mockRequest->headers->set('CF-Connecting-IP', $this->ipAddress);
+            $mockRequest->headers->set('CF-IPCountry', $this->countryCode);
+
+            // Create a mock session with the captured session ID
+            $mockSession = new \Illuminate\Session\Store('mock', new \Illuminate\Session\NullSessionHandler());
+            $mockSession->setId($this->sessionId);
+            $mockRequest->setSession($mockSession);
+
+            app()->instance('request', $mockRequest);
+
+            // ActivityService does ALL the work (API + detection)
+            // Pass the session ID explicitly to ensure it's saved
+            $activity = $activityService->logActivity($this->action, $this->userId, $this->sessionId);
+
+            app()->forgetInstance('request');
+            
+            \Log::debug('LogActivityJob: Logged activity for user ' . $this->userId . ' with session ' . substr($this->sessionId, 0, 10));
         } catch (\Exception $e) {
-            \Log::error('Failed to log activity for user ' . $this->userId . ': ' . $e->getMessage());
-            throw $e; // Will trigger retry
+            \Log::error('LogActivityJob failed: ' . $e->getMessage());
+            throw $e;
         }
     }
 
-    /**
-     * Handle a job failure.
-     */
     public function failed(\Throwable $exception): void
     {
-        \Log::error('LogActivityJob failed after ' . $this->tries . ' attempts for user ' . $this->userId);
-        // Don't rethrow - just log the failure
+        \Log::error('LogActivityJob failed: ' . $exception->getMessage());
     }
 }

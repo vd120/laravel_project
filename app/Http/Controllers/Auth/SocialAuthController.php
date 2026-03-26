@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\ActivityService;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,13 @@ use Illuminate\Support\Str;
 
 class SocialAuthController extends Controller
 {
+    protected ActivityService $activityService;
+
+    public function __construct(ActivityService $activityService)
+    {
+        $this->activityService = $activityService;
+    }
+
     /**
      * Redirect the user to Google OAuth.
      */
@@ -108,6 +116,13 @@ class SocialAuthController extends Controller
                 // Regenerate session
                 request()->session()->regenerate();
 
+                // Log login activity AFTER session regeneration
+                try {
+                    $this->activityService->logActivity('login', $user->id);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to log Google OAuth login activity: ' . $e->getMessage());
+                }
+
                 \Log::info('New Google OAuth user created: ' . $user->email . ' (ID: ' . $user->id . '), redirecting to verification');
 
                 // Redirect to verification page FIRST
@@ -141,6 +156,13 @@ class SocialAuthController extends Controller
 
             // Regenerate session
             request()->session()->regenerate();
+
+            // Log login activity AFTER session regeneration
+            try {
+                $this->activityService->logActivity('login', $user->id);
+            } catch (\Exception $e) {
+                \Log::error('Failed to log Google OAuth login activity: ' . $e->getMessage());
+            }
 
             \Log::info('Existing verified Google OAuth user logged in: ' . $user->email . ' (ID: ' . $user->id . ')');
 

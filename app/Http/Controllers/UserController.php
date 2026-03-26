@@ -261,6 +261,9 @@ class UserController extends Controller
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
 
+        // Track if username changed
+        $usernameChanged = $user->username !== $request->username;
+
         // Update user basic information
         $user->update([
             'name' => $request->name,
@@ -330,6 +333,13 @@ class UserController extends Controller
 
         // Refresh the user with updated profile data
         $user->load('profile');
+
+        // Log profile update activity
+        if ($usernameChanged) {
+            app(\App\Services\ActivityService::class)->logUsernameChange($user->id);
+        } else {
+            app(\App\Services\ActivityService::class)->logProfileUpdate($user->id);
+        }
 
         return redirect()->route('users.show', $user)->with('success', __('messages.profile_updated'));
     }

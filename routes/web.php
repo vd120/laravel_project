@@ -390,7 +390,10 @@ Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(func
         
         // Activity logs
         Route::get('/activity', [App\Http\Controllers\ActivityController::class, 'index'])->name('activity.index');
+        Route::get('/activity/export', [App\Http\Controllers\ActivityController::class, 'export'])->name('activity.export');
         Route::delete('/activity/clear', [App\Http\Controllers\ActivityController::class, 'clearOld'])->name('activity.clear');
+        Route::delete('/activity/log/{id}', [App\Http\Controllers\ActivityController::class, 'deleteLog'])->name('activity.log.delete');
+        Route::delete('/activity/sessions/all', [App\Http\Controllers\ActivityController::class, 'terminateAllSessions'])->name('activity.terminate-all-sessions');
         Route::delete('/activity/sessions/{id}', [App\Http\Controllers\ActivityController::class, 'terminateSession'])->name('activity.terminate-session');
     });
 });

@@ -8,9 +8,16 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 20px; }
         .container { max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
-        .header { background: linear-gradient(135deg, #10b981, #059669); padding: 24px; text-align: center; }
-        .header h1 { color: #ffffff; font-size: 22px; margin-bottom: 6px; font-weight: 600; }
+        .header { background: linear-gradient(135deg, {{ $activity->is_suspicious ? '#ef4444' : '#10b981' }}, {{ $activity->is_suspicious ? '#dc2626' : '#059669' }}); padding: 24px; text-align: center; }
+        .alert-box { background: {{ $activity->is_suspicious ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)' }}; border-left: 4px solid {{ $activity->is_suspicious ? '#ef4444' : '#3b82f6' }}; padding: 16px; margin-bottom: 20px; border-radius: 8px; }
+        .alert-box p { color: {{ $activity->is_suspicious ? '#dc2626' : '#2563eb' }}; font-size: 14px; font-weight: 600; margin: 0; }
+        .security-tips { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin-top: 20px; }
+        .security-tips h3 { color: #92400e; font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+        .security-tips ul { list-style: none; padding: 0; }
+        .security-tips li { color: #78350f; font-size: 13px; padding: 6px 0; padding-left: 24px; position: relative; }
+        .security-tips li::before { content: '✓'; position: absolute; left: 0; color: #059669; font-weight: 700; }
         .header p { color: rgba(255, 255, 255, 0.95); font-size: 14px; }
+        .header h1 { color: #ffffff; font-size: 22px; margin-bottom: 6px; font-weight: 600; }
         .content { padding: 24px; }
         .greeting { font-size: 16px; color: #1f2937; margin-bottom: 16px; }
         .message { font-size: 14px; color: #4b5563; line-height: 1.6; margin-bottom: 24px; }
@@ -49,6 +56,13 @@
 
         {{-- Content --}}
         <div class="content">
+            {{-- Alert Box for Suspicious Logins --}}
+            @if($activity->is_suspicious)
+            <div class="alert-box">
+                <p>⚠️ {{ __('emails.suspicious_login_alert') }}</p>
+            </div>
+            @endif
+
             {{-- Greeting --}}
             <div class="greeting">
                 <strong>{{ __('emails.hello') }} {{ $userName }},</strong>
@@ -120,6 +134,19 @@
             <div style="text-align: center; margin-top: 20px;">
                 <a href="{{ route('activity.index') }}" class="btn">{{ __('emails.view_activity_logs') }}</a>
             </div>
+
+            {{-- Security Tips for Suspicious Logins --}}
+            @if($activity->is_suspicious)
+            <div class="security-tips">
+                <h3>{{ __('emails.security_recommendations') }}</h3>
+                <ul>
+                    <li>{{ __('emails.security_tip_change_password') }}</li>
+                    <li>{{ __('emails.security_tip_enable_2fa') }}</li>
+                    <li>{{ __('emails.security_tip_review_sessions') }}</li>
+                    <li>{{ __('emails.security_tip_never_share_password') }}</li>
+                </ul>
+            </div>
+            @endif
         </div>
 
         {{-- Footer --}}

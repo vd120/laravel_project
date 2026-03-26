@@ -23,7 +23,10 @@
     <link rel="stylesheet" href="{{ asset('css/app-layout.css') }}">
     <link rel="stylesheet" href="{{ asset('css/comments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/mobile-header.css') }}">
-    
+
+    {{-- Page-specific styles --}}
+    @stack('styles')
+
     <style>
     /* Mobile message badge */
     .mobile-msg-badge {
@@ -576,6 +579,9 @@
                 headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }
             })
             .then(r => {
+                if (!r.ok) {
+                    throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+                }
                 return r.json();
             })
             .then(data => {
@@ -592,20 +598,20 @@
                     return;
                 }
                 list.innerHTML = data.notifications.map(n => {
-                    const iconClass = getNotificationIconClass(n.type);                      
-                    const notifIcon = getNotificationIcon(n.type);                           
-                    const timeAgo = getTimeAgo(n.created_at);                                
+                    const iconClass = getNotificationIconClass(n.type);
+                    const notifIcon = getNotificationIcon(n.type);
+                    const timeAgo = getTimeAgo(n.created_at);
                     const truncatedMessage = n.message.length > 60 ? n.message.substring(0, 60) + '...' : n.message;
-                    return `                                                                 
+                    return `
                     <div class="notif-item ${n.read_at ? '' : 'unread'}" id="notif-${n.id}" data-id="${n.id}">
                         <div class="notif-icon ${iconClass}" onclick="handleNotifClick(${n.id}, '${n.link || ''}')">
-                            <i class="fas ${notifIcon}"></i>                                 
-                        </div>                                                               
+                            <i class="fas ${notifIcon}"></i>
+                        </div>
                         <div class="notif-content ${n.read_at ? '' : 'unread'}" onclick="handleNotifClick(${n.id}, '${n.link || ''}')">
-                            <p>${escapeHtml(truncatedMessage)}</p>                           
-                            <span class="notif-time">${timeAgo}</span>                       
-                        </div>                                                               
-                        <div class="notif-item-actions">                                     
+                            <p>${escapeHtml(truncatedMessage)}</p>
+                            <span class="notif-time">${timeAgo}</span>
+                        </div>
+                        <div class="notif-item-actions">
                             ${!n.read_at ? `<button class="notif-item-btn" onclick="markAsRead(${n.id}); return false;" title="${window.chatTranslations.mark_as_read}"><i class="fas fa-check"></i></button>` : ''}
                             <button class="notif-item-btn delete" onclick="dismissNotification(${n.id}); return false;" title="${window.chatTranslations.delete}"><i class="fas fa-trash"></i></button>
                         </div>
@@ -614,6 +620,7 @@
             })
             .catch(err => {
                 console.error('loadNotifications: Error:', err);
+                // Silently fail - don't show error to user for notification loading issues
             });
         }
 

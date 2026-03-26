@@ -47,9 +47,13 @@ class SendLoginEmailJob implements ShouldQueue
     {
         try {
             $user = User::find($this->userId);
-            
+
             if (!$user) {
-                \Log::error('SendLoginEmailJob: User not found - ' . $this->userId);
+                return;
+            }
+
+            // Don't send if email is not verified
+            if (!$user->hasVerifiedEmail()) {
                 return;
             }
 
@@ -60,13 +64,20 @@ class SendLoginEmailJob implements ShouldQueue
                 ->first();
 
             if (!$activity) {
-                \Log::warning('SendLoginEmailJob: No activity found for user ' . $this->userId);
                 return;
             }
 
+            // Check if this is a suspicious login
+            $isSuspicious = $activity->is_suspicious;
+
+            // Only send email if it's suspicious
+            if (!$isSuspicious) {
+                return;
+            }
+
+            // Send email (URL generation handled by mailable)
             Mail::to($user->email)->send(new LoginSecurityAlert($activity));
-            
-            \Log::info('Login email sent to user: ' . $user->email);
+
         } catch (\Exception $e) {
             \Log::error('Failed to send login email to user ' . $this->userId . ': ' . $e->getMessage());
             throw $e; // Will trigger retry

@@ -12,6 +12,7 @@ class ActivityLog extends Model
 
     protected $fillable = [
         'user_id',
+        'session_id',
         'action',
         'ip_address',
         'user_agent',
@@ -30,6 +31,7 @@ class ActivityLog extends Model
 
     protected $casts = [
         'logged_at' => 'datetime',
+        'user_id' => 'integer',
     ];
 
     // Disable updated_at, only use created_at
@@ -48,7 +50,9 @@ class ActivityLog extends Model
      */
     public function scopeForUser($query, $userId)
     {
-        return $query->where('user_id', $userId);
+        return $query->where(function($q) use ($userId) {
+            $q->where('user_id', $userId)->orWhereNull('user_id');
+        });
     }
 
     /**
@@ -80,6 +84,7 @@ class ActivityLog extends Model
             'email_verification' => __('activity.email_verification'),
             'profile_update' => __('activity.profile_update'),
             'username_change' => __('activity.username_change'),
+            'failed_login' => __('activity.failed_login'),
             default => ucfirst(str_replace('_', ' ', $this->action)),
         };
     }
@@ -110,6 +115,7 @@ class ActivityLog extends Model
             'email_verification' => 'fas fa-envelope',
             'profile_update' => 'fas fa-user-edit',
             'username_change' => 'fas fa-at',
+            'failed_login' => 'fas fa-exclamation-triangle',
             default => 'fas fa-history',
         };
     }
@@ -127,7 +133,51 @@ class ActivityLog extends Model
             'email_verification' => 'text-primary',
             'profile_update' => 'text-secondary',
             'username_change' => 'text-purple',
+            'failed_login' => 'text-danger',
             default => 'text-muted',
         };
+    }
+
+    /**
+     * Check if this login is suspicious (different country/device than usual)
+     */
+    public function getIsSuspiciousAttribute(): bool
+    {
+        if ($this->action !== 'login' && $this->action !== 'failed_login') {
+            return false;
+        }
+
+        // Get user's recent logins for comparison
+        $recentLogins = ActivityLog::where('user_id', $this->user_id)
+            ->where('action', 'login')
+            ->where('id', '<', $this->id)
+            ->orderBy('logged_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        if ($recentLogins->isEmpty()) {
+            // First login - not suspicious
+            return false;
+        }
+
+        // Check if country is different from most recent logins
+        $countries = $recentLogins->pluck('country')->filter()->unique();
+        if ($this->country && $countries->isNotEmpty() && !$countries->contains($this->country)) {
+            return true; // Different country
+        }
+
+        // Check if device type changed
+        $devices = $recentLogins->pluck('device_type')->unique();
+        if ($this->device_type && $devices->isNotEmpty() && !$devices->contains($this->device_type)) {
+            return true; // Different device type
+        }
+
+        // Check if browser is significantly different
+        $browsers = $recentLogins->pluck('browser')->unique();
+        if ($this->browser && $browsers->isNotEmpty() && !$browsers->contains($this->browser)) {
+            return true; // Different browser
+        }
+
+        return false;
     }
 }

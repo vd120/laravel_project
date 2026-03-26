@@ -49,12 +49,15 @@ class SetLocale
         // Share locale with all views
         view()->share('currentLocale', $locale);
         view()->share('direction', $locale === 'ar' ? 'rtl' : 'ltr');
-        
+
         $response = $next($request);
-        
-        // Also set cookie for error pages (cookie is available before session)
-        $response->withCookie(cookie('locale', $locale, 43200)); // 30 days
-        
+
+        // Set cookie for locale (skip for streamed responses like CSV exports)
+        if ($response instanceof \Symfony\Component\HttpFoundation\Response && 
+            !$response instanceof \Symfony\Component\HttpFoundation\StreamedResponse) {
+            $response->withCookie(cookie('locale', $locale, 43200)); // 30 days
+        }
+
         return $response;
     }
 
