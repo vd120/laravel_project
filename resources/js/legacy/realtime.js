@@ -4,10 +4,10 @@
     'use strict';
 
     window.RealTimeConfig = {
-        chatListInterval: 1000,
-        chatRoomInterval: 1000,
-        accountStatusInterval: 10000,
-        notificationsInterval: 2000,
+        chatListInterval: 1000, 
+        chatRoomInterval: 1000, 
+        accountStatusInterval: 5000,
+        notificationsInterval: 2000, 
         onlineStatusInterval: 10000,
         userId: window.currentUserId || null,
         active: true

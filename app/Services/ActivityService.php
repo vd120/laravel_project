@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Http;
 class ActivityService
 {
     /**
-     * Log user activity - ONE method does EVERYTHING
+     * Log user activity - uses Cloudflare headers (INSTANT - no external API calls)
      */
     public function logActivity(string $action, ?int $userId = null, ?string $sessionId = null): ActivityLog
     {
@@ -22,13 +22,13 @@ class ActivityService
         $request = request();
         $ipAddress = $this->getIpAddress($request);
         $sessionId = $sessionId ?? $request->session()->getId();
-        
-        // Get ALL data from API (one call gets everything)
-        $locationData = $this->getIpLocation($ipAddress);
+
+        // Get location from Cloudflare headers (INSTANT - no API calls)
+        $locationData = $this->getLocationFromCloudflare($request);
 
         return ActivityLog::create([
             'user_id' => $userId,
-            'session_id' => $sessionId, // Save session ID
+            'session_id' => $sessionId,
             'action' => $action,
             'ip_address' => $ipAddress,
             'user_agent' => $request->userAgent() ?? '',
@@ -38,12 +38,43 @@ class ActivityService
             'country' => $locationData['country'] ?? null,
             'city' => $locationData['city'] ?? null,
             'region' => $locationData['region'] ?? null,
-            'isp' => $locationData['isp'] ?? null,
-            'timezone' => $locationData['timezone'] ?? null,
+            'isp' => null,
+            'timezone' => null,
             'latitude' => $locationData['latitude'] ?? null,
             'longitude' => $locationData['longitude'] ?? null,
             'logged_at' => now(),
         ]);
+    }
+
+    /**
+     * Get location from Cloudflare headers (instant - no external APIs)
+     */
+    private function getLocationFromCloudflare(Request $request): array
+    {
+        $cfCountry = $request->header('CF-IPCountry');
+        $cfCity = $request->header('CF-IPCity');
+        $cfRegion = $request->header('CF-Region');
+        $cfLat = $request->header('CF-IPLatitude');
+        $cfLon = $request->header('CF-IPLongitude');
+
+        if ($cfCountry && $cfCountry !== '-') {
+            return [
+                'country' => $this->getCountryName($cfCountry),
+                'countryCode' => $cfCountry,
+                'city' => $cfCity ?: null,
+                'region' => $cfRegion ?: null,
+                'latitude' => $cfLat ?: null,
+                'longitude' => $cfLon ?: null,
+            ];
+        }
+
+        return [
+            'country' => null,
+            'city' => null,
+            'region' => null,
+            'latitude' => null,
+            'longitude' => null,
+        ];
     }
 
     /**
@@ -89,205 +120,25 @@ class ActivityService
     }
 
     /**
-     * Get location data from IP address using HTTPS IP geolocation APIs
-     */
-    private function getIpLocation(string $ipAddress): array
-    {
-        // Skip localhost and private IPs
-        if (in_array($ipAddress, ['127.0.0.1', '::1', 'localhost', 'unknown']) ||
-            $this->isPrivateIp($ipAddress)) {
-            return [
-                'country' => 'Local Network',
-                'city' => 'Localhost',
-                'region' => null,
-                'isp' => null,
-                'timezone' => null,
-                'latitude' => null,
-                'longitude' => null,
-            ];
-        }
-
-        // Try HTTPS APIs only (HTTP APIs are blocked)
-        $apis = [
-            'ipapi.co',      // HTTPS - works
-            'ipwhois.app',   // HTTPS - fallback
-        ];
-
-        foreach ($apis as $api) {
-            try {
-                $locationData = $this->fetchFromApi($api, $ipAddress);
-
-                if ($locationData && isset($locationData['country'])) {
-                    return $locationData;
-                }
-            } catch (\Exception $e) {
-                \Log::warning('Failed to fetch from ' . $api . ' for IP ' . $ipAddress . ': ' . $e->getMessage());
-                // Continue to next API
-            }
-        }
-
-        // Fallback: Use Cloudflare country header
-        $cfCountry = request()->header('CF-IPCountry');
-        if ($cfCountry) {
-            return [
-                'country' => $this->getCountryName($cfCountry),
-                'countryCode' => $cfCountry,
-                'city' => null,
-                'region' => null,
-                'isp' => null,
-                'timezone' => null,
-                'latitude' => null,
-                'longitude' => null,
-            ];
-        }
-
-        // All failed
-        return [
-            'country' => null,
-            'city' => null,
-            'region' => null,
-            'isp' => null,
-            'timezone' => null,
-            'latitude' => null,
-            'longitude' => null,
-        ];
-    }
-
-    /**
      * Map country code to country name
      */
     private function getCountryName(string $code): string
     {
         $countries = [
-            'EG' => 'Egypt',
-            'US' => 'United States',
-            'GB' => 'United Kingdom',
-            'SA' => 'Saudi Arabia',
-            'AE' => 'United Arab Emirates',
-            'DE' => 'Germany',
-            'FR' => 'France',
-            'IN' => 'India',
-            'CN' => 'China',
-            'BR' => 'Brazil',
-            'RU' => 'Russia',
-            'JP' => 'Japan',
-            'AU' => 'Australia',
-            'CA' => 'Canada',
-            'IT' => 'Italy',
-            'ES' => 'Spain',
-            'NL' => 'Netherlands',
-            'PL' => 'Poland',
-            'TR' => 'Turkey',
+            'EG' => 'Egypt', 'US' => 'United States', 'GB' => 'United Kingdom',
+            'SA' => 'Saudi Arabia', 'AE' => 'UAE', 'DE' => 'Germany',
+            'FR' => 'France', 'IN' => 'India', 'CN' => 'China',
+            'BR' => 'Brazil', 'RU' => 'Russia', 'JP' => 'Japan',
+            'AU' => 'Australia', 'CA' => 'Canada', 'IT' => 'Italy',
+            'ES' => 'Spain', 'NL' => 'Netherlands', 'PL' => 'Poland',
+            'TR' => 'Turkey', 'MX' => 'Mexico', 'AR' => 'Argentina',
+            'ID' => 'Indonesia', 'TH' => 'Thailand', 'VN' => 'Vietnam',
+            'PH' => 'Philippines', 'MY' => 'Malaysia', 'SG' => 'Singapore',
+            'PK' => 'Pakistan', 'BD' => 'Bangladesh', 'NG' => 'Nigeria',
+            'KE' => 'Kenya', 'GH' => 'Ghana', 'ZA' => 'South Africa',
+            'KR' => 'South Korea',
         ];
-        
         return $countries[$code] ?? $code;
-    }
-
-    /**
-     * Fetch location data from specific API
-     */
-    private function fetchFromApi(string $api, string $ipAddress): ?array
-    {
-        switch ($api) {
-            case 'ip-api.com':
-                return $this->fetchFromIpApi($ipAddress);
-
-            case 'ipapi.co':
-                return $this->fetchFromIpApiCo($ipAddress);
-
-            case 'ipwhois.app':
-                return $this->fetchFromIpWhois($ipAddress);
-
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * Fetch from ip-api.com (primary - free, no API key required)
-     */
-    private function fetchFromIpApi(string $ipAddress): ?array
-    {
-        $response = Http::timeout(8)->get("http://ip-api.com/json/{$ipAddress}?fields=status,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,asname,query,mobile,proxy,hosting");
-
-        if ($response->successful()) {
-            $data = $response->json();
-
-            if (isset($data['status']) && $data['status'] === 'success') {
-                return [
-                    'country' => $data['country'] ?? null,
-                    'countryCode' => $data['countryCode'] ?? null,
-                    'region' => $data['regionName'] ?? $data['region'] ?? null,
-                    'regionCode' => $data['region'] ?? null,
-                    'city' => $data['city'] ?? null,
-                    'isp' => $data['isp'] ?? null,
-                    'timezone' => $data['timezone'] ?? null,
-                    'latitude' => $data['lat'] ?? null,
-                    'longitude' => $data['lon'] ?? null,
-                    'zip' => $data['zip'] ?? null,
-                ];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Fetch from ipapi.co (primary - HTTPS, free tier available)
-     */
-    private function fetchFromIpApiCo(string $ipAddress): ?array
-    {
-        $response = Http::timeout(8)->get("https://ipapi.co/{$ipAddress}/json/");
-
-        if ($response->successful()) {
-            $data = $response->json();
-
-            if (isset($data['country_name'])) {
-                return [
-                    'country' => $data['country_name'] ?? null,
-                    'countryCode' => $data['country_code'] ?? null,
-                    'region' => $data['region'] ?? null,
-                    'regionCode' => $data['region_code'] ?? null,
-                    'city' => $data['city'] ?? null,
-                    'isp' => $data['org'] ?? null,
-                    'timezone' => $data['timezone'] ?? null,
-                    'latitude' => $data['latitude'] ?? null,
-                    'longitude' => $data['longitude'] ?? null,
-                    'zip' => $data['postal'] ?? null,
-                ];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Fetch from ipwhois.app (fallback - HTTPS, free)
-     */
-    private function fetchFromIpWhois(string $ipAddress): ?array
-    {
-        $response = Http::timeout(8)->get("https://ipwhois.app/json/{$ipAddress}");
-
-        if ($response->successful()) {
-            $data = $response->json();
-
-            if (isset($data['country'])) {
-                return [
-                    'country' => $data['country'] ?? null,
-                    'countryCode' => $data['country_code'] ?? null,
-                    'region' => $data['region'] ?? null,
-                    'regionCode' => null,
-                    'city' => $data['city'] ?? null,
-                    'isp' => $data['isp'] ?? null,
-                    'timezone' => $data['timezone'] ?? null,
-                    'latitude' => $data['latitude'] ?? null,
-                    'longitude' => $data['longitude'] ?? null,
-                    'zip' => $data['zip'] ?? null,
-                ];
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -574,8 +425,8 @@ class ActivityService
         // Create activity log without user_id for failed attempts
         $request = request();
         $ipAddress = $this->getIpAddress($request);
-        $locationData = $this->getIpLocation($ipAddress);
-        
+        $locationData = $this->getLocationFromCloudflare($request);
+
         // Capture session ID if available
         $sessionId = null;
         try {
@@ -596,13 +447,11 @@ class ActivityService
             'country' => $locationData['country'] ?? null,
             'city' => $locationData['city'] ?? null,
             'region' => $locationData['region'] ?? null,
-            'isp' => $locationData['isp'] ?? null,
-            'timezone' => $locationData['timezone'] ?? null,
+            'isp' => null,
+            'timezone' => null,
             'latitude' => $locationData['latitude'] ?? null,
             'longitude' => $locationData['longitude'] ?? null,
             'logged_at' => now(),
-            // Store attempted email in a separate field if needed
-            // You can add 'attempted_email' column to the table for this
         ]);
     }
 }

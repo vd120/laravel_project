@@ -7,13 +7,9 @@ use Illuminate\Auth\Events\Logout;
 
 class LogUserLogout
 {
-    /**
-     * Handle the event.
-     */
     public function handle(Logout $event): void
     {
         if ($event->user) {
-            // Log activity SYNCHRONOUSLY to preserve session context
             try {
                 $activityService = app(ActivityService::class);
                 $activityService->logActivity('logout', $event->user->id);

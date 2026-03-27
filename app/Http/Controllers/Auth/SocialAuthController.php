@@ -35,7 +35,7 @@ class SocialAuthController extends Controller
         try {
             // Clear any stale session data first
             session()->forget('pending_verification_user_id');
-            
+
             $googleUser = null;
             try {
                 // Try stateless first, fall back to regular method
@@ -116,7 +116,7 @@ class SocialAuthController extends Controller
                 // Regenerate session
                 request()->session()->regenerate();
 
-                // Log login activity AFTER session regeneration
+                // Log login activity (uses Cloudflare headers - instant)
                 try {
                     $this->activityService->logActivity('login', $user->id);
                 } catch (\Exception $e) {
@@ -135,7 +135,7 @@ class SocialAuthController extends Controller
                 if ($user->is_suspended) {
                     return redirect()->route('login')->with('suspended', true);
                 }
-                
+
                 // Store user ID in session for pending verification
                 session(['pending_verification_user_id' => $user->id]);
 
@@ -157,7 +157,7 @@ class SocialAuthController extends Controller
             // Regenerate session
             request()->session()->regenerate();
 
-            // Log login activity AFTER session regeneration
+            // Log login activity (uses Cloudflare headers - instant)
             try {
                 $this->activityService->logActivity('login', $user->id);
             } catch (\Exception $e) {

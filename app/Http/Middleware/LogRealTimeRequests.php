@@ -50,9 +50,15 @@ class LogRealTimeRequests
         $userId = $user ? $user->id : null;
         $userEmail = $user ? $user->email : null;
 
-        // Update last active timestamp for authenticated users
+        // Update last active timestamp (CACHED - update every 2 minutes max)
         if ($user) {
-            $user->updateLastActive();
+            $lastUpdateKey = 'last_active_' . $user->id;
+            $lastUpdate = cache()->get($lastUpdateKey);
+            
+            if (!$lastUpdate || $lastUpdate < now()->subMinutes(2)) {
+                $user->updateLastActive();
+                cache()->set($lastUpdateKey, now(), 120); // Cache for 2 minutes
+            }
         }
 
         // Log asynchronously (don't block the request)

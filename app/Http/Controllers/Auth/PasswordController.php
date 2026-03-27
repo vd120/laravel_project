@@ -32,8 +32,12 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        // Log password change activity
-        $this->activityService->logPasswordChange($request->user()->id);
+        // Log password change activity (uses Cloudflare headers - instant)
+        try {
+            $this->activityService->logPasswordChange($request->user()->id);
+        } catch (\Exception $e) {
+            \Log::error('Failed to log password_change activity: ' . $e->getMessage());
+        }
 
         return back()->with('success', __('messages.password_changed_success'));
     }

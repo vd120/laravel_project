@@ -24,19 +24,16 @@ class LoginController extends Controller
         ]);
 
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            // Regenerate session immediately to prevent session fixation
             $request->session()->regenerate();
-
             $user = Auth::user();
 
-            // Log login activity AFTER session regeneration to capture correct session ID
+            // Log login activity (uses Cloudflare headers - instant)
             try {
                 $this->activityService->logActivity('login', $user->id);
             } catch (\Exception $e) {
                 \Log::error('Failed to log login activity: ' . $e->getMessage());
             }
 
-            // Check if user is suspended
             if ($user->is_suspended) {
                 Auth::logout();
                 $request->session()->invalidate();
@@ -44,13 +41,11 @@ class LoginController extends Controller
                 return redirect()->route('login.view')->with('suspended', true);
             }
 
-            // Check if email is verified
             if (!$user->hasVerifiedEmail()) {
                 return redirect()->route('verification.notice')
                     ->with('message', __('messages.please_verify_email'));
             }
 
-            // Store session tracking for concurrent login detection
             session([
                 'session_id' => $request->session()->getId(),
                 'last_activity' => now()->timestamp,
@@ -61,16 +56,17 @@ class LoginController extends Controller
         }
 
         // Log failed login attempt
-        $this->activityService->logFailedLogin($request->input('email'));
+        try {
+            $this->activityService->logFailedLogin($request->input('email'));
+        } catch (\Exception $e) {
+            \Log::error('Failed to log failed_login activity: ' . $e->getMessage());
+        }
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->withInput();
     }
 
-    /**
-     * Handle logout and set message for concurrent login or deleted account
-     */
     public function logoutWithMessage(Request $request, $type = 'concurrent')
     {
         Auth::logout();
