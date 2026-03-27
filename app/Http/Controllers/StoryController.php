@@ -31,6 +31,28 @@ class StoryController extends Controller
 
     public function store(Request $request)
     {
+        // Check if this is a text-only story
+        if ($request->has('text_only') && $request->text_only) {
+            $request->validate([
+                'content' => 'required|string|max:500',
+            ]);
+
+            // Create text-only story with background color
+            Story::create([
+                'user_id' => auth()->id(),
+                'media_type' => 'text',
+                'media_path' => null,
+                'content' => $request->content,
+                'expires_at' => now()->addHours(24),
+                'metadata' => [
+                    'bg_color' => $request->input('bg_color', 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)')
+                ],
+            ]);
+
+            return redirect()->route('stories.index')->with('success', __('messages.story_posted'));
+        }
+
+        // Media story (existing logic)
         $request->validate([
             'media' => 'required|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,webm|max:51200', // 50MB max
             'content' => 'nullable|string|max:280',
@@ -356,8 +378,10 @@ class StoryController extends Controller
         $userId = $story->user_id;
         $userName = $story->user->username;
 
-        // Delete the media file
-        Storage::disk('public')->delete($story->media_path);
+        // Delete the media file only if it exists (not for text-only stories)
+        if ($story->media_path) {
+            Storage::disk('public')->delete($story->media_path);
+        }
 
         $story->delete();
 

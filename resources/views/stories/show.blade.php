@@ -44,15 +44,26 @@
             <div class="story-content">
                 @foreach($stories as $index => $story)
                     <div class="story-slide {{ $index === 0 ? 'active' : '' }}" data-story-slug="{{ $story->slug }}" data-index="{{ $index }}" data-created-at="{{ $story->created_at }}">
-                        @if($story->media_type === 'image')
+                        @if($story->media_type === 'text')
+                            {{-- Text-only story with custom background --}}
+                            @php
+                                $bgColor = $story->metadata['bg_color'] ?? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                            @endphp
+                            <div class="story-text-container" style="background: {{ $bgColor }}">
+                                <div class="story-text-content">{{ $story->content }}</div>
+                            </div>
+                        @elseif($story->media_type === 'image')
                             <img src="{{ asset('storage/' . $story->media_path) }}" alt="Story" class="story-media">
+                            @if($story->content)
+                                <div class="story-caption">{{ $story->content }}</div>
+                            @endif
                         @else
                             <video autoplay muted class="story-media" playsinline>
                                 <source src="{{ asset('storage/' . $story->media_path) }}" type="video/mp4">
                             </video>
-                        @endif
-                        @if($story->content)
-                            <div class="story-caption">{{ $story->content }}</div>
+                            @if($story->content)
+                                <div class="story-caption">{{ $story->content }}</div>
+                            @endif
                         @endif
                     </div>
                 @endforeach
@@ -99,6 +110,14 @@
                     <i class="fas fa-heart"></i>
                 </button>
             </div>
+
+            <!-- User Reaction Display -->
+            <div id="user-reaction-display" class="user-reaction-display" style="display: none;">
+                <span id="user-reaction-emoji"></span>
+            </div>
+
+            <!-- Floating Reactions Container -->
+            <div id="floating-reactions" class="floating-reactions"></div>
 
         </div>
     </div>
@@ -230,11 +249,22 @@
                     });
                 }
             } else {
-                // For images, use 5 seconds
-                const duration = 5000;
-                storyTimer = setTimeout(() => {
-                    nextStory();
-                }, duration);
+                // Check if it's a text story or image story
+                const isTextStory = currentStory.querySelector('.story-text-container');
+                
+                if (isTextStory) {
+                    // For text stories, give more time to read (7 seconds)
+                    const duration = 7000;
+                    storyTimer = setTimeout(() => {
+                        nextStory();
+                    }, duration);
+                } else {
+                    // For images, use 5 seconds
+                    const duration = 5000;
+                    storyTimer = setTimeout(() => {
+                        nextStory();
+                    }, duration);
+                }
             }
         }
 
@@ -417,6 +447,10 @@
                 if (data.success) {
                     // Update reaction button to red heart
                     updateReactionButton(true);
+                    // Show user reaction display
+                    showUserReaction(emoji);
+                    // Show floating reaction animation
+                    showFloatingReaction(emoji);
                 }
             })
             .catch(err => console.error('Error adding reaction:', err));
@@ -478,6 +512,28 @@
             setTimeout(() => {
                 display.style.display = 'none';
             }, 3000);
+        }
+
+        function showFloatingReaction(emoji) {
+            const container = document.getElementById('floating-reactions');
+            if (!container) return;
+
+            // Create floating reaction element
+            const reaction = document.createElement('span');
+            reaction.className = 'floating-reaction';
+            reaction.textContent = emoji;
+
+            // Random horizontal position within container
+            const randomX = Math.random() * 100 - 50; // -50 to 50
+            reaction.style.left = `calc(50% + ${randomX}px)`;
+
+            // Add to container
+            container.appendChild(reaction);
+
+            // Remove after animation completes
+            setTimeout(() => {
+                reaction.remove();
+            }, 2000);
         }
 
         function deleteStory(storySlug) {

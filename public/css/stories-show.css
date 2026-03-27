@@ -224,6 +224,42 @@
             object-fit: contain;
         }
 
+        /* Text-only story */
+        .story-text-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .story-text-content {
+            color: white;
+            font-size: 28px;
+            line-height: 1.5;
+            text-align: center;
+            max-width: 80%;
+            word-wrap: break-word;
+            font-weight: 500;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            animation: textFadeIn 0.3s ease-out;
+        }
+
+        @keyframes textFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .story-caption {
             position: absolute;
             bottom: 100px;
@@ -444,6 +480,42 @@
         @keyframes reactionPulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
+        }
+
+        /* Floating Reactions */
+        .floating-reactions {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .floating-reaction {
+            position: absolute;
+            font-size: 32px;
+            animation: floatUp 2s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(0.5) rotate(0deg);
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(-20px) scale(1.2) rotate(-10deg);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-60px) scale(1) rotate(5deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-120px) scale(0.8) rotate(-5deg);
+            }
         }
 
         /* Tap Areas */

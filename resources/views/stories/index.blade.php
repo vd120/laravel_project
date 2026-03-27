@@ -34,7 +34,15 @@
             @endphp
             <div class="story-card" onclick="viewStory('{{ $latestStory->user->username }}', '{{ $latestStory->slug }}')">
                 <div class="story-preview">
-                    @if($latestStory->media_type === 'image')
+                    @if($latestStory->media_type === 'text')
+                        @php
+                            $bgColor = $latestStory->metadata['bg_color'] ?? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                        @endphp
+                        <div class="story-text-preview" style="background: {{ $bgColor }}">
+                            <i class="fas fa-font"></i>
+                            <span class="story-text-snippet">{{ Str::limit($latestStory->content, 50) }}</span>
+                        </div>
+                    @elseif($latestStory->media_type === 'image')
                         <img src="{{ asset('storage/' . $latestStory->media_path) }}" alt="Story">
                     @else
                         <video muted>
@@ -68,7 +76,15 @@
             @if($latestStory)
             <div class="story-card" onclick="viewStory('{{ $user->username }}', '{{ $latestStory->slug }}')">
                 <div class="story-preview">
-                    @if($latestStory->media_type === 'image')
+                    @if($latestStory->media_type === 'text')
+                        @php
+                            $bgColor = $latestStory->metadata['bg_color'] ?? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                        @endphp
+                        <div class="story-text-preview" style="background: {{ $bgColor }}">
+                            <i class="fas fa-font"></i>
+                            <span class="story-text-snippet">{{ Str::limit($latestStory->content, 50) }}</span>
+                        </div>
+                    @elseif($latestStory->media_type === 'image')
                         <img src="{{ asset('storage/' . $latestStory->media_path) }}" alt="Story">
                     @else
                         <video muted>
@@ -148,6 +164,36 @@
     overflow: hidden;
     cursor: pointer;
     aspect-ratio: 9/16;
+}
+
+/* Text story preview */
+.story-text-preview {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+}
+
+.story-text-preview i {
+    font-size: 48px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 12px;
+}
+
+.story-text-snippet {
+    color: white;
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.story-card {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     transition: transform 0.2s ease;
 }

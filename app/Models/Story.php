@@ -8,9 +8,16 @@ use Carbon\Carbon;
 
 class Story extends Model
 {
-    protected $fillable = ['user_id', 'slug', 'media_type', 'media_path', 'content', 'expires_at', 'views'];
+    protected $fillable = ['user_id', 'slug', 'media_type', 'media_path', 'content', 'metadata', 'expires_at', 'views'];
 
     protected $dates = ['expires_at'];
+
+    protected $casts = [
+        'metadata' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'expires_at' => 'datetime',
+    ];
 
     /**
      * Boot the model
@@ -23,6 +30,10 @@ class Story extends Model
             if (empty($story->slug)) {
                 $story->slug = Str::random(24);
             }
+            // Set timestamps explicitly in UTC
+            $story->created_at = now();
+            $story->updated_at = now();
+            $story->expires_at = now()->addHours(24);
         });
     }
 
