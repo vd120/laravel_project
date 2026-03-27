@@ -27,7 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Trust proxies for proper header handling (Cloudflare, etc.)
         $middleware->trustProxies(at: '*');
-        
+
         // Trust Cloudflare IPs and use their headers
         $middleware->web(append: [
             \App\Http\Middleware\TrustCloudflare::class,

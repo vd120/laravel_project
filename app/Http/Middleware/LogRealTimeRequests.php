@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class LogRealTimeRequests
@@ -61,52 +62,25 @@ class LogRealTimeRequests
             }
         }
 
-        // Log asynchronously (don't block the request)
+        // Log to Laravel's built-in logging (FAST - no file locking!)
+        // Only log in debug/tunnel mode to avoid filling logs in production
         if (config('app.debug')) {
-            // Only log in debug/tunnel mode
-            app()->terminating(function () use (
-                $timestamp, $realIp, $localIp, $method, $path, $userAgent,
-                $deviceInfo, $location, $referer, $contentType, $contentLength,
-                $xRequestedWith, $forwardedFor, $forwardedProto,
-                $cfConnectingIP, $cfIPCountry, $cfRay,
-                $username, $userId, $userEmail
-            ) {
-                $logEntry = json_encode([
-                    'timestamp' => $timestamp,
-                    'ip' => $realIp,
-                    'local_ip' => $localIp,
-                    'method' => $method,
-                    'path' => $path,
-                    'user_agent' => $userAgent,
-                    'device' => $deviceInfo['device'],
-                    'os' => $deviceInfo['os'],
-                    'browser' => $deviceInfo['browser'],
-                    'referer' => $referer,
-                    'content_type' => $contentType,
-                    'content_length' => $contentLength,
-                    'x_requested_with' => $xRequestedWith,
-                    'x_forwarded_for' => $forwardedFor,
-                    'x_forwarded_proto' => $forwardedProto,
-                    'cf_connecting_ip' => $cfConnectingIP,
-                    'cf_ip_country' => $cfIPCountry,
-                    'cf_ray' => $cfRay,
-                    'city' => $location['city'] ?? 'Unknown',
-                    'country' => $location['country'] ?? 'Unknown',
-                    'region' => $location['region'] ?? 'Unknown',
-                    'latitude' => $location['lat'] ?? null,
-                    'longitude' => $location['lon'] ?? null,
-                    'is_local' => $location['is_local'] ?? false,
-                    'username' => $username,
-                    'user_id' => $userId,
-                    'user_email' => $userEmail,
-                ]) . PHP_EOL;
-
-                file_put_contents(
-                    storage_path('logs/realtime-requests.log'),
-                    $logEntry,
-                    FILE_APPEND | LOCK_EX
-                );
-            });
+            // Use Laravel's logger - writes to storage/logs/laravel.log
+            // This is async and doesn't block requests
+            Log::channel('daily')->info('Request', [
+                'timestamp' => $timestamp,
+                'ip' => $realIp,
+                'method' => $method,
+                'path' => $path,
+                'device' => $deviceInfo['device'],
+                'os' => $deviceInfo['os'],
+                'browser' => $deviceInfo['browser'],
+                'country' => $location['country'] ?? 'Unknown',
+                'cf_ip_country' => $request->header('CF-IPCountry', ''),
+                'username' => $username,
+                'user_id' => $userId,
+                'user_email' => $userEmail,
+            ]);
         }
         
         return $next($request);

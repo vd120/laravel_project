@@ -308,10 +308,10 @@ class ActivityService
                 if (!$activeSessions->has($login->session_id)) {
                     return false; // Session was terminated or expired
                 }
-                
+
                 // Get the session data
                 $session = $activeSessions->get($login->session_id);
-                
+
                 // Session is active if last_activity was within 24 hours
                 $sessionAge = now()->timestamp - $session->last_activity;
                 return $sessionAge < 86400; // 24 hours in seconds
