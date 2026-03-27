@@ -141,4 +141,16 @@ return [
     'close' => 'Close',
     'loading_qr_code' => 'Loading QR code...',
     'error_loading_qr_code' => 'Failed to load QR code. Please try again.',
+
+    // Pinned Posts
+    'pinned_posts' => 'Pinned Posts',
+    'pinned' => 'Pinned',
+    'unpin' => 'Unpin',
+    'pin_post' => 'Pin to Profile',
+    'unpin_post' => 'Unpin from Profile',
+    'reorder' => 'Reorder',
+    'post_pinned' => 'Post pinned successfully',
+    'post_unpinned' => 'Post unpinned successfully',
+    'posts_reordered' => 'Posts reordered successfully',
+    'confirm_pin_post' => 'Pin this post to the top of your profile?',
 ];

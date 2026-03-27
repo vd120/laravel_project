@@ -112,6 +112,12 @@ function getTypeIcon(type) {
         'message': 'envelope',
         'story_reaction': 'heart',
         'group_invite': 'users',
+        'event_reaction': 'star',
+        'birthday': 'birthday-cake',
+        'birthday_reminder': 'birthday-cake',
+        'anniversary': 'undo',
+        'report_accepted': 'check-circle',
+        'report_rejected': 'times-circle',
     };
     return icons[type] || 'bell';
 }
@@ -126,6 +132,12 @@ function getTypeColor(type) {
         'message': { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' },
         'story_reaction': { bg: 'rgba(236, 72, 153, 0.1)', color: '#ec4899' },
         'group_invite': { bg: 'rgba(99, 102, 241, 0.1)', color: '#6366f1' },
+        'event_reaction': { bg: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' },
+        'birthday': { bg: 'rgba(236, 72, 153, 0.1)', color: '#ec4899' },
+        'birthday_reminder': { bg: 'rgba(236, 72, 153, 0.1)', color: '#ec4899' },
+        'anniversary': { bg: 'rgba(99, 102, 241, 0.1)', color: '#6366f1' },
+        'report_accepted': { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981' },
+        'report_rejected': { bg: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' },
     };
     return colors[type] || { bg: 'rgba(99, 102, 241, 0.1)', color: '#6366f1' };
 }

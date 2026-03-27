@@ -102,13 +102,17 @@
                                 $messageIcon = '👥 ';
                                 $messagePreview = $isOwn ? __('chat.you_sent_group_invite') : __('chat.sent_group_invite');
                                 break;
+                            case 'voice':
+                                $messageIcon = '🎤 ';
+                                $messagePreview = $isOwn ? __('chat.you_sent_voice_message') : __('chat.sent_voice_message');
+                                break;
                             default:
                                 $messagePreview = $content;
                                 break;
                         }
 
                         // Add "You: " prefix for own messages (except story replies and media types that already have it)
-                        if ($isOwn && $latestMessage->type !== 'story_reply' && !in_array($latestMessage->type, ['image', 'video', 'audio', 'document', 'gif', 'sticker', 'group_invite'])) {
+                        if ($isOwn && $latestMessage->type !== 'story_reply' && !in_array($latestMessage->type, ['image', 'video', 'audio', 'voice', 'document', 'gif', 'sticker', 'group_invite'])) {
                             $messagePreview = __('chat.you').': ' . $messagePreview;
                         }
 

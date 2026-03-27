@@ -31,6 +31,8 @@ return [
     'groups' => 'المجموعات',
     'ai_assistant' => 'مساعد الذكاء الاصطناعي',
     'explore' => 'استكشاف المستخدمين',
+    'life_events' => 'أحداث الحياة',
+    'memory_book' => 'كتاب الذكريات',
 
     // Admin
     'admin_panel' => 'لوحة الإدارة',

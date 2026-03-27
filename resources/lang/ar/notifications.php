@@ -90,4 +90,12 @@ return [
     'report_accepted_message' => 'تم قبول بلاغك واتخاذ إجراء.',
     'report_rejected' => 'لم يتم قبول البلاغ',
     'report_rejected_message' => 'تم مراجعة بلاغك ولكن لم يتم قبوله.',
+
+    // Life Events Notifications
+    'birthday_today' => '🎂 عيد ميلاد :user اليوم!',
+    'birthday_tomorrow' => '🎂 عيد ميلاد :user بكرة!',
+    'birthday_reminder' => 'تذكير بعيد الميلاد: عيد ميلاد :user قريب!',
+    'anniversary_today' => '🎉 :user بيحتفل بمرور :years سنة على :event!',
+    'anniversary_reminder' => 'ذكرى :event لـ :user بعد :years سنة قريبة!',
+    'event_reaction' => ':user تفاعل مع حدث الحياة بتاعك بـ :reaction',
 ];

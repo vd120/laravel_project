@@ -96,6 +96,18 @@ class NotificationController extends Controller
                             // Group invite - redirect to chat conversation where invite was sent
                             $conversation = \App\Models\Conversation::find($notification->data['conversation_id']);
                             $link = $conversation ? '/chat/' . $conversation->slug : null;
+                        } elseif ($notification->type === 'event_reaction' && $notification->related_id) {
+                            // Life event reaction - redirect to event (using slug)
+                            $event = \App\Models\Event::find($notification->related_id);
+                            $link = $event ? '/life-events/' . $event->slug : null;
+                        } elseif (in_array($notification->type, ['birthday', 'birthday_reminder']) && ($notification->data['birthday_user_id'] ?? null)) {
+                            // Birthday notification - redirect to user's profile
+                            $birthdayUser = User::find($notification->data['birthday_user_id']);
+                            $link = $birthdayUser ? '/users/' . ($birthdayUser->username ?? $birthdayUser->id) : null;
+                        } elseif ($notification->type === 'anniversary' && $notification->related_id) {
+                            // Anniversary notification - redirect to event (using slug)
+                            $event = \App\Models\Event::find($notification->related_id);
+                            $link = $event ? '/life-events/' . $event->slug : null;
                         }
 
                         return [

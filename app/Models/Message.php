@@ -20,6 +20,8 @@ class Message extends Model
         'visible_to',
         'content',
         'type',
+        'duration',
+        'waveform_peaks',
         'media_path',
         'media_thumbnail',
         'original_filename',
@@ -36,7 +38,11 @@ class Message extends Model
     protected $casts = [
         'deleted_for' => 'array',
         'deleted_by_sender' => 'boolean',
+        'waveform_peaks' => 'array',
     ];
+
+    // No appends needed - duration and waveform_peaks are DB columns
+    // protected $appends = [];
 
     public function conversation()
     {

@@ -170,16 +170,47 @@
     </div>
 
     <div class="profile-content">
-        @forelse($posts as $post)
-            @include('partials.post', ['post' => $post])
-        @empty
-            <div class="empty-state">
-                <i class="fas fa-newspaper"></i>
-                <h3>{{ __('users.no_posts_yet') }}</h3>
-                <p style="color: var(--text-muted);">{{ __('users.no_posts_yet_desc') }}</p>
+        {{-- Pinned Posts Section --}}
+        @if($pinnedPosts->count() > 0)
+            <div class="pinned-posts-section" style="margin-bottom: 30px;">
+                <div class="pinned-posts-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 0 4px;">
+                    <i class="fas fa-thumbtack" style="color: var(--accent); transform: rotate(45deg);"></i>
+                    <h3 style="font-size: 16px; font-weight: 700; color: var(--text); margin: 0;">
+                        {{ __('users.pinned_posts') }}
+                        <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">({{ $pinnedCount }}/3)</span>
+                    </h3>
+                    @if($isOwner && $pinnedCount > 1)
+                        <button type="button" class="btn btn-sm" onclick="toggleReorderMode()" id="reorderBtn" style="margin-left: auto; padding: 4px 12px; font-size: 12px;">
+                            <i class="fas fa-sort"></i> {{ __('users.reorder') }}
+                        </button>
+                    @endif
+                </div>
+                <div class="pinned-posts-container" id="pinnedPostsContainer">
+                    @foreach($pinnedPosts as $post)
+                        @include('partials.post', ['post' => $post, 'isPinned' => true])
+                    @endforeach
+                </div>
             </div>
-        @endforelse
-        {{ $posts->links() }}
+        @endif
+
+        {{-- Regular Posts Section --}}
+        <div class="regular-posts-section">
+            @if($pinnedPosts->count() > 0)
+                <div style="border-top: 1px solid var(--border); margin-bottom: 20px;"></div>
+            @endif
+            @forelse($posts as $post)
+                @include('partials.post', ['post' => $post, 'isPinned' => false])
+            @empty
+                @if($pinnedPosts->count() === 0)
+                    <div class="empty-state">
+                        <i class="fas fa-newspaper"></i>
+                        <h3>{{ __('users.no_posts_yet') }}</h3>
+                        <p style="color: var(--text-muted);">{{ __('users.no_posts_yet_desc') }}</p>
+                    </div>
+                @endif
+            @endforelse
+            {{ $posts->links() }}
+        </div>
     </div>
 </div>
 
@@ -383,7 +414,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const qrModal = document.getElementById('qr-code-modal');
         const imgModal = document.getElementById('image-modal');
-        
+
         if (qrModal.style.display === 'flex') {
             closeQrCodeModal();
         }
@@ -392,5 +423,184 @@ document.addEventListener('keydown', function(e) {
         }
     }
 });
+
+// Pinned Posts Functions
+const pinPostText = {!! json_encode(__('users.post_pinned')) !!};
+const unpinPostText = {!! json_encode(__('users.post_unpinned')) !!};
+const maxPinnedReachedText = {!! json_encode(__('posts.max_pinned_reached', ['max' => 3])) !!};
+const confirmPinText = {!! json_encode(__('users.confirm_pin_post')) !!};
+
+function pinPost(postId) {
+    if (!confirm(confirmPinText)) return;
+
+    fetch(`/users/{{ $user->username }}/posts/${postId}/pin`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast(pinPostText, 'success');
+            setTimeout(() => location.reload(), 500);
+        } else {
+            showToast(data.message || maxPinnedReachedText, 'error');
+        }
+    })
+    .catch(() => {
+        showToast('Failed to pin post', 'error');
+    });
+}
+
+function unpinPost(postId) {
+    if (!confirm('Are you sure you want to unpin this post?')) return;
+
+    fetch(`/users/{{ $user->username }}/posts/${postId}/unpin`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast(unpinPostText, 'success');
+            // Remove the post from pinned section
+            const postElement = document.getElementById(`post-${postId}`);
+            if (postElement) {
+                postElement.remove();
+            }
+            // Update pinned count
+            const pinnedSection = document.querySelector('.pinned-posts-section');
+            if (pinnedSection && document.querySelectorAll('.pinned-post').length === 0) {
+                pinnedSection.remove();
+            }
+        } else {
+            showToast(data.message || 'Failed to unpin post', 'error');
+        }
+    })
+    .catch(() => {
+        showToast('Failed to unpin post', 'error');
+    });
+}
+
+// Reorder functionality
+let isReorderMode = false;
+let sortableInstance = null;
+
+function toggleReorderMode() {
+    isReorderMode = !isReorderMode;
+    const container = document.getElementById('pinnedPostsContainer');
+    const reorderBtn = document.getElementById('reorderBtn');
+
+    if (isReorderMode) {
+        // Enable drag and drop
+        container.style.border = '2px dashed var(--accent)';
+        container.style.padding = '10px';
+        container.style.borderRadius = 'var(--radius-md)';
+
+        // Add drag handles to posts
+        document.querySelectorAll('.pinned-post').forEach(post => {
+            post.style.cursor = 'grab';
+            post.style.opacity = '0.9';
+            post.setAttribute('draggable', 'true');
+        });
+
+        reorderBtn.innerHTML = '<i class="fas fa-check"></i> Done';
+        reorderBtn.classList.add('btn-primary');
+
+        // Initialize drag and drop
+        initDragAndDrop();
+    } else {
+        // Disable drag and drop
+        container.style.border = 'none';
+        container.style.padding = '';
+
+        document.querySelectorAll('.pinned-post').forEach(post => {
+            post.style.cursor = '';
+            post.style.opacity = '';
+            post.removeAttribute('draggable');
+        });
+
+        reorderBtn.innerHTML = '<i class="fas fa-sort"></i> {{ __('users.reorder') }}';
+        reorderBtn.classList.remove('btn-primary');
+
+        // Save new order
+        savePinnedOrder();
+    }
+}
+
+function initDragAndDrop() {
+    const posts = document.querySelectorAll('.pinned-post');
+    let draggedPost = null;
+
+    posts.forEach(post => {
+        post.addEventListener('dragstart', function(e) {
+            draggedPost = this;
+            setTimeout(() => this.style.opacity = '0.5', 0);
+        });
+
+        post.addEventListener('dragend', function() {
+            setTimeout(() => this.style.opacity = '0.9', 0);
+            draggedPost = null;
+        });
+
+        post.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderTop = '3px solid var(--accent)';
+        });
+
+        post.addEventListener('dragleave', function() {
+            this.style.borderTop = 'none';
+        });
+
+        post.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderTop = 'none';
+
+            if (draggedPost !== this) {
+                const container = document.getElementById('pinnedPostsContainer');
+                const allPosts = Array.from(container.querySelectorAll('.pinned-post'));
+                const draggedIndex = allPosts.indexOf(draggedPost);
+                const dropIndex = allPosts.indexOf(this);
+
+                if (draggedIndex < dropIndex) {
+                    container.insertBefore(draggedPost, this.nextSibling);
+                } else {
+                    container.insertBefore(draggedPost, this);
+                }
+            }
+        });
+    });
+}
+
+function savePinnedOrder() {
+    const container = document.getElementById('pinnedPostsContainer');
+    const postIds = Array.from(container.querySelectorAll('.pinned-post')).map(post => {
+        return post.getAttribute('data-post-id');
+    });
+
+    fetch(`/users/{{ $user->username }}/pinned-posts/reorder`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ post_ids: postIds })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('{{ __('users.posts_reordered') }}', 'success');
+        }
+    })
+    .catch(() => {
+        showToast('Failed to save order', 'error');
+    });
+}
 </script>
 @endsection

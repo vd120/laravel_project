@@ -99,6 +99,17 @@ Route::middleware(['web'])->group(function () {
     Route::delete('/notifications', [App\Http\Controllers\Api\NotificationController::class, 'deleteAll']);
     Route::get('/notifications/realtime-updates', [App\Http\Controllers\Api\NotificationController::class, 'getRealtimeUpdates']);
 
+    // Life Events API routes
+    Route::get('/events', [App\Http\Controllers\Api\EventController::class, 'index'])->name('api.events.index');
+    Route::get('/events/upcoming', [App\Http\Controllers\Api\EventController::class, 'upcoming'])->name('api.events.upcoming');
+    Route::get('/users/{user}/events', [App\Http\Controllers\Api\EventController::class, 'userEvents'])->name('api.events.user')->where('user', '[0-9]+');
+    Route::get('/users/{user}/memory-book', [App\Http\Controllers\Api\EventController::class, 'memoryBook'])->name('api.events.memory-book')->where('user', '[0-9]+');
+    Route::post('/events', [App\Http\Controllers\Api\EventController::class, 'store'])->name('api.events.store');
+    Route::put('/events/{event}', [App\Http\Controllers\Api\EventController::class, 'update'])->name('api.events.update');
+    Route::delete('/events/{event}', [App\Http\Controllers\Api\EventController::class, 'destroy'])->name('api.events.destroy');
+    Route::post('/events/{event}/react', [App\Http\Controllers\Api\EventController::class, 'react'])->name('api.events.react');
+    Route::delete('/events/{event}/react', [App\Http\Controllers\Api\EventController::class, 'removeReaction'])->name('api.events.remove-reaction');
+
     // Push Notification routes
     Route::get('/push/vapid-key', [App\Http\Controllers\PushNotificationController::class, 'getVapidKey']);
     Route::post('/push/subscribe', [App\Http\Controllers\PushNotificationController::class, 'store']);

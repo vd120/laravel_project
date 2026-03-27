@@ -115,13 +115,17 @@ $chatTitle = $conversation->is_group
                                     $messagePreview .= ': ' . Str::limit($content, 25);
                                 }
                                 break;
+                            case 'voice':
+                                $messageIcon = '🎤 ';
+                                $messagePreview = $isOwn ? __('chat.you_sent_voice_message') : __('chat.sent_voice_message');
+                                break;
                             default:
                                 $messagePreview = $content;
                                 break;
                         }
 
                         // Add "You: " prefix for own messages (except story replies)
-                        if ($isOwn && $latestMessage->type !== 'story_reply') {
+                        if ($isOwn && $latestMessage->type !== 'story_reply' && !in_array($latestMessage->type, ['image', 'video', 'audio', 'voice', 'document', 'gif', 'sticker', 'group_invite'])) {
                             $messagePreview = __('chat.you').': ' . $messagePreview;
                         }
 
@@ -408,6 +412,17 @@ $chatTitle = $conversation->is_group
                                             <div class="message-media">
                                                 <video src="{{ asset('storage/' . $message->media_path) }}" controls></video>
                                             </div>
+                                        @elseif($message->type === 'voice' && $message->media_path)
+                                            <div class="voice-message-simple" data-audio-url="{{ asset('storage/' . $message->media_path) }}">
+                                                <button class="voice-play-btn-simple" onclick="toggleVoiceMessage(this)">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                                <div class="voice-info">
+                                                    <span class="voice-label">Voice Message</span>
+                                                    <span class="voice-duration-simple">{{ $message->duration ?? 0 }}s</span>
+                                                </div>
+                                                <button class="voice-speed-btn-simple" onclick="toggleVoiceSpeed(this)">1x</button>
+                                            </div>
                                         @endif
                                         @if($message->content && $message->content !== '' && $message->type !== 'group_invite')
                                             @php
@@ -495,9 +510,23 @@ $chatTitle = $conversation->is_group
                     </div>
                     <div class="input-row">
                         <label for="mediaInput" class="attach-btn" title="{{ __('chat.attach') }}"><i class="fas fa-paperclip"></i></label>
+                        <button type="button" id="voiceRecordBtn" class="voice-record-btn" title="{{ __('chat.record_voice') }}" onclick="toggleVoiceRecording()"><i class="fas fa-microphone"></i></button>
                         <input type="file" id="mediaInput" accept="image/*,video/*" multiple onchange="handleMediaSelect(event)" style="display: none;">
                         <input type="text" id="messageInput" placeholder="{{ __('chat.type_a_message') }}" maxlength="1000" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                         <button type="submit" id="sendButton" class="send-btn" title="{{ __('chat.send') }}"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                    
+                    {{-- Voice Recording Overlay --}}
+                    <div id="voiceRecordingOverlay" class="voice-recording-overlay" style="display: none;">
+                        <div class="recording-content">
+                            <div class="recording-timer" id="recordingTimer">00:00</div>
+                            <div class="recording-waveform" id="recordingWaveform"></div>
+                            <div class="recording-controls">
+                                <button class="recording-btn cancel" onclick="cancelVoiceRecording()" title="{{ __('chat.cancel') }}"><i class="fas fa-times"></i></button>
+                                <button class="recording-btn" id="recordToggleBtn" onclick="toggleVoiceRecord()" title="{{ __('chat.start_recording') }}"><i class="fas fa-microphone"></i></button>
+                                <button class="recording-btn send" id="sendVoiceBtn" title="{{ __('chat.send') }}" disabled onclick="console.log('🎤 Send clicked!'); sendVoiceMessage();"><i class="fas fa-paper-plane"></i></button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -1542,13 +1571,22 @@ body:has(.chat-page) .mobile-nav {
 
 .message-content .deleted-text {
     font-style: italic;
-    color: rgba(233, 237, 239, 0.5);
+    color: #6b7280;
     font-size: 13px;
 }
 
 .message.deleted .message-content {
-    opacity: 0.7;
-    background: rgba(0, 0, 0, 0.1) !important;
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.message.deleted .text {
+    color: #4b5563;
+    font-style: italic;
+}
+
+.message.deleted .message-time {
+    color: #9ca3af;
 }
 
 /* Story Reply Message Style */
@@ -1770,6 +1808,394 @@ body:has(.chat-page) .mobile-nav {
     border-radius: 8px;
     overflow: hidden;
     max-width: 100%;
+}
+
+.message-media img, .message-media video {
+    max-width: 100%;
+    width: auto;
+    max-height: 250px;
+    display: block;
+}
+
+/* Voice Message Styles */
+.voice-message {
+    min-width: 260px;
+    max-width: 100%;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    margin: 4px 0;
+    width: fit-content;
+}
+
+.message.own .voice-message {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.message.other .voice-message {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Simple Voice Message Design */
+.voice-message-simple {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    min-width: 280px;
+    max-width: 100%;
+    width: fit-content;
+}
+
+.message.own .voice-message-simple {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.voice-play-btn-simple {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--wa-accent);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 16px;
+}
+
+.voice-play-btn-simple:hover {
+    transform: scale(1.08);
+    background: var(--wa-accent-hover, #1a73e8);
+}
+
+.voice-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.voice-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--wa-text);
+}
+
+.voice-duration-simple {
+    font-size: 12px;
+    color: var(--wa-text-muted);
+    font-weight: 500;
+}
+
+.voice-speed-btn-simple {
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--wa-text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.voice-speed-btn-simple:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--wa-text);
+}
+
+.voice-message-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 200px;
+}
+
+.voice-play-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--wa-accent);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.voice-play-btn:hover {
+    transform: scale(1.08);
+    background: var(--wa-accent-hover, #1a73e8);
+}
+
+.voice-play-btn:active {
+    transform: scale(0.95);
+}
+
+.voice-play-btn.playing {
+    background: rgba(255, 255, 255, 0.3);
+    animation: pulse-playing 1.5s infinite;
+}
+
+@keyframes pulse-playing {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+}
+
+.voice-waveform {
+    flex: 1;
+    height: 40px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.2) 100%);
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    min-width: 120px;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.voice-waveform canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+/* Make waveform cursor more visible */
+.voice-waveform wave {
+    cursor: pointer;
+}
+
+/* Add hover effect */
+.voice-waveform:hover {
+    background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.25) 100%);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4), 0 0 10px rgba(74, 222, 128, 0.2);
+}
+
+/* Playing state glow */
+.voice-message:has(.voice-play-btn.playing) .voice-waveform {
+    border-color: rgba(74, 222, 128, 0.3);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(74, 222, 128, 0.3);
+}
+
+/* Waveform cursor styling */
+.voice-waveform wave[part="progress"] {
+    background: #22c55e !important;
+}
+
+.voice-duration {
+    font-size: 11px;
+    color: var(--wa-text-muted);
+    min-width: 35px;
+    text-align: center;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+.voice-speed-btn {
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--wa-text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.voice-speed-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--wa-text);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.voice-speed-btn:active {
+    transform: scale(0.95);
+}
+
+/* Voice Recording Overlay */
+.voice-recording-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.recording-content {
+    text-align: center;
+    padding: 24px;
+    position: relative;
+    z-index: 100;
+    pointer-events: none; /* Allow clicks to pass through to children */
+}
+
+.recording-content > * {
+    pointer-events: auto; /* Re-enable clicks on direct children */
+}
+
+.recording-timer {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--wa-text);
+    margin-bottom: 24px;
+    font-family: monospace;
+}
+
+.recording-timer.recording {
+    color: #ef4445;
+    /* Removed pulse animation - keep timer static */
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.recording-waveform {
+    width: 300px;
+    height: 80px;
+    margin: 0 auto 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+.recording-waveform canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.recording-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    position: relative;
+    z-index: 100;
+    pointer-events: none; /* Allow container to not block, children will override */
+}
+
+.recording-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 0.2s;
+    position: relative;
+    z-index: 110;
+    pointer-events: auto; /* Enable clicks on buttons */
+}
+
+.recording-btn.cancel {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4445;
+}
+
+.recording-btn.cancel:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+.recording-btn:not(.cancel):not(.send) {
+    background: var(--wa-accent);
+    color: white;
+}
+
+.recording-btn:not(.cancel):not(.send):hover {
+    transform: scale(1.1);
+}
+
+.recording-btn:not(.cancel):not(.send).recording {
+    background: #ef4445;
+    animation: pulse-btn 1.5s infinite;
+}
+
+@keyframes pulse-btn {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+}
+
+.recording-btn.send {
+    background: var(--wa-accent) !important;
+    color: white !important;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto !important;
+}
+
+.recording-btn.send:hover:not(:disabled) {
+    transform: scale(1.1);
+}
+
+.recording-btn.send:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed;
+    pointer-events: none !important;
+}
+
+.recording-btn.send:not(:disabled) {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    background: var(--wa-accent) !important;
+}
+
+/* Voice record button in input area */
+.voice-record-btn {
+    background: none;
+    border: none;
+    color: var(--wa-text-muted);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.voice-record-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--wa-accent);
+}
+
+.voice-record-btn.recording {
+    color: #ef4445;
+    animation: pulse-icon 1s infinite;
+}
+
+@keyframes pulse-icon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
 }
 
 .message-media img, .message-media video {
@@ -2514,8 +2940,194 @@ body:has(.chat-page) .mobile-nav {
     .mobile-nav, .app-layout ~ .mobile-nav {
         display: none !important;
     }
+    
+    /* Fix input row on mobile */
+    .input-row {
+        gap: 8px;
+        min-width: 0;
+    }
+    
+    /* Fix message input on mobile */
+    #messageInput {
+        min-width: 0;
+        flex: 1;
+        padding: 10px 14px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Fix send button on mobile */
+    .send-btn {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        flex-shrink: 0;
+    }
+    
+    /* Fix attach and voice buttons on mobile */
+    .attach-btn, .voice-record-btn {
+        flex-shrink: 0;
+        width: 40px;
+        min-width: 40px;
+    }
+    
+    /* Voice recording overlay on mobile */
+    .voice-recording-overlay {
+        position: fixed;
+    }
+    
+    .recording-timer {
+        font-size: 36px;
+    }
+    
+    .recording-waveform {
+        width: 250px;
+        height: 60px;
+    }
+    
+    .recording-btn {
+        width: 48px;
+        height: 48px;
+    }
+    
+    /* Voice messages on mobile */
+    .voice-message {
+        min-width: 160px;
+        max-width: 100%;
+        padding: 4px 8px;
+    }
+
+    .voice-message-controls {
+        gap: 4px;
+        min-width: 120px;
+    }
+
+    .voice-play-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 9px;
+        flex-shrink: 0;
+    }
+
+    .voice-waveform {
+        height: 24px;
+        min-width: 60px;
+        flex: 1;
+        border-radius: 12px;
+    }
+
+    .voice-duration {
+        font-size: 8px;
+        min-width: 24px;
+        flex-shrink: 0;
+    }
+
+    .voice-speed-btn {
+        padding: 2px 4px;
+        font-size: 7px;
+        flex-shrink: 0;
+    }
+
+    /* Simple voice messages on mobile */
+    .voice-message-simple {
+        padding: 8px 10px;
+        min-width: 180px;
+        gap: 8px;
+        border-radius: 18px;
+    }
+
+    .voice-play-btn-simple {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+
+    .voice-label {
+        font-size: 11px;
+    }
+
+    .voice-duration-simple {
+        font-size: 10px;
+    }
+    
+    /* Voice recording overlay on small screens */
+    .recording-waveform {
+        width: 200px;
+        height: 50px;
+    }
+
+    .recording-btn {
+        width: 44px;
+        height: 44px;
+    }
 }
 
+@media (max-width: 600px) {
+    /* Smaller voice messages on very small screens */
+    .voice-message {
+        min-width: 150px;
+        padding: 3px 6px;
+    }
+
+    .voice-message-controls {
+        gap: 3px;
+        min-width: 110px;
+    }
+
+    .voice-play-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 9px;
+    }
+
+    .voice-waveform {
+        height: 22px;
+        min-width: 50px;
+    }
+
+    .voice-duration {
+        font-size: 7px;
+        min-width: 22px;
+    }
+
+    .voice-speed-btn {
+        display: none; /* Hide speed control on very small screens */
+    }
+
+    /* Simple voice messages on very small screens */
+    .voice-message-simple {
+        padding: 6px 8px;
+        min-width: 160px;
+        gap: 6px;
+        border-radius: 16px;
+    }
+
+    .voice-play-btn-simple {
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+    }
+
+    .voice-label {
+        font-size: 10px;
+    }
+
+    .voice-duration-simple {
+        font-size: 9px;
+    }
+
+    /* Voice recording overlay on very small screens */
+    .recording-waveform {
+        width: 180px;
+        height: 45px;
+    }
+
+    .recording-btn {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Small screens styles */
 @media (max-width: 600px) {
     .chat-page {
         height: calc(100vh - 56px);
@@ -2543,9 +3155,80 @@ body:has(.chat-page) .mobile-nav {
     .chat-input-area {
         padding: 10px 12px;
     }
+    
+    /* Fix input row on small screens */
+    .input-row {
+        gap: 6px;
+    }
+    
+    /* Smaller buttons on small screens */
+    .send-btn {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+    }
+    
+    .attach-btn, .voice-record-btn {
+        width: 38px;
+        min-width: 38px;
+        padding: 6px;
+    }
+    
+    /* Voice messages on small screens */
+    .voice-message {
+        min-width: 160px;
+        padding: 4px 8px;
+    }
+
+    .voice-message-controls {
+        gap: 4px;
+        min-width: 120px;
+    }
+
+    .voice-play-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 9px;
+    }
+
+    .voice-waveform {
+        height: 24px;
+        min-width: 60px;
+    }
+
+    .voice-duration {
+        font-size: 8px;
+        min-width: 24px;
+    }
+
+    .voice-speed-btn {
+        display: none; /* Hide speed control on very small screens */
+    }
+
+    /* Simple voice messages on small screens */
+    .voice-message-simple {
+        padding: 8px 10px;
+        min-width: 170px;
+        gap: 8px;
+        border-radius: 18px;
+    }
+
+    .voice-play-btn-simple {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
+    }
+
+    .voice-label {
+        font-size: 11px;
+    }
+
+    .voice-duration-simple {
+        font-size: 10px;
+    }
 
     /* Mobile message sizing */
-    .message { 
+    .message {
         max-width: 88%;
     }
     
@@ -3074,6 +3757,17 @@ window.addMessage = function(msg) {
         contentHtml += `<div class="message-media"><img src="/storage/${escapeHtml(msg.media_path)}" alt="Image" onclick="openMediaViewer(this.src)"></div>`;
     } else if (msg.type === 'video' && msg.media_path) {
         contentHtml += `<div class="message-media"><video src="/storage/${escapeHtml(msg.media_path)}" controls></video></div>`;
+    } else if (msg.type === 'voice' && msg.media_path) {
+        // Voice message - simple design
+        const duration = msg.duration || 0;
+        contentHtml += `<div class="voice-message-simple" data-audio-url="/storage/${escapeHtml(msg.media_path)}">
+            <button class="voice-play-btn-simple" onclick="toggleVoiceMessage(this)"><i class="fas fa-play"></i></button>
+            <div class="voice-info">
+                <span class="voice-label">Voice Message</span>
+                <span class="voice-duration-simple">${duration}s</span>
+            </div>
+            <button class="voice-speed-btn-simple" onclick="toggleVoiceSpeed(this)" title="${escapeHtml(window.chatTranslations.playback_speed)}">1x</button>
+        </div>`;
     }
 
     // Text content with story reply detection
@@ -3619,9 +4313,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update online status when leaving the page
     window.addEventListener('beforeunload', () => {
-        navigator.sendBeacon('/user/online-status/offline', JSON.stringify({
-            _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }));
+        const formData = new FormData();
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        
+        navigator.sendBeacon('/user/online-status/offline', formData);
     });
 
     
@@ -3732,5 +4427,784 @@ function applyRTLIfArabic(element) {
 window.activeConversationId = {{ $conversation->id }};
 
 // Note: All polling (messages, typing, online status, etc.) is handled by resources/js/legacy/realtime.js
+
+// ============================================
+// Voice Message Recording and Playback
+// ============================================
+
+// Import WaveSurfer dynamically
+let WaveSurfer = null;
+let waveSurferLoading = false;
+
+const loadWaveSurfer = async () => {
+    if (WaveSurfer) {
+        return WaveSurfer;
+    }
+    
+    if (waveSurferLoading) {
+        // Wait for existing load
+        while (waveSurferLoading) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        return WaveSurfer;
+    }
+    
+    waveSurferLoading = true;
+    try {
+        const module = await import('https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.esm.js');
+        WaveSurfer = module.default;
+        console.log('WaveSurfer loaded successfully');
+    } catch (error) {
+        console.error('Failed to load WaveSurfer:', error);
+    } finally {
+        waveSurferLoading = false;
+    }
+    return WaveSurfer;
+};
+
+// Voice recording state
+let voiceRecordingState = {
+    isRecording: false,
+    isPaused: false,
+    mediaRecorder: null,
+    audioChunks: [],
+    startTime: null,
+    pausedTime: 0,
+    totalPausedDuration: 0,
+    timerInterval: null,
+    waveform: null,
+    audioBlob: null,
+};
+
+// Initialize recording waveform
+async function initRecordingWaveform() {
+    // Clear any existing waveform
+    const container = document.getElementById('recordingWaveform');
+    if (container) {
+        container.innerHTML = '';
+    }
+    
+    // We'll use canvas-based visualization during recording
+    // No need to initialize WaveSurfer for recording
+    console.log('Recording waveform initialized (canvas-based)');
+}
+
+// Toggle voice recording overlay
+function toggleVoiceRecording() {
+    const overlay = document.getElementById('voiceRecordingOverlay');
+    
+    // Check permissions before opening overlay
+    if (overlay.style.display !== 'flex') {
+        checkMicrophonePermission().then(granted => {
+            if (granted) {
+                overlay.style.display = 'flex';
+                initRecordingWaveform();
+                resetRecordingState();
+            }
+        }).catch(err => {
+            console.error('Permission check failed:', err);
+        });
+    } else {
+        overlay.style.display = 'none';
+        cancelVoiceRecording();
+    }
+}
+
+// Check microphone permissions
+async function checkMicrophonePermission() {
+    try {
+        // Check if browser supports permissions API
+        if (!navigator.permissions) {
+            console.log('Permissions API not supported, will request access directly');
+            return true;
+        }
+        
+        const result = await navigator.permissions.query({ name: 'microphone' });
+        console.log('Microphone permission state:', result.state);
+        
+        if (result.state === 'denied') {
+            alert('Microphone permission was denied. Please enable it in your browser settings:\n\n' +
+                  'Chrome/Edge: Click the lock icon → Microphone → Allow\n' +
+                  'Firefox: Click the lock icon → Permissions → Microphone → Allow\n' +
+                  'Safari: Settings → Websites → Microphone → Allow\n\n' +
+                  'Then refresh the page.');
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Error checking microphone permission:', error);
+        // If we can't check, still try to request access
+        return true;
+    }
+}
+
+function resetRecordingState() {
+    const existingWaveform = voiceRecordingState.waveform;
+    
+    voiceRecordingState = {
+        isRecording: false,
+        isPaused: false,
+        mediaRecorder: null,
+        audioChunks: [],
+        startTime: null,
+        pausedTime: 0,
+        totalPausedDuration: 0,
+        timerInterval: null,
+        waveform: existingWaveform,
+        audioBlob: null,
+    };
+
+    document.getElementById('recordingTimer').textContent = '00:00';
+    document.getElementById('recordingTimer').classList.remove('recording');
+    document.getElementById('recordToggleBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+    document.getElementById('recordToggleBtn').classList.remove('recording');
+    document.getElementById('recordToggleBtn').title = '{{ __('chat.start_recording') }}';
+    
+    const sendBtn = document.getElementById('sendVoiceBtn');
+    sendBtn.disabled = true;
+    sendBtn.setAttribute('disabled', 'disabled');
+}
+
+// Start/stop recording
+async function toggleVoiceRecord() {
+    console.log('Toggle voice record clicked, state:', {
+        isRecording: voiceRecordingState.isRecording,
+        isPaused: voiceRecordingState.isPaused,
+        recorderState: voiceRecordingState.mediaRecorder?.state
+    });
+    
+    if (!voiceRecordingState.isRecording && !voiceRecordingState.isPaused) {
+        await startRecording();
+    } else if (voiceRecordingState.isRecording) {
+        // Stop recording (not pause)
+        stopRecording();
+    } else if (voiceRecordingState.isPaused) {
+        resumeRecording();
+    } else {
+        // Recorder is inactive, close overlay
+        console.log('Recorder inactive, closing overlay');
+        document.getElementById('voiceRecordingOverlay').style.display = 'none';
+        resetRecordingState();
+    }
+}
+
+async function startRecording() {
+    try {
+        // Check if browser supports getUserMedia
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('Your browser does not support audio recording. Please use a modern browser like Chrome, Firefox, or Edge.');
+        }
+        
+        // Check if page is served over HTTPS or localhost
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            console.warn('Warning: Microphone access requires HTTPS in production. Current protocol:', window.location.protocol);
+        }
+        
+        console.log('Requesting microphone access...');
+        
+        // Get available audio devices to select proper microphone
+        let audioConstraints = {
+            audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                sampleRate: 44100,
+                autoGainControl: true
+            }
+        };
+        
+        // Try to find a real microphone (not monitor/output devices)
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioInputs = devices.filter(device => device.kind === 'audioinput');
+            console.log('Available microphones:', audioInputs.map(d => ({ label: d.label || '(hidden by browser)', id: d.deviceId })));
+            
+            if (audioInputs.length > 0) {
+                // Find a microphone that's not a monitor device
+                const realMic = audioInputs.find(input => 
+                    !input.label.toLowerCase().includes('monitor') && 
+                    !input.label.toLowerCase().includes('output') &&
+                    !input.label.toLowerCase().includes('dummy') &&
+                    input.label.trim() !== ''
+                );
+                
+                if (realMic && realMic.label) {
+                    console.log('Selected microphone:', realMic.label);
+                    audioConstraints.audio = {
+                        deviceId: { ideal: realMic.deviceId },
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        sampleRate: 44100,
+                        autoGainControl: true
+                    };
+                } else {
+                    // Use first available microphone with ideal (not exact) constraint
+                    console.log('Using first available microphone (label hidden by browser)');
+                    audioConstraints.audio.deviceId = { ideal: audioInputs[0].deviceId };
+                }
+            }
+        } catch (err) {
+            console.warn('Could not enumerate devices, using default microphone:', err);
+        }
+        
+        const stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+
+        console.log('Microphone access granted!');
+        console.log('Audio tracks:', stream.getAudioTracks().map(t => ({ label: t.label, enabled: t.enabled, muted: t.muted })));
+
+        voiceRecordingState.mediaRecorder = new MediaRecorder(stream, {
+            mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 
+                      MediaRecorder.isTypeSupported('audio/ogg') ? 'audio/ogg' : 
+                      MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : ''
+        });
+        
+        console.log('Using MIME type:', voiceRecordingState.mediaRecorder.mimeType);
+        
+        voiceRecordingState.audioChunks = [];
+
+        voiceRecordingState.mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                voiceRecordingState.audioChunks.push(event.data);
+                console.log('Audio chunk received, size:', event.data.size);
+            }
+        };
+
+        // Store mimeType before onstop fires
+        const recordedMimeType = voiceRecordingState.mediaRecorder.mimeType || 'audio/webm';
+        console.log('Using MIME type:', recordedMimeType);
+
+        voiceRecordingState.mediaRecorder.onstop = () => {
+            console.log('MediaRecorder stopped event fired');
+            console.log('Audio chunks collected:', voiceRecordingState.audioChunks.length);
+
+            if (voiceRecordingState.audioChunks.length > 0) {
+                // Use the actual recorded MIME type
+                voiceRecordingState.audioBlob = new Blob(voiceRecordingState.audioChunks, { type: recordedMimeType });
+                
+                console.log('✅ Recording created, blob size:', voiceRecordingState.audioBlob.size, 'bytes');
+                console.log('✅ Blob type:', voiceRecordingState.audioBlob.type);
+                
+                // Enable send button
+                enableSendButton();
+            } else {
+                console.error('❌ No audio chunks collected!');
+                alert('No audio was recorded. Please try again and make sure to speak into the microphone.');
+            }
+        };
+
+        voiceRecordingState.mediaRecorder.onerror = (event) => {
+            console.error('MediaRecorder error:', event.error);
+            alert('Recording error: ' + event.error.name + ' - ' + event.error.message);
+        };
+
+        voiceRecordingState.mediaRecorder.start(100);
+        voiceRecordingState.isRecording = true;
+        voiceRecordingState.isPaused = false;
+        voiceRecordingState.startTime = Date.now();
+
+        // Update UI
+        document.getElementById('recordingTimer').classList.add('recording');
+        document.getElementById('recordToggleBtn').innerHTML = '<i class="fas fa-pause"></i>';
+        document.getElementById('recordToggleBtn').classList.add('recording');
+        document.getElementById('recordToggleBtn').title = '{{ __('chat.stop_recording') }}';
+
+        // Start timer
+        clearInterval(voiceRecordingState.timerInterval);
+        voiceRecordingState.timerInterval = setInterval(updateRecordingTimer, 1000);
+
+        // Connect to waveform (visual feedback) - start canvas visualization
+        const analyser = createAudioAnalyser(stream);
+        updateRecordingWaveform(analyser);
+        
+        console.log('Recording started with canvas waveform');
+
+    } catch (error) {
+        console.error('Error accessing microphone:', error);
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        
+        let errorMessage = '{{ __('chat.microphone_access_denied') }}\n\n';
+        
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            errorMessage += 'Permission was denied. To enable microphone access:\n';
+            errorMessage += '1. Click the lock icon in your browser address bar\n';
+            errorMessage += '2. Find "Microphone" or "Permissions"\n';
+            errorMessage += '3. Set to "Allow"\n';
+            errorMessage += '4. Refresh the page and try again';
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+            errorMessage += 'No microphone was found. Please connect a microphone and try again.';
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+            errorMessage += 'Your microphone is being used by another application. Please close other apps and try again.';
+        } else if (error.name === 'OverconstrainedError') {
+            errorMessage += 'Your microphone does not support the required audio settings.\n\n';
+            errorMessage += 'Tip: Try selecting a different microphone in your browser settings.';
+        } else if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+            errorMessage += '\n\n⚠️ IMPORTANT: Microphone access requires HTTPS.\n';
+            errorMessage += 'You are currently using: ' + window.location.protocol + '\n';
+            errorMessage += 'Please use HTTPS or localhost for microphone access.';
+        }
+        
+        alert(errorMessage);
+        cancelVoiceRecording();
+    }
+}
+
+function createAudioAnalyser(stream) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaStreamSource(stream);
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    source.connect(analyser);
+    return analyser;
+}
+
+function updateRecordingWaveform(analyser) {
+    if (!voiceRecordingState.isRecording || voiceRecordingState.isPaused) return;
+    
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(dataArray);
+    
+    // Always use canvas-based visualization (more reliable)
+    drawWaveformOnCanvas(dataArray);
+    
+    requestAnimationFrame(() => updateRecordingWaveform(analyser));
+}
+
+function drawWaveformOnCanvas(dataArray) {
+    const container = document.querySelector('#recordingWaveform');
+    if (!container) return;
+
+    let canvas = container.querySelector('canvas');
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        container.innerHTML = '';
+        container.appendChild(canvas);
+    }
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = container.offsetWidth || 300;
+    const height = canvas.height = container.offsetHeight || 80;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#4ade80';
+
+    const barWidth = (width / dataArray.length) * 2.5;
+    let x = 0;
+
+    for (let i = 0; i < dataArray.length; i++) {
+        const barHeight = (dataArray[i] / 255) * height;
+        ctx.fillRect(x, (height - barHeight) / 2, barWidth - 1, barHeight);
+        x += barWidth + 1;
+    }
+}
+
+function pauseRecording() {
+    if (voiceRecordingState.mediaRecorder && voiceRecordingState.isRecording) {
+        voiceRecordingState.pausedTime = Date.now();
+        voiceRecordingState.mediaRecorder.pause();
+        voiceRecordingState.isPaused = true;
+        voiceRecordingState.isRecording = false;
+
+        document.getElementById('recordToggleBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+        document.getElementById('recordToggleBtn').classList.remove('recording');
+        document.getElementById('recordToggleBtn').title = '{{ __('chat.start_recording') }}';
+        clearInterval(voiceRecordingState.timerInterval);
+    }
+}
+
+function resumeRecording() {
+    if (voiceRecordingState.mediaRecorder && voiceRecordingState.isPaused) {
+        voiceRecordingState.mediaRecorder.resume();
+        voiceRecordingState.isPaused = false;
+        voiceRecordingState.isRecording = true;
+        voiceRecordingState.totalPausedDuration += Date.now() - voiceRecordingState.pausedTime;
+
+        document.getElementById('recordToggleBtn').innerHTML = '<i class="fas fa-pause"></i>';
+        document.getElementById('recordToggleBtn').classList.add('recording');
+        document.getElementById('recordToggleBtn').title = '{{ __('chat.stop_recording') }}';
+        voiceRecordingState.timerInterval = setInterval(updateRecordingTimer, 1000);
+    }
+}
+
+function stopRecording() {
+    if (voiceRecordingState.mediaRecorder && voiceRecordingState.mediaRecorder.state !== 'inactive') {
+        voiceRecordingState.mediaRecorder.stop();
+        if (voiceRecordingState.mediaRecorder.stream) {
+            voiceRecordingState.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        }
+
+        voiceRecordingState.isRecording = false;
+        voiceRecordingState.isPaused = false;
+
+        document.getElementById('recordToggleBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+        document.getElementById('recordToggleBtn').classList.remove('recording');
+        document.getElementById('recordToggleBtn').title = '{{ __('chat.start_recording') }}';
+        clearInterval(voiceRecordingState.timerInterval);
+    }
+}
+
+function updateRecordingTimer() {
+    if (!voiceRecordingState.startTime) return;
+    
+    // Calculate elapsed time excluding pause duration
+    const now = Date.now();
+    const totalElapsed = now - voiceRecordingState.startTime;
+    const elapsed = Math.floor((totalElapsed - voiceRecordingState.totalPausedDuration) / 1000);
+    
+    const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+    const seconds = (elapsed % 60).toString().padStart(2, '0');
+    document.getElementById('recordingTimer').textContent = `${minutes}:${seconds}`;
+    
+    // Max 5 minutes
+    if (elapsed >= 300) {
+        pauseRecording();
+    }
+}
+
+function cancelVoiceRecording() {
+    console.log('Canceling voice recording');
+    
+    if (voiceRecordingState.mediaRecorder) {
+        if (voiceRecordingState.isRecording || voiceRecordingState.isPaused) {
+            voiceRecordingState.mediaRecorder.stop();
+        }
+        // Stop all audio tracks
+        if (voiceRecordingState.mediaRecorder.stream) {
+            voiceRecordingState.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        }
+    }
+
+    clearInterval(voiceRecordingState.timerInterval);
+
+    if (voiceRecordingState.waveform) {
+        try {
+            voiceRecordingState.waveform.destroy();
+        } catch (e) {
+            console.error('Error destroying waveform:', e);
+        }
+        voiceRecordingState.waveform = null;
+    }
+
+    document.getElementById('voiceRecordingOverlay').style.display = 'none';
+    resetRecordingState();
+}
+
+// Send voice message
+async function sendVoiceMessage() {
+    const sendBtn = document.getElementById('sendVoiceBtn');
+    if (!sendBtn || sendBtn.disabled) return;
+
+    if (!voiceRecordingState.audioBlob) {
+        alert('No recording found. Please try again.');
+        return;
+    }
+    
+    // Validate duration (minimum 1 second)
+    const elapsed = voiceRecordingState.startTime ? Math.floor((Date.now() - voiceRecordingState.startTime - voiceRecordingState.totalPausedDuration) / 1000) : 0;
+    if (elapsed < 1) {
+        alert('Recording is too short. Please record at least 1 second.');
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        return;
+    }
+
+    // Disable send button
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    const formData = new FormData();
+    const filename = 'voice-message-' + Date.now() + '.webm';
+    formData.append('voice_message', voiceRecordingState.audioBlob, filename);
+    formData.append('duration', elapsed > 0 ? elapsed : 1);
+    formData.append('waveform_peaks', JSON.stringify(generateWaveformPeaks()));
+
+    try {
+        const response = await fetch(`{{ route('chat.store', $conversation) }}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            if (data.message) {
+                appendVoiceMessage(data.message);
+                const messagesContainer = document.getElementById('chatMessages');
+                if (messagesContainer) {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }
+            cancelVoiceRecording();
+        } else {
+            let errorMsg = 'Failed to send voice message';
+            if (data.message) errorMsg += ': ' + data.message;
+            alert(errorMsg);
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        }
+    } catch (error) {
+        alert('Network error. Please check your connection and try again.');
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+    }
+}
+
+// Enable send button function - replaces button element entirely
+function enableSendButton() {
+    const sendBtn = document.getElementById('sendVoiceBtn');
+    if (!sendBtn) {
+        console.error('❌ Send button not found');
+        return;
+    }
+    
+    // Create a new button to replace the disabled one
+    const newSendBtn = sendBtn.cloneNode(true);
+    newSendBtn.disabled = false;
+    newSendBtn.removeAttribute('disabled');
+    newSendBtn.style.setProperty('pointer-events', 'auto', 'important');
+    newSendBtn.style.setProperty('cursor', 'pointer', 'important');
+    newSendBtn.style.setProperty('opacity', '1', 'important');
+    newSendBtn.style.setProperty('background', 'var(--wa-accent)', 'important');
+    
+    // Add click handler
+    newSendBtn.onclick = function() {
+        console.log('🎤 Send clicked!');
+        sendVoiceMessage();
+    };
+    
+    // Replace the old button with the new one
+    sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
+    
+    console.log('✅ Send button enabled and replaced');
+    console.log('✅ New button disabled:', newSendBtn.disabled);
+    console.log('✅ New button has disabled attr:', newSendBtn.hasAttribute('disabled'));
+}
+
+function generateWaveformPeaks() {
+    // Generate realistic-looking waveform peaks
+    // Create a pattern that rises and falls like actual audio
+    const peaks = [];
+    const numPeaks = 50;
+    
+    // Generate peaks with varying amplitudes
+    for (let i = 0; i < numPeaks; i++) {
+        // Create a wave-like pattern with some randomness
+        const baseAmplitude = Math.sin(i / numPeaks * Math.PI); // Bell curve
+        const randomness = Math.random() * 0.5 + 0.5; // 0.5 to 1.0
+        const peak = baseAmplitude * randomness;
+        peaks.push(Math.max(0.1, peak)); // Ensure minimum visibility
+    }
+    
+    return peaks;
+}
+
+function appendVoiceMessage(message) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const isOwn = message.sender_id === {{ auth()->id() }};
+    const time = new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const audioUrl = '/storage/' + message.media_path;
+
+    const messageHtml = `
+        <div class="message ${isOwn ? 'own' : 'other'}" data-message-id="${message.id}">
+            ${!isOwn ? `<div class="message-avatar"><img src="${escapeHtml(message.sender.avatar_url)}" alt="${escapeHtml(message.sender.username)}"></div>` : ''}
+            <div class="message-bubble">
+                ${!isOwn ? `<div class="sender-name">${escapeHtml(message.sender.username)}</div>` : ''}
+                <div class="message-content">
+                    <div class="voice-message-simple" data-audio-url="${audioUrl}">
+                        <button class="voice-play-btn-simple" onclick="toggleVoiceMessage(this)">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <div class="voice-info">
+                            <span class="voice-label">Voice Message</span>
+                            <span class="voice-duration-simple">${message.duration || 0}s</span>
+                        </div>
+                        <button class="voice-speed-btn-simple" onclick="toggleVoiceSpeed(this)">1x</button>
+                    </div>
+                    <span class="message-time">
+                        ${time}
+                        ${isOwn ? '<i class="fas fa-check" title="{{ __('chat.sent') }}"></i>' : ''}
+                    </span>
+                </div>
+                ${isOwn ? `<button class="delete-btn" onclick="deleteMessage(${message.id})" title="{{ __('chat.delete_message') }}"><i class="fas fa-trash"></i></button>` : ''}
+            </div>
+        </div>
+    `;
+
+    messagesContainer.insertAdjacentHTML('beforeend', messageHtml);
+}
+
+// Simple Voice Message Playback
+let currentAudio = null;
+let currentBtn = null;
+
+async function toggleVoiceMessage(btn) {
+    const voiceMessage = btn.closest('.voice-message-simple');
+    if (!voiceMessage) return;
+
+    const audioUrl = voiceMessage.dataset.audioUrl || voiceMessage.closest('.message').dataset.audioUrl;
+    if (!audioUrl) return;
+
+    // If clicking the same message
+    if (currentBtn === btn) {
+        if (currentAudio && currentAudio.paused) {
+            await currentAudio.play();
+            btn.innerHTML = '<i class="fas fa-pause"></i>';
+        } else if (currentAudio) {
+            currentAudio.pause();
+            btn.innerHTML = '<i class="fas fa-play"></i>';
+        }
+        return;
+    }
+
+    // Stop previous audio
+    if (currentAudio) {
+        currentAudio.pause();
+        if (currentBtn) {
+            currentBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
+    }
+
+    // Create new audio
+    currentAudio = new Audio(audioUrl);
+    currentBtn = btn;
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    currentAudio.onplay = () => {
+        btn.innerHTML = '<i class="fas fa-pause"></i>';
+    };
+
+    currentAudio.onpause = () => {
+        btn.innerHTML = '<i class="fas fa-play"></i>';
+    };
+
+    currentAudio.onended = () => {
+        btn.innerHTML = '<i class="fas fa-play"></i>';
+        currentAudio = null;
+        currentBtn = null;
+    };
+
+    currentAudio.onerror = () => {
+        btn.innerHTML = '<i class="fas fa-play"></i>';
+        currentAudio = null;
+        currentBtn = null;
+    };
+
+    try {
+        await currentAudio.play();
+    } catch (e) {
+        btn.innerHTML = '<i class="fas fa-play"></i>';
+        currentAudio = null;
+        currentBtn = null;
+    }
+}
+
+// Draw waveform with progress
+function drawWaveform(container, progress, duration) {
+    container.innerHTML = '';
+    const canvas = document.createElement('canvas');
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    container.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = container.offsetWidth || 120;
+    const height = canvas.height = container.offsetHeight || 40;
+    const playWidth = width * progress;
+
+    // Background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(0, 0, width, height);
+
+    // Played portion (solid green)
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(0, 0, playWidth, height);
+
+    // Unplayed bars (dim green)
+    ctx.fillStyle = 'rgba(74, 222, 128, 0.3)';
+    const barCount = Math.floor(width / 5);
+    for (let i = 0; i < barCount; i++) {
+        const x = i * 5;
+        if (x > playWidth) {
+            const barHeight = Math.random() * (height * 0.6) + (height * 0.2);
+            ctx.fillRect(x, (height - barHeight) / 2, 2, barHeight);
+        }
+    }
+
+    // Cursor line
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(playWidth, 0);
+    ctx.lineTo(playWidth, height);
+    ctx.stroke();
+}
+
+// Animate waveform
+function animateWaveform(container) {
+    const canvas = container.querySelector('canvas');
+    if (!canvas || !currentAudio) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const duration = currentAudio.duration;
+
+    function draw() {
+        if (currentAudio.paused || currentAudio.ended) return;
+
+        const progress = currentAudio.currentTime / duration;
+        const playWidth = width * progress;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(0, 0, width, height);
+
+        // Played (solid)
+        ctx.fillStyle = '#22c55e';
+        ctx.fillRect(0, 0, playWidth, height);
+
+        // Cursor
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(playWidth, 0);
+        ctx.lineTo(playWidth, height);
+        ctx.stroke();
+
+        animationFrame = requestAnimationFrame(draw);
+    }
+    draw();
+}
+
+// Toggle playback speed
+function toggleVoiceSpeed(btn) {
+    const speeds = ['1x', '1.25x', '1.5x', '2x'];
+    const currentSpeed = parseFloat(btn.textContent);
+    const currentIndex = speeds.indexOf(btn.textContent);
+    const nextIndex = (currentIndex + 1) % speeds.length;
+    const nextSpeed = speeds[nextIndex];
+
+    btn.textContent = nextSpeed;
+    console.log('Playback speed changed to:', nextSpeed);
+
+    if (currentVoiceWaveform) {
+        currentVoiceWaveform.setPlaybackRate(parseFloat(nextSpeed));
+    }
+}
+
+// Initialize existing voice messages on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    // Voice messages will be initialized when clicked
+    console.log('Voice message player initialized');
+});
 </script>
 @endsection

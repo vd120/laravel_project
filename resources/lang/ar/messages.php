@@ -6,9 +6,11 @@ return [
     'welcome_back' => 'أهلاً بيك تاني',
     'loading' => 'جاري التحميل...',
     'error' => 'غلط',
+    'error_occurred' => 'حدث خطأ',
     'success' => 'نجاح',
     'cancel' => 'إلغاء',
     'confirm' => 'تأكيد',
+    'are_you_sure' => 'هل أنت متأكد؟',
     'delete' => 'حذف',
     'save' => 'حفظ',
     'edit' => 'تعديل',
@@ -28,9 +30,11 @@ return [
     'more' => 'المزيد',
     'less' => 'أقل',
     'view_all' => 'عرض الكل',
+    'preview' => 'معاينة',
     'show_more' => 'عرض المزيد',
     'show_less' => 'عرض أقل',
     'select_language' => 'اختار اللغة',
+    'date_format' => 'j F Y',
 
     // Autocomplete (Hashtags & Mentions)
     'loading' => 'جاري التحميل...',

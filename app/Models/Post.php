@@ -10,7 +10,21 @@ class Post extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['user_id', 'content', 'slug', 'media_type', 'media_path', 'media_thumbnail', 'is_private'];
+    protected $fillable = [
+        'user_id',
+        'content',
+        'slug',
+        'media_type',
+        'media_path',
+        'media_thumbnail',
+        'is_private',
+        'pinned_at',
+    ];
+
+    protected $casts = [
+        'pinned_at' => 'datetime',
+        'is_private' => 'boolean',
+    ];
 
     protected static function boot()
     {
@@ -93,5 +107,53 @@ class Post extends Model
     public function hashtags()
     {
         return $this->belongsToMany(Hashtag::class)->withTimestamps();
+    }
+
+    /**
+     * Get the life event associated with this post
+     */
+    public function event()
+    {
+        return $this->hasOne(Event::class);
+    }
+
+    /**
+     * Check if the post is pinned
+     */
+    public function isPinned(): bool
+    {
+        return $this->pinned_at !== null;
+    }
+
+    /**
+     * Pin the post
+     */
+    public function pin(): void
+    {
+        $this->update(['pinned_at' => now()]);
+    }
+
+    /**
+     * Unpin the post
+     */
+    public function unpin(): void
+    {
+        $this->update(['pinned_at' => null]);
+    }
+
+    /**
+     * Scope for pinned posts
+     */
+    public function scopePinned($query)
+    {
+        return $query->whereNotNull('pinned_at');
+    }
+
+    /**
+     * Scope for non-pinned posts
+     */
+    public function scopeNotPinned($query)
+    {
+        return $query->whereNull('pinned_at');
     }
 }

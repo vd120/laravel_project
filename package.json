@@ -41,6 +41,7 @@
         "vue-tsc": "^2.0.24"
     },
     "dependencies": {
-        "motion-v": "^2.0.0"
+        "motion-v": "^2.0.0",
+        "wavesurfer.js": "^7.12.5"
     }
 }

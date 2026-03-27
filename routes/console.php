@@ -15,3 +15,6 @@ Schedule::command('stories:cleanup')->hourly();
 Schedule::command('users:remind-inactive --days=3')->dailyAt('10:00');
 Schedule::command('users:remind-inactive --days=7')->weeklyOn(1, '10:00');
 Schedule::command('users:remind-inactive --days=30 --subject="We miss you! Come back"')->monthlyOn(1, '10:00');
+
+// Schedule birthday and anniversary reminders - runs daily at 9 AM
+Schedule::command('events:send-birthday-reminders')->dailyAt('09:00');

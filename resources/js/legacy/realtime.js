@@ -4,8 +4,8 @@
     'use strict';
 
     window.RealTimeConfig = {
-        chatListInterval: 2000,
-        chatRoomInterval: 2000,
+        chatListInterval: 1000,
+        chatRoomInterval: 1000,
         accountStatusInterval: 10000,
         notificationsInterval: 2000,
         onlineStatusInterval: 10000,
@@ -26,7 +26,14 @@
         onlineUserIds: new Set(),
         deletedMessageIds: new Set(),
         pendingMessageIds: new Set(), // Track messages that were sent but not yet confirmed
-        lastPollTime: 0
+        lastPollTime: 0,
+        // Request tracking to prevent race conditions
+        isChatListRefreshing: false,
+        isChatRoomRefreshing: false,
+        isCheckingOnlineStatus: false,
+        lastChatListRequest: 0,
+        lastChatRoomRequest: 0,
+        minRequestInterval: 800 // Minimum ms between requests to prevent overload
     };
 
     function init() {
@@ -131,7 +138,7 @@
             if (state.isVisible && window.RealTimeConfig.active) {
                 refreshChatList();
             }
-        }, 1500); // Poll every 1.5 seconds for faster updates
+        }, window.RealTimeConfig.chatListInterval);
 
         startChatListOnlineStatusPolling();
     }
@@ -145,9 +152,25 @@
     }
 
     function refreshChatList() {
+        // Prevent overlapping requests (rate limiting)
+        if (state.isChatListRefreshing) {
+            console.log('RealTime: Chat list refresh already in progress, skipping');
+            return;
+        }
+        
+        // Enforce minimum request interval
+        const now = Date.now();
+        if (now - state.lastChatListRequest < state.minRequestInterval) {
+            console.log('RealTime: Chat list request too soon, skipping');
+            return;
+        }
+        
         const url = '/chat/conversations?t=' + Date.now();
         console.log('RealTime: Refreshing chat list:', url);
         
+        state.isChatListRefreshing = true;
+        state.lastChatListRequest = now;
+
         fetch(url, {
             credentials: 'include',
             cache: 'no-cache', // Prevent browser caching
@@ -172,7 +195,10 @@
                 console.log('RealTime: Chat list response not successful');
             }
         })
-        .catch(err => console.error('RealTime: Chat list refresh error:', err));
+        .catch(err => console.error('RealTime: Chat list refresh error:', err))
+        .finally(() => {
+            state.isChatListRefreshing = false;
+        });
     }
 
     function updateChatListUI(conversations) {
@@ -414,7 +440,7 @@
             if (state.isVisible && window.RealTimeConfig.active && state.conversationSlug) {
                 checkForNewMessages();
             }
-        }, 500); // Poll every 500ms for faster message delivery
+        }, window.RealTimeConfig.chatRoomInterval);
         startChatUserStatusPolling();
         startReadReceiptPolling();
         startMessageStatusPolling();
@@ -590,13 +616,27 @@
             console.log('RealTime: No conversation slug, skipping message check');
             return;
         }
-
-        // Prevent polling too frequently (minimum 300ms between polls)
+        
+        // Prevent overlapping requests (rate limiting)
+        if (state.isChatRoomRefreshing) {
+            console.log('RealTime: Chat room refresh already in progress, skipping');
+            return;
+        }
+        
+        // Enforce minimum request interval
         const now = Date.now();
+        if (now - state.lastChatRoomRequest < state.minRequestInterval) {
+            console.log('RealTime: Chat room request too soon, skipping');
+            return;
+        }
+        
+        // Prevent polling too frequently (minimum 300ms between polls)
         if (now - state.lastPollTime < 300) {
             return;
         }
         state.lastPollTime = now;
+        state.lastChatRoomRequest = now;
+        state.isChatRoomRefreshing = true;
 
         // Always fetch recent messages to catch any missed ones
         let url = '/chat/' + state.conversationSlug + '/messages?t=' + Date.now();
@@ -695,6 +735,8 @@
                             created_at: message.created_at,
                             type: message.type,
                             media_path: message.media_path,
+                            duration: message.duration || 0,
+                            waveform_peaks: message.waveform_peaks || [],
                             sender_id: message.sender_id,
                             sender: {
                                 username: message.sender?.username || message.sender?.name,
@@ -760,7 +802,10 @@
                 myLastMessageId = domMaxId;
             }
         })
-        .catch(err => console.error('RealTime: Polling error:', err));
+        .catch(err => console.error('RealTime: Polling error:', err))
+        .finally(() => {
+            state.isChatRoomRefreshing = false;
+        });
     }
 
     function startReadReceiptPolling() {

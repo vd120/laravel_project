@@ -297,14 +297,17 @@ class ChatController extends Controller
         $request->validate([
             'content' => 'nullable|string|max:1000',
             'media' => 'nullable|array',
-            'media.*' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,mp4,mov,avi,webm|max:51200', // 50MB max
+            'media.*' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,mp4,mov,avi,webm,ogg,wav,weba|max:51200', // 50MB max
+            'voice_message' => 'nullable|file|mimes:ogg,wav,weba,webm|max:10240', // 10MB max for voice
+            'duration' => 'nullable|integer|min:1|max:300', // Max 5 minutes
+            'waveform_peaks' => 'nullable|string', // JSON string of array
         ]);
 
         // Check if either content or media is provided
-        if (!$request->filled('content') && !$request->hasFile('media')) {
+        if (!$request->filled('content') && !$request->hasFile('media') && !$request->hasFile('voice_message')) {
             return response()->json([
                 'success' => false,
-                'error' => 'Message must contain text or media.'
+                'error' => 'Message must contain text, media, or voice message.'
             ], 422);
         }
 
@@ -354,6 +357,18 @@ class ChatController extends Controller
             $messageData['type'] = $mediaItems[0]['type'] ?? 'text';
             // Store media items as JSON
             $messageData['media_path'] = json_encode($mediaItems);
+        }
+
+        // Handle voice message upload
+        if ($request->hasFile('voice_message')) {
+            $voiceFile = $request->file('voice_message');
+            $path = $voiceFile->store('chat/voice', 'public');
+            
+            $messageData['type'] = 'voice';
+            $messageData['media_path'] = $path;
+            $messageData['duration'] = $request->duration ?? null;
+            $messageData['waveform_peaks'] = $request->waveform_peaks ?? null;
+            $messageData['content'] = ''; // Voice messages don't have text content
         }
 
         $message = Message::create($messageData);

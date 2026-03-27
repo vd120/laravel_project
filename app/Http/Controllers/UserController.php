@@ -19,32 +19,59 @@ class UserController extends Controller
     public function show(User $user)
     {
         $user->load(['profile']);
-        
+
         $postsCount = $user->posts()->count();
         $followersCount = $user->followers()->count();
         $followingCount = $user->follows()->count();
         $blockedCount = 0;
+        $pinnedCount = 0;
 
         $isFollowing = false;
         $isBlocking = false;
         $isBlockedBy = false;
+        $isOwner = false;
 
         if (auth()->check()) {
             $isFollowing = auth()->user()->isFollowing($user);
             $isBlocking = auth()->user()->isBlocking($user);
             $isBlockedBy = $user->isBlocking(auth()->user());
+            $isOwner = auth()->id() === $user->id;
 
-            if (auth()->id() === $user->id) {
+            if ($isOwner) {
                 $blockedCount = $user->blockedUsers()->count();
             }
         }
 
+        // Get pinned posts (ordered by pinned_at for custom ordering)
+        $pinnedPosts = $user->posts()
+            ->pinned()
+            ->with(['media', 'comments.replies.user', 'comments.likes', 'likes', 'user'])
+            ->orderBy('pinned_at', 'asc')
+            ->get();
+
+        $pinnedCount = $pinnedPosts->count();
+
+        // Get non-pinned posts
         $posts = $user->posts()
+            ->notPinned()
             ->with(['media', 'comments.replies.user', 'comments.likes', 'likes'])
             ->latest()
             ->paginate(10);
 
-        return view('users.show', compact('user', 'posts', 'postsCount', 'followersCount', 'followingCount', 'blockedCount', 'isFollowing', 'isBlocking', 'isBlockedBy'));
+        return view('users.show', compact(
+            'user',
+            'posts',
+            'pinnedPosts',
+            'postsCount',
+            'pinnedCount',
+            'followersCount',
+            'followingCount',
+            'blockedCount',
+            'isFollowing',
+            'isBlocking',
+            'isBlockedBy',
+            'isOwner'
+        ));
     }
 
     public function follow(User $user)
@@ -897,5 +924,111 @@ class UserController extends Controller
         return response($svgData, 200)
             ->header('Content-Type', 'image/svg+xml')
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    /**
+     * Pin a post to the user's profile (max 3 pins)
+     */
+    public function pinPost(Request $request, User $user, $postId)
+    {
+        $post = \App\Models\Post::findOrFail($postId);
+
+        // Only the post owner can pin
+        if ($post->user_id !== $user->id || $user->id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.unauthorized')
+            ], 403);
+        }
+
+        // Check if user has already pinned 3 posts
+        $pinnedCount = $user->posts()->pinned()->count();
+        if ($pinnedCount >= 3 && !$post->isPinned()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('posts.max_pinned_reached', ['max' => 3])
+            ], 422);
+        }
+
+        $post->pin();
+
+        return response()->json([
+            'success' => true,
+            'message' => __('posts.post_pinned'),
+            'post' => [
+                'id' => $post->id,
+                'pinned_at' => $post->pinned_at->toISOString()
+            ]
+        ]);
+    }
+
+    /**
+     * Unpin a post from the user's profile
+     */
+    public function unpinPost(Request $request, User $user, $postId)
+    {
+        $post = \App\Models\Post::findOrFail($postId);
+
+        // Only the post owner can unpin
+        if ($post->user_id !== $user->id || $user->id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.unauthorized')
+            ], 403);
+        }
+
+        $post->unpin();
+
+        return response()->json([
+            'success' => true,
+            'message' => __('posts.post_unpinned'),
+            'post' => [
+                'id' => $post->id,
+                'pinned_at' => null
+            ]
+        ]);
+    }
+
+    /**
+     * Reorder pinned posts
+     */
+    public function reorderPinnedPosts(Request $request, User $user)
+    {
+        // Only the profile owner can reorder
+        if ($user->id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.unauthorized')
+            ], 403);
+        }
+
+        $request->validate([
+            'post_ids' => 'required|array',
+            'post_ids.*' => 'exists:posts,id'
+        ]);
+
+        $postIds = $request->input('post_ids');
+
+        // Verify all posts belong to the user
+        $ownedPosts = $user->posts()->whereIn('id', $postIds)->pinned()->pluck('id');
+        if ($ownedPosts->count() !== count($postIds)) {
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.unauthorized')
+            ], 403);
+        }
+
+        // Reorder by updating pinned_at timestamp (earlier = higher priority)
+        $baseTime = now()->subHours(count($postIds));
+        foreach ($postIds as $index => $postId) {
+            $pinTime = clone $baseTime;
+            $pinTime->addMinutes($index);
+            \App\Models\Post::where('id', $postId)->update(['pinned_at' => $pinTime]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => __('posts.posts_reordered')
+        ]);
     }
 }

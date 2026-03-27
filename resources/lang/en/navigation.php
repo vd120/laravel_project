@@ -30,6 +30,8 @@ return [
     'groups' => 'Groups',
     'ai_assistant' => 'AI Assistant',
     'explore' => 'Explore Users',
+    'life_events' => 'Life Events',
+    'memory_book' => 'Memory Book',
 
     // Admin
     'admin_panel' => 'Admin Panel',

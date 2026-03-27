@@ -34,6 +34,7 @@ return [
     'you_sent_sticker' => 'You sent a sticker',
     'you_replied_to_story' => 'You replied to story',
     'you_sent_group_invite' => 'You sent a group invite',
+    'you_sent_voice_message' => 'You sent a voice message',
 
     // Message types - sent by others
     'sent_photo' => 'Sent a photo',
@@ -45,6 +46,7 @@ return [
     'replied_to_story' => 'Replied to story',
     'replied_to_your_story' => 'Replied to your story',
     'sent_group_invite' => 'Sent a group invite',
+    'sent_voice_message' => 'Sent a voice message',
 
     // Message placeholders
     'start_a_conversation' => '👋 Start a conversation',
@@ -207,4 +209,14 @@ return [
     'reply_comments_prompt' => 'Login to reply to comments!',
     'delete_post' => 'Delete post',
     'clear_all' => 'Clear All',
+    
+    // Voice messages
+    'record_voice' => 'Record voice message',
+    'playback_speed' => 'Playback speed',
+    'microphone_access_denied' => 'Microphone access denied. Please enable microphone permissions.',
+    'error_sending_voice_message' => 'Error sending voice message. Please try again.',
+    'start_recording' => 'Start recording',
+    'stop_recording' => 'Stop recording',
+    'cancel' => 'Cancel',
+    'send' => 'Send',
 ];

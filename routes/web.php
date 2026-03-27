@@ -290,6 +290,11 @@ Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(func
     // QR Code Profile Sharing routes
     Route::get('/users/{user}/qr-code', [UserController::class, 'generateQrCode'])->name('users.qr-code');
     Route::get('/users/{user}/qr-code/download', [UserController::class, 'downloadQrCode'])->name('users.qr-code.download');
+
+    // Pinned Posts routes
+    Route::post('/users/{user}/posts/{post}/pin', [UserController::class, 'pinPost'])->name('users.posts.pin')->where('post', '[0-9]+');
+    Route::post('/users/{user}/posts/{post}/unpin', [UserController::class, 'unpinPost'])->name('users.posts.unpin')->where('post', '[0-9]+');
+    Route::post('/users/{user}/pinned-posts/reorder', [UserController::class, 'reorderPinnedPosts'])->name('users.pinned-posts.reorder');
     
     // Set password for Google OAuth users
     Route::get('/set-password', [App\Http\Controllers\Auth\PasswordController::class, 'showSetPassword'])->name('password.set-password');
@@ -399,5 +404,19 @@ Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(func
         Route::delete('/activity/log/{id}', [App\Http\Controllers\ActivityController::class, 'deleteLog'])->name('activity.log.delete');
         Route::delete('/activity/sessions/all', [App\Http\Controllers\ActivityController::class, 'terminateAllSessions'])->name('activity.terminate-all-sessions');
         Route::delete('/activity/sessions/{id}', [App\Http\Controllers\ActivityController::class, 'terminateSession'])->name('activity.terminate-session');
+
+        // Life Events routes
+        Route::get('/life-events', [App\Http\Controllers\EventController::class, 'index'])->name('events.index');
+        Route::get('/life-events/create', [App\Http\Controllers\EventController::class, 'create'])->name('events.create');
+        Route::get('/life-events/upcoming', [App\Http\Controllers\EventController::class, 'upcoming'])->name('events.upcoming');
+        Route::post('/life-events', [App\Http\Controllers\EventController::class, 'store'])->name('events.store');
+        Route::get('/life-events/{event}', [App\Http\Controllers\EventController::class, 'show'])->name('events.show');
+        Route::get('/life-events/{event}/edit', [App\Http\Controllers\EventController::class, 'edit'])->name('events.edit');
+        Route::put('/life-events/{event}', [App\Http\Controllers\EventController::class, 'update'])->name('events.update');
+        Route::delete('/life-events/{event}', [App\Http\Controllers\EventController::class, 'destroy'])->name('events.destroy');
+        Route::post('/life-events/{event}/react', [App\Http\Controllers\EventController::class, 'react'])->name('events.react');
+        Route::delete('/life-events/{event}/react', [App\Http\Controllers\EventController::class, 'removeReaction'])->name('events.remove-reaction');
+        Route::get('/memory-book/{user}', [App\Http\Controllers\EventController::class, 'memoryBook'])->name('events.memory-book');
+        Route::get('/life-events/upcoming', [App\Http\Controllers\EventController::class, 'upcoming'])->name('events.upcoming');
     });
 });

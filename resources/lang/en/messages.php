@@ -6,9 +6,11 @@ return [
     'welcome_back' => 'Welcome Back',
     'loading' => 'Loading...',
     'error' => 'Error',
+    'error_occurred' => 'An error occurred',
     'success' => 'Success',
     'cancel' => 'Cancel',
     'confirm' => 'Confirm',
+    'are_you_sure' => 'Are you sure?',
     'delete' => 'Delete',
     'save' => 'Save',
     'edit' => 'Edit',
@@ -28,9 +30,11 @@ return [
     'more' => 'More',
     'less' => 'Less',
     'view_all' => 'View All',
+    'preview' => 'Preview',
     'show_more' => 'Show More',
     'show_less' => 'Show Less',
     'select_language' => 'Select Language',
+    'date_format' => 'F j, Y',
 
     // Autocomplete (Hashtags & Mentions)
     'loading' => 'Loading...',

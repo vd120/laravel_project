@@ -83,6 +83,9 @@
                 <button type="button" class="privacy-btn" id="privacy-btn" onclick="togglePrivacy()">
                     <i class="fas fa-globe" id="privacy-icon"></i> <span id="privacy-text">{{ __('messages.public') }}</span>
                 </button>
+                <button type="button" class="post-action-btn" onclick="openLifeEventModal()">
+                    <i class="fas fa-star"></i> <span>{{ __('navigation.life_events') }}</span>
+                </button>
             </div>
             <button type="button" class="btn btn-primary" onclick="submitPost()">
                 {{ __('messages.post') }}
@@ -1369,5 +1372,485 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Life Event Modal Functions - Global scope for onclick handlers
+function openLifeEventModal() {
+    document.getElementById('lifeEventModal').style.display = 'flex';
+    document.getElementById('dropdownOverlay').style.display = 'block';
+}
+
+function closeLifeEventModal() {
+    document.getElementById('lifeEventModal').style.display = 'none';
+    document.getElementById('dropdownOverlay').style.display = 'none';
+    resetLifeEventForm();
+}
+
+function resetLifeEventForm() {
+    document.getElementById('lifeEventForm').reset();
+    document.getElementById('event-preview').style.display = 'none';
+}
+
+function selectEventType(type, icon, label) {
+    document.querySelectorAll('.event-type-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    const selected = document.querySelector(`.event-type-option[data-type="${type}"]`);
+    if (selected) {
+        selected.classList.add('selected');
+    }
+    document.getElementById('selected-event-type').value = type;
+    const titleInput = document.getElementById('event-title');
+    const myText = titleInput.getAttribute('data-my-text') || 'My';
+    titleInput.placeholder = `${myText} ${label}...`;
+}
+
+function previewLifeEvent() {
+    const eventType = document.getElementById('selected-event-type').value;
+    const title = document.getElementById('event-title').value;
+    const description = document.getElementById('event-description').value;
+    const eventDate = document.getElementById('event-date').value;
+    const isPrivate = document.getElementById('event-is-private').checked;
+
+    if (!eventType || !title) {
+        const pleaseFillText = document.getElementById('lifeEventModal').getAttribute('data-please-fill') || 'Please fill in all required fields';
+        alert(pleaseFillText);
+        return;
+    }
+
+    // Get icon from selected option
+    const selectedOption = document.querySelector(`.event-type-option[data-type="${eventType}"] .event-type-emoji`);
+    const icon = selectedOption ? selectedOption.textContent : '🎉';
+    
+    const dateObj = new Date(eventDate);
+    const locale = document.documentElement.getAttribute('lang') === 'ar' ? 'ar-EG' : 'en-US';
+    const formattedDate = dateObj.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
+
+    document.getElementById('preview-icon').textContent = icon;
+    document.getElementById('preview-title').textContent = title;
+    document.getElementById('preview-description').textContent = description || '';
+    document.getElementById('preview-date').textContent = formattedDate;
+    document.getElementById('preview-private').style.display = isPrivate ? 'inline' : 'none';
+    document.getElementById('event-preview').style.display = 'block';
+}
+
+function submitLifeEvent() {
+    const eventType = document.getElementById('selected-event-type').value;
+    const title = document.getElementById('event-title').value;
+    const description = document.getElementById('event-description').value;
+    const eventDate = document.getElementById('event-date').value;
+    const isAnniversary = document.getElementById('event-is-anniversary').checked;
+    const year = document.getElementById('event-year').value;
+    const isPrivate = document.getElementById('event-is-private').checked;
+
+    if (!eventType || !title || !eventDate) {
+        const pleaseFillText = document.getElementById('lifeEventModal').getAttribute('data-please-fill') || 'Please fill in all required fields';
+        alert(pleaseFillText);
+        return;
+    }
+
+    const modal = document.getElementById('lifeEventModal');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const username = modal.getAttribute('data-username') || '';
+
+    if (!csrfToken) {
+        alert('CSRF token not found. Please refresh the page.');
+        return;
+    }
+
+    console.log('Submitting event:', { event_type: eventType, title: title, event_date: eventDate });
+
+    fetch('/life-events', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            event_type: eventType,
+            title: title,
+            description: description || null,
+            event_date: eventDate,
+            is_anniversary: isAnniversary,
+            year: year || null,
+            is_private: isPrivate
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success || data.message) {
+            const successText = modal.getAttribute('data-success-text') || 'Life event created successfully! 🎉';
+            showToast(successText, 'success');
+            closeLifeEventModal();
+            setTimeout(() => {
+                window.location.href = '/memory-book/' + username;
+            }, 1000);
+        } else {
+            console.error('Error from server:', data);
+            const errorText = data.message || data.error || 'An error occurred';
+            alert('Error: ' + errorText);
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        alert('Network error: ' + error.message);
+    });
+}
 </script>
+
+{{-- Life Event Modal --}}
+<div id="lifeEventModal" class="life-event-modal" style="display: none;" 
+     data-username="{{ auth()->user()->username }}"
+     data-please-fill="{{ __('events.please_fill_required') }}"
+     data-success-text="{{ __('events.event_created_success') }}"
+     data-error-text="{{ __('messages.error_occurred') }}">
+    <div class="life-event-modal-content">
+        <div class="life-event-modal-header">
+            <h2><i class="fas fa-star"></i> {{ __('events.add_event') }}</h2>
+            <button type="button" class="modal-close" onclick="closeLifeEventModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="lifeEventForm">
+            <div class="life-event-body">
+                <div class="event-types-section">
+                    <p class="event-types-title">{{ __('events.select_event_type') }}</p>
+                    <div class="event-type-options">
+                        <div class="event-type-option" data-type="new_job" onclick="selectEventType('new_job', '💼', '{{ __('events.types.new_job') }}')">
+                            <span class="event-type-emoji">💼</span>
+                            <span class="event-type-label">{{ __('events.types.new_job') }}</span>
+                        </div>
+                        <div class="event-type-option" data-type="graduation" onclick="selectEventType('graduation', '🎓', '{{ __('events.types.graduation') }}')">
+                            <span class="event-type-emoji">🎓</span>
+                            <span class="event-type-label">{{ __('events.types.graduation') }}</span>
+                        </div>
+                        <div class="event-type-option" data-type="engagement" onclick="selectEventType('engagement', '💍', '{{ __('events.types.engagement') }}')">
+                            <span class="event-type-emoji">💍</span>
+                            <span class="event-type-label">{{ __('events.types.engagement') }}</span>
+                        </div>
+                        <div class="event-type-option" data-type="baby" onclick="selectEventType('baby', '👶', '{{ __('events.types.baby') }}')">
+                            <span class="event-type-emoji">👶</span>
+                            <span class="event-type-label">{{ __('events.types.baby') }}</span>
+                        </div>
+                        <div class="event-type-option" data-type="moved" onclick="selectEventType('moved', '🏠', '{{ __('events.types.moved') }}')">
+                            <span class="event-type-emoji">🏠</span>
+                            <span class="event-type-label">{{ __('events.types.moved') }}</span>
+                        </div>
+                        <div class="event-type-option" data-type="birthday" onclick="selectEventType('birthday', '🎂', '{{ __('events.types.birthday') }}')">
+                            <span class="event-type-emoji">🎂</span>
+                            <span class="event-type-label">{{ __('events.types.birthday') }}</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selected-event-type" value="">
+                </div>
+
+                <div class="event-form-fields">
+                    <div class="form-group">
+                        <label for="event-title">{{ __('events.title') }} *</label>
+                        <input type="text" id="event-title" class="form-control" 
+                               placeholder="{{ __('events.title_placeholder') }}" 
+                               data-my-text="{{ __('events.my') }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="event-description">{{ __('events.description') }}</label>
+                        <textarea id="event-description" class="form-control" rows="3" 
+                                  placeholder="{{ __('events.description_placeholder') }}"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-date">{{ __('events.event_date') }} *</label>
+                            <input type="date" id="event-date" class="form-control" value="{{ date('Y-m-d') }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="event-year">{{ __('events.year') }}</label>
+                            <input type="number" id="event-year" class="form-control" 
+                                   min="1900" max="{{ date('Y') }}" placeholder="{{ date('Y') }}">
+                        </div>
+                    </div>
+
+                    <div class="form-checkboxes">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="event-is-anniversary">
+                            <span>{{ __('events.is_anniversary') }}</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="event-is-private">
+                            <span>{{ __('events.is_private') }}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="event-preview" class="event-preview" style="display: none;">
+                    <h4>{{ __('messages.preview') }}</h4>
+                    <div class="event-preview-card">
+                        <div class="preview-header">
+                            <span id="preview-icon" class="preview-icon">🎉</span>
+                            <span id="preview-title" class="preview-title"></span>
+                        </div>
+                        <p id="preview-description" class="preview-description"></p>
+                        <div class="preview-meta">
+                            <span id="preview-date" class="preview-date"></span>
+                            <span id="preview-private" class="preview-private" style="display: none;">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="life-event-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeLifeEventModal()">
+                    {{ __('messages.cancel') }}
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="previewLifeEvent()">
+                    <i class="fas fa-eye"></i> {{ __('messages.preview') }}
+                </button>
+                <button type="button" class="btn btn-primary" onclick="submitLifeEvent()">
+                    <i class="fas fa-save"></i> {{ __('messages.save') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.life-event-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 1rem;
+}
+
+.life-event-modal-content {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-hover);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.life-event-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.life-event-modal-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    color: var(--text);
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: var(--bg);
+    color: var(--text);
+}
+
+.life-event-body {
+    padding: 1.5rem;
+}
+
+.event-types-title {
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 1rem;
+}
+
+.event-type-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.event-type-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.event-type-option:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.event-type-option.selected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.event-type-emoji {
+    font-size: 2rem;
+}
+
+.event-type-label {
+    font-size: 0.85rem;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 1rem;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.event-preview {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: 12px;
+}
+
+.event-preview h4 {
+    color: var(--text);
+    margin-bottom: 0.75rem;
+}
+
+.event-preview-card {
+    padding: 1rem;
+    background: var(--card-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.preview-icon {
+    font-size: 1.5rem;
+}
+
+.preview-title {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 1.1rem;
+}
+
+.preview-description {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.preview-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.life-event-footer {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border);
+    justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+    .event-type-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .life-event-footer {
+        flex-wrap: wrap;
+    }
+}
+</style>
 @endsection

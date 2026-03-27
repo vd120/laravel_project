@@ -90,4 +90,12 @@ return [
     'report_accepted_message' => 'Your report was accepted and action was taken.',
     'report_rejected' => 'Report Not Accepted',
     'report_rejected_message' => 'Your report was reviewed but not accepted.',
+
+    // Life Events Notifications
+    'birthday_today' => '🎂 It\'s :user\'s birthday today!',
+    'birthday_tomorrow' => '🎂 :user\'s birthday is tomorrow!',
+    'birthday_reminder' => 'Birthday Reminder: :user\'s birthday is coming up!',
+    'anniversary_today' => '🎉 :user is celebrating :years years since :event!',
+    'anniversary_reminder' => ':user\'s :years year anniversary of :event is coming up!',
+    'event_reaction' => ':user reacted to your life event with :reaction',
 ];

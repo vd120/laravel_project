@@ -127,6 +127,7 @@ class NotificationController extends Controller
             'image' => 'sent an image',
             'video' => 'sent a video',
             'audio' => 'sent an audio',
+            'voice' => 'sent a voice message',
             'document' => 'sent a document',
             'gif' => 'sent a GIF',
             'sticker' => 'sent a sticker',

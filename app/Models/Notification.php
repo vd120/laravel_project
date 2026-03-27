@@ -101,6 +101,9 @@ class Notification extends Model
             'mention' => $this->getMentionNotificationMessage(),
             'group_invite' => $this->getGroupInviteNotificationMessage(),
             'story_reaction' => $this->getStoryReactionNotificationMessage(),
+            'event_reaction' => $this->getEventReactionNotificationMessage(),
+            'birthday', 'birthday_reminder' => $this->getBirthdayNotificationMessage(),
+            'anniversary' => $this->getAnniversaryNotificationMessage(),
             'report_accepted' => $this->getReportAcceptedNotificationMessage(),
             'report_rejected' => $this->getReportRejectedNotificationMessage(),
             default => 'You have a new notification'
@@ -225,5 +228,40 @@ class Notification extends Model
         $title = $this->data['title'] ?? __('messages.report_rejected');
         $message = $this->data['message'] ?? __('messages.your_report_was_reviewed_but_not_accepted');
         return "{$title}: {$message}";
+    }
+
+    /**
+     * Get event reaction notification text
+     */
+    private function getEventReactionNotificationMessage(): string
+    {
+        $reactor = $this->data['reactor_name'] ?? $this->data['reactor_username'] ?? __('chat.user');
+        $reaction = $this->data['reaction_type'] ?? '🎉';
+        return __('notifications.event_reaction', ['user' => $reactor, 'reaction' => $reaction]);
+    }
+
+    /**
+     * Get birthday notification text
+     */
+    private function getBirthdayNotificationMessage(): string
+    {
+        $user = $this->data['birthday_user_name'] ?? __('chat.user');
+        $isToday = $this->data['is_today'] ?? false;
+
+        if ($isToday) {
+            return __('notifications.birthday_today', ['user' => $user]);
+        }
+        return __('notifications.birthday_tomorrow', ['user' => $user]);
+    }
+
+    /**
+     * Get anniversary notification text
+     */
+    private function getAnniversaryNotificationMessage(): string
+    {
+        $user = $this->data['user_name'] ?? __('chat.user');
+        $event = $this->data['event_title'] ?? __('events.life_event');
+        $years = $this->data['years'] ?? 1;
+        return __('notifications.anniversary_today', ['user' => $user, 'years' => $years, 'event' => $event]);
     }
 }

@@ -1,4 +1,15 @@
-<div class="post-card" id="post-{{ $post->id }}" data-post-id="{{ $post->id }}">
+<div class="post-card {{ isset($isPinned) && $isPinned ? 'pinned-post' : '' }}" id="post-{{ $post->id }}" data-post-id="{{ $post->id }}">
+    @if(isset($isPinned) && $isPinned)
+        <div class="pinned-badge" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(244, 63, 94, 0.08); border-bottom: 1px solid var(--border); font-size: 12px; color: var(--accent); font-weight: 600;">
+            <i class="fas fa-thumbtack" style="transform: rotate(45deg);"></i>
+            <span>{{ __('users.pinned') }}</span>
+            @if(auth()->check() && auth()->id() === $post->user_id)
+                <button type="button" class="unpin-btn" onclick="unpinPost({{ $post->id }})" style="margin-left: auto; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; font-size: 12px;" title="{{ __('users.unpin') }}">
+                    <i class="fas fa-times"></i>
+                </button>
+            @endif
+        </div>
+    @endif
     <div class="post-header">
         <div class="post-author">
             <img src="{{ $post->user->avatar_url }}" alt="{{ $post->user->username }}" class="author-avatar">
@@ -25,13 +36,22 @@
             </button>
             <div class="post-menu-dropdown" id="post-menu-{{ $post->id }}" style="display: none;">
                 @if($post->user_id === auth()->id())
-                <button type="button" class="menu-item" onclick="deletePost('{{ $post->slug }}', this)">
-                    <i class="fas fa-trash"></i> {{ __('messages.delete_post') }}
-                </button>
+                    @if(!$post->isPinned())
+                        <button type="button" class="menu-item" onclick="pinPost({{ $post->id }})">
+                            <i class="fas fa-thumbtack"></i> {{ __('users.pin_post') }}
+                        </button>
+                    @else
+                        <button type="button" class="menu-item" onclick="unpinPost({{ $post->id }})">
+                            <i class="fas fa-thumbtack" style="transform: rotate(45deg);"></i> {{ __('users.unpin_post') }}
+                        </button>
+                    @endif
+                    <button type="button" class="menu-item" onclick="deletePost('{{ $post->slug }}', this)">
+                        <i class="fas fa-trash"></i> {{ __('messages.delete_post') }}
+                    </button>
                 @else
-                <button type="button" class="menu-item" onclick="openReportModal('{{ $post->slug }}', '{{ $post->id }}')">
-                    <i class="fas fa-flag"></i> {{ __('messages.report_post') }}
-                </button>
+                    <button type="button" class="menu-item" onclick="openReportModal('{{ $post->slug }}', '{{ $post->id }}')">
+                        <i class="fas fa-flag"></i> {{ __('messages.report_post') }}
+                    </button>
                 @endif
             </div>
             @else
