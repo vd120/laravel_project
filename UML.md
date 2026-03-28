@@ -432,272 +432,6 @@ erDiagram
 
     EVENTS ||--o{ EVENT_REACTIONS : reacted_by
     EVENT_REACTIONS }|--|| USERS : created_by
-
-    USERS {
-        bigint id PK
-        varchar name
-        varchar username UK
-        varchar email UK
-        timestamp email_verified_at
-        varchar language
-        varchar password
-        boolean is_admin
-        boolean is_suspended
-        varchar verification_code
-        timestamp verification_code_expires_at
-        timestamp last_active
-        boolean is_online
-        timestamp username_changed_at
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    PROFILES {
-        bigint id PK
-        bigint user_id FK UK
-        varchar avatar
-        varchar cover_image
-        text bio
-        varchar website
-        varchar location
-        boolean is_private
-        json social_links
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    POSTS {
-        bigint id PK
-        bigint user_id FK
-        text content
-        varchar slug UK
-        boolean is_private
-        timestamp pinned_at
-        timestamp deleted_at
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    POST_MEDIA {
-        bigint id PK
-        bigint post_id FK
-        varchar media_type
-        varchar media_path
-        varchar media_thumbnail
-        int sort_order
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    COMMENTS {
-        bigint id PK
-        bigint user_id FK
-        bigint post_id FK
-        bigint parent_id FK
-        text content
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    LIKES {
-        bigint id PK
-        bigint user_id FK
-        bigint post_id FK
-        timestamp created_at
-    }
-
-    COMMENT_LIKES {
-        bigint id PK
-        bigint user_id FK
-        bigint comment_id FK
-        timestamp created_at
-    }
-
-    FOLLOWS {
-        bigint id PK
-        bigint follower_id FK
-        bigint followed_id FK
-        timestamp created_at
-    }
-
-    BLOCKS {
-        bigint id PK
-        bigint blocker_id FK
-        bigint blocked_id FK
-        timestamp created_at
-    }
-
-    SAVED_POSTS {
-        bigint id PK
-        bigint user_id FK
-        bigint post_id FK
-        timestamp created_at
-    }
-
-    STORIES {
-        bigint id PK
-        bigint user_id FK
-        varchar slug UK
-        varchar media_type
-        varchar media_path
-        text content
-        json metadata
-        timestamp expires_at
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    STORY_VIEWS {
-        bigint id PK
-        bigint story_id FK
-        bigint user_id FK
-        timestamp created_at
-    }
-
-    STORY_REACTIONS {
-        bigint id PK
-        bigint story_id FK
-        bigint user_id FK
-        varchar reaction_type
-        timestamp created_at
-    }
-
-    CONVERSATIONS {
-        bigint id PK
-        bigint user1_id FK
-        bigint user2_id FK
-        boolean is_group
-        bigint group_id FK
-        varchar slug UK
-        timestamp last_message_at
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    MESSAGES {
-        bigint id PK
-        bigint conversation_id FK
-        bigint sender_id FK
-        text content
-        varchar media_type
-        varchar media_path
-        varchar system_type
-        timestamp read_at
-        timestamp delivered_at
-        json deleted_for
-        timestamp soft_deleted_at
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    GROUPS {
-        bigint id PK
-        bigint creator_id FK
-        varchar name
-        text description
-        varchar avatar
-        boolean is_private
-        varchar slug UK
-        varchar invite_link UK
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    GROUP_MEMBERS {
-        bigint id PK
-        bigint group_id FK
-        bigint user_id FK
-        varchar role
-        timestamp joined_at
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    NOTIFICATIONS {
-        bigint id PK
-        bigint user_id FK
-        varchar type
-        json data
-        timestamp read_at
-        varchar related_type
-        bigint related_id
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    MENTIONS {
-        bigint id PK
-        bigint user_id FK
-        bigint post_id FK
-        timestamp created_at
-    }
-
-    HASHTAGS {
-        bigint id PK
-        varchar name
-        varchar slug UK
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    POST_REPORTS {
-        bigint id PK
-        bigint user_id FK
-        bigint post_id FK
-        varchar reason
-        text description
-        varchar status
-        timestamp reviewed_at
-        bigint reviewed_by FK
-        varchar admin_action
-        varchar slug UK
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    PUSH_SUBSCRIPTIONS {
-        bigint id PK
-        bigint user_id FK
-        text content
-        varchar p256dh
-        varchar auth
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    ACTIVITY_LOGS {
-        bigint id PK
-        bigint user_id FK
-        varchar action
-        text description
-        varchar ip_address
-        text user_agent
-        varchar country
-        varchar city
-        bigint session_id FK
-        timestamp created_at
-    }
-
-    EVENTS {
-        bigint id PK
-        bigint user_id FK
-        bigint post_id FK
-        varchar title
-        varchar type
-        datetime event_date
-        json metadata
-        timestamp created_at
-        timestamp updated_at
-        timestamp deleted_at
-    }
-
-    EVENT_REACTIONS {
-        bigint id PK
-        bigint event_id FK
-        bigint user_id FK
-        varchar reaction_type
-        timestamp created_at
-    }
 ```
 
 ---
@@ -919,36 +653,30 @@ sequenceDiagram
     U->>B: Fill form & submit
     B->>RC: POST /register
 
-    rect rgb(200, 230, 255)
-        Note over RC: Validation
-        RC->>RC: Validate name, email, password
-        RC->>RC: Check reserved usernames
-        RC->>RC: Check disposable emails
-        RC->>RC: Verify password strength
-    end
+    Note over RC: Validation
+    RC->>RC: Validate name, email, password
+    RC->>RC: Check reserved usernames
+    RC->>RC: Check disposable emails
+    RC->>RC: Verify password strength
 
     RC->>DB: Check email uniqueness
     DB-->>RC: Email available
 
-    rect rgb(200, 255, 200)
-        Note over RC: Create User
-        RC->>UserM: Create with hashed password
-        UserM->>DB: Insert user record
-        DB-->>UserM: User ID
-        UserM->>RC: User created
-    end
+    Note over RC: Create User
+    RC->>UserM: Create with hashed password
+    UserM->>DB: Insert user record
+    DB-->>UserM: User ID
+    UserM->>RC: User created
 
     RC->>ProfileM: Create profile
     ProfileM->>DB: Insert profile
     DB-->>ProfileM: Profile created
 
-    rect rgb(255, 230, 200)
-        Note over RC: Email Verification
-        RC->>UserM: Generate 6-digit code
-        UserM->>DB: Save code + expiry (10 min)
-        RC->>Mail: Send verification email
-        Mail->>U: Deliver email
-    end
+    Note over RC: Email Verification
+    RC->>UserM: Generate 6-digit code
+    UserM->>DB: Save code + expiry (10 min)
+    RC->>Mail: Send verification email
+    Mail->>U: Deliver email
 
     RC->>B: Redirect to /email/verify
     B->>U: Show verification page
@@ -970,11 +698,9 @@ sequenceDiagram
     U->>B: Enter credentials
     B->>LC: POST /login
 
-    rect rgb(200, 230, 255)
-        Note over LC: Validation
-        LC->>LC: Validate email & password
-        LC->>DB: Check rate limit (5/min)
-    end
+    Note over LC: Validation
+    LC->>LC: Validate email & password
+    LC->>DB: Check rate limit (5/min)
 
     LC->>UserM: Find by email
     UserM->>DB: Query user
@@ -993,22 +719,20 @@ sequenceDiagram
             Auth->>DB: Create session
             Auth-->>LC: Login successful
 
-            rect rgb(255, 230, 200)
-                Note over LC: Verification Check
-                LC->>UserM: Check email_verified_at
-                alt Not Verified
-                    LC->>B: Redirect to /email/verify
-                    B->>U: Show verification page
-                else Verified
-                    LC->>UserM: Check password null (OAuth)
-                    alt No Password (OAuth)
-                        LC->>B: Redirect to set-password
-                        B->>U: Show set password form
-                    else Has Password
-                        LC->>UserM: Update last_active
-                        LC->>B: Redirect to /
-                        B->>U: Show home feed
-                    end
+            Note over LC: Verification Check
+            LC->>UserM: Check email_verified_at
+            alt Not Verified
+                LC->>B: Redirect to /email/verify
+                B->>U: Show verification page
+            else Verified
+                LC->>UserM: Check password null (OAuth)
+                alt No Password (OAuth)
+                    LC->>B: Redirect to set-password
+                    B->>U: Show set password form
+                else Has Password
+                    LC->>UserM: Update last_active
+                    LC->>B: Redirect to /
+                    B->>U: Show home feed
                 end
             end
         end
@@ -1033,41 +757,33 @@ sequenceDiagram
     U->>B: Add content & media
     B->>PC: POST /posts (multipart)
 
-    rect rgb(200, 230, 255)
-        Note over PC: Validation
-        PC->>PC: Validate content (max 280)
-        PC->>PC: Validate media (max 30 files)
-        PC->>PC: Check file sizes (max 50MB)
-        PC->>PC: Verify MIME types
-    end
+    Note over PC: Validation
+    PC->>PC: Validate content (max 280)
+    PC->>PC: Validate media (max 30 files)
+    PC->>PC: Check file sizes (max 50MB)
+    PC->>PC: Verify MIME types
 
-    rect rgb(200, 255, 200)
-        Note over PC: Create Post
-        PC->>PostM: Create with slug
-        PostM->>DB: Insert post record
-        DB-->>PostM: Post ID + slug
-    end
+    Note over PC: Create Post
+    PC->>PostM: Create with slug
+    PostM->>DB: Insert post record
+    DB-->>PostM: Post ID + slug
 
-    rect rgb(255, 230, 200)
-        Note over PC: Process Media
-        loop For each file
-            PC->>Storage: Upload file
-            Storage-->>PC: File path
-            PC->>MediaM: Create PostMedia record
-            MediaM->>DB: Insert media record
-            alt Video file
-                PC->>PC: Generate thumbnail (FFmpeg)
-            end
+    Note over PC: Process Media
+    loop For each file
+        PC->>Storage: Upload file
+        Storage-->>PC: File path
+        PC->>MediaM: Create PostMedia record
+        MediaM->>DB: Insert media record
+        alt Video file
+            PC->>PC: Generate thumbnail (FFmpeg)
         end
     end
 
-    rect rgb(230, 200, 255)
-        Note over PC: Process Mentions
-        PC->>MentionS: Parse @username
-        MentionS->>DB: Find mentioned users
-        MentionS->>DB: Create Mention records
-        MentionS->>DB: Create Notifications
-    end
+    Note over PC: Process Mentions
+    PC->>MentionS: Parse @username
+    MentionS->>DB: Find mentioned users
+    MentionS->>DB: Create Mention records
+    MentionS->>DB: Create Notifications
 
     PC->>B: Redirect to post
     B->>U: Show created post
@@ -1091,21 +807,17 @@ sequenceDiagram
     DB-->>PC: Like status
 
     alt Already Liked
-        rect rgb(255, 200, 200)
-            Note over PC: Unlike
-            PC->>LikeM: Delete like
-            LikeM->>DB: Remove like record
-            PC->>B: Return unliked
-        end
+        Note over PC: Unlike
+        PC->>LikeM: Delete like
+        LikeM->>DB: Remove like record
+        PC->>B: Return unliked
     else Not Liked
-        rect rgb(200, 255, 200)
-            Note over PC: Like
-            PC->>LikeM: Create like
-            LikeM->>DB: Insert like record
-            PC->>NotifM: Create notification
-            NotifM->>DB: Insert notification
-            PC->>B: Return liked
-        end
+        Note over PC: Like
+        PC->>LikeM: Create like
+        LikeM->>DB: Insert like record
+        PC->>NotifM: Create notification
+        NotifM->>DB: Insert notification
+        PC->>B: Return liked
     end
 
     B->>U: Update button state
@@ -1127,39 +839,31 @@ sequenceDiagram
     U->>B: Type message
     B->>CC: POST /chat/{conversation}
 
-    rect rgb(200, 230, 255)
-        Note over CC: Find/Create Conversation
-        CC->>ConvM: Find conversation
-        alt No conversation exists
-            CC->>ConvM: Create new conversation
-            ConvM->>DB: Insert conversation
-        end
+    Note over CC: Find/Create Conversation
+    CC->>ConvM: Find conversation
+    alt No conversation exists
+        CC->>ConvM: Create new conversation
+        ConvM->>DB: Insert conversation
     end
 
-    rect rgb(200, 255, 200)
-        Note over CC: Create Message
-        CC->>MsgM: Create message
-        MsgM->>DB: Insert message record
-        DB-->>MsgM: Message ID
-    end
+    Note over CC: Create Message
+    CC->>MsgM: Create message
+    MsgM->>DB: Insert message record
+    DB-->>MsgM: Message ID
 
-    rect rgb(255, 230, 200)
-        Note over CC: Real-time Updates
-        CC->>RealtimeS: Broadcast to recipients
-        RealtimeS->>Cache: Set typing indicator
-    end
+    Note over CC: Real-time Updates
+    CC->>RealtimeS: Broadcast to recipients
+    RealtimeS->>Cache: Set typing indicator
 
     CC->>B: Return message data
     B->>U: Show message in chat
 
-    rect rgb(230, 200, 255)
-        Note over B: Polling (every 2s)
-        B->>CC: GET /chat/{conv}/messages
-        CC->>DB: Query new messages
-        DB-->>CC: Messages
-        CC->>B: Return messages
-        B->>U: Append to chat
-    end
+    Note over B: Polling (every 2s)
+    B->>CC: GET /chat/{conv}/messages
+    CC->>DB: Query new messages
+    DB-->>CC: Messages
+    CC->>B: Return messages
+    B->>U: Append to chat
 ```
 
 ### 6. Follow User Flow
@@ -1180,21 +884,17 @@ sequenceDiagram
     DB-->>UC: Follow status
 
     alt Already Following
-        rect rgb(255, 200, 200)
-            Note over UC: Unfollow
-            UC->>FollowM: Delete follow
-            FollowM->>DB: Remove follow record
-            UC->>B: Return unfollowed
-        end
+        Note over UC: Unfollow
+        UC->>FollowM: Delete follow
+        FollowM->>DB: Remove follow record
+        UC->>B: Return unfollowed
     else Not Following
-        rect rgb(200, 255, 200)
-            Note over UC: Follow
-            UC->>FollowM: Create follow
-            FollowM->>DB: Insert follow record
-            UC->>NotifM: Create notification
-            NotifM->>DB: Insert notification
-            UC->>B: Return followed
-        end
+        Note over UC: Follow
+        UC->>FollowM: Create follow
+        FollowM->>DB: Insert follow record
+        UC->>NotifM: Create notification
+        NotifM->>DB: Insert notification
+        UC->>B: Return followed
     end
 
     B->>U: Update button state
@@ -1216,19 +916,15 @@ sequenceDiagram
     U->>B: Add media/content
     B->>SC: POST /stories
 
-    rect rgb(200, 230, 255)
-        Note over SC: Validation
-        SC->>SC: Validate media type
-        SC->>SC: Check file size
-        SC->>SC: Verify content length
-    end
+    Note over SC: Validation
+    SC->>SC: Validate media type
+    SC->>SC: Check file size
+    SC->>SC: Verify content length
 
-    rect rgb(200, 255, 200)
-        Note over SC: Create Story
-        SC->>StoryM: Create with slug
-        StoryM->>DB: Insert story record
-        DB-->>StoryM: Story ID + slug
-    end
+    Note over SC: Create Story
+    SC->>StoryM: Create with slug
+    StoryM->>DB: Insert story record
+    DB-->>StoryM: Story ID + slug
 
     alt Has media
         SC->>Storage: Upload file
@@ -1257,25 +953,21 @@ sequenceDiagram
     A->>B: Click delete on post
     B->>AC: DELETE /admin/posts/{id}
 
-    rect rgb(200, 230, 255)
-        Note over AC: Authorization
-        AC->>AC: Check is_admin middleware
-        AC->>AC: Verify admin privileges
-    end
+    Note over AC: Authorization
+    AC->>AC: Check is_admin middleware
+    AC->>AC: Verify admin privileges
 
     AC->>PostM: Find post
     PostM->>DB: Query post
     DB-->>PostM: Post data
 
-    rect rgb(255, 200, 200)
-        Note over AC: Delete Post
-        AC->>Storage: Delete media files
-        loop For each media
-            Storage->>Storage: Remove file
-        end
-        AC->>PostM: Soft delete
-        PostM->>DB: Set deleted_at
+    Note over AC: Delete Post
+    AC->>Storage: Delete media files
+    loop For each media
+        Storage->>Storage: Remove file
     end
+    AC->>PostM: Soft delete
+    PostM->>DB: Set deleted_at
 
     AC->>B: Redirect with success
     B->>A: Show updated list
@@ -1814,7 +1506,7 @@ flowchart TB
     end
 
     subgraph "Database Optimization"
-        D1[Indexes on FKs]
+        D1[Indexes ons]
         D2[Composite Indexes]
         D3[Query Optimization]
         D4[Eager Loading]
