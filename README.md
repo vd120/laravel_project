@@ -4,10 +4,6 @@
 
 ![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)
-![Vue.js](https://img.shields.io/badge/Vue.js-3.4-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.2-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-6.4-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
 
 **A modern, feature-rich social networking platform built with Laravel 12 and Vue.js**
 
@@ -340,13 +336,13 @@ Required extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `gd`, `json`,
 
 ---
 
-## Installation
+## Installation [Manual Installation or use Installation Script]
 
 ### Quick Start (Development)
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/nexus.git
+git clone https://github.com/vd120/nexus.git
 cd nexus
 
 # 2. Install PHP dependencies
