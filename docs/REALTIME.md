@@ -1,18 +1,21 @@
-# Real-Time Features Documentation
+# Nexus - Real-Time Features
 
-Comprehensive documentation of Nexus real-time features implemented via polling-based architecture.
+Complete documentation for real-time features in Nexus social networking platform.
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Real-Time Features](#real-time-features)
-- [Implementation Details](#implementation-details)
-- [Performance Considerations](#performance-considerations)
-- [API Endpoints](#api-endpoints)
-- [JavaScript Modules](#javascript-modules)
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Polling Implementation](#polling-implementation)
+4. [Chat Messages](#chat-messages)
+5. [Notifications](#notifications)
+6. [Online Status](#online-status)
+7. [Typing Indicators](#typing-indicators)
+8. [Conversation Updates](#conversation-updates)
+9. [Performance Optimization](#performance-optimization)
+10. [API Reference](#api-reference)
 
 ---
 
@@ -22,22 +25,30 @@ Nexus implements real-time features using **polling-based architecture** instead
 
 ### Why Polling?
 
-| Advantage | Description |
-|-----------|-------------|
-| **Simplicity** | No WebSocket server required |
-| **Compatibility** | Works with all hosting providers |
-| **Firewall-Friendly** | Uses standard HTTP/HTTPS ports |
-| **Easy Scaling** | No sticky sessions required |
-| **Debugging** | Standard HTTP request/response cycle |
+**Advantages:**
+- **Simplicity**: No WebSocket server required
+- **Compatibility**: Works with all hosting providers
+- **Firewall-Friendly**: Uses standard HTTP/HTTPS ports
+- **Easy Scaling**: No sticky sessions required
+- **Debugging**: Standard HTTP request/response cycle
 
 ### Trade-offs
 
-| Consideration | Impact |
-|---------------|--------|
-| **Latency** | 2-10 second delay (configurable) |
-| **Server Load** | More HTTP requests than WebSocket |
-| **Battery** | Higher mobile battery consumption |
-| **Bandwidth** | More overhead than persistent connection |
+- **Latency**: 2-10 second delay (configurable)
+- **Server Load**: More HTTP requests than WebSocket
+- **Battery**: Higher mobile battery consumption
+- **Bandwidth**: More overhead than persistent connection
+
+### Polling Intervals (VERIFIED)
+
+- **Chat Messages**: 1 second (Source: `RealTimeConfig.chatRoomInterval`)
+- **Conversations List**: 1 second (Source: `RealTimeConfig.chatListInterval`)
+- **Notifications**: 2 seconds (Source: `RealTimeConfig.notificationsInterval`)
+- **Online Status**: 10 seconds (Source: `RealTimeConfig.onlineStatusInterval`)
+- **Typing Indicators**: 1 second with 5s cache (Implementation)
+- **Account Status**: 5 seconds (Source: `RealTimeConfig.accountStatusInterval`)
+
+**Note:** Actual polling intervals are defined in `resources/js/legacy/realtime.js` in the `window.RealTimeConfig` object.
 
 ---
 
@@ -46,16 +57,16 @@ Nexus implements real-time features using **polling-based architecture** instead
 ### Polling Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      Real-Time Polling Architecture                     │
-└─────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                      Real-Time Polling Architecture              │
+└─────────────────────────────────────────────────────────────────┘
 
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
 │   Browser    │     │   Browser    │     │   Browser    │
 │   Client A   │     │   Client B   │     │   Client C   │
 └──────┬───────┘     └──────┬───────┘     └──────┬───────┘
        │                    │                    │
-       │  Poll every 2s     │  Poll every 2s     │  Poll every 2s
+       │  Poll (1-10s)      │  Poll (1-10s)      │  Poll (1-10s)
        ▼                    ▼                    ▼
 ┌──────────────────────────────────────────────────────────────────┐
 │                     Laravel Application                           │
@@ -78,33 +89,328 @@ Nexus implements real-time features using **polling-based architecture** instead
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-### Polling Intervals
+### Component Flow
 
-| Feature | Interval | Rationale |
-|---------|----------|-----------|
-| **Chat Messages** | 2 seconds | Near real-time conversation |
-| **Conversations List** | 2 seconds | Update last message |
-| **Notifications** | 2 seconds | Real-time updates |
-| **Online Status** | 10 seconds | Less critical, reduce load |
-| **Typing Indicators** | 2 seconds | Immediate feedback |
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Real-Time Components                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Frontend (JavaScript):                                          │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │ realtime.js     │  │ ui-utils.js     │  │ home.js         │ │
+│  │ (Core polling)  │  │ (Online status) │  │ (Feed updates)  │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+│                                                                  │
+│  Backend (Laravel):                                              │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │ RealtimeService │  │ ChatController  │  │ UserController  │ │
+│  │ (Business logic)│  │ (Messages)      │  │ (Online status) │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+│                                                                  │
+│  Database:                                                       │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  messages, notifications, users, cache tables            │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Real-Time Features
+## Polling Implementation
 
-### 1. Chat Messages
+### Frontend: Realtime.js Module
 
-**Implementation:** `resources/js/legacy/realtime.js`, `ChatController.php`
+Location: `resources/js/legacy/realtime.js`
 
-**Polling Interval:** 2 seconds
+```javascript
+/**
+ * Real-time polling module for Nexus
+ * Handles chat, notifications, and online status updates
+ */
 
-**Features:**
-- New message detection
-- Message delivery confirmation
-- Read receipts tracking
-- Message status updates (sent, delivered, read)
+(function() {
+    'use strict';
 
-**Flow:**
+    // Configuration (Note: Actual values from RealTimeConfig)
+    const POLLING_INTERVALS = {
+        MESSAGES: 1000,        // 1 second (RealTimeConfig.chatRoomInterval)
+        NOTIFICATIONS: 2000,   // 2 seconds (RealTimeConfig.notificationsInterval)
+        ONLINE_STATUS: 10000,  // 10 seconds (RealTimeConfig.onlineStatusInterval)
+        TYPING: 1000,          // 1 second with 5s cache
+        CONVERSATIONS: 1000    // 1 second (RealTimeConfig.chatListInterval)
+    };
+
+    // State
+    let pollingTimers = {};
+    let lastMessageId = {};
+    let lastNotificationCheck = {};
+
+    /**
+     * Initialize all real-time features
+     */
+    function initialize() {
+        if (window.isAuthenticated) {
+            startMessagePolling();
+            startNotificationPolling();
+            startOnlineStatusPolling();
+            startConversationPolling();
+
+            // Handle page unload
+            window.addEventListener('beforeunload', cleanup);
+        }
+    }
+
+    /**
+     * Start polling for new messages
+     */
+    function startMessagePolling() {
+        const conversationId = window.currentConversationId;
+        if (!conversationId) return;
+
+        pollingTimers.messages = setInterval(() => {
+            fetchNewMessages(conversationId);
+        }, POLLING_INTERVALS.MESSAGES);
+    }
+
+    /**
+     * Fetch new messages from server
+     */
+    function fetchNewMessages(conversationId) {
+        const afterId = lastMessageId[conversationId] || 0;
+
+        fetch(`/chat/${conversationId}/messages?after=${afterId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.messages && data.messages.length > 0) {
+                    appendMessagesToChat(data.messages);
+                    lastMessageId[conversationId] =
+                        data.messages[data.messages.length - 1].id;
+
+                    // Update conversation list
+                    updateConversationLastMessage(conversationId, data.messages[0]);
+                }
+            })
+            .catch(error => console.error('Error polling messages:', error));
+    }
+
+    /**
+     * Start polling for notifications
+     */
+    function startNotificationPolling() {
+        pollingTimers.notifications = setInterval(() => {
+            fetchUnreadNotifications();
+        }, POLLING_INTERVALS.NOTIFICATIONS);
+    }
+
+    /**
+     * Fetch unread notifications
+     */
+    function fetchUnreadNotifications() {
+        fetch('/api/notifications/unread-count')
+            .then(response => response.json())
+            .then(data => {
+                updateNotificationBadge(data.count);
+
+                if (data.count > 0 && data.newNotifications) {
+                    showNotificationToast(data.newNotifications);
+                }
+            })
+            .catch(error => console.error('Error polling notifications:', error));
+    }
+
+    /**
+     * Start polling for online status
+     */
+    function startOnlineStatusPolling() {
+        // Send initial heartbeat
+        updateMyOnlineStatus();
+
+        pollingTimers.onlineStatus = setInterval(() => {
+            updateMyOnlineStatus();
+            pollOtherUsersStatus();
+        }, POLLING_INTERVALS.ONLINE_STATUS);
+    }
+
+    /**
+     * Update own online status
+     */
+    function updateMyOnlineStatus() {
+        fetch('/user/online-status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken()
+            }
+        }).catch(error => console.error('Error updating online status:', error));
+    }
+
+    /**
+     * Poll other users' online status
+     */
+    function pollOtherUsersStatus() {
+        const userIds = collectVisibleUserIds();
+        if (userIds.length === 0) return;
+
+        fetch('/user/online-status/batch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify({ user_ids: userIds })
+        })
+        .then(response => response.json())
+        .then(data => {
+            updateOnlineIndicators(data.statuses);
+        })
+        .catch(error => console.error('Error polling user status:', error));
+    }
+
+    /**
+     * Cleanup polling timers on page unload
+     */
+    function cleanup() {
+        Object.values(pollingTimers).forEach(timer => {
+            clearInterval(timer);
+        });
+    }
+
+    /**
+     * Get CSRF token from meta tag
+     */
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')
+            ?.getAttribute('content') || '';
+    }
+
+    // Initialize on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initialize);
+    } else {
+        initialize();
+    }
+})();
+```
+
+---
+
+## Chat Messages
+
+### Implementation
+
+**Backend:** `app/Http/Controllers/ChatController.php`
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Message;
+use App\Models\Conversation;
+use App\Services\RealtimeService;
+use Illuminate\Http\Request;
+
+class ChatController extends Controller
+{
+    /**
+     * Get messages for a conversation
+     */
+    public function getMessages(Conversation $conversation, Request $request)
+    {
+        $afterId = $request->query('after', 0);
+        
+        $messages = $conversation->messages()
+            ->where('id', '>', $afterId)
+            ->with('sender')
+            ->latest('id')
+            ->get()
+            ->reverse()
+            ->values();
+
+        return response()->json([
+            'messages' => $messages,
+        ]);
+    }
+
+    /**
+     * Send a message
+     */
+    public function store(Conversation $conversation, Request $request)
+    {
+        $validated = $request->validate([
+            'content' => 'required_without:media|max:1000',
+            'media' => 'nullable|file|max:51200',
+        ]);
+
+        $message = $conversation->messages()->create([
+            'sender_id' => auth()->id(),
+            'content' => $validated['content'] ?? '',
+            'media_type' => $validated['media']?->getClientMimeType(),
+            'media_path' => $validated['media']?->store('messages', 'public'),
+        ]);
+
+        // Update conversation last message
+        $conversation->update([
+            'last_message_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $message->load('sender'),
+        ]);
+    }
+
+    /**
+     * Mark messages as read
+     */
+    public function markAsRead(Conversation $conversation)
+    {
+        $conversation->messages()
+            ->whereNull('read_at')
+            ->where('sender_id', '!=', auth()->id())
+            ->update(['read_at' => now()]);
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
+    /**
+     * Send typing indicator
+     */
+    public function sendTypingIndicator(Conversation $conversation, Request $request)
+    {
+        app(RealtimeService::class)->setTypingIndicator(
+            $conversation->id,
+            auth()->id()
+        );
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
+    /**
+     * Get typing status
+     */
+    public function getTypingStatus(Conversation $conversation)
+    {
+        $typingUsers = app(RealtimeService::class)->getTypingUsers(
+            $conversation->id,
+            auth()->id()
+        );
+
+        return response()->json([
+            'typing' => $typingUsers,
+        ]);
+    }
+}
+```
+
+### Message Flow
+
 ```
 ┌──────────────┐
 │   User A     │
@@ -129,50 +435,99 @@ Nexus implements real-time features using **polling-based architecture** instead
 ┌──────────────┐     ┌──────────────┐
 │   User B     │◀────│   User B     │
 │   Polling    │     │   Sees New   │
-│   (every 2s) │     │   Message    │
+│   (every 1s) │     │   Message    │
 └──────────────┘     └──────────────┘
-```
-
-**Code Example:**
-```javascript
-// resources/js/legacy/realtime.js
-function pollNewMessages(conversationId, lastMessageId) {
-    setInterval(() => {
-        fetch(`/chat/${conversationId}/messages?after=${lastMessageId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.messages.length > 0) {
-                    appendMessages(data.messages);
-                    lastMessageId = data.messages[data.messages.length - 1].id;
-                }
-            });
-    }, 2000); // 2 second polling
-}
 ```
 
 ---
 
-### 2. Notifications
+## Notifications
 
-**Implementation:** `resources/js/legacy/realtime.js`, `NotificationController.php`
+### Implementation
 
-**Polling Interval:** 3 seconds
+**Backend:** `app/Http/Controllers/Api/NotificationController.php`
 
-**Features:**
-- Unread notification count badge
-- New notification detection
-- Notification type indicators
-- Auto-dismiss on click
+```php
+<?php
 
-**API Endpoints:**
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Notification;
+use Illuminate\Http\Request;
+
+class NotificationController extends Controller
+{
+    /**
+     * Get unread notification count
+     */
+    public function unreadCount()
+    {
+        $count = auth()->user()->notifications()
+            ->whereNull('read_at')
+            ->count();
+
+        $newNotifications = auth()->user()->notifications()
+            ->whereNull('read_at')
+            ->where('created_at', '>', now()->subSeconds(3))
+            ->with('user')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        return response()->json([
+            'count' => $count,
+            'newNotifications' => $newNotifications,
+        ]);
+    }
+
+    /**
+     * Get realtime updates
+     */
+    public function getRealtimeUpdates()
+    {
+        $notifications = auth()->user()->notifications()
+            ->where('created_at', '>', request()->query('since', now()->subHour()))
+            ->with('user')
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'notifications' => $notifications,
+        ]);
+    }
+
+    /**
+     * Mark notification as read
+     */
+    public function markAsRead(Notification $notification)
+    {
+        $notification->update(['read_at' => now()]);
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
+    /**
+     * Mark all as read
+     */
+    public function markAllAsRead()
+    {
+        auth()->user()->notifications()
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All notifications marked as read',
+        ]);
+    }
+}
 ```
-GET /api/notifications/unread-count    - Get unread count
-GET /api/notifications/realtime-updates - Get new notifications
-POST /api/notifications/{id}/read      - Mark as read
-POST /api/notifications/mark-all-read  - Mark all as read
-```
 
-**Code Example:**
+### Notification Polling Flow
+
 ```javascript
 // resources/js/legacy/realtime.js
 function pollNotifications() {
@@ -180,124 +535,205 @@ function pollNotifications() {
         fetch('/api/notifications/unread-count')
             .then(response => response.json())
             .then(data => {
+                // Update badge
                 updateNotificationBadge(data.count);
+                
+                // Show toast for new notifications
                 if (data.count > 0 && data.newNotifications) {
                     showNotificationToast(data.newNotifications);
                 }
             });
-    }, 3000); // 3 second polling
+    }, 2000); // 2 second polling (RealTimeConfig.notificationsInterval)
 }
 ```
 
 ---
 
-### 3. Online Status
+## Online Status
 
-**Implementation:** `UserController.php`, `resources/js/legacy/realtime.js`
+### Implementation
 
-**Polling Interval:** 10 seconds
+**Backend:** `app/Http/Controllers/UserController.php`
 
-**Features:**
-- Real-time online/offline indicators
-- Last active timestamp
-- Batch status updates for efficiency
+```php
+<?php
 
-**API Endpoints:**
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+
+class UserController extends Controller
+{
+    /**
+     * Update own online status
+     */
+    public function updateOnlineStatus(Request $request)
+    {
+        auth()->user()->update([
+            'is_online' => true,
+            'last_active' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
+    /**
+     * Get single user's online status
+     */
+    public function getOnlineStatus(User $user)
+    {
+        return response()->json([
+            'is_online' => $user->is_online,
+            'last_active' => $user->last_active?->diffForHumans(),
+        ]);
+    }
+
+    /**
+     * Get multiple users' online status (batch)
+     */
+    public function getMultipleOnlineStatus(Request $request)
+    {
+        $userIds = $request->input('user_ids', []);
+        
+        $statuses = User::whereIn('id', $userIds)
+            ->get(['id', 'is_online', 'last_active'])
+            ->mapWithKeys(fn($user) => [
+                $user->id => [
+                    'is_online' => $user->is_online,
+                    'last_active' => $user->last_active?->diffForHumans(),
+                ]
+            ]);
+
+        return response()->json([
+            'statuses' => $statuses,
+        ]);
+    }
+
+    /**
+     * Set offline status
+     */
+    public function setOfflineStatus()
+    {
+        auth()->user()->update([
+            'is_online' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+}
 ```
-POST /user/online-status              - Update own status
-GET  /user/{user}/online-status       - Get single user status
-POST /user/online-status/batch        - Get multiple users status
-```
 
-**Database Schema:**
-```sql
-ALTER TABLE users ADD COLUMN is_online BOOLEAN DEFAULT FALSE;
-ALTER TABLE users ADD COLUMN last_active TIMESTAMP NULL;
-```
+### Online Status Flow
 
-**Code Example:**
 ```javascript
 // resources/js/legacy/realtime.js
-function updateOnlineStatus() {
+function startOnlineStatusPolling() {
     // Send heartbeat
+    updateMyOnlineStatus();
+
+    // Poll every 10 seconds
+    setInterval(() => {
+        updateMyOnlineStatus();
+        pollOtherUsersStatus();
+    }, 10000);
+}
+
+function updateMyOnlineStatus() {
     fetch('/user/online-status', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            'X-CSRF-TOKEN': getCsrfToken()
         }
     });
-    
-    // Poll other users' status
-    setInterval(() => {
-        fetch('/user/online-status/batch', {
-            method: 'POST',
-            body: JSON.stringify({ userIds: getUserIds() })
-        })
-        .then(response => response.json())
-        .then(data => {
-            updateOnlineIndicators(data.statuses);
-        });
-    }, 10000); // 10 second polling
+}
+
+function pollOtherUsersStatus() {
+    const userIds = collectVisibleUserIds();
+    if (userIds.length === 0) return;
+
+    fetch('/user/online-status/batch', {
+        method: 'POST',
+        body: JSON.stringify({ user_ids: userIds })
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateOnlineIndicators(data.statuses);
+    });
 }
 ```
 
 ---
 
-### 4. Typing Indicators
+## Typing Indicators
 
-**Implementation:** `ChatController.php`, `RealtimeService.php`
+### Implementation
 
-**Polling Interval:** 1 second
+**Backend:** `app/Services/RealtimeService.php`
 
-**Features:**
-- Real-time typing status
-- 5-second cache expiry
-- Per-conversation tracking
+```php
+<?php
 
-**Cache Structure:**
+namespace App\Services;
+
+use Illuminate\Support\Facades\Cache;
+
+class RealtimeService
+{
+    /**
+     * Set typing indicator in cache
+     */
+    public function setTypingIndicator(int $conversationId, int $userId): void
+    {
+        $key = "typing:{$conversationId}:{$userId}";
+        Cache::set($key, now()->timestamp, 5); // 5 second TTL
+    }
+
+    /**
+     * Get typing users for a conversation
+     */
+    public function getTypingUsers(int $conversationId, int $excludeUserId): array
+    {
+        $typingUsers = [];
+        $pattern = "typing:{$conversationId}:*";
+
+        // Get all typing keys for this conversation
+        $keys = Cache::getMultiple($pattern);
+        
+        foreach ($keys as $key => $timestamp) {
+            // Check if still valid (within 5 seconds)
+            if (now()->timestamp - $timestamp < 5) {
+                $userId = (int) last(explode(':', $key));
+                if ($userId !== $excludeUserId) {
+                    $typingUsers[] = $userId;
+                }
+            }
+        }
+
+        return $typingUsers;
+    }
+
+    /**
+     * Clear typing indicator
+     */
+    public function clearTypingIndicator(int $conversationId, int $userId): void
+    {
+        $key = "typing:{$conversationId}:{$userId}";
+        Cache::forget($key);
+    }
+}
 ```
-typing:{conversation_id}:{user_id} => timestamp (5 second TTL)
-```
 
-**API Endpoints:**
-```
-POST /chat/{conversation}/typing        - Send typing indicator
-GET  /chat/{conversation}/typing-status - Get typing status
-```
+### Typing Indicator Flow
 
-**Flow:**
-```
-┌──────────────┐
-│   User A     │
-│   Typing...  │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  POST /chat/ │
-│  {id}/typing │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│   Cache      │
-│   Set Key    │
-│   (5s TTL)   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐     ┌──────────────┐
-│   User B     │◀────│   User B     │
-│   Polling    │     │   Sees       │
-│   (every 1s) │     │   "typing..."│
-└──────────────┘     └──────────────┘
-```
-
-**Code Example:**
 ```javascript
 // resources/js/legacy/realtime.js
-// Chat room functionality - typing indicators
 let typingTimeout;
 let isTyping = false;
 
@@ -323,337 +759,93 @@ function sendTypingIndicator() {
         body: JSON.stringify({ is_typing: true })
     });
 }
-```
 
----
-
-### 5. Conversation Updates
-
-**Implementation:** `ChatController.php`
-
-**Polling Interval:** 2 seconds
-
-**Features:**
-- Last message timestamp updates
-- Unread message count per conversation
-- New conversation detection
-
-**API Endpoints:**
-```
-GET /chat/conversations/updated - Get updated conversations
-```
-
-**Code Example:**
-```javascript
-// resources/js/legacy/realtime.js
-// Conversation list polling
-function pollConversations() {
+// Poll for typing status
+function pollTypingStatus() {
     setInterval(() => {
-        fetch('/chat/conversations/updated?last_update=' + lastUpdate)
+        fetch(`/chat/${conversationId}/typing-status`)
             .then(response => response.json())
             .then(data => {
-                if (data.conversations.length > 0) {
-                    updateConversationsList(data.conversations);
-                }
-                if (data.newConversations) {
-                    addNewConversations(data.newConversations);
+                if (data.typing.length > 0) {
+                    showTypingIndicator(data.typing);
+                } else {
+                    hideTypingIndicator();
                 }
             });
-    }, 2000);
+    }, 1000); // 1 second polling
 }
 ```
 
 ---
 
-## Implementation Details
+## Conversation Updates
 
-### Backend: RealtimeService
+### Implementation
 
-**File:** `app/Services/RealtimeService.php`
+**Backend:** `app/Http/Controllers/ChatController.php`
 
 ```php
 <?php
 
-namespace App\Services;
+namespace App\Http\Controllers;
 
-use App\Models\Message;
-use App\Models\Notification;
-use App\Models\User;
-use Illuminate\Support\Facades\Cache;
+use App\Models\Conversation;
+use Illuminate\Http\Request;
 
-class RealtimeService
+class ChatController extends Controller
 {
     /**
-     * Get new messages for a conversation since a given timestamp
+     * Get updated conversations
      */
-    public function getNewMessages(int $conversationId, int $afterMessageId = null): array
+    public function getUpdatedConversations(Request $request)
     {
-        $query = Message::where('conversation_id', $conversationId)
-            ->with('sender');
+        $lastUpdate = $request->query('last_update');
         
-        if ($afterMessageId) {
-            $query->where('id', '>', $afterMessageId);
-        }
-        
-        return $query->latest('id')->get()->toArray();
-    }
-    
-    /**
-     * Get unread notifications for a user
-     */
-    public function getUnreadNotifications(int $userId): array
-    {
-        return Notification::where('user_id', $userId)
-            ->whereNull('read_at')
-            ->latest()
-            ->limit(20)
-            ->get()
-            ->toArray();
-    }
-    
-    /**
-     * Get unread notification count
-     */
-    public function getUnreadCount(int $userId): int
-    {
-        return Notification::where('user_id', $userId)
-            ->whereNull('read_at')
-            ->count();
-    }
-    
-    /**
-     * Update user's online status
-     */
-    public function updateOnlineStatus(int $userId): void
-    {
-        User::where('id', $userId)->update([
-            'is_online' => true,
-            'last_active' => now(),
-        ]);
-    }
-    
-    /**
-     * Set typing indicator in cache
-     */
-    public function setTypingIndicator(int $conversationId, int $userId): void
-    {
-        $key = "typing:{$conversationId}:{$userId}";
-        Cache::set($key, now()->timestamp, 5); // 5 second TTL
-    }
-    
-    /**
-     * Get typing users for a conversation
-     */
-    public function getTypingUsers(int $conversationId, int $excludeUserId): array
-    {
-        $typingUsers = [];
-        $pattern = "typing:{$conversationId}:*";
-        
-        // Get all typing keys for this conversation
-        foreach (Cache::getMultiple($pattern) as $key => $timestamp) {
-            if (now()->timestamp - $timestamp < 5) {
-                $userId = (int) last(explode(':', $key));
-                if ($userId !== $excludeUserId) {
-                    $typingUsers[] = $userId;
+        $conversations = auth()->user()->conversations()
+            ->where(function($query) use ($lastUpdate) {
+                if ($lastUpdate) {
+                    $query->where('updated_at', '>', $lastUpdate);
                 }
-            }
+            })
+            ->with(['recipient', 'lastMessage'])
+            ->orderBy('last_message_at', 'desc')
+            ->get();
+
+        // Check for new conversations
+        $newConversations = null;
+        if ($lastUpdate) {
+            $newConversations = auth()->user()->conversations()
+                ->where('created_at', '>', $lastUpdate)
+                ->with(['recipient'])
+                ->get();
         }
-        
-        return $typingUsers;
+
+        return response()->json([
+            'conversations' => $conversations,
+            'newConversations' => $newConversations,
+        ]);
     }
 }
 ```
 
 ---
 
-### Frontend: Realtime.js Module
-
-**File:** `resources/js/legacy/realtime.js`
-
-```javascript
-/**
- * Real-time polling module for Nexus
- * Handles chat, notifications, and online status updates
- */
-
-(function() {
-    'use strict';
-    
-    // Configuration
-    const POLLING_INTERVALS = {
-        MESSAGES: 2000,
-        NOTIFICATIONS: 3000,
-        ONLINE_STATUS: 10000,
-        TYPING: 1000,
-        CONVERSATIONS: 2000
-    };
-    
-    // State
-    let pollingTimers = {};
-    let lastMessageId = {};
-    let lastNotificationCheck = {};
-    
-    /**
-     * Initialize all real-time features
-     */
-    function initialize() {
-        if (window.isAuthenticated) {
-            startMessagePolling();
-            startNotificationPolling();
-            startOnlineStatusPolling();
-            startConversationPolling();
-            
-            // Handle page unload
-            window.addEventListener('beforeunload', cleanup);
-        }
-    }
-    
-    /**
-     * Start polling for new messages
-     */
-    function startMessagePolling() {
-        const conversationId = window.currentConversationId;
-        if (!conversationId) return;
-        
-        pollingTimers.messages = setInterval(() => {
-            fetchNewMessages(conversationId);
-        }, POLLING_INTERVALS.MESSAGES);
-    }
-    
-    /**
-     * Fetch new messages from server
-     */
-    function fetchNewMessages(conversationId) {
-        const afterId = lastMessageId[conversationId] || 0;
-        
-        fetch(`/chat/${conversationId}/messages?after=${afterId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.messages && data.messages.length > 0) {
-                    appendMessagesToChat(data.messages);
-                    lastMessageId[conversationId] = 
-                        data.messages[data.messages.length - 1].id;
-                    
-                    // Update conversation list
-                    updateConversationLastMessage(conversationId, data.messages[0]);
-                }
-            })
-            .catch(error => console.error('Error polling messages:', error));
-    }
-    
-    /**
-     * Start polling for notifications
-     */
-    function startNotificationPolling() {
-        pollingTimers.notifications = setInterval(() => {
-            fetchUnreadNotifications();
-        }, POLLING_INTERVALS.NOTIFICATIONS);
-    }
-    
-    /**
-     * Fetch unread notifications
-     */
-    function fetchUnreadNotifications() {
-        fetch('/api/notifications/unread-count')
-            .then(response => response.json())
-            .then(data => {
-                updateNotificationBadge(data.count);
-                
-                if (data.count > 0 && data.newNotifications) {
-                    showNotificationToast(data.newNotifications);
-                }
-            })
-            .catch(error => console.error('Error polling notifications:', error));
-    }
-    
-    /**
-     * Start polling for online status
-     */
-    function startOnlineStatusPolling() {
-        // Send initial heartbeat
-        updateMyOnlineStatus();
-        
-        pollingTimers.onlineStatus = setInterval(() => {
-            updateMyOnlineStatus();
-            pollOtherUsersStatus();
-        }, POLLING_INTERVALS.ONLINE_STATUS);
-    }
-    
-    /**
-     * Update own online status
-     */
-    function updateMyOnlineStatus() {
-        fetch('/user/online-status', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': getCsrfToken()
-            }
-        }).catch(error => console.error('Error updating online status:', error));
-    }
-    
-    /**
-     * Poll other users' online status
-     */
-    function pollOtherUsersStatus() {
-        const userIds = collectVisibleUserIds();
-        if (userIds.length === 0) return;
-        
-        fetch('/user/online-status/batch', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': getCsrfToken()
-            },
-            body: JSON.stringify({ user_ids: userIds })
-        })
-        .then(response => response.json())
-        .then(data => {
-            updateOnlineIndicators(data.statuses);
-        })
-        .catch(error => console.error('Error polling user status:', error));
-    }
-    
-    /**
-     * Cleanup polling timers on page unload
-     */
-    function cleanup() {
-        Object.values(pollingTimers).forEach(timer => {
-            clearInterval(timer);
-        });
-    }
-    
-    /**
-     * Get CSRF token from meta tag
-     */
-    function getCsrfToken() {
-        return document.querySelector('meta[name="csrf-token"]')
-            ?.getAttribute('content') || '';
-    }
-    
-    // Initialize on DOM ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialize);
-    } else {
-        initialize();
-    }
-})();
-```
-
----
-
-## Performance Considerations
+## Performance Optimization
 
 ### Server Load Calculation
 
 **Example Scenario:** 1000 concurrent users
 
-| Feature | Requests/Second | Total Requests/sec |
-|---------|-----------------|-------------------|
-| Chat Messages | 1000 users / 2s | 500 req/s |
-| Notifications | 1000 users / 3s | 333 req/s |
-| Online Status | 1000 users / 10s | 100 req/s |
-| **Total** | - | **933 req/s** |
+**Server Load Calculation:**
+- **Chat Messages**: 1000 users / 1s = 1000 req/s
+- **Notifications**: 1000 users / 2s = 500 req/s
+- **Online Status**: 1000 users / 10s = 100 req/s
+- **Total**: 1600 req/s
+
+**With Optimization:**
+- **Conditional Polling** (tab hidden): -50% load
+- **Batch Requests** (online status): -30% load
+- **Effective Load**: ~800-1100 req/s (manageable)
 
 ### Optimization Strategies
 
@@ -676,90 +868,65 @@ class RealtimeService
    - Batch online status requests
    - Combine multiple updates in single response
 
+### Page Visibility API
+
+```javascript
+// Pause polling when tab is hidden
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        // Tab is hidden - reduce polling frequency
+        pausePolling();
+    } else {
+        // Tab is visible - resume normal polling
+        resumePolling();
+    }
+});
+
+function pausePolling() {
+    Object.values(pollingTimers).forEach(timer => {
+        clearInterval(timer);
+    });
+}
+
+function resumePolling() {
+    initialize();
+}
+```
+
 ---
 
-## API Endpoints
+## API Reference
 
 ### Messages
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/chat/{conversation}/messages` | Get messages (with `?after=id`) | Yes |
-| POST | `/chat/{conversation}` | Send message | Yes |
-| POST | `/chat/{conversation}/read` | Mark messages as read | Yes |
-| POST | `/chat/message/delivered` | Confirm message delivery | Yes |
-| POST | `/chat/{conversation}/typing` | Send typing indicator | Yes |
-| GET | `/chat/{conversation}/typing-status` | Get typing status | Yes |
+- **GET** `/chat/{conversation}/messages` - Get messages (with `?after=id`) (Auth required)
+- **POST** `/chat/{conversation}` - Send message (Auth required)
+- **POST** `/chat/{conversation}/read` - Mark messages as read (Auth required)
+- **POST** `/chat/message/delivered` - Confirm message delivery (Auth required)
+- **POST** `/chat/{conversation}/typing` - Send typing indicator (Auth required)
+- **GET** `/chat/{conversation}/typing-status` - Get typing status (Auth required)
 
 ### Notifications
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/notifications` | Get all notifications | Yes |
-| GET | `/api/notifications/unread-count` | Get unread count | Yes |
-| GET | `/api/notifications/realtime-updates` | Get new notifications | Yes |
-| POST | `/api/notifications/{id}/read` | Mark as read | Yes |
-| POST | `/api/notifications/mark-all-read` | Mark all as read | Yes |
-| DELETE | `/api/notifications/{id}` | Delete notification | Yes |
+- **GET** `/api/notifications` - Get all notifications (Auth required)
+- **GET** `/api/notifications/unread-count` - Get unread count (Auth required)
+- **GET** `/api/notifications/realtime-updates` - Get new notifications (Auth required)
+- **POST** `/api/notifications/{id}/read` - Mark as read (Auth required)
+- **POST** `/api/notifications/mark-all-read` - Mark all as read (Auth required)
+- **DELETE** `/api/notifications/{id}` - Delete notification (Auth required)
 
 ### Online Status
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/user/online-status` | Update own status | Yes |
-| GET | `/user/{user}/online-status` | Get single user status | Yes |
-| POST | `/user/online-status/batch` | Get multiple users status | Yes |
-| POST | `/user/online-status/offline` | Set offline status | Yes |
+- **POST** `/user/online-status` - Update own status (Auth required)
+- **GET** `/user/{user}/online-status` - Get single user status (Auth required)
+- **POST** `/user/online-status/batch` - Get multiple users status (Auth required)
+- **POST** `/user/online-status/offline` - Set offline status (Auth required)
 
 ### Conversations
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/chat/conversations` | Get all conversations | Yes |
-| GET | `/chat/conversations/updated` | Get updated conversations | Yes |
-| GET | `/api/conversations` | API: Get conversations | Yes |
-
----
-
-## JavaScript Modules
-
-### Module Files
-
-| File | Purpose | Polling Interval |
-|------|---------|------------------|
-| `realtime.js` | Core real-time polling (messages, notifications, online status, typing, conversations) | 2-10s |
-| `home.js` | Feed updates | On-demand |
-| `ui-utils.js` | Online status indicators | 10s |
-| `posts.js` | Post interactions | On-demand |
-| `comments.js` | Comment system | On-demand |
-| `groups-show.js` | Group page functionality | On-demand |
-| `ai-chat.js` | AI chatbot interface | On-demand |
-
-### Module Architecture
-
-```
-┌─────────────────────────────────────────┐
-│           realtime.js (Core)            │
-│  • Message polling (chat)               │
-│  • Notification polling                 │
-│  • Online status polling                │
-│  • Typing indicators                    │
-│  • Conversation list updates            │
-└─────────────────────────────────────────┘
-         │
-         │ Handles all real-time features
-         │ via polling (2-10s intervals)
-         ▼
-┌─────────────────────────────────────────┐
-│  Other modules (on-demand features)     │
-│  • home.js - Feed functionality         │
-│  • posts.js - Post interactions         │
-│  • comments.js - Comment system         │
-│  • groups-show.js - Group pages         │
-│  • ui-utils.js - Online indicators      │
-│  • ai-chat.js - AI chatbot              │
-└─────────────────────────────────────────┘
-```
+- **GET** `/chat/conversations` - Get all conversations (Auth required)
+- **GET** `/chat/conversations/updated` - Get updated conversations (Auth required)
+- **GET** `/api/conversations` - API: Get conversations (Auth required)
 
 ---
 
@@ -769,11 +936,9 @@ If you need to migrate to WebSockets in the future:
 
 ### Recommended Stack
 
-| Technology | Purpose |
-|------------|---------|
-| **Laravel Reverb** | Laravel's native WebSocket server |
-| **Laravel Echo** | Client-side WebSocket events |
-| **Pusher** | Hosted WebSocket service (alternative) |
+- **Laravel Reverb**: Laravel's native WebSocket server
+- **Laravel Echo**: Client-side WebSocket events
+- **Pusher**: Hosted WebSocket service (alternative)
 
 ### Migration Steps
 
@@ -781,8 +946,7 @@ If you need to migrate to WebSockets in the future:
 2. Configure broadcasting in `config/broadcasting.php`
 3. Replace polling intervals with Echo listeners
 4. Update JavaScript to use `Echo.private()` channels
-5. Migrate typing indicators to WebSocket events
-6. Test thoroughly before deployment
+5. Test thoroughly before deployment
 
 ### Example Migration
 
@@ -807,13 +971,11 @@ Echo.private(`chat.${conversationId}`)
 
 ### Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| High server load | Increase polling intervals |
-| Delayed messages | Decrease polling interval to 1s |
-| Battery drain | Use Page Visibility API to pause when hidden |
-| Missing updates | Check database indexes on `created_at` |
-| Typing lag | Ensure cache is working (Redis recommended) |
+- **High server load**: Increase polling intervals
+- **Delayed messages**: Decrease polling interval to 1s
+- **Battery drain**: Use Page Visibility API to pause when hidden
+- **Missing updates**: Check database indexes on `created_at`
+- **Typing lag**: Ensure cache is working (Redis recommended)
 
 ### Debugging
 
@@ -830,11 +992,10 @@ fetchNewMessages(currentConversationId);
 
 ---
 
-## Next Steps
+<div align="center">
 
-Continue reading:
+**Nexus - Real-Time Features**
 
-- [API Reference](API.md) - Complete API documentation
-- [Architecture](ARCHITECTURE.md) - System design diagrams
-- [Features](FEATURES.md) - Feature documentation
-- [Troubleshooting](TROUBLESHOOTING.md) - Common issues
+Last Updated: March 27, 2026 | Laravel 12.x | PHP 8.2+
+
+</div>

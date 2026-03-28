@@ -59,6 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         \App\Console\Commands\BackfillIpLocations::class,
         \App\Console\Commands\SendBirthdayReminders::class,
+        \App\Console\Commands\Troubleshoot::class,
     ])
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException $e) {

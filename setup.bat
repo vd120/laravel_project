@@ -6,21 +6,6 @@ REM ============================================
 
 SETLOCAL EnableDelayedExpansion
 
-REM Colors (ANSI escape codes)
-SET "GREEN=[32m"
-SET "RED=[31m"
-SET "YELLOW=[33m"
-SET "CYAN=[36m"
-SET "BLUE=[34m"
-SET "BOLD=[1m"
-SET "NC=[0m"
-
-REM Enable ANSI escape codes on Windows 10+
-for /F "tokens=4-5 delims=. " %%i in ('ver') do SET VERSION=%%i.%%j
-if "%VERSION%" == "10.0" (
-    reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
-)
-
 REM Global variables
 SET "DB_CONNECTION="
 SET "DB_NAME="
@@ -35,30 +20,28 @@ REM ============================================
 
 :print_header
 echo.
-echo ╔════════════════════════════════════════════════════╗
-echo ║     Nexus - Complete Setup Script (Windows)        ║
-echo ╚════════════════════════════════════════════════════╝
+echo Nexus - Complete Setup Script (Windows)
 echo.
 goto :eof
 
 :print_status
-echo   ● %~1
+echo   * %~1
 goto :eof
 
 :print_success
-echo   ✓ %~1
+echo   OK %~1
 goto :eof
 
 :print_error
-echo   ✗ %~1
+echo   X %~1
 goto :eof
 
 :print_warning
-echo   ⚠ %~1
+echo   ! %~1
 goto :eof
 
 :print_info
-echo   ℹ %~1
+echo   i %~1
 goto :eof
 
 :cleanup_and_exit
@@ -80,8 +63,8 @@ REM ============================================
 
 :check_requirements
 call :print_header
-echo %BOLD%Step 1: Checking System Requirements%NC%
-echo ────────────────────────────────────────
+echo Step 1: Checking System Requirements
+echo ----------------------------------------
 
 REM Check PHP
 call :print_status "Checking PHP..."
@@ -200,8 +183,8 @@ REM ============================================
 
 :install_dependencies
 echo.
-echo %BOLD%Step 2: Installing PHP Dependencies%NC%
-echo ────────────────────────────────────────
+echo Step 2: Installing PHP Dependencies
+echo ----------------------------------------
 call :print_status "Running composer install..."
 call composer install --no-interaction --prefer-dist --optimize-autoloader
 if %errorlevel% equ 0 (
@@ -212,8 +195,8 @@ if %errorlevel% equ 0 (
 )
 
 echo.
-echo %BOLD%Step 3: Installing JavaScript Dependencies%NC%
-echo ────────────────────────────────────────
+echo Step 3: Installing JavaScript Dependencies
+echo ----------------------------------------
 call :print_status "Running npm install..."
 call npm install
 if %errorlevel% equ 0 (
@@ -231,8 +214,8 @@ REM ============================================
 
 :setup_environment
 echo.
-echo %BOLD%Step 4: Setting Up Environment%NC%
-echo ────────────────────────────────────────
+echo Step 4: Setting Up Environment
+echo ----------------------------------------
 
 REM Create .env from .env.example
 if not exist ".env" (
@@ -407,8 +390,8 @@ goto :eof
 
 :configure_database
 echo.
-echo %BOLD%Step 5: Database Configuration%NC%
-echo ────────────────────────────────────────
+echo Step 5: Database Configuration
+echo ----------------------------------------
 echo.
 echo   Select database type:
 echo   1) SQLite (recommended for development/testing)
@@ -433,8 +416,8 @@ REM ============================================
 
 :run_migrations
 echo.
-echo %BOLD%Step 6: Running Database Migrations%NC%
-echo ────────────────────────────────────────
+echo Step 6: Running Database Migrations
+echo ----------------------------------------
 
 call :print_status "Clearing configuration cache..."
 call php artisan config:clear >nul
@@ -464,8 +447,8 @@ REM ============================================
 
 :create_admin_user
 echo.
-echo %BOLD%Step 7: Creating Admin User%NC%
-echo ────────────────────────────────────────
+echo Step 7: Creating Admin User
+echo ----------------------------------------
 
 REM Check if AdminUserSeeder exists
 if exist "database\seeders\AdminUserSeeder.php" (
@@ -488,8 +471,8 @@ REM ============================================
 
 :build_frontend
 echo.
-echo %BOLD%Step 8: Building Frontend Assets%NC%
-echo ────────────────────────────────────────
+echo Step 8: Building Frontend Assets
+echo ----------------------------------------
 call :print_status "Building assets with Vite..."
 
 call npm run build
@@ -509,8 +492,8 @@ REM ============================================
 
 :setup_storage
 echo.
-echo %BOLD%Step 9: Setting Up Storage%NC%
-echo ────────────────────────────────────────
+echo Step 9: Setting Up Storage
+echo ----------------------------------------
 
 REM Create storage link
 call :print_status "Creating storage symbolic link..."
@@ -539,8 +522,8 @@ REM ============================================
 
 :finalize_setup
 echo.
-echo %BOLD%Step 10: Finalizing Setup%NC%
-echo ────────────────────────────────────────
+echo Step 10: Finalizing Setup
+echo ----------------------------------------
 
 call :print_status "Clearing all caches..."
 call php artisan config:clear >nul
@@ -567,41 +550,37 @@ REM ============================================
 
 :print_summary
 echo.
-echo ════════════════════════════════════════════════════
-echo   Setup Complete!
-echo ════════════════════════════════════════════════════
+echo Setup Complete!
 echo.
-echo   Your Nexus project is ready to use!
+echo Your Nexus project is ready to use!
 echo.
-echo ────────────────────────────────────────────────────────
-echo   Database Configuration:
-echo     Type: %DB_CONNECTION%
+echo Database Configuration:
+echo   Type: %DB_CONNECTION%
 if "%DB_CONNECTION%"=="mysql" (
-    echo     Host: %DB_HOST%:%DB_PORT%
-    echo     Database: %DB_NAME%
-    echo     Username: %DB_USER%
+    echo   Host: %DB_HOST%:%DB_PORT%
+    echo   Database: %DB_NAME%
+    echo   Username: %DB_USER%
 )
 echo.
-echo   Admin Login Credentials:
-echo     URL:      http://localhost:8000
-echo     Email:    admin@example.com
-echo     Password: admin123
-echo     Username: admin
+echo Admin Login Credentials:
+echo   URL:      http://localhost:8000
+echo   Email:    admin@example.com
+echo   Password: admin123
+echo   Username: admin
 echo.
-echo   ⚠ Security Notice: Change the default password after login!
-echo ────────────────────────────────────────────────────────
+echo Security Notice: Change the default password after login!
 echo.
-echo   To start the development server:
-echo     php artisan serve
+echo To start the development server:
+echo   php artisan serve
 echo.
-echo   Useful Commands:
-echo     php artisan migrate          - Run migrations
-echo     php artisan migrate:fresh    - Reset and run migrations
-echo     php artisan db:seed          - Seed database
-echo     npm run dev                  - Start Vite dev server
-echo     php artisan optimize         - Optimize for production
+echo Useful Commands:
+echo   php artisan migrate          - Run migrations
+echo   php artisan migrate:fresh    - Reset and run migrations
+echo   php artisan db:seed          - Seed database
+echo   npm run dev                  - Start Vite dev server
+echo   php artisan optimize         - Optimize for production
 echo.
-echo   Enjoy building with Nexus!
+echo Enjoy building with Nexus!
 echo.
 goto :eof
 

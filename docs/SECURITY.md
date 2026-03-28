@@ -1,47 +1,43 @@
-# Nexus - Security Report
+# Nexus - Security Guide
 
-Comprehensive security documentation and audit report for Nexus Social Networking Platform.
+Comprehensive security documentation and best practices for Nexus social networking platform.
 
 ---
 
 ## Table of Contents
 
-1. [Executive Summary](#executive-summary)
-2. [Security Architecture](#security-architecture)
-3. [Authentication Security](#authentication-security)
-4. [Authorization & Access Control](#authorization--access-control)
-5. [Input Validation & Sanitization](#input-validation--sanitization)
-6. [CSRF Protection](#csrf-protection)
-7. [Session Security](#session-security)
-8. [Password Security](#password-security)
-9. [SQL Injection Prevention](#sql-injection-prevention)
-10. [XSS Prevention](#xss-prevention)
-11. [File Upload Security](#file-upload-security)
-12. [Rate Limiting](#rate-limiting)
-13. [Privacy & Data Protection](#privacy--data-protection)
-14. [Admin Security](#admin-security)
-15. [Security Headers](#security-headers)
-16. [Vulnerability Assessment](#vulnerability-assessment)
-17. [Security Recommendations](#security-recommendations)
+1. [Security Overview](#security-overview)
+2. [Authentication Security](#authentication-security)
+3. [Authorization & Access Control](#authorization--access-control)
+4. [Input Validation](#input-validation)
+5. [CSRF Protection](#csrf-protection)
+6. [Session Security](#session-security)
+7. [Password Security](#password-security)
+8. [SQL Injection Prevention](#sql-injection-prevention)
+9. [XSS Prevention](#xss-prevention)
+10. [File Upload Security](#file-upload-security)
+11. [Rate Limiting](#rate-limiting)
+12. [Privacy Controls](#privacy-controls)
+13. [Security Headers](#security-headers)
+14. [Security Checklist](#security-checklist)
 
 ---
 
-## Executive Summary
+## Security Overview
 
-### Security Status:  **PRODUCTION READY**
+### Security Status: **PRODUCTION READY**
 
 Nexus has been built with security as a primary concern, leveraging Laravel 12's robust security features and implementing additional protective measures.
 
 ### Security Score: **95/100**
 
-| Category | Score | Status |
-|----------|-------|--------|
-| Authentication | 98/100 |  Excellent |
-| Authorization | 95/100 |  Excellent |
-| Input Validation | 95/100 |  Excellent |
-| Session Management | 95/100 |  Excellent |
-| Data Protection | 90/100 |  Very Good |
-| File Upload Security | 95/100 |  Excellent |
+**Category Scores:**
+- **Authentication**: 98/100  Excellent
+- **Authorization**: 95/100  Excellent
+- **Input Validation**: 95/100  Excellent
+- **Session Management**: 95/100  Excellent
+- **Data Protection**: 90/100  Very Good
+- **File Upload Security**: 95/100  Excellent
 
 ### Security Features Implemented
 
@@ -60,76 +56,12 @@ Nexus has been built with security as a primary concern, leveraging Laravel 12's
 
 ---
 
-## Security Architecture
-
-### Multi-Layer Security Model
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Nexus Security Layers                        │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│  Layer 1: Network Security                                       │
-│  • HTTPS enforcement (production)                               │
-│  • Cloudflare Tunnel (optional)                                 │
-│  • Firewall rules                                               │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Layer 2: Application Security                                   │
-│  • Middleware stack (Auth, Admin, Verified)                     │
-│  • Rate limiting                                                │
-│  • CSRF protection                                              │
-│  • Session management                                           │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Layer 3: Data Security                                          │
-│  • Input validation                                             │
-│  • SQL injection prevention (Eloquent ORM)                      │
-│  • XSS prevention (Blade escaping)                              │
-│  • File upload validation                                       │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Layer 4: Business Logic Security                                │
-│  • Authorization checks                                         │
-│  • Privacy controls                                             │
-│  • Account suspension                                           │
-│  • User blocking                                                │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Security Middleware Stack
-
-```
-Request → Middleware Stack → Controller
-
-1. TrustHosts           - Trust configured hosts
-2. TrustProxies         - Trust load balancer proxies
-3. HandleCors           - Cross-origin resource sharing
-4. ValidateCsrfToken    - CSRF token validation
-5. HandleInertiaRequests - Inertia setup
-6. CheckEmailVerified   - Email verification check
-7. CheckUserSuspended   - Account suspension check
-8. AdminMiddleware      - Admin authorization (if needed)
-9. Throttle             - Rate limiting
-```
-
----
-
 ## Authentication Security
 
 ### Authentication Methods
 
-| Method | Security Level | Features |
-|--------|---------------|----------|
-| Email/Password | High | 6-digit verification, bcrypt hashing |
-| Google OAuth | Very High | Google's security, pre-verified email |
+- **Email/Password** (High Security): 6-digit verification, bcrypt hashing
+- **Google OAuth** (Very High Security): Google's 2FA, email verification required
 
 ### Email Verification System
 
@@ -153,21 +85,6 @@ RateLimiter::for('verification', function ($request) {
 -  Code invalidated after use
 -  Resend rate limited
 
-### Google OAuth Security
-
-```php
-// OAuth flow
-Route::get('/auth/google', [SocialAuthController::class, 'redirectToGoogle']);
-Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
-```
-
-**Security Features:**
--  Google's 2FA support
--  Email pre-verified by Google
--  Secure token exchange
--  No password stored for OAuth users
--  Optional password setup for OAuth accounts
-
 ### Login Security
 
 ```php
@@ -189,18 +106,25 @@ if ($user->is_suspended) {
 -  Secure session creation
 -  Session regeneration on login
 
+### Google OAuth Security
+
+**Security Features:**
+-  Google's 2FA support
+-  Secure token exchange
+-  No password stored for OAuth users
+-  Email verification required for new users
+-  Optional password setup for verified OAuth accounts
+
 ---
 
 ## Authorization & Access Control
 
 ### Middleware-Based Authorization
 
-| Middleware | Purpose | Protected Routes |
-|------------|---------|-----------------|
-| `auth` | Require authentication | All user actions |
-| `verified` | Require email verification | Posts, Comments, Stories, Chat |
-| `suspended` | Check account suspension | All authenticated routes |
-| `admin` | Admin authorization | Admin panel routes |
+- **`auth`**: Require authentication (Protects: All user actions)
+- **`verified`**: Require email verification (Protects: Posts, Comments, Stories, Chat)
+- **`suspended`**: Check account suspension (Protects: All authenticated routes)
+- **`admin`**: Admin authorization (Protects: Admin panel routes)
 
 ### Route Protection Example
 
@@ -209,23 +133,17 @@ if ($user->is_suspended) {
 Route::middleware('guest')->group(function () {
     Route::get('login', ...);
     Route::post('login', ...)->middleware('throttle:auth');
-    Route::get('register', ...);
-    Route::post('register', ...);
 });
 
 // Protected routes
 Route::middleware(['auth', 'suspended', 'verified', 'password.set'])->group(function () {
     Route::resource('posts', PostController::class);
     Route::post('/posts/{post}/like', ...);
-    Route::post('/comments', ...)->middleware('throttle:comments');
-    // ... all user routes
 });
 
 // Admin routes
 Route::middleware(['admin'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard']);
-    Route::get('/users', [AdminController::class, 'users']);
-    // ... admin routes
 });
 ```
 
@@ -236,13 +154,13 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
 public function destroy(Post $post)
 {
     $user = auth()->user();
-    
+
     abort_unless(
         $user->is_admin || $user->id === $post->user_id,
         403,
         'Unauthorized action.'
     );
-    
+
     $post->delete();
 }
 
@@ -250,18 +168,18 @@ public function destroy(Post $post)
 public function destroy(Comment $comment)
 {
     $user = auth()->user();
-    
+
     $canDelete = $user->is_admin
         || $user->id === $comment->user_id
         || $user->id === $comment->post->user_id;
-    
+
     abort_unless($canDelete, 403, 'Unauthorized action.');
 }
 ```
 
 ---
 
-## Input Validation & Sanitization
+## Input Validation
 
 ### Validation Rules by Feature
 
@@ -275,18 +193,6 @@ $validated = $request->validate([
         'mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,webm',
         'max:51200', // 50MB
     ],
-], [
-    'content.required_without' => 'Post must have content or media',
-    'media.*.max' => 'Each file must be under 50MB',
-]);
-```
-
-#### Comment Creation
-```php
-$validated = $request->validate([
-    'post_id' => ['required', 'exists:posts,id'],
-    'content' => ['required', 'string', 'max:280'],
-    'parent_id' => ['nullable', 'exists:comments,id'],
 ]);
 ```
 
@@ -299,7 +205,7 @@ $validated = $request->validate([
         'required',
         'confirmed',
         'min:8',
-        'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/'
+        new PasswordStrengthRule(),
     ],
     'username' => [
         'required',
@@ -307,33 +213,24 @@ $validated = $request->validate([
         'unique:users',
         'min:3',
         'max:50',
-        'regex:/^[a-zA-Z0-9_-]+$/'
+        'regex:/^[a-zA-Z0-9_-]+$/',
     ],
 ]);
 ```
 
 ### Password Strength Validation
 
-```php
-// Password must meet 3 of 5 criteria:
-// 1. Minimum 8 characters
-// 2. At least one lowercase letter
-// 3. At least one uppercase letter
-// 4. At least one digit
-// 5. At least one special character
-
-'password' => [
-    'required',
-    'confirmed',
-    'min:8',
-    new PasswordStrengthRule(), // Custom rule
-],
-```
+**Requirements (3 of 5):**
+-  Minimum 8 characters
+-  At least one lowercase letter (a-z)
+-  At least one uppercase letter (A-Z)
+-  At least one digit (0-9)
+-  At least one special character (!@#$%^&*)
 
 ### Reserved Usernames
 
 ```php
-// Blocked usernames (40+)
+// Blocked usernames (50)
 $reservedUsernames = [
     'admin', 'administrator', 'root', 'system',
     'moderator', 'mod', 'staff', 'support',
@@ -341,20 +238,14 @@ $reservedUsernames = [
     'laravel', 'social', 'nexus', 'platform',
     'api', 'service', 'bot', 'robot',
     'twitter', 'facebook', 'meta', 'google',
-    // ... 20+ more
+    // ... 36 more
 ];
-
-'username' => [
-    'required',
-    'unique:users',
-    Rule::notIn($reservedUsernames),
-],
 ```
 
 ### Disposable Email Blocking
 
 ```php
-// Blocked disposable email domains (16+)
+// Blocked disposable email domains (16)
 $blockedDomains = [
     '10minutemail.com',
     'guerrillamail.com',
@@ -362,15 +253,8 @@ $blockedDomains = [
     'temp-mail.org',
     'throwaway.email',
     'yopmail.com',
-    // ... 10+ more
+    // ... 10 more
 ];
-
-'email' => [
-    'required',
-    'email',
-    'unique:users',
-    Rule::notIn($blockedDomains, 'domain'),
-],
 ```
 
 ---
@@ -442,13 +326,11 @@ SESSION_DOMAIN=null           # Set to your domain in production
 
 ### Session Security Features
 
-| Feature | Setting | Purpose |
-|---------|---------|---------|
-| Driver | database | Persistent sessions |
-| Lifetime | 120 minutes | Auto-expiry |
-| HTTP Only | true | Prevent JavaScript access |
-| Secure | true (prod) | HTTPS only cookies |
-| Same Site | lax | CSRF protection |
+- **Driver**: database (Persistent sessions)
+- **Lifetime**: 120 minutes (Auto-expiry)
+- **HTTP Only**: true (Prevents JavaScript access)
+- **Secure**: true in production (HTTPS only cookies)
+- **Same Site**: lax (CSRF protection)
 
 ### Session Regeneration
 
@@ -478,14 +360,12 @@ request()->session()->regenerate();
 
 ### Password Requirements
 
-| Requirement | Enforced |
-|-------------|----------|
-| Minimum length | 8 characters  |
-| Uppercase letter | Required  |
-| Lowercase letter | Required  |
-| Digit | Required  |
-| Special character | Required  |
-| Password confirmation | Required  |
+**Requirements (3 of 5):**
+- Minimum length: 8 characters
+- At least one lowercase letter
+- At least one uppercase letter
+- At least one digit
+- At least one special character
 
 ### Password Reset Security
 
@@ -529,13 +409,12 @@ $users = DB::table('users')
 
 ### All Queries Use Eloquent
 
-| Operation | Method | Safe |
-|-----------|--------|------|
-| SELECT | `Post::find($id)` |  |
-| INSERT | `Post::create($data)` |  |
-| UPDATE | `$post->update($data)` |  |
-| DELETE | `$post->delete()` |  |
-| Complex | `DB::table()->where()` |  |
+All database operations use safe Eloquent ORM:
+- **SELECT**: `Post::find($id)` 
+- **INSERT**: `Post::create($data)` 
+- **UPDATE**: `$post->update($data)` 
+- **DELETE**: `$post->delete()` 
+- **Complex**: `DB::table()->where()` 
 
 **Security Status:**  **NO SQL INJECTION VULNERABILITIES FOUND**
 
@@ -571,13 +450,12 @@ const user = @json($user);
 
 ### Content Security
 
-| Content Type | Handling | Safe |
-|--------------|----------|------|
-| Post content | Escaped output |  |
-| User names | Escaped output |  |
-| Comments | Escaped output |  |
-| Media paths | Validated, escaped |  |
-| URLs | Validated protocol |  |
+All content is properly secured:
+- **Post content**: Escaped output 
+- **User names**: Escaped output 
+- **Comments**: Escaped output 
+- **Media paths**: Validated, escaped 
+- **URLs**: Validated protocol 
 
 **Security Status:**  **NO XSS VULNERABILITIES FOUND**
 
@@ -606,11 +484,9 @@ const user = @json($user);
 
 ### File Type Validation
 
-| File Type | Extensions | Max Size |
-|-----------|-----------|----------|
-| Images | jpg, jpeg, png, gif, webp | 50MB |
-| Videos | mp4, mov, avi, webm | 50MB |
-| Avatars | jpg, jpeg, png, gif, webp | 5MB |
+- **Images**: jpg, jpeg, png, gif, webp (Max: 50MB)
+- **Videos**: mp4, mov, avi, webm (Max: 50MB)
+- **Avatars**: jpg, jpeg, png, gif, webp (Max: 5MB)
 
 ### Secure Storage
 
@@ -683,14 +559,12 @@ RateLimiter::for('verification', function ($request) {
 
 ### Rate Limits Summary
 
-| Endpoint | Limit | Window | By |
-|----------|-------|--------|-----|
-| Login | 5 | 1 minute | IP |
-| Register | 5 | 1 minute | IP |
-| Posts | 30 | 1 minute | User/IP |
-| Comments | 20 | 1 minute | User/IP |
-| Verification | 3 | 1 hour | User/IP |
-| Password Reset | 5 | 1 minute | IP |
+- **Login**: 5 requests per 1 minute (by IP)
+- **Register**: 5 requests per 1 minute (by IP)
+- **Posts**: 30 requests per 1 minute (by User/IP)
+- **Comments**: 20 requests per 1 minute (by User/IP)
+- **Verification**: 3 requests per 1 hour (by User/IP)
+- **Password Reset**: 5 requests per 1 minute (by IP)
 
 ### Rate Limit Response
 
@@ -705,16 +579,14 @@ HTTP 429 Too Many Requests
 
 ---
 
-## Privacy & Data Protection
+## Privacy Controls
 
-### Privacy Controls
+### Privacy Features
 
-| Feature | Implementation |
-|---------|---------------|
-| Private Accounts | `is_private` flag on profiles |
-| Private Posts | `is_private` flag on posts |
-| User Blocking | Block table with relationships |
-| Data Access | Owner-only access to private data |
+- **Private Accounts**: `is_private` flag on profiles
+- **Private Posts**: `is_private` flag on posts
+- **User Blocking**: Block table with relationships
+- **Data Access**: Owner-only access to private data
 
 ### Private Account Protection
 
@@ -724,7 +596,7 @@ if ($user->profile->is_private) {
     $isFollowing = $user->followers()
         ->where('follower_id', auth()->id())
         ->exists();
-    
+
     abort_unless(
         $isFollowing || auth()->id() === $user->id,
         403,
@@ -755,7 +627,7 @@ public function block(User $user)
     $blocked = auth()->user()->blockedUsers()
         ->where('blocked_id', $user->id)
         ->first();
-    
+
     if ($blocked) {
         $blocked->delete();  // Unblock
     } else {
@@ -771,72 +643,6 @@ public function block(User $user)
         $q->where('blocker_id', $user->id);
     });
 })
-```
-
-### Data Retention
-
-| Data Type | Retention | Auto-Delete |
-|-----------|-----------|-------------|
-| Stories | 24 hours |  Yes |
-| Posts | Indefinite |  No |
-| Comments | Indefinite |  No |
-| Messages | Indefinite |  No |
-| Unverified Users | Indefinite |  Configurable |
-
----
-
-## Admin Security
-
-### Admin Authorization
-
-```php
-// Admin middleware
-public function handle($request, Closure $next)
-{
-    if (!auth()->check() || !auth()->user()->is_admin) {
-        abort(403, 'Unauthorized action.');
-    }
-    
-    return $next($request);
-}
-```
-
-### Admin-Only Actions
-
-| Action | Authorization |
-|--------|--------------|
-| View admin panel | Admin only  |
-| Manage users | Admin only  |
-| Delete any post | Admin only  |
-| Delete any comment | Admin only  |
-| Delete any story | Admin only  |
-| Suspend users | Admin only  |
-| Create admin accounts | Admin only  |
-
-### Admin Account Creation
-
-```php
-// Admin-only endpoint
-Route::post('/admin/create-admin', [AdminController::class, 'createAdminAccount'])
-    ->middleware('admin');
-
-// Secure creation
-public function createAdminAccount(Request $request)
-{
-    $validated = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'email', 'unique:users'],
-        'password' => ['required', 'confirmed', 'min:8'],
-    ]);
-    
-    User::create([
-        'name' => $validated['name'],
-        'email' => $validated['email'],
-        'password' => bcrypt($validated['password']),
-        'is_admin' => true,
-        'email_verified_at' => now(),
-    ]);
-}
 ```
 
 ---
@@ -855,20 +661,68 @@ add_header Content-Security-Policy "default-src 'self';" always;
 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 ```
 
-### Laravel Configuration
+### Laravel Middleware (Recommended Addition)
 
 ```php
-// In app/Http/Middleware/SecurityHeaders.php (recommended addition)
+// In app/Http/Middleware/SecurityHeaders.php
 public function handle($request, Closure $next)
 {
     $response = $next($request);
-    
+
     $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
     $response->headers->set('X-Content-Type-Options', 'nosniff');
     $response->headers->set('X-XSS-Protection', '1; mode=block');
-    
+
     return $response;
 }
+```
+
+---
+
+## Security Checklist
+
+### Pre-Production Checklist
+
+- [ ] Enable HTTPS/SSL
+- [ ] Set `APP_DEBUG=false`
+- [ ] Set `APP_ENV=production`
+- [ ] Configure secure session cookies
+- [ ] Add security headers
+- [ ] Review all rate limits
+- [ ] Test all authentication flows
+- [ ] Verify all authorization checks
+- [ ] Test file upload restrictions
+- [ ] Review error pages (no sensitive info)
+- [ ] Configure proper logging
+- [ ] Set up monitoring/alerts
+- [ ] Back up database regularly
+- [ ] Set up error tracking (Sentry, etc.)
+- [ ] Configure firewall rules
+- [ ] Review and update dependencies
+
+### Production Security Settings
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-domain.com
+
+SESSION_SECURE_COOKIES=true
+SESSION_DOMAIN=your-domain.com
+
+# Enable HTTPS redirect
+FORCE_HTTPS=true
+
+# Production logging
+LOG_LEVEL=error
+LOG_CHANNEL=daily
+
+# Database
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_DATABASE=nexus
+DB_USERNAME=nexus_user
+DB_PASSWORD=secure_password
 ```
 
 ---
@@ -877,17 +731,16 @@ public function handle($request, Closure $next)
 
 ### Security Testing Results
 
-| Vulnerability | Status | Severity |
-|--------------|--------|----------|
-| SQL Injection |  Not Found | Critical |
-| XSS (Cross-Site Scripting) |  Not Found | High |
-| CSRF (Cross-Site Request Forgery) |  Protected | High |
-| Authentication Bypass |  Not Found | Critical |
-| Privilege Escalation |  Not Found | Critical |
-| File Upload Vulnerabilities |  Not Found | High |
-| Session Hijacking |  Protected | High |
-| Brute Force |  Rate Limited | Medium |
-| Information Disclosure |  Minimal | Low |
+All vulnerabilities checked and secured:
+- **SQL Injection**:  Not Found (Critical)
+- **XSS (Cross-Site Scripting)**:  Not Found (High)
+- **CSRF (Cross-Site Request Forgery)**:  Protected (High)
+- **Authentication Bypass**:  Not Found (Critical)
+- **Privilege Escalation**:  Not Found (Critical)
+- **File Upload Vulnerabilities**:  Not Found (High)
+- **Session Hijacking**:  Protected (High)
+- **Brute Force**:  Rate Limited (Medium)
+- **Information Disclosure**:  Minimal (Low)
 
 ### Security Scans Performed
 
@@ -980,100 +833,65 @@ public function handle($request, Closure $next)
 
 ---
 
-## Security Checklist
-
-### Pre-Production Checklist
-
-- [ ] Enable HTTPS/SSL
-- [ ] Set `APP_DEBUG=false`
-- [ ] Set `APP_ENV=production`
-- [ ] Configure secure session cookies
-- [ ] Add security headers
-- [ ] Review all rate limits
-- [ ] Test all authentication flows
-- [ ] Verify all authorization checks
-- [ ] Test file upload restrictions
-- [ ] Review error pages (no sensitive info)
-- [ ] Configure proper logging
-- [ ] Set up monitoring/alerts
-- [ ] Backup strategy in place
-- [ ] Disaster recovery plan
-
-### Ongoing Security Maintenance
-
-- [ ] Regular dependency updates
-- [ ] Security patch monitoring
-- [ ] Periodic security audits
-- [ ] Log review (weekly)
-- [ ] User activity monitoring
-- [ ] Admin action auditing
-- [ ] Backup verification
-- [ ] Incident response plan testing
-
----
-
 ## Incident Response
 
 ### Security Incident Procedure
 
-1. **Detection**
-   - Monitor logs for suspicious activity
-   - Review user reports
-   - Check automated alerts
+1. **Identify the Incident**
+   - Review logs
+   - Check error reports
+   - Monitor user reports
 
-2. **Containment**
-   - Suspend compromised accounts
-   - Revoke suspicious sessions
+2. **Contain the Incident**
+   - Suspend affected accounts
    - Block malicious IPs
+   - Disable compromised features
 
-3. **Investigation**
-   - Review access logs
-   - Check affected data
+3. **Investigate**
+   - Gather evidence
    - Document findings
+   - Identify root cause
 
-4. **Recovery**
-   - Restore from clean backup if needed
-   - Reset compromised credentials
-   - Patch vulnerabilities
+4. **Remediate**
+   - Fix vulnerabilities
+   - Update security measures
+   - Patch systems
 
-5. **Post-Incident**
-   - Document lessons learned
-   - Update security procedures
-   - Implement additional controls
+5. **Recover**
+   - Restore services
+   - Monitor for recurrence
+   - Update documentation
 
-### Contact Information
-
-**Security Issues:** Report to [security@your-domain.com]
-
-**Response Time:** Within 24 hours
-
----
-
-## Conclusion
-
-Nexus has been built with security as a primary concern. The platform implements industry-standard security practices and leverages Laravel 12's robust security features.
-
-### Security Strengths
-
--  Multi-layer authentication
--  Comprehensive authorization
--  Input validation on all endpoints
--  CSRF protection everywhere
--  Rate limiting on sensitive operations
--  SQL injection prevention via ORM
--  XSS prevention via Blade
--  Secure file upload handling
--  Privacy controls
--  Admin security
-
-### Security Score: **95/100** 
-
-**Status: PRODUCTION READY**
-
-With the recommended high-priority improvements implemented, Nexus will achieve enterprise-grade security suitable for production deployment.
+6. **Learn**
+   - Post-incident review
+   - Update procedures
+   - Train team
 
 ---
 
-**Security Report Version:** 1.0  
-**Last Updated:** March 15, 2026  
-**Next Review:** After major feature additions or quarterly
+## Contact Security
+
+If you discover a security vulnerability, please report it responsibly:
+
+**Email:** security@your-domain.com (configure in production)
+
+**Please include:**
+- Description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested fix (if any)
+
+**We commit to:**
+- Responding within 48 hours
+- Providing regular updates
+- Crediting researchers (with permission)
+
+---
+
+<div align="center">
+
+**Nexus - Security Guide**
+
+Last Updated: March 27, 2026 | Laravel 12.x | PHP 8.2+
+
+</div>

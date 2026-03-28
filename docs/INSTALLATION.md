@@ -1,19 +1,22 @@
-# Installation Guide
+# Nexus - Installation Guide
 
-Complete installation instructions for Nexus on all platforms.
+Complete installation and setup guide for Nexus social networking platform.
 
 ---
 
 ## Table of Contents
 
-- [System Requirements](#system-requirements)
-- [Quick Installation](#quick-installation)
-- [Manual Installation](#manual-installation)
-- [Environment Configuration](#environment-configuration)
-- [Database Setup](#database-setup)
-- [Frontend Build](#frontend-build)
-- [Running the Application](#running-the-application)
-- [Troubleshooting](#troubleshooting)
+1. [System Requirements](#system-requirements)
+2. [Quick Start](#quick-start)
+3. [Manual Installation](#manual-installation)
+4. [Environment Configuration](#environment-configuration)
+5. [Database Setup](#database-setup)
+6. [Google OAuth Setup](#google-oauth-setup)
+7. [Email Configuration](#email-configuration)
+8. [File Storage Setup](#file-storage-setup)
+9. [Development Server](#development-server)
+10. [Production Deployment](#production-deployment)
+11. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -21,216 +24,160 @@ Complete installation instructions for Nexus on all platforms.
 
 ### Required Software
 
-| Software | Minimum Version | Recommended Version | Purpose |
-|----------|-----------------|---------------------|---------|
-| **PHP** | 8.2.0 | 8.2+ | Server-side runtime |
-| **Composer** | 2.0.0 | 2.6+ | PHP dependency manager |
-| **Node.js** | 18.0.0 | 20.x LTS | JavaScript runtime |
-| **npm** | 9.0.0 | 10.x | Node package manager |
-| **Git** | 2.0.0 | Latest | Version control |
-
-### Optional Software
-
-| Software | Purpose |
-|----------|---------|
-| **FFmpeg** | Video processing (thumbnails, trimming) |
-| **MySQL 8.0+** | Production database (SQLite used by default) |
-| **Redis** | Session/cache storage |
+- **PHP** (8.2+): Server-side runtime
+- **Composer** (2.x): PHP dependency manager
+- **Node.js** (18+ LTS): JavaScript runtime
+- **npm** (9+): JavaScript package manager
+- **Git** (Latest): Version control
+- **SQLite** (Built-in): Default database
 
 ### PHP Extensions
 
-Ensure the following PHP extensions are enabled:
+Required extensions:
+```
+bcmath, ctype, curl, dom, fileinfo, gd, json, mbstring, 
+mysqli, openssl, pdo, pdo_mysql, pdo_sqlite, phar, 
+tokenizer, xml, zip
+```
 
+Optional (recommended):
 ```
-php-bcmath
-php-ctype
-php-curl
-php-fileinfo
-php-gd
-php-json
-php-mbstring
-php-mysql (if using MySQL)
-php-openssl
-php-pdo
-php-tokenizer
-php-xml
+ext-ffmpeg (for video processing)
+redis (for caching)
 ```
+
+### Server Requirements (Production)
+
+- **CPU**: 2 cores minimum, 4+ cores recommended
+- **RAM**: 2GB minimum, 4GB+ recommended
+- **Storage**: 10GB minimum, 50GB+ SSD recommended
+- **PHP**: 8.2 minimum, 8.3+ recommended
+- **Database**: SQLite for development, MySQL 8.0+ for production
 
 ---
 
-## Quick Installation
+## Quick Start
 
-### Automated Setup (Recommended)
+### Using Setup Script (Recommended)
 
-The project includes automated setup scripts for all platforms.
-
-#### Linux/macOS
-
+**Windows (Git Bash):**
 ```bash
-# Clone repository
-git clone <repository-url>
-cd laravel_project
-
-# Make script executable
-chmod +x setup.sh
-
-# Run setup
 ./setup.sh
 ```
 
-#### Windows PowerShell
-
+**Windows (PowerShell):**
 ```powershell
-# Clone repository
-git clone <repository-url>
-cd laravel_project
-
-# Run setup
-.\setup.ps1
+./setup.ps1
 ```
 
-#### Windows Command Prompt
-
+**Windows (CMD):**
 ```cmd
-REM Clone repository
-git clone <repository-url>
-cd laravel_project
-
-REM Run setup
 setup.bat
 ```
 
-### What the Script Does
+**Linux/Mac:**
+```bash
+bash setup.sh
+```
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                   Setup Script Flow                      │
-├─────────────────────────────────────────────────────────┤
-│  1. Check system requirements (PHP, Composer, Node.js)  │
-│  2. Install PHP dependencies (composer install)         │
-│  3. Install JavaScript dependencies (npm install)       │
-│  4. Create .env from .env.example                       │
-│  5. Generate application key (php artisan key:generate) │
-│  6. Create SQLite database                              │
-│  7. Run database migrations (php artisan migrate)       │
-│  8. Create admin user (admin@example.com)               │
-│  9. Build frontend assets (npm run build)               │
-│  10. Create storage symbolic link                       │
-│  11. Clear all caches                                   │
-└─────────────────────────────────────────────────────────┘
-```
+The setup script will:
+1. Install PHP dependencies
+2. Copy `.env.example` to `.env`
+3. Generate application key
+4. Run database migrations
+5. Install Node.js dependencies
+6. Build assets
 
 ---
 
 ## Manual Installation
 
-For advanced users or custom configurations.
-
 ### Step 1: Clone Repository
 
 ```bash
-git clone <repository-url>
-cd laravel_project
+git clone https://github.com/your-org/nexus.git
+cd nexus
 ```
 
 ### Step 2: Install PHP Dependencies
 
 ```bash
-composer install --no-dev --optimize-autoloader
-```
-
-For development:
-```bash
 composer install
 ```
 
-### Step 3: Configure Environment
+### Step 3: Copy Environment File
 
 ```bash
-# Copy environment template
 cp .env.example .env
+```
 
-# Generate application key
+### Step 4: Generate Application Key
+
+```bash
 php artisan key:generate
 ```
 
-### Step 4: Configure Database
+### Step 5: Create Database
 
-#### SQLite (Default)
-
+**SQLite (Development):**
 ```bash
-# Create database file
 touch database/database.sqlite
-
-# Run migrations
-php artisan migrate
 ```
 
-#### MySQL
-
-1. Create database:
+**MySQL (Production):**
 ```sql
 CREATE DATABASE nexus CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'nexus_user'@'localhost' IDENTIFIED BY 'secure_password';
+GRANT ALL PRIVILEGES ON nexus.* TO 'nexus_user'@'localhost';
+FLUSH PRIVILEGES;
 ```
 
-2. Update `.env`:
+### Step 6: Configure Database
+
+Update `.env` file:
+
+**SQLite:**
+```env
+DB_CONNECTION=sqlite
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=laravel
+# DB_USERNAME=root
+# DB_PASSWORD=
+```
+
+**MySQL:**
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=nexus
-DB_USERNAME=root
-DB_PASSWORD=your_password
+DB_USERNAME=nexus_user
+DB_PASSWORD=secure_password
 ```
 
-3. Run migrations:
+### Step 7: Run Migrations
+
 ```bash
 php artisan migrate
 ```
 
-### Step 5: Create Admin User
-
-```bash
-php artisan tinker
-```
-
-```php
-\App\Models\User::create([
-    'name' => 'Admin',
-    'email' => 'admin@example.com',
-    'password' => bcrypt('admin123'),
-    'email_verified_at' => now(),
-    'is_admin' => true,
-]);
-```
-
-### Step 6: Install JavaScript Dependencies
+### Step 8: Install Node.js Dependencies
 
 ```bash
 npm install
 ```
 
-### Step 7: Build Frontend Assets
+### Step 9: Build Assets
 
 ```bash
-# Production build
 npm run build
-
-# Development with hot-reload
-npm run dev
 ```
 
-### Step 8: Create Storage Link
+### Step 10: Create Storage Symlink
 
 ```bash
 php artisan storage:link
-```
-
-### Step 9: Set Permissions (Linux/macOS)
-
-```bash
-chmod -R 755 storage bootstrap/cache
-chown -R www-data:www-data storage bootstrap/cache  # If using Apache/Nginx
 ```
 
 ---
@@ -239,51 +186,47 @@ chown -R www-data:www-data storage bootstrap/cache  # If using Apache/Nginx
 
 ### Basic Configuration
 
-Edit `.env` file with your settings:
-
 ```env
 # Application
-APP_NAME=Nexus
+APP_NAME="Nexus"
 APP_ENV=local
-APP_KEY=base64:...  # Auto-generated
+APP_KEY=
 APP_DEBUG=true
+APP_URL=http://localhost
+
+# Locale
+APP_LOCALE=en
+APP_FALLBACK_LOCALE=en
+APP_FAKER_LOCALE=en_US
 APP_TIMEZONE=UTC
-APP_URL=http://localhost:8000
 
-# Database (SQLite)
+# Logging
+LOG_CHANNEL=stack
+LOG_STACK=single
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+
+# Database
 DB_CONNECTION=sqlite
-# DB_DATABASE=database/database.sqlite  # Comment out for SQLite
-
-# Database (MySQL - Production)
-# DB_CONNECTION=mysql
-# DB_HOST=127.0.0.1
-# DB_PORT=3306
-# DB_DATABASE=nexus
-# DB_USERNAME=root
-# DB_PASSWORD=secret
-
-# Mail Configuration
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=noreply@example.com
-MAIL_FROM_NAME="${APP_NAME}"
-
-# Google OAuth (Optional)
-GOOGLE_CLIENT_ID=your-client-id
-GOOGLE_CLIENT_SECRET=your-client-secret
-GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
 
 # Session
-SESSION_DRIVER=file
+SESSION_DRIVER=database
 SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=null
 
 # Cache
-CACHE_DRIVER=file
-QUEUE_CONNECTION=sync
+CACHE_STORE=database
+
+# Mail
+MAIL_MAILER=log
+MAIL_HOST=127.0.0.1
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
 ```
 
 ### Production Configuration
@@ -293,270 +236,544 @@ APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://your-domain.com
 
-# Use MySQL in production
+SESSION_SECURE_COOKIES=true
+SESSION_DOMAIN=your-domain.com
+
+# Redis (optional)
+CACHE_STORE=redis
+SESSION_DRIVER=redis
+
+# Database
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=nexus
 DB_USERNAME=nexus_user
-DB_PASSWORD=strong_password
-
-# Use Redis for cache/sessions
-CACHE_DRIVER=redis
-SESSION_DRIVER=redis
-QUEUE_CONNECTION=redis
-
-# Enable HTTPS
-# FORCE_HTTPS=true
+DB_PASSWORD=secure_password
 ```
 
 ---
 
 ## Database Setup
 
-### Migration Commands
+### SQLite Setup (Development)
 
+1. Create database file:
 ```bash
-# Run all migrations
-php artisan migrate
-
-# Rollback last batch
-php artisan migrate:rollback
-
-# Reset all migrations
-php artisan migrate:reset
-
-# Fresh migration (drops all tables)
-php artisan migrate:fresh
-
-# Fresh with seeders
-php artisan migrate:fresh --seed
+touch database/database.sqlite
 ```
 
-### Database Seeding
+2. Update `.env`:
+```env
+DB_CONNECTION=sqlite
+```
 
-Create initial data:
+3. Run migrations:
+```bash
+php artisan migrate
+```
+
+### MySQL Setup (Production)
+
+1. Create database and user:
+```sql
+CREATE DATABASE nexus CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'nexus_user'@'localhost' IDENTIFIED BY 'secure_password';
+GRANT ALL PRIVILEGES ON nexus.* TO 'nexus_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+2. Update `.env`:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=nexus
+DB_USERNAME=nexus_user
+DB_PASSWORD=secure_password
+```
+
+3. Run migrations:
+```bash
+php artisan migrate
+```
+
+### Session & Cache Tables
+
+For database session and cache drivers:
 
 ```bash
-# Run seeders
-php artisan db:seed
-
-# Run specific seeder
-php artisan db:seed --class=UserSeeder
+php artisan session:table
+php artisan cache:table
+php artisan migrate
 ```
 
 ---
 
-## Frontend Build
+## Google OAuth Setup
 
-### Development Mode
+### Step 1: Create Google Cloud Project
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Click "Create Project"
+3. Enter project name (e.g., "Nexus")
+4. Click "Create"
+
+### Step 2: Enable Google APIs
+
+1. In your project, go to "APIs & Services" > "Library"
+2. Search for "Google People API" or "Google+ API"
+3. Click "Enable"
+
+### Step 3: Create OAuth Credentials
+
+1. Go to "APIs & Services" > "Credentials"
+2. Click "Create Credentials" > "OAuth client ID"
+3. Select "Web application"
+4. Add authorized JavaScript origins:
+   - `http://localhost` (development)
+   - `https://your-domain.com` (production)
+5. Add authorized redirect URIs:
+   - `http://localhost/auth/google/callback` (development)
+   - `https://your-domain.com/auth/google/callback` (production)
+6. Click "Create"
+
+### Step 4: Configure Environment
+
+Copy credentials to `.env`:
+
+```env
+GOOGLE_CLIENT_ID=your_client_id_here.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_client_secret_here
+GOOGLE_REDIRECT_URI=http://localhost/auth/google/callback
+```
+
+### Step 5: Test OAuth
+
+1. Visit `http://localhost/login`
+2. Click "Login with Google"
+3. You should be redirected to Google consent screen
+4. After consent, redirected back to application
+
+---
+
+## Email Configuration
+
+### Development (Mailtrap)
+
+1. Create free account at [Mailtrap.io](https://mailtrap.io)
+2. Create inbox
+3. Copy SMTP credentials
+4. Update `.env`:
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_mailtrap_username
+MAIL_PASSWORD=your_mailtrap_password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@example.com
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+### Production (SMTP)
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.your-provider.com
+MAIL_PORT=587
+MAIL_USERNAME=your_username
+MAIL_PASSWORD=your_password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@your-domain.com
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+### Test Email Configuration
 
 ```bash
-# Start Vite dev server with hot-reload
+php artisan send-test-email your-email@example.com
+```
+
+---
+
+## File Storage Setup
+
+### Local Storage (Default)
+
+Files are stored in `storage/app/public/`:
+
+```bash
+# Create symlink to public storage
+php artisan storage:link
+
+# Set permissions (Linux/Mac)
+chmod -R 775 storage/
+chown -R www-data:www-data storage/
+```
+
+### AWS S3 (Production)
+
+1. Create S3 bucket
+2. Create IAM user with S3 permissions
+3. Get access keys
+4. Update `.env`:
+
+```env
+FILESYSTEM_DISK=s3
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=your-bucket-name
+AWS_USE_PATH_STYLE_ENDPOINT=false
+```
+
+---
+
+## Development Server
+
+### Start All Services
+
+```bash
+composer run dev
+```
+
+This starts:
+- Laravel development server (port 8000)
+- Queue listener
+- Log monitor (Pail)
+- Vite development server
+
+### Start Individual Services
+
+**Laravel Server:**
+```bash
+php artisan serve
+```
+
+**Vite Dev Server:**
+```bash
 npm run dev
 ```
 
-### Production Build
-
+**Queue Listener:**
 ```bash
-# Optimized production build
-npm run build
+php artisan queue:listen --tries=1
 ```
 
-### Build Troubleshooting
-
-#### Clear Node Modules
-
+**Log Monitor:**
 ```bash
-rm -rf node_modules package-lock.json
-npm cache clean --force
+php artisan pail
+```
+
+### Access Application
+
+Open browser and visit:
+```
+http://localhost:8000
+```
+
+---
+
+## Production Deployment
+
+### Pre-Deployment Checklist
+
+- [ ] Set `APP_ENV=production`
+- [ ] Set `APP_DEBUG=false`
+- [ ] Set `APP_URL=https://your-domain.com`
+- [ ] Enable HTTPS/SSL
+- [ ] Configure production database
+- [ ] Set up Redis (optional)
+- [ ] Configure queue worker
+- [ ] Set up scheduled tasks
+- [ ] Configure email (SMTP)
+- [ ] Set up file storage (S3)
+- [ ] Enable security headers
+- [ ] Configure rate limiting
+- [ ] Set up monitoring
+
+### Deployment Steps
+
+1. **Install dependencies:**
+```bash
+composer install --optimize-autoloader --no-dev
 npm install
 npm run build
 ```
 
-#### Clear Laravel Cache
-
+2. **Cache configuration:**
 ```bash
-php artisan config:clear
-php artisan cache:clear
-php artisan view:clear
-php artisan route:clear
-php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 ```
 
----
-
-## Running the Application
-
-### Development Server
-
+3. **Run migrations:**
 ```bash
-# Start Laravel development server
-php artisan serve
-
-# Access at http://localhost:8000
+php artisan migrate --force
 ```
 
-### With Queue Worker
-
+4. **Create storage symlink:**
 ```bash
-# In separate terminal
-php artisan queue:work
+php artisan storage:link
 ```
 
-### With Vite Dev Server
-
+5. **Set permissions:**
 ```bash
-# In separate terminal
-npm run dev
+chmod -R 775 storage/
+chown -R www-data:www-data storage/
 ```
 
-### Full Development Stack
+### Queue Worker (Supervisor)
 
+Create `/etc/supervisor/conf.d/nexus-worker.conf`:
+
+```ini
+[program:nexus-queue]
+process_name=%(program_name)s_%(process_num)02d
+command=php /path/to/nexus/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/path/to/nexus/storage/logs/queue.log
+```
+
+Then:
 ```bash
-# Run all services (server, queue, logs, vite)
-composer run dev
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start nexus-queue:*
+```
+
+**Note:** Use `queue:work` for production (Supervisor) and `queue:listen` for development.
+
+### Cron Configuration
+
+Add to crontab:
+```bash
+* * * * * cd /path/to/nexus && php artisan schedule:run >> /dev/null 2>&1
+```
+
+### Web Server Configuration
+
+**Nginx:**
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    root /path/to/nexus/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+    add_header X-XSS-Protection "1; mode=block";
+
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+```
+
+**Apache:**
+```apache
+<VirtualHost *:80>
+    ServerName your-domain.com
+    DocumentRoot /path/to/nexus/public
+
+    <Directory /path/to/nexus/public>
+        Require all granted
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/nexus-error.log
+    CustomLog ${APACHE_LOG_DIR}/nexus-access.log combined
+</VirtualHost>
+```
+
+Enable `.htaccess` in `/path/to/nexus/public/.htaccess`:
+```apache
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php/$1 [L]
+</IfModule>
 ```
 
 ---
 
 ## Troubleshooting
 
-### Permission Issues (Linux/macOS)
+### Common Issues
 
-**Problem:** Cannot write to storage or cache directories.
+#### 1. Permission Denied
 
-**Solution:**
-```bash
-chmod -R 755 storage bootstrap/cache
-chown -R $USER:www-data storage bootstrap/cache
-```
-
-### Database Connection Failed
-
-**Problem:** SQLite database file not found or MySQL connection refused.
-
-**Solution (SQLite):**
-```bash
-# Ensure database file exists
-touch database/database.sqlite
-chmod 666 database/database.sqlite
-
-# Re-run migrations
-php artisan migrate:fresh
-```
-
-**Solution (MySQL):**
-```bash
-# Verify credentials in .env
-# Test connection
-php artisan tinker
-DB::connection()->getPdo();
-```
-
-### Class Not Found Errors
-
-**Problem:** Autoloader issues after composer install.
+**Error:** `Permission denied: storage/`
 
 **Solution:**
 ```bash
-composer dump-autoload --optimize
+chmod -R 775 storage/
+chown -R www-data:www-data storage/
 ```
 
-### Frontend Assets Not Loading
+#### 2. Database Connection Error
 
-**Problem:** 404 errors on CSS/JS files.
+**Error:** `SQLSTATE[HY000] [2002] Connection refused`
+
+**Solution:**
+- Check database is running
+- Verify `.env` database credentials
+- For SQLite, ensure file exists: `touch database/database.sqlite`
+
+#### 3. Class Not Found
+
+**Error:** `Class 'App\Models\User' not found`
 
 **Solution:**
 ```bash
-# Rebuild assets
+composer dump-autoload
+```
+
+#### 4. Vite Manifest Not Found
+
+**Error:** `Vite manifest not found`
+
+**Solution:**
+```bash
 npm install
 npm run build
-
-# Clear cache
-php artisan view:clear
-php artisan config:clear
 ```
 
-### Email Verification Not Working
+#### 5. 404 on Routes
 
-**Problem:** Verification emails not sending.
-
-**Solution:**
-1. Check mail configuration in `.env`
-2. For Gmail, use App Password (not regular password)
-3. Test with mailtrap.io for development
-
-### Google OAuth Not Working
-
-**Problem:** OAuth callback returns error.
+**Error:** All routes return 404
 
 **Solution:**
-1. Verify redirect URI in Google Console matches `.env`
-2. Ensure credentials are correct in `.env`
-3. Check that callback route is registered
+- Check `.htaccess` exists in `public/`
+- Enable mod_rewrite: `a2enmod rewrite`
+- Restart Apache: `systemctl restart apache2`
 
-### Memory Limit Exceeded
+#### 6. Session Error
 
-**Problem:** PHP memory limit during installation.
+**Error:** `SessionHandler::read(): open() failed`
 
 **Solution:**
 ```bash
-# Increase memory limit temporarily
-php -d memory_limit=512M artisan migrate
-
-# Or update php.ini
-memory_limit = 512M
+php artisan session:table
+php artisan migrate
 ```
 
-### Node.js Version Mismatch
+#### 7. Storage Link Error
 
-**Problem:** npm install fails with version errors.
+**Error:** `Target [public/storage] already exists`
 
 **Solution:**
 ```bash
-# Use Node Version Manager (nvm)
-nvm install 20
-nvm use 20
-
-# Or update Node.js to LTS version
+rm public/storage
+php artisan storage:link
 ```
+
+#### 8. Email Not Sending
+
+**Solution:**
+- Check SMTP credentials in `.env`
+- Use Mailtrap for testing
+- Run: `php artisan send-test-email your-email@example.com`
+
+#### 9. Google OAuth Error
+
+**Error:** `invalid_client` or `redirect_uri_mismatch`
+
+**Solution:**
+- Verify `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+- Check redirect URI matches exactly in Google Console
+- Ensure `APP_URL` is correct
+
+#### 10. Queue Not Processing
+
+**Solution:**
+- Start queue worker: `php artisan queue:work`
+- Check `QUEUE_CONNECTION` in `.env`
+- Use Supervisor for production
 
 ---
 
-## Verification Checklist
+## Post-Installation
 
-After installation, verify:
+### Create Admin Account
 
-- [ ] Application loads at `http://localhost:8000`
-- [ ] Can login with `admin@example.com` / `admin123`
-- [ ] Database migrations ran successfully
-- [ ] Storage link created (`public/storage` exists)
-- [ ] Frontend assets load (no 404 errors)
-- [ ] Can create a new user account
-- [ ] Email verification works (if mail configured)
-- [ ] Can create posts with images
-- [ ] Real-time chat works (if Reverb/Pusher configured)
+```bash
+php artisan tinker
+```
+
+```php
+$user = App\Models\User::create([
+    'name' => 'Admin',
+    'email' => 'admin@example.com',
+    'password' => bcrypt('your_secure_password'),
+    'username' => 'admin',
+    'email_verified_at' => now(),
+    'is_admin' => true,
+]);
+```
+
+### Seed Test Data (Optional)
+
+```bash
+php artisan db:seed
+```
+
+### Clear Caches
+
+```bash
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+php artisan route:clear
+```
+
+### Verify Installation
+
+1. Visit `http://localhost:8000`
+2. Register a test account
+3. Verify email (check logs or Mailtrap)
+4. Login
+5. Create a test post
+6. Test all features
 
 ---
 
 ## Next Steps
 
-After successful installation:
-
-1. **Change Default Password** - Login and update admin password
-2. **Configure Email** - Set up SMTP for verification emails
-3. **Set Up OAuth** - Configure Google OAuth (optional)
-4. **Review Settings** - Check application configuration
-5. **Read Documentation** - Review [Features](FEATURES.md) and [Architecture](ARCHITECTURE.md)
+- [Features Documentation](FEATURES.md) - Learn about all features
+- [Architecture Guide](ARCHITECTURE.md) - Understand system design
+- [API Reference](API.md) - RESTful API documentation
+- [Security Guide](SECURITY.md) - Security best practices
 
 ---
 
-## Support
+<div align="center">
 
-For additional help:
+**Nexus - Installation Guide**
 
-1. Check [Laravel Documentation](https://laravel.com/docs)
-2. Review [Troubleshooting](../README.md#troubleshooting) in README
-3. Examine `storage/logs/laravel.log` for errors
-4. Enable debug mode: `APP_DEBUG=true` in `.env`
+Last Updated: March 27, 2026 | Laravel 12.x | PHP 8.2+
+
+</div>

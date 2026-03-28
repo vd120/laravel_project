@@ -1,338 +1,1225 @@
-# Push Notifications - Nexus
+# Nexus - Push Notifications
 
-Browser-based push notifications for your Nexus social media platform. Users can receive real-time notifications about likes, comments, messages, and more - even when they're not actively using the app.
+Complete documentation for web push notifications in Nexus social networking platform.
 
-## Features
+---
 
-- ✅ **Browser Push Notifications** - Works on Chrome, Firefox, Safari, Edge
-- ✅ **Polling-based** - Compatible with your existing architecture (no WebSockets needed)
-- ✅ **Multilingual** - Full English & Arabic support
-- ✅ **User Preferences** - Users can customize which notifications they receive
-- ✅ **Privacy-focused** - No external services, all self-hosted
-- ✅ **Mobile-friendly** - Works on mobile browsers too
-- ✅ **PWA-ready** - Can be installed as a Progressive Web App
+## Table of Contents
 
-## What Was Implemented
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Setup & Configuration](#setup--configuration)
+4. [VAPID Keys](#vapid-keys)
+5. [Service Worker](#service-worker)
+6. [Frontend Implementation](#frontend-implementation)
+7. [Backend Implementation](#backend-implementation)
+8. [Notification Types](#notification-types)
+9. [User Preferences](#user-preferences)
+10. [Testing](#testing)
+11. [Troubleshooting](#troubleshooting)
 
-### Backend (Laravel)
+---
 
-1. **Models**
-   - `PushSubscription` - Stores user's push subscription data
+## Overview
 
-2. **Services**
-   - `PushNotificationService` - Handles sending push notifications via Web Push API
+Nexus implements web push notifications using the Web Push API and VAPID (Voluntary Application Server Identification) for secure push message delivery.
 
-3. **Controllers**
-   - `PushNotificationController` - API endpoints for subscription management
+### Features
 
-4. **Database**
-   - Migration for `push_subscriptions` table
-   - VAPID keys stored in `.env`
+-  Browser-based push notifications
+-  No native app required
+-  Works even when browser is closed
+-  Cross-platform (Desktop, Mobile)
+-  User-controlled preferences
+-  Secure VAPID authentication
 
-5. **Routes**
-   - `/api/push/vapid-key` - Get VAPID public key
-   - `/api/push/subscribe` - Subscribe to push notifications
-   - `/api/push/settings` - Get/update notification preferences
-   - `/api/push/unsubscribe` - Unsubscribe from push notifications
-   - `/api/push/test` - Send test notification
+### Supported Browsers
 
-### Frontend (JavaScript)
+- **Chrome** (50+): Windows, Mac, Linux, Android
+- **Firefox** (44+): Windows, Mac, Linux, Android
+- **Safari** (16+): iOS, Mac
+- **Edge** (17+): Windows, Mac
+- **Opera** (37+): Windows, Mac, Linux
 
-1. **Service Worker** (`/sw.js`)
-   - Handles incoming push notifications
-   - Shows notifications to users
-   - Handles notification clicks
+---
 
-2. **Push Notification Manager** (`resources/js/push-notifications.js`)
-   - Manages subscription lifecycle
-   - Polls for new notifications
-   - Handles user preferences
-   - Fully translated (EN/AR)
+## Architecture
 
-3. **UI Component** (`resources/views/partials/push-notification-settings.blade.php`)
-   - Modal for enabling/disabling notifications
-   - Toggle switches for notification types
-   - Test notification button
+### Push Notification Flow
 
-## How to Use
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Push Notification Flow                        │
+└─────────────────────────────────────────────────────────────────┘
 
-### For End Users
-
-1. **Enable Notifications**
-   - Click the bell icon in the navigation bar
-   - Click "Enable Push Notifications"
-   - Allow browser permission when prompted
-
-2. **Customize Settings**
-   - Open notification settings
-   - Toggle which types of notifications you want to receive:
-     - Likes on your posts
-     - Comments on your posts
-     - New followers
-     - New messages
-     - Mentions
-
-3. **Test It**
-   - Click "Test Notification" in settings
-   - You should receive a browser notification
-
-### For Developers
-
-#### Setup (Already Done)
-
-1. VAPID keys are generated and stored in `.env`
-2. Migration has been run
-3. Service worker is deployed to `/sw.js`
-
-#### Sending Push Notifications
-
-```php
-use App\Services\PushNotificationService;
-use App\Models\User;
-
-$pushService = app(PushNotificationService::class);
-
-// Send to a specific user
-$pushService->sendToUser(
-    $user,
-    'New like on your post',
-    'John liked your photo',
-    route('posts.show', $post),
-    ['type' => 'likes']
-);
-
-// Send to multiple users
-$pushService->sendToUsers(
-    [$user1, $user2],
-    'Trending now',
-    'Your post is trending!',
-    route('posts.show', $post)
-);
-
-// Send to all subscribers
-$pushService->sendToAll(
-    'Platform Update',
-    'New features available!',
-    route('home')
-);
+┌──────────────┐
+│   User       │
+│   Enables    │
+│   Push       │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Browser    │
+│   Requests   │
+│   Permission │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   User       │
+│   Grants     │
+│   Permission │
+└──────┬───────┘
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│  Frontend: Subscribe to Push            │
+│  ┌───────────────────────────────────┐  │
+│  │ 1. Get VAPID public key           │  │
+│  │ 2. Register service worker        │  │
+│  │ 3. Create push subscription       │  │
+│  │ 4. Send subscription to server    │  │
+│  └───────────────────────────────────┘  │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────┐
+│  Backend: Store Subscription            │
+│  ┌───────────────────────────────────┐  │
+│  │ 1. Validate subscription          │  │
+│  │ 2. Store in push_subscriptions    │  │
+│  │ 3. Link to user account           │  │
+│  └───────────────────────────────────┘  │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌──────────────┐
+│   Event      │
+│   Occurs     │
+│   (Like,     │
+│   Message,   │
+│   etc.)      │
+└──────┬───────┘
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│  Backend: Send Push Notification        │
+│  ┌───────────────────────────────────┐  │
+│  │ 1. Get user's subscriptions       │  │
+│  │ 2. Create notification payload    │  │
+│  │ 3. Encrypt with VAPID keys        │  │
+│  │ 4. Send to push service           │  │
+│  └───────────────────────────────────┘  │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌──────────────┐
+│   Push       │
+│   Service    │
+│   (FCM,      │
+│   etc.)      │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Browser    │
+│   Receives   │
+│   Push       │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Service    │
+│   Worker     │
+│   Shows      │
+│   Notification│
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   User       │
+│   Sees       │
+│   Notification│
+└──────────────┘
 ```
 
-#### Integration with Existing Notifications
+### Components
 
-Use the `SendsPushNotifications` trait:
-
-```php
-use App\Traits\SendsPushNotifications;
-
-class NotificationService
-{
-    use SendsPushNotifications;
-    
-    public function createNotification($user, $type, $data)
-    {
-        $notification = Notification::create([...]);
-        
-        // Automatically send push notification
-        $this->sendPushNotification($notification);
-    }
-}
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Push Notification Components                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Frontend:                                                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │ push-notifica-  │  │  Service Worker │  │  Permission     │ │
+│  │ tions.js        │  │  (sw.js)        │  │  Request        │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+│                                                                  │
+│  Backend:                                                        │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │ PushNotification│  │  PushNotification│ │  VAPID Keys      │ │
+│  │ Controller      │  │  Service         │  │  (Config)       │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+│                                                                  │
+│  Database:                                                       │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  push_subscriptions table                                │   │
+│  │  - user_id                                               │   │
+│  │  - endpoint (push service URL)                           │   │
+│  │  - p256dh (public key)                                   │   │
+│  │  - auth (secret)                                         │   │
+│  │  - content_encoding                                      │   │
+│  │  - settings (preferences)                                │   │
+│  │  - last_used_at                                          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-## Configuration
+---
 
-### Environment Variables
+## Setup & Configuration
+
+### 1. Generate VAPID Keys
+
+```bash
+php artisan push:vapid-keys
+```
+
+This creates a key pair and updates your `.env` file:
 
 ```env
 VAPID_PUBLIC_KEY=your_public_key_here
 VAPID_PRIVATE_KEY=your_private_key_here
-VAPID_SUBJECT=mailto:noreply@nexus.com
 ```
 
-### Generate New VAPID Keys
+### 2. Configure Environment
 
-If you need to regenerate keys:
+Add to `.env`:
+
+```env
+# Push Notifications
+VAPID_PUBLIC_KEY=BKxN...
+VAPID_PRIVATE_KEY=abc123...
+VAPID_SUBJECT=mailto:admin@your-domain.com
+```
+
+### 3. Run Migrations
 
 ```bash
-php artisan push:vapid-generate
+php artisan migrate
 ```
 
-Then update your `.env` file and run:
+This creates the `push_subscriptions` table.
 
-```bash
-php artisan config:clear
+### 4. Publish Service Worker
+
+The service worker is located at `public/sw.js` and is automatically available.
+
+---
+
+## VAPID Keys
+
+### What are VAPID Keys?
+
+VAPID (Voluntary Application Server Identification) is a security mechanism that identifies your application to push services.
+
+### Key Components
+
+- **Public Key**: Shared with clients for subscription (Stored in: `.env`, frontend)
+- **Private Key**: Used to sign push requests (Stored in: `.env` - secret)
+- **Subject**: Contact email for push service (Stored in: `.env`)
+
+### Key Generation
+
+```php
+// app/Console/Commands/GenerateVapidKeysCommand.php
+public function handle()
+{
+    $keyPair = \Minishlink\WebPush\VAPID::createVapidKeys();
+    
+    $this->info('Public Key: ' . $keyPair['publicKey']);
+    $this->info('Private Key: ' . $keyPair['privateKey']);
+    
+    // Update .env file
+    $this->updateEnvFile([
+        'VAPID_PUBLIC_KEY' => $keyPair['publicKey'],
+        'VAPID_PRIVATE_KEY' => $keyPair['privateKey'],
+    ]);
+}
 ```
+
+---
+
+## Service Worker
+
+### Service Worker File
+
+Location: `public/sw.js`
+
+```javascript
+// public/sw.js
+self.addEventListener('push', function(event) {
+    if (event.data) {
+        const data = event.data.json();
+        
+        const options = {
+            body: data.body,
+            icon: data.icon || '/favicon.ico',
+            badge: '/favicon.ico',
+            vibrate: [100, 50, 100],
+            data: {
+                url: data.url,
+                type: data.type
+            },
+            actions: [
+                {
+                    action: 'open',
+                    title: 'Open'
+                },
+                {
+                    action: 'close',
+                    title: 'Close'
+                }
+            ]
+        };
+        
+        event.waitUntil(
+            self.registration.showNotification(data.title, options)
+        );
+    }
+});
+
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+    
+    if (event.action === 'open') {
+        event.waitUntil(
+            clients.openWindow(event.notification.data.url)
+        );
+    }
+});
+```
+
+### Service Worker Registration
+
+```javascript
+// resources/js/push-notifications.js
+async function registerServiceWorker() {
+    const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/'
+    });
+    return registration;
+}
+```
+
+---
+
+## Frontend Implementation
+
+### Push Notification JavaScript Module
+
+Location: `resources/js/push-notifications.js`
+
+```javascript
+/**
+ * Push Notification Manager - Nexus
+ * Handles browser push notifications with polling-based updates
+ */
+
+class PushNotificationManager {
+    constructor() {
+        this.registration = null;
+        this.subscription = null;
+        this.vapidPublicKey = null;
+        this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+        this.permission = Notification.permission;
+        this.pollingInterval = null;
+        this.pollingDelay = 30000; // 30 seconds
+    }
+
+    /**
+     * Initialize push notifications
+     */
+    async init() {
+        // Check if running on HTTPS or localhost
+        const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+
+        if (!isSecure) {
+            console.warn('[Push] Push notifications require HTTPS');
+            return false;
+        }
+
+        // Get VAPID key from server
+        const vapidLoaded = await this.getVapidKey();
+        if (!vapidLoaded) {
+            return false;
+        }
+
+        // Register service worker
+        const swRegistered = await this.registerServiceWorker();
+        if (!swRegistered) {
+            return false;
+        }
+
+        // Get existing subscription
+        await this.getSubscription();
+
+        // Start polling for new notifications if subscribed
+        if (this.subscription) {
+            this.startPolling();
+        }
+
+        return true;
+    }
+
+    /**
+     * Get VAPID public key from server
+     */
+    async getVapidKey() {
+        try {
+            const response = await fetch('/api/push/vapid-key');
+            const data = await response.json();
+
+            if (data.configured && data.public_key) {
+                this.vapidPublicKey = data.public_key;
+                return true;
+            }
+
+            console.warn('[Push] Push notifications not configured on server');
+            return false;
+        } catch (error) {
+            console.error('[Push] Error getting VAPID key:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Register service worker
+     */
+    async registerServiceWorker() {
+        try {
+            this.registration = await navigator.serviceWorker.register('/sw.js', {
+                scope: '/',
+            });
+            return true;
+        } catch (error) {
+            console.error('[Push] Service Worker registration failed:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Request permission and subscribe
+     */
+    async requestPermission() {
+        if (this.permission !== 'granted') {
+            const permission = await Notification.requestPermission();
+            this.permission = permission;
+
+            if (permission !== 'granted') {
+                return false;
+            }
+        }
+
+        // Subscribe to push notifications
+        try {
+            const subscription = await this.registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey),
+            });
+
+            // Send subscription to server
+            await this.saveSubscription(subscription);
+            this.subscription = subscription;
+
+            // Start polling
+            this.startPolling();
+
+            return true;
+        } catch (error) {
+            console.error('[Push] Subscription error:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Save subscription to server
+     */
+    async saveSubscription(subscription) {
+        try {
+            const response = await fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': this.getCsrfToken(),
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    endpoint: subscription.endpoint,
+                    p256dh: this.arrayBufferToBase64(subscription.getKey('p256dh')),
+                    auth: this.arrayBufferToBase64(subscription.getKey('auth')),
+                    content_encoding: 'aesgcm',
+                }),
+            });
+
+            return await response.json();
+        } catch (error) {
+            console.error('[Push] Error saving subscription:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Unsubscribe from push notifications
+     */
+    async unsubscribe() {
+        if (this.subscription) {
+            await this.subscription.unsubscribe();
+
+            // Remove from server
+            await fetch('/api/push/unsubscribe', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': this.getCsrfToken(),
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    endpoint: this.subscription.endpoint,
+                }),
+            });
+
+            this.subscription = null;
+            this.stopPolling();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Convert base64 to Uint8Array
+     */
+    urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        return new Uint8Array(rawData.length);
+    }
+
+    /**
+     * Convert ArrayBuffer to Base64
+     */
+    arrayBufferToBase64(buffer) {
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+    }
+
+    /**
+     * Get CSRF token
+     */
+    getCsrfToken() {
+        const token = document.querySelector('meta[name="csrf-token"]');
+        return token ? token.getAttribute('content') : '';
+    }
+}
+
+// Auto-initialize
+document.addEventListener('DOMContentLoaded', async () => {
+    const pushManager = new PushNotificationManager();
+    window.pushManager = pushManager;
+    await pushManager.init();
+});
+```
+
+### Initialization in Blade Template
+
+```blade
+{{-- resources/views/partials/push-notifications.blade.php --}}
+@if(auth()->check())
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Check if user has enabled push
+        const pushEnabled = @json(auth()->user()->pushSubscriptions()->exists());
+        
+        if (!pushEnabled) {
+            // Show opt-in prompt
+            showPushOptIn();
+        }
+    });
+
+    function showPushOptIn() {
+        // Show toast/modal asking user to enable push
+        const toast = document.getElementById('push-opt-in');
+        toast.classList.remove('hidden');
+    }
+
+    async function enablePush() {
+        const success = await window.PushNotifications.initialize();
+        if (success) {
+            document.getElementById('push-opt-in').classList.add('hidden');
+            showToast('Push notifications enabled!');
+        }
+    }
+
+    async function disablePush() {
+        await window.PushNotifications.unsubscribe();
+        showToast('Push notifications disabled');
+    }
+</script>
+@endif
+```
+
+---
+
+## Backend Implementation
+
+### Push Notification Service
+
+Location: `app/Services/PushNotificationService.php`
+
+```php
+<?php
+
+namespace App\Services;
+
+use App\Models\PushSubscription;
+use App\Models\User;
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
+
+class PushNotificationService
+{
+    protected WebPush $webPush;
+    protected string $vapidPublicKey;
+    protected string $vapidPrivateKey;
+    protected string $vapidSubject;
+
+    public function __construct()
+    {
+        $this->vapidPublicKey = config('services.vapid.public_key');
+        $this->vapidPrivateKey = config('services.vapid.private_key');
+        $this->vapidSubject = config('services.vapid.subject');
+
+        // Check for required extensions
+        if (!extension_loaded('gmp') && !extension_loaded('bcmath')) {
+            Log::warning('Push notifications: BCMath or GMP extension required for VAPID key operations');
+        }
+
+        $this->webPush = new WebPush([
+            'VAPID' => [
+                'subject' => $this->vapidSubject,
+                'publicKey' => $this->vapidPublicKey,
+                'privateKey' => $this->vapidPrivateKey,
+            ],
+        ]);
+    }
+
+    /**
+     * Send a push notification to a user.
+     */
+    public function sendToUser(User $user, string $title, string $body, string $url = '/', array $data = []): bool
+    {
+        $subscriptions = $user->pushSubscriptions()->whereHas('user')->get();
+
+        if ($subscriptions->isEmpty()) {
+            return false;
+        }
+
+        $payload = $this->buildPayload($title, $body, $url, $data);
+        $sent = false;
+
+        foreach ($subscriptions as $subscription) {
+            if (!$subscription->isValid()) {
+                continue;
+            }
+
+            // Check user preferences
+            if (isset($data['type']) && !$subscription->getSetting($data['type'], true)) {
+                continue;
+            }
+
+            // Create subscription (v10 API - individual parameters)
+            $pushSubscription = new Subscription(
+                $subscription->endpoint,
+                $subscription->p256dh,
+                $subscription->auth,
+                $subscription->content_encoding
+            );
+
+            $this->webPush->queueNotification($pushSubscription, $payload);
+            $sent = true;
+        }
+
+        // Send all queued notifications
+        if ($sent) {
+            $this->processQueue();
+        }
+
+        return $sent;
+    }
+
+    /**
+     * Send like notification
+     */
+    public function sendLikeNotification(User $recipient, User $liker, int $postId): void
+    {
+        $this->sendToUser($recipient, [
+            'title' => 'New Like',
+            'body' => "{$liker->name} liked your post",
+            'url' => route('posts.show', ['slug' => $postId]),
+            'type' => 'like',
+            'icon' => $liker->avatar_url,
+        ]);
+    }
+
+    /**
+     * Send comment notification
+     */
+    public function sendCommentNotification(User $recipient, User $commenter, int $postId): void
+    {
+        $this->sendToUser($recipient, [
+            'title' => 'New Comment',
+            'body' => "{$commenter->name} commented on your post",
+            'url' => route('posts.show', ['slug' => $postId]),
+            'type' => 'comment',
+            'icon' => $commenter->avatar_url,
+        ]);
+    }
+
+    /**
+     * Send follow notification
+     */
+    public function sendFollowNotification(User $recipient, User $follower): void
+    {
+        $this->sendToUser($recipient, [
+            'title' => 'New Follower',
+            'body' => "{$follower->name} started following you",
+            'url' => route('users.show', $follower->username),
+            'type' => 'follow',
+            'icon' => $follower->avatar_url,
+        ]);
+    }
+
+    /**
+     * Send message notification
+     */
+    public function sendMessageNotification(User $recipient, User $sender, int $conversationId): void
+    {
+        $this->sendToUser($recipient, [
+            'title' => 'New Message',
+            'body' => "{$sender->name} sent you a message",
+            'url' => route('chat.show', $conversationId),
+            'type' => 'message',
+            'icon' => $sender->avatar_url,
+        ]);
+    }
+}
+```
+
+### Push Notification Controller
+
+Location: `app/Controllers/PushNotificationController.php`
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\PushSubscription;
+use Illuminate\Http\Request;
+
+class PushNotificationController extends Controller
+{
+    /**
+     * Get VAPID public key
+     */
+    public function getVapidKey()
+    {
+        return response()->json([
+            'public_key' => config('services.vapid.public_key'),
+            'configured' => !empty(config('services.vapid.public_key')),
+        ]);
+    }
+
+    /**
+     * Store push subscription
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'endpoint' => 'required|string',
+            'p256dh' => 'required|string',
+            'auth' => 'required|string',
+            'content_encoding' => 'nullable|string|in:aesgcm,aes128gcm',
+        ]);
+
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated',
+            ], 401);
+        }
+
+        // Check if subscription already exists
+        $subscription = PushSubscription::where('user_id', $user->id)
+            ->where('endpoint', $validated['endpoint'])
+            ->first();
+
+        if ($subscription) {
+            // Update existing subscription
+            $subscription->update([
+                'p256dh' => $validated['p256dh'],
+                'auth' => $validated['auth'],
+                'content_encoding' => $validated['content_encoding'] ?? 'aesgcm',
+                'last_used_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Push subscription updated',
+            ]);
+        }
+
+        // Create new subscription
+        PushSubscription::create([
+            'user_id' => $user->id,
+            'endpoint' => $validated['endpoint'],
+            'p256dh' => $validated['p256dh'],
+            'auth' => $validated['auth'],
+            'content_encoding' => $validated['content_encoding'] ?? 'aesgcm',
+            'settings' => PushSubscription::getDefaultSettings(),
+            'last_used_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Push subscription created',
+        ], 201);
+    }
+
+    /**
+     * Update push settings
+     */
+    public function updateSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'enabled' => 'boolean',
+            'notifications' => 'array',
+        ]);
+
+        // Store user preferences
+        auth()->user()->update([
+            'push_notifications_enabled' => $validated['enabled'] ?? true,
+            'push_notification_preferences' => $validated['notifications'] ?? [],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Push settings updated',
+        ]);
+    }
+
+    /**
+     * Get push settings
+     */
+    public function getSettings()
+    {
+        $user = auth()->user();
+
+        return response()->json([
+            'enabled' => $user->push_notifications_enabled ?? true,
+            'notifications' => $user->push_notification_preferences ?? [
+                'messages' => true,
+                'likes' => true,
+                'comments' => true,
+                'follows' => true,
+            ],
+        ]);
+    }
+
+    /**
+     * Unsubscribe from push
+     */
+    public function destroy()
+    {
+        auth()->user()->pushSubscriptions()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Push subscription removed',
+        ]);
+    }
+
+    /**
+     * Send test notification (for development).
+     */
+    public function test()
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated',
+            ], 401);
+        }
+
+        $pushService = app(\App\Services\PushNotificationService::class);
+
+        if (!$pushService) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Push notification service not available. Please install BCMath or GMP PHP extension.',
+            ], 503);
+        }
+
+        try {
+            $sent = $pushService->sendToUser(
+                $user,
+                'Test Notification',
+                'Push notifications are working!',
+                url('/notifications'),
+                ['type' => 'test']
+            );
+
+            if ($sent) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Test notification sent',
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No push subscription found',
+            ], 404);
+        } catch (\Exception $e) {
+            \Log::error('Push notification test failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+}
+```
+
+---
+
+## Notification Types
+
+### Supported Notification Types
+
+- `like`: Someone likes your post (See payload example below)
+- `comment`: Someone comments on your post (See payload example below)
+- `follow`: Someone follows you (See payload example below)
+- `message`: New message received (See payload example below)
+- `mention`: Someone mentions you (See payload example below)
+- `story_reaction`: Story reaction (See payload example below)
+
+### Notification Payload Structure
+
+```json
+{
+    "title": "Notification Title",
+    "body": "Notification body text",
+    "url": "https://your-domain.com/path",
+    "type": "notification_type",
+    "icon": "https://your-domain.com/avatar.jpg",
+    "badge": "https://your-domain.com/favicon.ico",
+    "data": {
+        "notification_id": 123,
+        "related_id": 456,
+        "related_type": "App\\Models\\Post"
+    }
+}
+```
+
+### Example Payloads
+
+**Like Notification:**
+```json
+{
+    "title": "New Like",
+    "body": "John Doe liked your post",
+    "url": "https://your-domain.com/posts/abc123",
+    "type": "like",
+    "icon": "https://your-domain.com/avatars/john.jpg"
+}
+```
+
+**Message Notification:**
+```json
+{
+    "title": "New Message",
+    "body": "Jane Smith sent you a message",
+    "url": "https://your-domain.com/chat/123",
+    "type": "message",
+    "icon": "https://your-domain.com/avatars/jane.jpg"
+}
+```
+
+---
+
+## User Preferences
+
+### Preference Settings
+
+Users can control which notifications they receive:
+
+```javascript
+const preferences = {
+    enabled: true,
+    notifications: {
+        messages: true,
+        likes: true,
+        comments: true,
+        follows: true,
+        mentions: false,
+        story_reactions: false
+    }
+};
+```
+
+### Settings UI
+
+```blade
+{{-- resources/views/partials/push-settings.blade.php --}}
+<div class="push-settings">
+    <h3>Push Notifications</h3>
+    
+    <label>
+        <input type="checkbox" id="push-enabled" checked>
+        Enable Push Notifications
+    </label>
+
+    <div class="notification-types">
+        <label>
+            <input type="checkbox" name="messages" checked>
+            Messages
+        </label>
+        <label>
+            <input type="checkbox" name="likes" checked>
+            Likes
+        </label>
+        <label>
+            <input type="checkbox" name="comments" checked>
+            Comments
+        </label>
+        <label>
+            <input type="checkbox" name="follows" checked>
+            New Followers
+        </label>
+    </div>
+
+    <button onclick="savePushSettings()">Save Settings</button>
+    <button onclick="testPushNotification()">Send Test</button>
+</div>
+
+<script>
+async function savePushSettings() {
+    const enabled = document.getElementById('push-enabled').checked;
+    const notifications = {
+        messages: document.querySelector('[name="messages"]').checked,
+        likes: document.querySelector('[name="likes"]').checked,
+        comments: document.querySelector('[name="comments"]').checked,
+        follows: document.querySelector('[name="follows"]').checked,
+    };
+
+    const response = await fetch('/api/push/settings', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': getCsrfToken()
+        },
+        body: JSON.stringify({ enabled, notifications })
+    });
+
+    if (response.ok) {
+        showToast('Settings saved!');
+    }
+}
+
+async function testPushNotification() {
+    const response = await fetch('/api/push/test', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': getCsrfToken()
+        }
+    });
+
+    if (response.ok) {
+        showToast('Test notification sent!');
+    }
+}
+</script>
+```
+
+---
 
 ## Testing
 
 ### Manual Testing
 
-1. **Subscribe**
-   ```javascript
-   // In browser console
-   await window.pushManager.requestPermission()
-   ```
+1. **Enable Push:**
+```javascript
+await window.PushNotifications.initialize();
+```
 
-2. **Send Test Notification**
-   ```javascript
-   // In browser console
-   await window.pushManager.test()
-   ```
-
-3. **Check Subscription**
-   ```javascript
-   // In browser console
-   window.pushManager.isEnabled()
-   ```
-
-### API Testing
-
+2. **Send Test Notification:**
 ```bash
-# Get VAPID key
-curl http://localhost:8000/api/push/vapid-key
-
-# Get settings (requires auth)
-curl http://localhost:8000/api/push/settings \
-  -H "X-CSRF-TOKEN: {token}" \
-  -H "Cookie: {session_cookie}"
-
-# Test notification
-curl -X POST http://localhost:8000/api/push/test \
-  -H "X-CSRF-TOKEN: {token}" \
-  -H "Cookie: {session_cookie}"
+curl -X POST http://localhost/api/push/test \
+  -H "X-CSRF-TOKEN: $(php artisan token:generate)" \
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-## Troubleshooting
-
-### Notifications Not Showing
-
-1. **Check browser support**
-   ```javascript
-   console.log('Service Worker' in navigator)
-   console.log('PushManager' in window)
-   ```
-
-2. **Check permission**
-   ```javascript
-   console.log(Notification.permission)
-   // Should be 'granted'
-   ```
-
-3. **Check subscription**
-   ```javascript
-   const reg = await navigator.serviceWorker.ready
-   const sub = await reg.pushManager.getSubscription()
-   console.log(sub)
-   // Should not be null
-   ```
-
-### Service Worker Issues
-
-1. **Clear cache**
-   ```javascript
-   // In browser console
-   await caches.keys().then(keys => 
-     Promise.all(keys.map(k => caches.delete(k)))
-   )
-   ```
-
-2. **Re-register**
-   ```javascript
-   await navigator.serviceWorker.register('/sw.js', {scope: '/'})
-   ```
-
-3. **Check status**
-   ```javascript
-   const reg = await navigator.serviceWorker.getRegistration()
-   console.log('Active:', reg?.active?.state)
-   ```
-
-## Browser Support
-
-| Browser | Version | Support |
-|---------|---------|---------|
-| Chrome | 50+ | ✅ Full |
-| Firefox | 44+ | ✅ Full |
-| Safari | 16+ | ✅ Full |
-| Edge | 17+ | ✅ Full |
-| Opera | 37+ | ✅ Full |
-| Samsung Internet | 5.0+ | ✅ Full |
-
-## Security
-
-- VAPID keys are used for authentication
-- Private key never leaves the server
-- All subscriptions are tied to authenticated users
-- Users can unsubscribe anytime
-- No third-party services involved
-
-## Performance
-
-- Polling interval: 30 seconds (configurable)
-- Notifications are batched
-- Service worker handles notifications even when page is closed
-- Minimal impact on server resources
-
-## Future Enhancements
-
-- [ ] Badge API for unread count
-- [ ] Action buttons on notifications
-- [ ] Rich notifications with images
-- [ ] Notification analytics
-- [ ] Scheduled notifications
-- [ ] Notification grouping
-
-## Files Created
-
-```
-app/
-├── Console/Commands/
-│   └── GenerateVapidKeysCommand.php
-├── Http/Controllers/
-│   └── PushNotificationController.php
-├── Models/
-│   └── PushSubscription.php
-├── Services/
-│   └── PushNotificationService.php
-└── Traits/
-    └── SendsPushNotifications.php
-
-database/
-├── migrations/
-│   ├── 2026_03_17_000000_create_push_subscriptions_table.php
-│   └── 2026_03_17_042304_fix_push_subscriptions_indexes.php
-
-public/
-└── sw.js
-
-resources/
-├── js/
-│   └── push-notifications.js
-├── lang/en/
-│   ├── messages.php (updated)
-│   └── notifications.php (updated)
-├── lang/ar/
-│   ├── messages.php (updated)
-│   └── notifications.php (updated)
-└── views/partials/
-    └── push-notification-settings.blade.php
-
-routes/
-└── api.php (updated)
-
-config/
-└── services.php (updated)
-
-.env (updated)
+3. **Check Subscription:**
+```bash
+php artisan tinker
+>>> App\Models\User::find(1)->pushSubscriptions;
 ```
 
-## Support
+### Automated Testing
 
-For issues or questions:
-1. Check the troubleshooting section
-2. Review browser console logs
-3. Check server logs: `storage/logs/laravel.log`
+```php
+// tests/Feature/PushNotificationTest.php
+public function test_push_notification_subscription()
+{
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)
+        ->postJson('/api/push/subscribe', [
+            'endpoint' => 'https://fcm.googleapis.com/...',
+            'p256dh' => 'public_key',
+            'auth' => 'auth_token',
+        ]);
+
+    $response->assertJson(['success' => true]);
+    $this->assertDatabaseHas('push_subscriptions', [
+        'user_id' => $user->id,
+    ]);
+}
+
+public function test_push_notification_sending()
+{
+    $user = User::factory()->create();
+    $liker = User::factory()->create();
+
+    // Create subscription
+    PushSubscription::create([
+        'user_id' => $user->id,
+        'content' => 'endpoint',
+        'p256dh' => 'public_key',
+        'auth' => 'auth_token',
+    ]);
+
+    // Send like notification
+    app(PushNotificationService::class)
+        ->sendLikeNotification($user, $liker, 1);
+
+    // Assert notification was queued (mock WebPush)
+    // ...
+}
+```
 
 ---
 
-**Last Updated:** March 17, 2026
-**Version:** 1.0.0
+## Troubleshooting
+
+### Common Issues
+
+#### 1. Push Not Supported
+
+**Error:** `PushManager is not defined`
+
+**Solution:**
+- Check browser supports push notifications
+- Use HTTPS (required for production)
+- Check service worker registration
+
+#### 2. Permission Denied
+
+**Error:** User denied permission
+
+**Solution:**
+- Clear browser permissions
+- Reset in browser settings
+- Re-request permission
+
+#### 3. Subscription Expired
+
+**Error:** `Subscription expired`
+
+**Solution:**
+- Remove expired subscription from database
+- Re-subscribe user
+- Handle in service:
+```php
+if ($report->isSubscriptionExpired()) {
+    $subscription->delete();
+}
+```
+
+#### 4. Notifications Not Showing
+
+**Error:** Push sent but no notification
+
+**Solution:**
+- Check browser notification settings
+- Check service worker is registered
+- Check notification permissions
+- Verify payload format
+
+#### 5. VAPID Key Error
+
+**Error:** `Invalid VAPID key`
+
+**Solution:**
+- Regenerate VAPID keys
+- Ensure keys are in `.env`
+- Clear config cache: `php artisan config:clear`
+
+---
+
+## Best Practices
+
+### 1. User Experience
+
+-  Ask for permission at appropriate time
+-  Explain value of notifications
+-  Allow easy opt-out
+-  Respect user
+-  Don't spam
+
+### 2. Performance
+
+-  Batch notifications
+-  Use queue for sending
+-  Clean up expired subscriptions
+-  Limit notification frequency
+
+### 3. Security
+
+-  Use HTTPS
+-  Protect VAPID private key
+-  Validate subscriptions
+-  Rate limit test endpoint
+
+---
+
+<div align="center">
+
+**Nexus - Push Notifications**
+
+Last Updated: March 27, 2026 | Laravel 12.x | PHP 8.2+
+
+</div>

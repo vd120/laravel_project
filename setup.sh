@@ -7,15 +7,6 @@
 
 set -e  # Exit on error
 
-# Colors
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[0;33m'
-CYAN='\033[0;36m'
-BLUE='\033[0;34m'
-BOLD='\033[1m'
-NC='\033[0m'
-
 # Global variables
 DB_CONNECTION=""
 DB_NAME=""
@@ -30,30 +21,28 @@ DB_PORT="3306"
 
 print_header() {
     echo ""
-    echo -e "${CYAN}╔════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║${NC}     ${BOLD}Nexus - Complete Setup Script${NC}                ${CYAN}║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════╝${NC}"
+    echo "Nexus - Complete Setup Script"
     echo ""
 }
 
 print_status() {
-    echo -e "  ${CYAN}●${NC} $1"
+    echo "  ● $1"
 }
 
 print_success() {
-    echo -e "  ${GREEN}✓${NC} $1"
+    echo "  ✓ $1"
 }
 
 print_error() {
-    echo -e "  ${RED}✗${NC} $1"
+    echo "  ✗ $1"
 }
 
 print_warning() {
-    echo -e "  ${YELLOW}⚠${NC} $1"
+    echo "  ⚠ $1"
 }
 
 print_info() {
-    echo -e "  ${BLUE}ℹ${NC} $1"
+    echo "  ℹ $1"
 }
 
 cleanup_and_exit() {
@@ -61,7 +50,7 @@ cleanup_and_exit() {
     if [ $exit_code -ne 0 ]; then
         echo ""
         print_error "Setup failed! Please check the errors above."
-        echo -e "  ${YELLOW}Troubleshooting tips:${NC}"
+        echo "  Troubleshooting tips:"
         echo "    1. Check if all requirements are installed"
         echo "    2. Verify database credentials are correct"
         echo "    3. Ensure PHP extensions are enabled"
@@ -80,7 +69,7 @@ trap 'cleanup_and_exit $?' ERR
 
 check_requirements() {
     print_header
-    echo -e "${BOLD}Step 1: Checking System Requirements${NC}"
+    echo "Step 1: Checking System Requirements"
     echo "────────────────────────────────────────"
 
     # Check PHP
@@ -93,12 +82,49 @@ check_requirements() {
 
         if [ "$PHP_MAJOR" -lt 8 ] || { [ "$PHP_MAJOR" -eq 8 ] && [ "$PHP_MINOR" -lt 2 ]; }; then
             print_error "PHP 8.2 or higher is required! You have $PHP_VERSION"
-            exit 1
+            echo -n "  Would you like to install PHP 8.3? (y/n) [n]: "
+            read -r INSTALL_PHP
+            if [ "$INSTALL_PHP" = "y" ] || [ "$INSTALL_PHP" = "Y" ]; then
+                print_status "Installing PHP 8.3..."
+                if command -v apt &> /dev/null; then
+                    sudo add-apt-repository ppa:ondrej/php -y
+                    sudo apt update
+                    sudo apt install php8.3 php8.3-cli php8.3-mbstring php8.3-xml php8.3-curl php8.3-zip php8.3-sqlite3 php8.3-mysql php8.3-bcmath php8.3-gd -y
+                    print_success "PHP 8.3 installed"
+                elif command -v brew &> /dev/null; then
+                    brew install php@8.3
+                    print_success "PHP 8.3 installed"
+                else
+                    print_error "Automatic installation not supported for your system"
+                    echo "  Please install manually: https://www.php.net/manual/en/install.php"
+                    exit 1
+                fi
+            else
+                exit 1
+            fi
         fi
     else
         print_error "PHP is not installed!"
-        echo -e "  ${YELLOW}Install with:${NC} sudo apt install php php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 php-mysql php-bcmath"
-        exit 1
+        echo -n "  Would you like to install PHP? (y/n) [n]: "
+        read -r INSTALL_PHP
+        if [ "$INSTALL_PHP" = "y" ] || [ "$INSTALL_PHP" = "Y" ]; then
+            print_status "Installing PHP..."
+            if command -v apt &> /dev/null; then
+                sudo apt update
+                sudo apt install php php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 php-mysql php-bcmath php-gd -y
+                print_success "PHP installed"
+            elif command -v brew &> /dev/null; then
+                brew install php
+                print_success "PHP installed"
+            else
+                print_error "Automatic installation not supported for your system"
+                echo "  Please install manually: https://www.php.net/manual/en/install.php"
+                exit 1
+            fi
+        else
+            echo "  Install with: sudo apt install php php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 php-mysql php-bcmath"
+            exit 1
+        fi
     fi
 
     # Check required PHP extensions
@@ -119,7 +145,7 @@ check_requirements() {
     if [ ${#MISSING_EXTENSIONS[@]} -ne 0 ]; then
         echo ""
         print_error "Missing PHP extensions: ${MISSING_EXTENSIONS[*]}"
-        echo -e "  ${YELLOW}Install with:${NC} sudo apt install php-mbstring php-xml php-curl php-zip php-mysql php-bcmath"
+        echo "  Install with: sudo apt install php-mbstring php-xml php-curl php-zip php-mysql php-bcmath"
         exit 1
     fi
 
@@ -130,19 +156,44 @@ check_requirements() {
         print_success "Composer $COMPOSER_VERSION installed"
     else
         print_error "Composer is not installed!"
-        echo -e "  ${YELLOW}Install with:${NC} curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer"
-        exit 1
+        echo -n "  Would you like to install Composer? (y/n) [n]: "
+        read -r INSTALL_COMPOSER
+        if [ "$INSTALL_COMPOSER" = "y" ] || [ "$INSTALL_COMPOSER" = "Y" ]; then
+            print_status "Installing Composer..."
+            curl -sS https://getcomposer.org/installer | php
+            sudo mv composer.phar /usr/local/bin/composer
+            print_success "Composer installed"
+        else
+            echo "  Install with: curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer"
+            exit 1
+        fi
     fi
-
-    # Check Node.js
     print_status "Checking Node.js..."
     if command -v node &> /dev/null; then
         NODE_VERSION=$(node -v)
         print_success "Node.js $NODE_VERSION installed"
     else
         print_error "Node.js is not installed!"
-        echo -e "  ${YELLOW}Install with:${NC} curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - && sudo apt install -y nodejs"
-        exit 1
+        echo -n "  Would you like to install Node.js LTS? (y/n) [n]: "
+        read -r INSTALL_NODE
+        if [ "$INSTALL_NODE" = "y" ] || [ "$INSTALL_NODE" = "Y" ]; then
+            print_status "Installing Node.js LTS..."
+            if command -v apt &> /dev/null; then
+                curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+                sudo apt install -y nodejs
+                print_success "Node.js LTS installed"
+            elif command -v brew &> /dev/null; then
+                brew install node@20
+                print_success "Node.js LTS installed"
+            else
+                print_error "Automatic installation not supported for your system"
+                echo "  Please install manually: https://nodejs.org/"
+                exit 1
+            fi
+        else
+            echo "  Install with: curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - && sudo apt install -y nodejs"
+            exit 1
+        fi
     fi
 
     # Check npm
@@ -171,7 +222,7 @@ check_requirements() {
         print_success "unzip installed"
     else
         print_error "unzip is not installed!"
-        echo -e "  ${YELLOW}Install with:${NC} sudo apt install unzip"
+        echo "  Install with: sudo apt install unzip"
         exit 1
     fi
 
@@ -189,14 +240,14 @@ check_requirements() {
 
 install_dependencies() {
     echo ""
-    echo -e "${BOLD}Step 2: Installing PHP Dependencies${NC}"
+    echo "Step 2: Installing PHP Dependencies"
     echo "────────────────────────────────────────"
     print_status "Running composer install..."
     composer install --no-interaction --prefer-dist --optimize-autoloader
     print_success "PHP dependencies installed"
 
     echo ""
-    echo -e "${BOLD}Step 3: Installing JavaScript Dependencies${NC}"
+    echo "Step 3: Installing JavaScript Dependencies"
     echo "────────────────────────────────────────"
     print_status "Running npm install..."
     npm install
@@ -209,7 +260,7 @@ install_dependencies() {
 
 setup_environment() {
     echo ""
-    echo -e "${BOLD}Step 4: Setting Up Environment${NC}"
+    echo "Step 4: Setting Up Environment"
     echo "────────────────────────────────────────"
 
     # Create .env from .env.example
@@ -219,7 +270,7 @@ setup_environment() {
         print_success ".env file created"
     else
         print_status ".env file already exists"
-        echo -ne "  ${YELLOW}Overwrite existing .env? (y/n) [n]: ${NC}"
+        echo -n "  Overwrite existing .env? (y/n) [n]: "
         read -r OVERWRITE
         if [ "$OVERWRITE" = "y" ] || [ "$OVERWRITE" = "Y" ]; then
             cp .env.example .env
@@ -239,14 +290,14 @@ setup_environment() {
 
 configure_database() {
     echo ""
-    echo -e "${BOLD}Step 5: Database Configuration${NC}"
+    echo "Step 5: Database Configuration"
     echo "────────────────────────────────────────"
     echo ""
     echo "  Select database type:"
     echo "  1) SQLite (recommended for development/testing)"
     echo "  2) MySQL/MariaDB (recommended for production)"
     echo ""
-    echo -ne "  Enter choice [1-2]: "
+    echo -n "  Enter choice [1-2]: "
     read -r DB_CHOICE
 
     if [ "$DB_CHOICE" = "1" ]; then
@@ -327,7 +378,7 @@ setup_mysql() {
         print_status "Testing MySQL connection..."
         if ! mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER_ADMIN" -p"$DB_PASS_ADMIN" -e "SELECT 1;" &> /dev/null; then
             print_error "Cannot connect to MySQL with provided credentials!"
-            echo -e "  ${YELLOW}Please check:${NC}"
+            echo "  Please check:"
             echo "    1. MySQL server is running"
             echo "    2. Host and port are correct"
             echo "    3. Username and password are valid"
@@ -371,7 +422,7 @@ setup_mysql() {
         print_status "Testing MySQL connection..."
         if ! mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASS" -e "USE \`${DB_NAME}\`;" 2>&1; then
             print_error "Cannot connect to MySQL database!"
-            echo -e "  ${YELLOW}Please check:${NC}"
+            echo "  Please check:"
             echo "    1. MySQL server is running"
             echo "    2. Database '$DB_NAME' exists"
             echo "    3. Username and password are correct"
@@ -405,7 +456,7 @@ setup_mysql() {
 
 run_migrations() {
     echo ""
-    echo -e "${BOLD}Step 6: Running Database Migrations${NC}"
+    echo "Step 6: Running Database Migrations"
     echo "────────────────────────────────────────"
 
     print_status "Clearing configuration cache..."
@@ -418,7 +469,7 @@ run_migrations() {
     else
         print_error "Failed to run migrations"
         echo ""
-        echo -e "  ${YELLOW}Troubleshooting:${NC}"
+        echo "  Troubleshooting:"
         echo "    1. Check database credentials in .env"
         echo "    2. Ensure database exists and is accessible"
         echo "    3. Check storage/logs/laravel.log for errors"
@@ -434,7 +485,7 @@ run_migrations() {
 
 create_admin_user() {
     echo ""
-    echo -e "${BOLD}Step 7: Creating Admin User${NC}"
+    echo "Step 7: Creating Admin User"
     echo "────────────────────────────────────────"
 
     # Check if AdminUserSeeder exists
@@ -473,7 +524,7 @@ create_admin_user() {
 
 build_frontend() {
     echo ""
-    echo -e "${BOLD}Step 8: Building Frontend Assets${NC}"
+    echo "Step 8: Building Frontend Assets"
     echo "────────────────────────────────────────"
     print_status "Building assets with Vite..."
 
@@ -481,7 +532,7 @@ build_frontend() {
         print_success "Frontend assets built successfully"
     else
         print_error "Failed to build frontend assets"
-        echo -e "  ${YELLOW}Try running 'npm install' again and check for errors${NC}"
+        echo "  Try running 'npm install' again and check for errors"
         exit 1
     fi
 }
@@ -492,7 +543,7 @@ build_frontend() {
 
 setup_storage() {
     echo ""
-    echo -e "${BOLD}Step 9: Setting Up Storage${NC}"
+    echo "Step 9: Setting Up Storage"
     echo "────────────────────────────────────────"
 
     # Create storage link
@@ -519,7 +570,7 @@ setup_storage() {
 
 finalize_setup() {
     echo ""
-    echo -e "${BOLD}Step 10: Finalizing Setup${NC}"
+    echo "Step 10: Finalizing Setup"
     echo "────────────────────────────────────────"
 
     print_status "Clearing all caches..."
@@ -547,47 +598,43 @@ finalize_setup() {
 
 print_summary() {
     echo ""
-    echo "════════════════════════════════════════════════════"
-    echo -e "  ${GREEN}${BOLD}✓ Setup Complete!${NC}"
-    echo "════════════════════════════════════════════════════"
+    echo "Setup Complete!"
     echo ""
-    echo -e "  ${GREEN}Your Nexus project is ready to use!${NC}"
+    echo "Your Nexus project is ready to use!"
     echo ""
-    echo "────────────────────────────────────────────────────────"
-    echo -e "  ${CYAN}${BOLD}Database Configuration:${NC}"
-    echo "    Type: $DB_CONNECTION"
+    echo "Database Configuration:"
+    echo "  Type: $DB_CONNECTION"
     if [ "$DB_CONNECTION" = "mysql" ]; then
-        echo "    Host: $DB_HOST:$DB_PORT"
-        echo "    Database: $DB_NAME"
-        echo "    Username: $DB_USER"
+        echo "  Host: $DB_HOST:$DB_PORT"
+        echo "  Database: $DB_NAME"
+        echo "  Username: $DB_USER"
     fi
     echo ""
-    echo -e "  ${CYAN}${BOLD}Admin Login Credentials:${NC}"
-    echo "    URL:      http://localhost:8000"
-    echo "    Email:    admin@example.com"
-    echo "    Password: admin123"
-    echo "    Username: admin"
+    echo "Admin Login Credentials:"
+    echo "  URL:      http://localhost:8000"
+    echo "  Email:    admin@example.com"
+    echo "  Password: admin123"
+    echo "  Username: admin"
     echo ""
-    echo -e "  ${YELLOW}⚠ Security Notice: Change the default password after login!${NC}"
-    echo "────────────────────────────────────────────────────────"
+    echo "Security Notice: Change the default password after login!"
     echo ""
-    echo -e "  ${BOLD}To start the development server:${NC}"
-    echo -e "    ${CYAN}php artisan serve${NC}"
+    echo "To start the development server:"
+    echo "  php artisan serve"
     echo ""
-    echo -e "  ${BOLD}To start with development mode (server + queue + vite):${NC}"
-    echo -e "    ${CYAN}composer run dev${NC}"
+    echo "To start with development mode (server + queue + vite):"
+    echo "  composer run dev"
     echo ""
-    echo -e "  ${BOLD}To share via public tunnel:${NC}"
-    echo -e "    ${CYAN}./start-tunnel.sh${NC}"
+    echo "To share via public tunnel:"
+    echo "  ./start-tunnel.sh"
     echo ""
-    echo -e "  ${BOLD}Useful Commands:${NC}"
-    echo "    php artisan migrate          - Run migrations"
-    echo "    php artisan migrate:fresh    - Reset and run migrations"
-    echo "    php artisan db:seed          - Seed database"
-    echo "    npm run dev                  - Start Vite dev server"
-    echo "    php artisan optimize         - Optimize for production"
+    echo "Useful Commands:"
+    echo "  php artisan migrate          - Run migrations"
+    echo "  php artisan migrate:fresh    - Reset and run migrations"
+    echo "  php artisan db:seed          - Seed database"
+    echo "  npm run dev                  - Start Vite dev server"
+    echo "  php artisan optimize         - Optimize for production"
     echo ""
-    echo -e "  ${GREEN}Enjoy building with Nexus! 🚀${NC}"
+    echo "Enjoy building with Nexus!"
     echo ""
 }
 

@@ -1,2295 +1,1213 @@
-# Features Documentation
+# Nexus - Complete Features Documentation
 
-Complete documentation of all Nexus features with detailed flow diagrams.
+Comprehensive documentation of all Nexus features with detailed explanations, workflows, and technical implementations.
 
 ---
 
 ## Table of Contents
 
-1. [Authentication System](#authentication-system)
-2. [Posts](#posts)
-3. [Comments](#comments)
-4. [Stories](#stories)
-5. [Chat & Messaging](#chat--messaging)
-6. [Groups](#groups)
-7. [User Profile & Follow System](#user-profile--follow-system)
-8. [Notifications](#notifications)
-9. [Admin Panel](#admin-panel)
-10. [AI Assistant](#ai-assistant)
-11. [Push Notifications](#push-notifications)
+1. [Authentication System](#1-authentication-system)
+2. [Posts & Content](#2-posts--content)
+3. [Stories](#3-stories)
+4. [Comments & Reactions](#4-comments--reactions)
+5. [Chat & Messaging](#5-chat--messaging)
+6. [Groups](#6-groups)
+7. [User Profile & Social](#7-user-profile--social)
+8. [Notifications](#8-notifications)
+9. [Admin Panel](#9-admin-panel)
+10. [AI Assistant](#10-ai-assistant)
+11. [Push Notifications](#11-push-notifications)
+12. [Activity & Analytics](#12-activity--analytics)
+13. [Life Events](#13-life-events)
+14. [Hashtags & Discovery](#14-hashtags--discovery)
+15. [Content Moderation](#15-content-moderation)
 
 ---
 
-## Authentication System
+## 1. Authentication System
 
 ### Overview
 
-Nexus provides multiple authentication methods with email verification and account security features.
+Nexus provides multiple authentication methods with robust security features including email verification, OAuth integration, and account protection mechanisms.
 
-| Feature | Description |
-|---------|-------------|
-| **Email/Password** | Traditional registration with 6-digit email verification |
-| **Google OAuth** | Single sign-on via Google |
-| **Password Reset** | Email-based password recovery |
-| **Email Verification** | 6-digit code verification system (10 min expiry) |
-| **Account Suspension** | Admin-controlled account suspension |
-| **Session Management** | Secure session handling with Remember Me |
-| **Password Strength Validation** | Requires 3 of 5 criteria (see below) |
-| **Reserved Usernames** | 50 blocked names (admin, moderator, etc.) |
-| **Disposable Email Blocking** | 16 temporary email domains blocked |
+### 1.1 Registration
 
----
+**Features:**
+- Email/password registration with 6-digit verification code
+- Google OAuth single sign-on
+- Password strength validation (3 of 5 criteria)
+- Reserved username blocking (50 names)
+- Disposable email domain blocking (16 domains)
+- Automatic profile creation
+- Username generation from name
 
-### Password Strength Validation
+**Password Requirements (3 of 5):**
+- Minimum 8 characters
+- At least one lowercase letter (a-z)
+- At least one uppercase letter (A-Z)
+- At least one digit (0-9)
+- At least one special character (!@#$%^&*)
 
-Passwords must meet at least 3 of the following 5 criteria:
-
-| Criteria | Requirement |
-|----------|-------------|
-| **Length** | Minimum 8 characters |
-| **Lowercase** | At least one lowercase letter (a-z) |
-| **Uppercase** | At least one uppercase letter (A-Z) |
-| **Digit** | At least one number (0-9) |
-| **Special Character** | At least one special character (!@#$%^&*, etc.) |
-
-**Implementation:** `RegisterController.php` - Custom validation closure
-
----
-
-### Reserved Usernames
-
-The following usernames are reserved and cannot be registered:
-
-| Category | Reserved Names |
-|----------|---------------|
-| **Admin/System** | admin, administrator, root, system, sysadmin |
-| **Moderation** | moderator, mod, staff, support, help |
-| **Technical** | bot, robot, api, service |
-| **Platform** | laravel, social, twitter, x, meta, facebook, instagram, linkedin, youtube, tiktok |
-| **Common Variations** | admin1, admin123, administrator1, root1, mod1, moderator1, staff1, support1 |
-| **Application** | app, application, platform, site, website, company, official, team, dev, developer |
-| **Management** | superuser, superadmin, master, owner, ceo, founder, manager, director |
-
-**Total:** 50 reserved usernames
-
-**Implementation:** `RegisterController.php` - Custom validation closure
-
----
-
-### Disposable Email Blocking
-
-The following disposable/temporary email domains are blocked:
-
-| Blocked Domains |
-|-----------------|
-| 10minutemail.com, guerrillamail.com, mailinator.com, temp-mail.org |
-| throwaway.email, yopmail.com, maildrop.cc, tempail.com |
-| fakeinbox.com, mailcatch.com, tempinbox.com, dispostable.com |
-| 0-mail.com, 20minutemail.com, 33mail.com, anonbox.net |
-
-**Total:** 16+ blocked domains
-
-**Implementation:** `RegisterController.php` - Custom validation closure
-
----
-
-### Username Change Cooldown
-
-Regular users must wait **3 days** between username changes.
-
-| Rule | Description |
-|------|-------------|
-| **Cooldown Period** | 259,200 seconds (3 days) |
-| **Admin Exemption** | Administrators can change anytime |
-| **First Change** | Allowed if never changed before |
-
-**Implementation:** `User.php` - `USERNAME_COOLDOWN_SECONDS` constant, `canChangeUsername()` method
-
----
-
-### Registration Flow
-
+**Reserved Usernames:**
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        Registration Flow                                 │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────┐
-│   User       │
-│   Visits     │
-│   /register  │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Register    │
-│  Page        │
-│  • Name      │
-│  • Email     │
-│  • Password  │
-│  • Confirm   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Submit      │
-│  Form        │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  RegisterController@store               │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Validate Input                 │  │
-│  │    • name: required, max:255      │  │
-│  │    • email: required, unique      │  │
-│  │    • password: required, min:8    │  │
-│  │    • password_confirmation: match │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Create User                    │  │
-│  │    • Hash password                │  │
-│  │    • Generate username            │  │
-│  │    • Create Profile               │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Generate Verification Code     │  │
-│  │    • 6-digit random code          │  │
-│  │    • Set expiry (10 min)          │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. Send Verification Email        │  │
-│  │    • HTML + Text templates        │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 5. Store Pending User in Session  │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect to │
-│  /email/verify│
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  User enters │
-│  6-digit code│
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  VerifyCode Request                     │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Validate code format           │  │
-│  │    • 6 digits, numeric            │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Check code validity            │  │
-│  │    • Match stored code            │  │
-│  │    • Check expiry                 │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. If valid:                      │  │
-│  │    • Set email_verified_at        │  │
-│  │    • Clear verification_code      │  │
-│  │    • Login user                   │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. If password is null (OAuth):   │  │
-│  │    • Redirect to set-password     │  │
-│  │    • Else redirect to home        │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-       ┌───────┴───────┐
-       │               │
-       ▼               ▼
-┌─────────────┐ ┌─────────────┐
-│   Success   │ │   Error     │
-│  Redirect   │ │  Retry      │
-│  to Home    │ │  Page       │
-└─────────────┘ └─────────────┘
+admin, administrator, root, system, sysadmin
+moderator, mod, staff, support, help
+bot, robot, api, service
+laravel, social, twitter, x, meta, facebook
+instagram, linkedin, youtube, tiktok
++ 36 variations (admin1, admin123, etc.)
 ```
 
-### Registration Code Example
-
-```php
-// RegisterController.php
-public function store(Request $request)
-{
-    // 1. Validate input
-    $validated = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'email', 'unique:users'],
-        'password' => ['required', 'confirmed', 'min:8'],
-    ]);
-
-    // 2. Create user
-    $user = User::create([
-        'name' => $validated['name'],
-        'email' => $validated['email'],
-        'password' => bcrypt($validated['password']),
-        'username' => $this->generateUsername($validated['name']),
-    ]);
-
-    // 3. Create profile
-    Profile::create(['user_id' => $user->id]);
-
-    // 4. Generate and send verification code
-    $verificationCode = $user->generateVerificationCode();
-    
-    Mail::to($user->email)->send(new VerificationCodeMail($verificationCode));
-
-    // 5. Store pending user and redirect
-    session(['pending_verification_user_id' => $user->id]);
-    
-    return redirect()->route('verification.notice');
-}
+**Blocked Email Domains:**
 ```
+10minutemail.com, guerrillamail.com, mailinator.com
+temp-mail.org, throwaway.email, yopmail.com
+maildrop.cc, tempail.com, fakeinbox.com
++ 8 additional disposable email providers
+```
+
+**Registration Flow:**
+1. User fills registration form (name, email, password, password confirmation)
+2. Server validates input and checks reserved usernames/blocked domains
+3. User account created with hashed password (bcrypt, 12 rounds)
+4. Profile automatically created
+5. 6-digit verification code generated (10-minute expiry)
+6. Verification email sent
+7. User redirected to verification page
+8. User enters code
+9. Account verified and logged in
+10. OAuth users without password redirected to set-password page
+
+**Implementation Files:**
+- `app/Http/Controllers/Auth/RegisterController.php`
+- `app/Http/Controllers/Auth/SocialAuthController.php`
+- `app/Mail/VerificationCodeMail.php`
+- `resources/views/auth/register.blade.php`
+- `resources/js/legacy/auth-register.js`
+
+### 1.2 Login
+
+**Features:**
+- Email/password authentication
+- Google OAuth login
+- Remember me functionality
+- Account suspension check
+- Email verification requirement
+- Rate limiting (5 attempts/minute)
+- Session regeneration on login
+
+**Login Flow:**
+1. User enters credentials
+2. Server validates credentials
+3. Rate limit checked (middleware, 5 attempts/minute)
+4. If valid: session created
+5. Account suspension checked (after login)
+6. If suspended: logout and redirect to suspended page
+7. Email verification status checked
+8. If not verified: redirect to verification page
+9. If verified: redirect to home
+10. OAuth users without password: will be prompted to set password later
+
+**Implementation Files:**
+- `app/Http/Controllers/Auth/LoginController.php`
+- `resources/views/auth/login.blade.php`
+- `resources/js/legacy/auth-login.js`
+
+### 1.3 Email Verification
+
+**Features:**
+- 6-digit numeric code
+- 10-minute code expiry
+- Rate limiting (3 attempts/hour)
+- Resend verification email
+- Code invalidation after use
+- Required before accessing platform features
+
+**Verification Flow:**
+1. User accesses verification page
+2. System sends 6-digit code via email
+3. User enters code
+4. Server validates code format (6 digits)
+5. Server checks code match and expiry
+6. If valid: email_verified_at set, code cleared
+7. If OAuth without password: redirect to set-password
+8. If has password: redirect to home
+
+**Implementation Files:**
+- `routes/web.php` (verification routes)
+- `app/Models/User.php` (verifyCode method)
+- `resources/views/auth/verify-email.blade.php`
+- `resources/js/legacy/auth-verify-email.js`
+
+### 1.4 Google OAuth
+
+**Features:**
+- OAuth 2.0 authentication
+- Automatic account creation
+- Avatar sync from Google
+- Email verification required for new users
+- Optional password setup for OAuth accounts
+
+**OAuth Flow:**
+1. User clicks "Login with Google"
+2. Redirected to Google consent screen
+3. User grants permission
+4. Google redirects back with code
+5. Server exchanges code for user data
+6. Find user by email or create new
+7. If new: generate username, create account (needs verification)
+8. If existing unverified: redirect to verification
+9. If existing verified: login user
+10. Avatar updated if changed
+11. Verified users without password: redirect to set-password
+12. New/unverified users: redirect to email verification
+
+**Configuration:**
+```env
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_client_secret
+GOOGLE_REDIRECT_URI=http://localhost/auth/google/callback
+```
+
+**Implementation Files:**
+- `app/Http/Controllers/Auth/SocialAuthController.php`
+- `config/services.php` (Google config)
+
+### 1.5 Password Reset
+
+**Features:**
+- Email-based password reset
+- Secure token generation
+- 60-minute token expiry
+- Rate limiting (60 seconds between requests)
+- Token invalidation after use
+
+**Reset Flow:**
+1. User requests reset link
+2. Server generates secure token
+3. Reset email sent with link
+4. User clicks link
+5. Token validated
+6. User enters new password
+7. Password hashed and saved
+8. Token invalidated
+
+**Implementation Files:**
+- `app/Http/Controllers/Auth/PasswordResetLinkController.php`
+- `app/Http/Controllers/Auth/ResetPasswordController.php`
+- `resources/views/auth/forgot-password.blade.php`
+- `resources/views/auth/reset-password.blade.php`
+
+### 1.6 Account Security
+
+**Username Change Cooldown:**
+- Regular users: 3-day cooldown between changes
+- Admins: No cooldown (unlimited changes)
+- First change: Always allowed
+
+**Account Suspension:**
+- Admin-controlled suspension
+- Suspended users cannot login
+- Suspended page shown on login attempt
+- All sessions terminated on suspension
+
+**Session Management:**
+- Database-backed sessions
+- 2-hour session lifetime
+- HTTP-only cookies
+- Secure cookies (production)
+- SameSite=lax protection
+- Session regeneration on privilege changes
 
 ---
 
-### Login Flow
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          Login Flow                                      │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────┐
-│   User       │
-│   Visits     │
-│   /login     │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Login Page  │
-│  • Email     │
-│  • Password  │
-│  • Remember  │
-│  • Google    │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Submit      │
-│  Credentials │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  LoginController@store                  │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Validate Input                 │  │
-│  │    • email: required, exists      │  │
-│  │    • password: required           │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Check Account Status           │  │
-│  │    • is_suspended? → Redirect     │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Attempt Authentication         │  │
-│  │    • Check credentials            │  │
-│  │    • Create session               │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. Check Email Verification       │  │
-│  │    • Not verified? → Verify page  │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 5. Check Password (OAuth users)   │  │
-│  │    • No password? → Set password  │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 6. Update Last Active             │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect to │
-│  Home        │
-└──────────────┘
-```
-
----
-
-### Google OAuth Flow
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       Google OAuth Flow                                  │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  "Login with │
-│   Google"    │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Redirect to │
-│  Google      │
-│  /auth/google│
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Google      │
-│  OAuth       │
-│  Consent     │
-│  Screen      │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  User Grants │
-│  Permission  │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  SocialAuthController@handleGoogleCallback│
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Get Google User Data           │  │
-│  │    • id, name, email, avatar      │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Find or Create User            │  │
-│  │    • Search by email              │  │
-│  │    • Create if not exists         │  │
-│  │    • password = null (OAuth)      │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Update Avatar (if changed)     │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. Login User                     │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 5. Check Verification Status      │  │
-│  │    • Google emails pre-verified   │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 6. Check Password                 │  │
-│  │    • No password? → Set password  │  │
-│  │    • Else → Home                  │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-       ┌───────┴───────┐
-       │               │
-       ▼               ▼
-┌─────────────┐ ┌─────────────┐
-│  Set        │ │  Redirect   │
-│  Password   │ │  to Home    │
-│  Page       │ │             │
-└─────────────┘ └─────────────┘
-```
-
----
-
-## Posts
+## 2. Posts & Content
 
 ### Overview
 
-Posts are the primary content type in Nexus. Users can share text, images, and videos with privacy controls.
+Posts are the primary content type in Nexus, supporting text, images, videos, mentions, hashtags, and privacy controls.
 
-| Feature | Description |
-|---------|-------------|
-| **Content** | Text up to 280 characters (optional if media attached) |
-| **Media** | Up to 30 images or videos per post (50MB each) |
-| **Privacy** | Public or private posts |
-| **Reactions** | Like, save, share |
-| **Mentions** | @username mentions with notifications |
-| **Slug URLs** | 24-character unique slugs for SEO |
-| **Video Processing** | FFmpeg thumbnails, compression |
+### 2.1 Create Post
 
----
+**Features:**
+- Text content (max 280 characters, optional if media attached)
+- Up to 30 media files per post (images/videos)
+- 50MB max per file
+- Supported formats: JPG, PNG, GIF, WEBP, MP4, MOV, AVI, WEBM
+- Public or private privacy setting
+- Automatic slug generation (24-character unique)
+- @mention processing with notifications
+- #hashtag extraction
+- Video thumbnail generation (FFmpeg)
+- Soft deletes
 
-### Create Post Flow
+**Post Creation Flow:**
+1. User clicks "New Post"
+2. Form displayed with text area and media upload
+3. User adds content and/or uploads media
+4. Form submitted via POST
+5. Server validates content and media
+6. Post record created with unique slug
+7. Media files uploaded and validated
+8. PostMedia records created for each file
+9. Video thumbnails generated (FFmpeg)
+10. Mentions parsed and Mention records created
+11. Notifications created for mentioned users
+12. Hashtags extracted and linked
+13. User redirected to new post
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        Create Post Flow                                  │
-└─────────────────────────────────────────────────────────────────────────┘
+**Implementation Files:**
+- `app/Http/Controllers/PostController.php` (store method)
+- `app/Models/Post.php`
+- `app/Models/PostMedia.php`
+- `app/Services/MentionService.php`
+- `app/Services/HashtagService.php`
+- `resources/views/posts/create.blade.php`
+- `resources/js/legacy/posts.js`
 
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  "New Post"  │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Post Form   │
-│  ┌────────┐  │
-│  │ Text   │  │
-│  │ (280)  │  │
-│  └────────┘  │
-│  ┌────────┐  │
-│  │ Media  │  │
-│  │ (30x)  │  │
-│  └────────┘  │
-│  ☐ Private   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Submit      │
-│  POST /posts │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  PostController@store                   │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Validate Request               │  │
-│  │    • content: max:280             │  │
-│  │    • is_private: boolean          │  │
-│  │    • media.*: file, max:50MB      │  │
-│  │    • Require content OR media     │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Create Post Record             │  │
-│  │    • user_id                      │  │
-│  │    • content                      │  │
-│  │    • is_private                   │  │
-│  │    • slug (24-char random)        │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Process Media Files            │  │
-│  │    For each file:                 │  │
-│  │    • Validate type & size         │  │
-│  │    • Generate unique filename     │  │
-│  │    • Store in storage/public      │  │
-│  │    • Create PostMedia record      │  │
-│  │    • Video? → Generate thumbnail  │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. Process Mentions               │  │
-│  │    • Parse @username from content │  │
-│  │    • Find mentioned users         │  │
-│  │    • Create Mention records       │  │
-│  │    • Create Notifications         │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect    │
-│  Back with   │
-│  Success     │
-└──────────────┘
-```
+### 2.2 Post Feed
 
-### Create Post Code Example
+**Features:**
+- Algorithmic feed showing:
+  - User's own posts
+  - Posts from followed users
+  - Posts from public accounts
+- Excludes:
+  - Blocked users' posts
+  - Unfollowed private accounts
+- Paginated (15 posts per page)
+- Load more functionality
+- Eager loading for performance
 
+**Feed Query Logic:**
 ```php
-// PostController.php
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'content' => ['required_without:media', 'string', 'max:280'],
-        'is_private' => ['boolean'],
-        'media.*' => [
-            'file',
-            'mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,webm',
-            'max:51200', // 50MB
-        ],
-    ]);
-
-    // Create post with unique slug
-    $post = $request->user()->posts()->create([
-        'content' => $validated['content'] ?? '',
-        'is_private' => $validated['is_private'] ?? false,
-        'slug' => Str::random(24),
-    ]);
-
-    // Process media
-    if ($request->hasFile('media')) {
-        $sortOrder = 1;
-        
-        foreach ($request->file('media') as $file) {
-            $path = $file->store('posts', 'public');
-            
-            $mediaType = str_starts_with($file->getMimeType(), 'video') 
-                ? 'video' : 'image';
-            
-            $thumbnail = null;
-            if ($mediaType === 'video') {
-                $thumbnail = $this->generateVideoThumbnail($file);
-            }
-            
-            $post->media()->create([
-                'media_type' => $mediaType,
-                'media_path' => $path,
-                'media_thumbnail' => $thumbnail,
-                'sort_order' => $sortOrder++,
-            ]);
-        }
-    }
-
-    // Process mentions
-    if ($validated['content']) {
-        app(MentionService::class)->processMentions(
-            $post, 
-            $validated['content'], 
-            auth()->id()
-        );
-    }
-
-    return redirect()->back()->with('success', 'Post created!');
-}
-
-private function generateVideoThumbnail($file)
-{
-    $videoPath = $file->getRealPath();
-    $thumbnailPath = 'posts/' . Str::random(40) . '_thumb.jpg';
-    
-    // Extract frame at 1 second using FFmpeg
-    $command = sprintf(
-        'ffmpeg -i %s -ss 00:00:01 -vframes 1 %s',
-        escapeshellarg($videoPath),
-        escapeshellarg(storage_path('app/public/' . $thumbnailPath))
-    );
-    
-    exec($command);
-    
-    return file_exists(storage_path('app/public/' . $thumbnailPath))
-        ? $thumbnailPath : null;
-}
-```
-
----
-
-### Post Feed Flow
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         Post Feed Flow                                   │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────┐
-│   User       │
-│   Visits     │
-│   Home (/)   │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  PostController@index                   │
-│  ┌───────────────────────────────────┐  │
-│  │ Build Query:                      │  │
-│  │                                   │  │
-│  │ Include posts from:               │  │
-│  │ • User's own posts                │  │
-│  │ • Public accounts                 │  │
-│  │ • Followed users (even private)   │  │
-│  │                                   │  │
-│  │ Exclude:                          │  │
-│  │ • Blocked users                   │  │
-│  │ • Unfollowed private accounts     │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────┐
-│  Eloquent Query with Eager Loading      │
-│  ┌───────────────────────────────────┐  │
-│  │ Post::with([                      │  │
-│  │   'user.profile',                 │  │
-│  │   'media',                        │  │
-│  │   'likes',                        │  │
-│  │   'comments.user.profile'         │  │
-│  │ ])                                │  │
-│  │ ->whereHas('user', ...)           │  │
-│  │ ->latest()                        │  │
-│  │ ->paginate(15)                    │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Render      │
-│  Inertia     │
-│  Page        │
-│  (Vue.js)    │
-└──────────────┘
-```
-
----
-
-### Like Post Flow
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         Like Post Flow                                   │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  Like Button │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  POST        │
-│  /posts/{id}/│
-│  like        │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  PostController@like                    │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Find Post                      │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Check Existing Like            │  │
-│  │    Like::where('user_id', auth)   │  │
-│  │          ->where('post_id', post) │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Toggle Like                    │  │
-│  │    If exists:                     │  │
-│  │      → Delete (Unlike)            │  │
-│  │    If not exists:                 │  │
-│  │      → Create (Like)              │  │
-│  │      → Create Notification        │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect    │
-│  Back        │
-└──────────────┘
-```
-
-### Like Post Code Example
-
-```php
-// PostController.php
-public function like(Post $post)
-{
-    $user = auth()->user();
-    
-    // Check if already liked
-    $like = $post->likes()
-        ->where('user_id', $user->id)
-        ->first();
-    
-    if ($like) {
-        // Unlike
-        $like->delete();
-        $liked = false;
-    } else {
-        // Like
-        $post->likes()->create(['user_id' => $user->id]);
-        $liked = true;
-        
-        // Create notification (if not own post)
-        if ($post->user_id !== $user->id) {
-            Notification::create([
-                'user_id' => $post->user_id,
-                'type' => 'like',
-                'data' => [
-                    'user_id' => $user->id,
-                    'user_name' => $user->name,
-                    'post_id' => $post->id,
-                ],
-                'related_id' => $post->id,
-                'related_type' => Post::class,
-            ]);
-        }
-    }
-    
-    return back()->with('success', $liked ? 'Post liked!' : 'Post unliked.');
-}
-```
-
----
-
-### Save Post Flow
-
-```
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  Save Button │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  POST        │
-│  /posts/{id}/│
-│  save        │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  PostController@save                    │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Find Post                      │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Check Existing Save            │  │
-│  │    SavedPost::where('user_id')    │  │
-│  │               ->where('post_id')  │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Toggle Save                    │  │
-│  │    If exists:                     │  │
-│  │      → Delete (Unsave)            │  │
-│  │    If not exists:                 │  │
-│  │      → Create (Save)              │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect    │
-│  Back        │
-└──────────────┘
-```
-
----
-
-### Delete Post Flow
-
-```
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  Delete      │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Confirm     │
-│  Dialog      │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  DELETE      │
-│  /posts/{id} │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  PostController@destroy                 │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Authorization Check            │  │
-│  │    • Post owner OR                │  │
-│  │    • Admin                        │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Delete Media Files             │  │
-│  │    For each media:                │  │
-│  │    • Delete file from storage     │  │
-│  │    • Delete thumbnail (if video)  │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Delete Post                    │  │
-│  │    (Cascades to: media, likes,    │  │
-│  │     comments, saved_posts)        │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect    │
-│  Back with   │
-│  Success     │
-└──────────────┘
-```
-
----
-
-## Comments
-
-### Overview
-
-Comments support nested replies (threaded comments) with likes and mentions.
-
-| Feature | Description |
-|---------|-------------|
-| **Nested Replies** | Reply to comments (threaded) |
-| **Likes** | Like comments |
-| **Mentions** | @username in comments |
-| **Notifications** | Notify post owner and mentioned users |
-| **Delete** | Comment owner, post owner, or admin |
-
----
-
-### Create Comment Flow
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       Create Comment Flow                                │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────┐
-│   User       │
-│   Types      │
-│   Comment    │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Comment     │
-│  Form        │
-│  • Content   │
-│  • (Reply)   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Submit      │
-│  POST        │
-│  /comments   │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  CommentController@store                │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Validate Request               │  │
-│  │    • post_id: required, exists    │  │
-│  │    • content: required, max:280   │  │
-│  │    • parent_id: nullable          │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Verify Post Access             │  │
-│  │    • Check post privacy           │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Create Comment                 │  │
-│  │    • user_id                      │  │
-│  │    • post_id                      │  │
-│  │    • content                      │  │
-│  │    • parent_id (if reply)         │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. Process Mentions               │  │
-│  │    • Parse @username              │  │
-│  │    • Create Mention records       │  │
-│  │    • Create Notifications         │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 5. Notify Post Owner              │  │
-│  │    (If not own post)              │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect    │
-│  Back with   │
-│  Success     │
-└──────────────┘
-```
-
-### Create Comment Code Example
-
-```php
-// CommentController.php
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'post_id' => ['required', 'exists:posts,id'],
-        'content' => ['required', 'string', 'max:280'],
-        'parent_id' => ['nullable', 'exists:comments,id'],
-    ]);
-
-    $post = Post::findOrFail($validated['post_id']);
-
-    // Verify parent comment if replying
-    if ($validated['parent_id']) {
-        $parentComment = Comment::findOrFail($validated['parent_id']);
-        abort_if($parentComment->post_id !== $post->id, 403);
-    }
-
-    // Create comment
-    $comment = $post->comments()->create([
-        'user_id' => auth()->id(),
-        'parent_id' => $validated['parent_id'],
-        'content' => $validated['content'],
-    ]);
-
-    // Process mentions
-    app(MentionService::class)->processMentions(
-        $comment,
-        $validated['content'],
-        auth()->id()
-    );
-
-    // Notify post owner
-    if ($post->user_id !== auth()->id()) {
-        Notification::create([
-            'user_id' => $post->user_id,
-            'type' => 'comment',
-            'data' => [
-                'user_id' => auth()->id(),
-                'user_name' => auth()->user()->name,
-                'post_id' => $post->id,
-                'comment_id' => $comment->id,
-            ],
-            'related_id' => $post->id,
-            'related_type' => Post::class,
-        ]);
-    }
-
-    return back()->with('success', 'Comment added!');
-}
-```
-
----
-
-### Delete Comment Flow
-
-```
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  Delete      │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  DELETE      │
-│  /comments/  │
-│  {id}        │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  CommentController@destroy              │
-│  ┌───────────────────────────────────┐  │
-│  │ Authorization Check:              │  │
-│  │ Can delete if:                    │  │
-│  │ • Comment owner                   │  │
-│  │ • Post owner                      │  │
-│  │ • Admin                           │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ Delete Comment                    │  │
-│  │ (Cascades to replies & likes)     │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect    │
-│  Back        │
-└──────────────┘
-```
-
----
-
-## Stories
-
-### Overview
-
-Stories are ephemeral content that expires after 24 hours with view tracking and reactions.
-
-| Feature | Description |
-|---------|-------------|
-| **24-Hour Expiry** | Auto-delete after 24 hours |
-| **Media Types** | Images and videos |
-| **View Tracking** | See who viewed your story |
-| **Reactions** | Emoji reactions |
-| **Video Processing** | Trim to 60 seconds max |
-| **Privacy** | Private accounts visible to followers only |
-
----
-
-### Create Story Flow
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       Create Story Flow                                  │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  "New Story" │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Story       │
-│  Create Page │
-│  • Upload    │
-│  • Caption   │
-│  (optional)  │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Select      │
-│  Media       │
-│  (Image/     │
-│  Video)      │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Submit      │
-│  POST        │
-│  /stories    │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  StoryController@store                  │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Validate Request               │  │
-│  │    • media: required, file        │  │
-│  │    • content: nullable, max:280   │  │
-│  │    • max: 50MB                    │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Determine Media Type           │  │
-│  │    • Image or Video               │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Process Video (if video)       │  │
-│  │    • Check duration               │  │
-│  │    • Trim to 60s if longer        │  │
-│  │    • Using FFmpeg                 │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. Store Media                    │  │
-│  │    • Generate unique filename     │  │
-│  │    • Save to storage/public       │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 5. Create Story Record            │  │
-│  │    • user_id                      │  │
-│  │    • slug (24-char)               │  │
-│  │    • media_type                   │  │
-│  │    • media_path                   │  │
-│  │    • content (optional)           │  │
-│  │    • expires_at (24 hours)        │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect to │
-│  Story Index │
-└──────────────┘
-```
-
-### Create Story Code Example
-
-```php
-// StoryController.php
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'media' => ['required', 'file', 'mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,webm', 'max:51200'],
-        'content' => ['nullable', 'string', 'max:280'],
-    ]);
-
-    $file = $validated['media'];
-    $mediaType = str_starts_with($file->getMimeType(), 'video') ? 'video' : 'image';
-
-    // Process video if needed
-    if ($mediaType === 'video') {
-        $path = $this->processVideo($file);
-    } else {
-        $path = $file->store('stories', 'public');
-    }
-
-    // Create story (expires in 24 hours)
-    $story = $request->user()->stories()->create([
-        'slug' => Str::random(24),
-        'media_type' => $mediaType,
-        'media_path' => $path,
-        'content' => $validated['content'] ?? null,
-        'expires_at' => now()->addHours(24),
-    ]);
-
-    return redirect()->route('stories.index')
-        ->with('success', 'Story created!');
-}
-
-private function processVideo($file)
-{
-    $videoPath = $file->getRealPath();
-    $outputPath = 'stories/' . Str::random(40) . '.mp4';
-    $outputFullPath = storage_path('app/public/' . $outputPath);
-
-    // Get video duration
-    $duration = $this->getVideoDuration($videoPath);
-
-    if ($duration > 60) {
-        // Trim to 60 seconds
-        $command = sprintf(
-            'ffmpeg -i %s -t 60 -c copy %s',
-            escapeshellarg($videoPath),
-            escapeshellarg($outputFullPath)
-        );
-        exec($command);
-    } else {
-        // Just copy
-        $command = sprintf(
-            'ffmpeg -i %s -c copy %s',
-            escapeshellarg($videoPath),
-            escapeshellarg($outputFullPath)
-        );
-        exec($command);
-    }
-
-    return $outputPath;
-}
-
-private function getVideoDuration($path)
-{
-    $command = sprintf(
-        'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 %s',
-        escapeshellarg($path)
-    );
-    return (float) exec($command);
-}
-```
-
----
-
-### View Story Flow
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        View Story Flow                                   │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  Story       │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  GET         │
-│  /stories/   │
-│  {user}/     │
-│  {story}     │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  StoryController@show                   │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Find Story by User & Slug      │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Check Authorization            │  │
-│  │    • Story belongs to user        │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Check Expiry                   │  │
-│  │    • expires_at < now? → 404      │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. Check Privacy                  │  │
-│  │    • Private account?             │  │
-│  │    • Is follower OR owner?        │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 5. Track View                     │  │
-│  │    • If not own story             │  │
-│  │    • Create StoryView record      │  │
-│  │    • Increment view count         │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Render      │
-│  Story View  │
-│  (Full-screen)│
-└──────────────┘
-```
-
----
-
-### Story Reaction Flow
-
-```
-┌──────────────┐
-│   User       │
-│   Selects    │
-│  Emoji       │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  POST        │
-│  /stories/   │
-│  {id}/react  │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  StoryController@react                  │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Validate Reaction              │  │
-│  │    • reaction: string, max:10     │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. UpdateOrCreate Reaction        │  │
-│  │    StoryReaction::updateOrCreate( │  │
-│  │      [user_id, story_id],         │  │
-│  │      ['reaction_type' => $emoji]  │  │
-│  │    )                              │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect    │
-│  Back        │
-└──────────────┘
-```
-
----
-
-### View Story Viewers Flow
-
-```
-┌──────────────┐
-│   Story      │
-│   Owner      │
-│   Clicks     │
-│  "Viewers"   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  GET         │
-│  /stories/   │
-│  {id}/viewers│
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  StoryController@viewers                │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Verify Story Ownership         │  │
-│  │    • Only owner can see viewers   │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Get Story Views                │  │
-│  │    • With user profiles           │  │
-│  │    • Ordered by time              │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Render      │
-│  Viewers     │
-│  List        │
-└──────────────┘
-```
-
----
-
-### Cleanup Expired Stories
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                   Expired Stories Cleanup (Hourly)                       │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────┐
-│  Scheduled   │
-│  Task        │
-│  (Hourly)    │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Artisan     │
-│  Command:    │
-│  stories:    │
-│  cleanup     │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  CleanupExpiredStories Command          │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Find Expired Stories           │  │
-│  │    Story::where('expires_at',     │  │
-│  │           '<', now())->get()       │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. For Each Story:                │  │
-│  │    • Delete media file            │  │
-│  │    • Delete thumbnail (if video)  │  │
-│  │    • Delete story record          │  │
-│  │    (Cascades to views/reactions)  │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Log Count                      │  │
-│  │    "Deleted X expired stories"    │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
-```
-
-### Cleanup Command Code
-
-```php
-// CleanupExpiredStories.php
-public function handle(): int
-{
-    $expiredStories = Story::where('expires_at', '<', now())->get();
-
-    foreach ($expiredStories as $story) {
-        // Delete media file
-        Storage::disk('public')->delete($story->media_path);
-        
-        // Delete thumbnail if video
-        if ($story->media_thumbnail) {
-            Storage::disk('public')->delete($story->media_thumbnail);
-        }
-        
-        // Delete story (cascades)
-        $story->delete();
-    }
-
-    $this->info("Deleted {$expiredStories->count()} expired stories.");
-    
-    return Command::SUCCESS;
-}
-```
-
----
-
-## Chat & Messaging
-
-### Overview
-
-Real-time chat with direct messages and group conversations.
-
-| Feature | Description |
-|---------|-------------|
-| **Direct Messages** | One-on-one conversations |
-| **Group Chat** | Multiple participants via groups |
-| **Media Messages** | Images, videos, files |
-| **Read Receipts** | Track message read status |
-| **Typing Indicators** | Real-time typing status |
-| **Message Actions** | Delete for me/everyone |
-| **Online Status** | See who's online |
-| **Message Deletion Options** | Delete "for me" or "for everyone" |
-| **Conversation Clearing** | Force delete all messages |
-
----
-
-### Message Deletion Options
-
-Users can delete messages with two options:
-
-| Option | Description | Permissions |
-|--------|-------------|-------------|
-| **Delete for Me** | Message hidden only for current user | Any participant |
-| **Delete for Everyone** | Message soft-deleted for all participants | Sender only |
-
-**Implementation Details:**
-- **Delete for Me:** Adds user ID to `deleted_for` JSON column
-- **Delete for Everyone:** Sets `deleted_by_sender = true` and soft-deletes the message
-- Other participants see "message deleted" placeholder for sender-deleted messages
-
-**Implementation:** `ChatController.php` - `destroy()` method
-
----
-
-### Conversation Clearing
-
-Users can clear entire conversations, permanently removing all messages.
-
-| Feature | Description |
-|---------|-------------|
-| **Action** | Force delete all messages in conversation |
-| **Effect** | Permanently removes messages (not soft-delete) |
-| **Conversation** | Remains in list with `last_message_at = null` |
-| **UI Behavior** | Shows empty chat instead of "message deleted" placeholders |
-
-**Implementation:** `ChatController.php` - `clearChat()` method
-
----
-
-### Group Invite Link System
-
-Groups have slug-based invite links for easy joining.
-
-| Feature | Description |
-|---------|-------------|
-| **Slug** | Unique identifier for group URL |
-| **Invite Link** | Unique token-based link (e.g., `/join/abc123xyz`) |
-| **Routes** | `/groups/accept-invite/{inviteLink}`, `/join/{inviteLink}` |
-| **Regeneration** | Admins can regenerate invite links |
-
-**Implementation:** `GroupController.php` - `acceptInvite()`, `joinViaInvite()`, `regenerateInvite()`
-
----
-
-### Conversation Types
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      Conversation Types                                  │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────┐
-│     Direct Message (DM)         │
-├─────────────────────────────────┤
-│  • Between 2 users              │
-│  • user1_id, user2_id           │
-│  • is_group = false             │
-│  • slug: unique identifier      │
-└─────────────────────────────────┘
-
-┌─────────────────────────────────┐
-│       Group Conversation        │
-├─────────────────────────────────┤
-│  • Multiple participants        │
-│  • Linked to Group model        │
-│  • is_group = true              │
-│  • group_id reference           │
-│  • Auto-created with group      │
-└─────────────────────────────────┘
-```
-
----
-
-### Get Conversations Flow
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     Get Conversations Flow                               │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────┐
-│   User       │
-│   Visits     │
-│  /chat       │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  GET         │
-│  /chat/      │
-│  conversations│
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  ChatController@getConversations        │
-│  ┌───────────────────────────────────┐  │
-│  │ Find conversations where:         │  │
-│  │ • user1_id = current user         │  │
-│  │ • user2_id = current user         │  │
-│  │ • OR member of group conversation │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ Eager Load:                       │  │
-│  │ • latestMessage.sender            │  │
-│  │ • user1.profile                   │  │
-│  │ • user2.profile                   │  │
-│  │ • group (if group chat)           │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ Map to Response:                  │  │
-│  │ • display_name                    │  │
-│  │ • display_avatar                  │  │
-│  │ • latest_message                  │  │
-│  │ • unread_count                    │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  JSON        │
-│  Response    │
-└──────────────┘
-```
-
-### Get Conversations Code
-
-```php
-// ChatController.php
-public function getConversations()
-{
-    $user = auth()->user();
-
-    $conversations = Conversation::where('user1_id', $user->id)
-        ->orWhere('user2_id', $user->id)
-        ->orWhereHas('group.members', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
-        })
-        ->with(['latestMessage.sender', 'user1.profile', 'user2.profile', 'group'])
-        ->latest('last_message_at')
-        ->get()
-        ->map(function ($conversation) use ($user) {
-            return [
-                'id' => $conversation->id,
-                'slug' => $conversation->slug,
-                'is_group' => $conversation->is_group,
-                'display_name' => $conversation->display_name,
-                'display_avatar' => $conversation->display_avatar,
-                'latest_message' => $conversation->latestMessage,
-                'unread_count' => $conversation->unread_count,
-                'updated_at' => $conversation->updated_at,
-            ];
+Post::with(['user.profile', 'media', 'likes', 'comments.user.profile'])
+    ->whereHas('user', function ($query) use ($user) {
+        $query->where('id', $user->id)  // Own posts
+              ->orWhere('is_private', false)  // Public accounts
+              ->orWhereHas('followers', function ($q) use ($user) {
+                  $q->where('follower_id', $user->id);  // Followed users
+              });
+    })
+    ->whereDoesntHave('user', function ($query) use ($user) {
+        $query->whereHas('blockedBy', function ($q) use ($user) {
+            $q->where('blocker_id', $user->id);  // Exclude blocked
         });
-
-    return response()->json($conversations);
-}
+    })
+    ->latest()
+    ->paginate(15);
 ```
 
----
+**Implementation Files:**
+- `app/Http/Controllers/PostController.php` (index method)
+- `resources/views/posts/index.blade.php`
+- `resources/js/legacy/home.js`
 
-### Send Message Flow
+### 2.3 Like Post
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       Send Message Flow                                  │
-└─────────────────────────────────────────────────────────────────────────┘
+**Features:**
+- Toggle like/unlike
+- Real-time counter update
+- Notification to post owner
+- Prevent self-liking
 
-┌──────────────┐
-│   User       │
-│   Types      │
-│   Message    │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Optional:   │
-│  Attach      │
-│  Media       │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Submit      │
-│  POST        │
-│  /chat/{id}  │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  ChatController@store                   │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Validate Membership            │  │
-│  │    • User is conversation member  │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Validate Request               │  │
-│  │    • content OR media required    │  │
-│  │    • type: text/image/file        │  │
-│  │    • media: max 50MB              │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Create Message                 │  │
-│  │    • conversation_id              │  │
-│  │    • sender_id                    │  │
-│  │    • content                      │  │
-│  │    • type                         │  │
-│  │    • media_path (if attachment)   │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. Update Conversation            │  │
-│  │    • last_message_at = now()      │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 5. Create Notifications           │  │
-│  │    • For each recipient           │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 6. Broadcast Event                │  │
-│  │    • new-message                  │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  JSON        │
-│  Response    │
-│  (Message)   │
-└──────────────┘
-```
+**Like Flow:**
+1. User clicks like button
+2. AJAX POST to `/posts/{id}/like`
+3. Server checks existing like
+4. If exists: delete (unlike)
+5. If not exists: create like + notification
+6. Return success response
+7. UI updated
 
----
+**Implementation Files:**
+- `app/Http/Controllers/PostController.php` (like method)
+- `app/Models/Like.php`
+- `resources/js/legacy/posts.js`
 
-### Typing Indicator Flow
+### 2.4 Save Post
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     Typing Indicator Flow                                │
-└─────────────────────────────────────────────────────────────────────────┘
+**Features:**
+- Bookmark posts for later
+- Saved posts collection
+- Toggle save/unsave
+- Private saved posts list
 
-┌──────────────┐
-│   User       │
-│   Starts     │
-│   Typing     │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Debounced   │
-│  Event       │
-│  (Vue.js)    │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  POST        │
-│  /chat/{id}/ │
-│  typing      │
-│  {is_typing} │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  ChatController@sendTypingIndicator     │
-│  ┌───────────────────────────────────┐  │
-│  │ Store in Cache:                   │  │
-│  │ Key: typing:{conv_id}:{user_id}   │  │
-│  │ Value: is_typing (bool)           │  │
-│  │ TTL: 5 seconds                    │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Broadcast   │
-│  to Other    │
-│  Participants│
-└──────────────┘
+**Implementation Files:**
+- `app/Http/Controllers/PostController.php` (save method)
+- `app/Models/SavedPost.php`
+- `resources/views/users/saved-posts.blade.php`
 
-┌──────────────┐
-│  Recipients  │
-│  Poll/       │
-│  Listen for  │
-│  Typing      │
-│  Status      │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Display     │
-│  "Typing..." │
-│  Indicator   │
-└──────────────┘
-```
+### 2.5 Delete Post
 
-### Typing Indicator Code
+**Features:**
+- Owner can delete own posts
+- Admin can delete any post
+- Soft delete (recoverable)
+- Cascade delete: media, likes, comments, saved posts
+- File cleanup from storage
 
+**Authorization:**
+- Post owner
+- Admin user
+
+**Implementation Files:**
+- `app/Http/Controllers/PostController.php` (destroy method)
+- `app/Models/Post.php` (SoftDeletes trait)
+
+### 2.6 Pin Post
+
+**Features:**
+- Pin up to 3 posts to profile top
+- Pinned posts shown first
+- Reorder pinned posts (drag & drop)
+- Unpin anytime
+
+**Implementation Files:**
+- `app/Http/Controllers/UserController.php` (pinPost, unpinPost, reorderPinnedPosts)
+- `app/Models/Post.php` (pinned_at field)
+
+### 2.7 Post Privacy
+
+**Features:**
+- Public posts: visible to everyone
+- Private posts: visible to owner and followers
+- Privacy toggle per post
+- Private indicator on posts
+
+**Privacy Check:**
 ```php
-// ChatController.php
-public function sendTypingIndicator(Request $request, Conversation $conversation)
-{
-    $validated = $request->validate([
-        'is_typing' => ['boolean'],
-    ]);
+// Show post if:
+// 1. Post is public, OR
+// 2. User is post owner, OR
+// 3. User follows post owner
+```
 
-    // Store in cache (expires in 5 seconds)
-    Cache::put(
-        "typing:{$conversation->id}:" . auth()->id(),
-        $validated['is_typing'],
-        5
-    );
+### 2.8 Video Processing
 
-    return response()->json(['success' => true]);
-}
+**Features:**
+- FFmpeg video processing
+- Automatic thumbnail generation (frame at 1 second)
+- 60-second max video trimming
+- Multiple video formats supported
 
-public function getTypingStatus(Conversation $conversation)
-{
-    $recipients = $conversation->getRecipients(auth()->id());
-
-    $typingUsers = [];
-    foreach ($recipients as $recipientId) {
-        $isTyping = Cache::get("typing:{$conversation->id}:{$recipientId}");
-        if ($isTyping) {
-            $user = User::find($recipientId);
-            $typingUsers[] = [
-                'id' => $user->id,
-                'name' => $user->name,
-            ];
-        }
-    }
-
-    return response()->json([
-        'is_typing' => count($typingUsers) > 0,
-        'typing_users' => $typingUsers,
-    ]);
-}
+**Thumbnail Generation:**
+```bash
+ffmpeg -i video.mp4 -ss 00:00:01 -vframes 1 thumbnail.jpg
 ```
 
 ---
 
-### Read Receipts Flow
+## 3. Stories
 
-```
-┌──────────────┐
-│   User       │
-│   Opens      │
-│  Chat        │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  POST        │
-│  /chat/{id}/ │
-│  mark-read   │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  ChatController@markAsRead              │
-│  ┌───────────────────────────────────┐  │
-│  │ Mark all unread messages as read  │  │
-│  │ Message::where('conversation_id') │  │
-│  │          ->where('sender_id', '!=')│  │
-│  │          ->whereNull('read_at')   │  │
-│  │          ->update(['read_at' =>   │  │
-│  │              now()])              │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Broadcast   │
-│  Read Status │
-└──────────────┘
-```
+### Overview
+
+Ephemeral 24-hour content with view tracking, reactions, and multiple media types.
+
+### 3.1 Create Story
+
+**Features:**
+- Image, video, or text-only stories
+- 24-hour auto-expiry
+- Unique slug per story
+- View tracking
+- Reaction support
+- Multiple active stories per user
+
+**Story Types:**
+- **Image**: JPG, PNG, GIF, WEBP (compressed with Intervention Image)
+- **Video**: MP4, MOV, AVI, WEBM (50MB max)
+- **Text**: Text-only story with background (500 char max)
+
+**Expiry System:**
+- Stories automatically expire after 24 hours
+- Hourly cleanup command: `CleanupExpiredStories`
+- Expired stories soft deleted
+
+**Implementation Files:**
+- `app/Http/Controllers/StoryController.php`
+- `app/Models/Story.php`
+- `app/Console/Commands/CleanupExpiredStories.php`
+- `resources/views/stories/create.blade.php`
+
+### 3.2 View Stories
+
+**Features:**
+- Story viewer with auto-advance
+- View tracking (one view per user per story)
+- Story navigation (previous/next)
+- Active stories indicator
+- Real-time story updates
+
+**Viewer Flow:**
+1. User clicks on story
+2. Story viewer opens
+3. View recorded in StoryViews table
+4. Story displayed for 5 seconds (auto-advance)
+5. User can navigate manually
+6. Viewers list available to story owner
+
+**Implementation Files:**
+- `app/Http/Controllers/StoryController.php` (show method)
+- `app/Models/StoryView.php`
+- `resources/views/stories/show.blade.php`
+
+### 3.3 Story Reactions
+
+**Features:**
+- Emoji reactions to stories
+- Multiple reactions per story
+- View reaction counts
+- Remove reactions
+
+**Implementation Files:**
+- `app/Http/Controllers/StoryController.php` (react, removeReaction)
+- `app/Models/StoryReaction.php`
+
+### 3.4 Story Viewers
+
+**Features:**
+- View who watched your story
+- Viewer list with timestamps
+- Real-time viewer updates
+
+**Implementation Files:**
+- `app/Http/Controllers/StoryController.php` (viewers method)
+- `resources/views/stories/viewers.blade.php`
 
 ---
 
-### Delete Message Flow
+## 4. Comments & Reactions
 
-```
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  Delete      │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Options:    │
-│  • Delete    │
-│    for Me    │
-│  • Delete    │
-│    for       │
-│    Everyone  │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  DELETE      │
-│  /chat/      │
-│  message/{id}│
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  ChatController@destroy                 │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Validate Membership            │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Check Delete Type              │  │
-│  │    "Delete for Everyone":         │  │
-│  │      • Must be sender             │  │
-│  │      → Hard delete message        │  │
-│  │                                   │  │
-│  │    "Delete for Me":               │  │
-│  │      • Any member                 │  │
-│  │      → Add to deleted_for array   │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  JSON        │
-│  Response    │
-└──────────────┘
-```
+### Overview
 
-### Delete Message Code
+Threaded comment system with likes, mentions, and notifications.
 
+### 4.1 Create Comment
+
+**Features:**
+- Comment on posts
+- Reply to comments (nested threads)
+- @mention support
+- 280 character limit
+- Notifications to post owner and mentioned users
+
+**Comment Flow:**
+1. User types comment
+2. Form submitted
+3. Server validates content
+4. Comment record created
+5. Mentions processed
+6. Notifications created:
+   - Post owner (if not commenter)
+   - Mentioned users
+7. UI updated
+
+**Implementation Files:**
+- `app/Http/Controllers/CommentController.php`
+- `app/Models/Comment.php`
+- `resources/js/legacy/comments.js`
+
+### 4.2 Like Comment
+
+**Features:**
+- Toggle like/unlike comments
+- Real-time counter update
+- Notification to comment owner
+
+**Implementation Files:**
+- `app/Http/Controllers/CommentController.php` (like method)
+- `app/Models/CommentLike.php`
+
+### 4.3 Delete Comment
+
+**Features:**
+- Comment owner can delete
+- Post owner can delete comments on their post
+- Admin can delete any comment
+- Cascade delete replies and likes
+
+**Authorization:**
+- Comment owner
+- Post owner
+- Admin user
+
+---
+
+## 5. Chat & Messaging
+
+### Overview
+
+Real-time messaging with direct and group conversations, typing indicators, read receipts, and delivery confirmation.
+
+### 5.1 Conversations
+
+**Features:**
+- Direct messages (1-on-1)
+- Group conversations (linked to groups)
+- Conversation list with last message
+- Real-time updates (1-second polling)
+- Unread message count
+
+**Conversation Types:**
+- **Direct**: Between 2 users
+- **Group**: Linked to a group, all members can participate
+
+**Implementation Files:**
+- `app/Http/Controllers/ChatController.php`
+- `app/Models/Conversation.php`
+- `resources/views/chat/index.blade.php`
+- `resources/js/legacy/realtime.js`
+
+### 5.2 Send Message
+
+**Features:**
+- Text messages
+- Image messages
+- Voice messages
+- Video messages
+- System messages (group events)
+- Message threading
+
+**Message Types:**
+- `text`: Plain text message
+- `image`: Image attachment
+- `video`: Video attachment
+- `voice`: Voice message
+- `system`: System-generated message
+
+**Send Flow:**
+1. User types message
+2. Form submitted via AJAX
+3. Server validates content
+4. Message record created
+5. Conversation last_message_at updated
+6. Real-time broadcast to recipients
+7. UI updated
+
+**Implementation Files:**
+- `app/Http/Controllers/ChatController.php` (store method)
+- `app/Models/Message.php`
+
+### 5.3 Message Status
+
+**Features:**
+- **Sent**: Message saved to database
+- **Delivered**: Recipient received message
+- **Read**: Recipient opened conversation
+
+**Status Tracking:**
+- `delivered_at`: Timestamp when delivered
+- `read_at`: Timestamp when read
+- Real-time status updates
+
+**Implementation Files:**
+- `app/Http/Controllers/ChatController.php` (markAsRead, confirmDelivery)
+
+### 5.4 Typing Indicators
+
+**Features:**
+- Real-time "user is typing" status
+- 5-second cache expiry
+- Per-conversation tracking
+- Polling interval: 1 second
+
+**Implementation:**
+- Cache-based typing indicators
+- Key format: `typing:{conversation_id}:{user_id}`
+- TTL: 5 seconds
+- Auto-expiry removes indicator
+
+**Implementation Files:**
+- `app/Services/RealtimeService.php` (setTypingIndicator, getTypingUsers)
+- `app/Http/Controllers/ChatController.php` (sendTypingIndicator, getTypingStatus)
+- `resources/js/legacy/realtime.js`
+
+### 5.5 Message Deletion
+
+**Features:**
+- Delete for self
+- Delete for everyone
+- Soft delete with recovery
+- Cascade cleanup
+
+**Delete Options:**
+- `delete_for_sender`: Only sender can't see
+- `delete_for_everyone`: All participants can't see
+
+### 5.6 Real-time Updates
+
+**Polling Intervals:**
+- Messages: 1 second
+- Conversations: 1 second
+- Typing indicators: 1 second
+- Online status: 10 seconds
+
+**Implementation Files:**
+- `app/Services/RealtimeService.php`
+- `resources/js/legacy/realtime.js`
+
+---
+
+## 6. Groups
+
+### Overview
+
+Community groups with member management, invite links, and group chat.
+
+### 6.1 Create Group
+
+**Features:**
+- Public or private groups
+- Group avatar
+- Group description
+- Automatic conversation creation
+- Unique slug and invite link
+
+**Create Flow:**
+1. User fills create form
+2. Group record created
+3. Creator added as admin
+4. Conversation created
+5. Redirect to group page
+
+**Implementation Files:**
+- `app/Http/Controllers/GroupController.php`
+- `app/Models/Group.php`
+- `resources/views/groups/create.blade.php`
+
+### 6.2 Member Management
+
+**Features:**
+- Add members (admins only)
+- Remove members (admins only)
+- Promote to admin (admins only)
+- Demote to member (admins only)
+- Leave group (any member)
+- Member role display
+
+**Member Roles:**
+- `admin`: Full management permissions
+- `member`: Standard member permissions
+
+**Implementation Files:**
+- `app/Http/Controllers/GroupController.php` (addMembers, removeMember, makeAdmin, removeAdmin)
+- `app/Models/GroupMember.php`
+
+### 6.3 Invite Links
+
+**Features:**
+- Unique invite link per group
+- One-click join via link
+- Regenerate invite link
+- Quick invite (copy link)
+
+**Invite Flow:**
+1. Admin clicks "Generate Invite"
+2. Unique link created
+3. Link shared with users
+4. User clicks link
+5. Auto-joined to group
+6. Redirect to group page
+
+**Implementation Files:**
+- `app/Http/Controllers/GroupController.php` (regenerateInvite, acceptInvite, joinViaInvite)
+
+### 6.4 Group Chat
+
+**Features:**
+- Automatic conversation for each group
+- All members can participate
+- Group messages in main chat
+- System messages for group events
+
+---
+
+## 7. User Profile & Social
+
+### Overview
+
+User profiles with customization, social features, and privacy controls.
+
+### 7.1 User Profile
+
+**Features:**
+- Profile avatar (upload or default)
+- Cover image
+- Bio (255 characters)
+- Website link
+- Location
+- Social links (JSON)
+- Privacy status (private/public)
+- Follower/following counts
+- Posts grid
+
+**Profile Fields:**
 ```php
-// ChatController.php
-public function destroy(Request $request, Message $message)
-{
-    $validated = $request->validate([
-        'delete_for' => ['in:me,everyone'],
-    ]);
-
-    $conversation = $message->conversation;
-    abort_unless($conversation->isMember(auth()->id()), 403);
-
-    if ($validated['delete_for'] === 'everyone' && $message->sender_id === auth()->id()) {
-        // Delete for everyone (hard delete)
-        $message->delete();
-    } else {
-        // Delete for me only
-        $deletedFor = $message->deleted_for ?? [];
-        $deletedFor[] = auth()->id();
-
-        $message->update([
-            'deleted_for' => array_unique($deletedFor),
-        ]);
-    }
-
-    return response()->json(['success' => true]);
-}
+[
+    'avatar',
+    'cover_image',
+    'bio',
+    'website',
+    'location',
+    'social_links',  // JSON: {twitter, facebook, instagram, etc.}
+    'is_private',
+]
 ```
+
+**Implementation Files:**
+- `app/Http/Controllers/UserController.php`
+- `app/Models/Profile.php`
+- `resources/views/users/show.blade.php`
+
+### 7.2 Follow System
+
+**Features:**
+- Follow/unfollow users
+- Follower/following lists
+- Follow notifications
+- Private account follow requests (future)
+
+**Follow Flow:**
+1. User clicks follow button
+2. AJAX POST to `/users/{id}/follow`
+3. Follow record created
+4. Notification created
+5. UI updated
+
+**Implementation Files:**
+- `app/Http/Controllers/UserController.php` (follow method)
+- `app/Models/Follow.php`
+
+### 7.3 User Blocking
+
+**Features:**
+- Block/unblock users
+- Blocked users' content hidden
+- Bidirectional blocking
+- Blocked users list
+
+**Block Effects:**
+- Blocked user's posts not shown in feed
+- Blocked user cannot follow blocker
+- Blocked user cannot message blocker
+- Blocked user cannot see blocker's profile (private)
+
+**Implementation Files:**
+- `app/Http/Controllers/UserController.php` (block method)
+- `app/Models/Block.php`
+- `resources/views/users/blocked.blade.php`
+
+### 7.4 Online Status
+
+**Features:**
+- Real-time online/offline indicators
+- Last active timestamp
+- Batch status updates
+- 10-second polling interval
+
+**Status Update:**
+- `is_online`: Boolean flag
+- `last_active`: Timestamp
+
+**Implementation Files:**
+- `app/Http/Controllers/UserController.php` (updateOnlineStatus, getOnlineStatus)
+- `resources/js/legacy/ui-utils.js`
+
+### 7.5 QR Code Profile
+
+**Features:**
+- Generate QR code for profile
+- Download QR code
+- Share profile via QR
+
+**Implementation Files:**
+- `app/Http/Controllers/UserController.php` (generateQrCode, downloadQrCode)
+- `app/Services/QrCodeService.php`
+- `resources/views/users/qr-code.blade.php`
+
+### 7.6 Explore & Search
+
+**Features:**
+- Explore page with suggested users
+- Search users by name/username
+- Filter by mutual followers
+- Paginated results
+
+**Implementation Files:**
+- `app/Http/Controllers/UserController.php` (explore, searchPage)
+- `resources/views/users/explore.blade.php`
 
 ---
 
-## Groups
+## 8. Notifications
 
 ### Overview
 
-Create and manage communities with members, roles, and group chat.
+Real-time notifications for all social interactions with push notification support.
 
-| Feature | Description |
-|---------|-------------|
-| **Create Groups** | Public or private communities |
-| **Member Roles** | Admin and member permissions |
-| **Invite Links** | Shareable links for joining |
-| **Group Chat** | Dedicated conversation |
-| **Member Management** | Add, remove, promote members |
+### 8.1 Notification Types
 
----
+**Supported Types:**
+- `like`: Someone liked your post
+- `comment`: Someone commented on your post
+- `follow`: Someone followed you
+- `mention`: Someone mentioned you
+- `message`: New message received
+- `story_reaction`: Someone reacted to your story
+- `story_view`: Someone viewed your story (optional)
+- `system`: System notifications
 
-### Create Group Flow
+### 8.2 Real-time Updates
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       Create Group Flow                                  │
-└─────────────────────────────────────────────────────────────────────────┘
+**Features:**
+- Unread notification badge
+- New notification toast
+- 3-second polling interval
+- Mark as read/unread
+- Mark all as read
 
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  "Create     │
-│  Group"      │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Group Form  │
-│  • Name      │
-│  • Desc      │
-│  • Avatar    │
-│  • Privacy   │
-│  • Members   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Submit      │
-│  POST        │
-│  /groups     │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  GroupController@store                  │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Validate Request               │  │
-│  │    • name: required, max:255      │  │
-│  │    • description: nullable        │  │
-│  │    • is_private: boolean          │  │
-│  │    • avatar: nullable, image      │  │
-│  │    • member_ids: array            │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Create Group                   │  │
-│  │    • Generate slug                │  │
-│  │    • Generate invite_link         │  │
-│  │    • Set creator_id               │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Upload Avatar (if provided)    │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. Add Creator as Admin           │  │
-│  │    GroupMember::create([          │  │
-│  │      'user_id' => creator,        │  │
-│  │      'role' => 'admin'            │  │
-│  │    ])                             │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 5. Add Other Members              │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 6. Create Group Conversation      │  │
-│  │    Conversation::createGroup()    │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect to │
-│  Group Page  │
-└──────────────┘
-```
+**Implementation Files:**
+- `app/Http/Controllers/NotificationController.php`
+- `app/Http/Controllers/Api/NotificationController.php`
+- `app/Models/Notification.php`
+- `resources/views/notifications/index.blade.php`
+- `resources/js/legacy/realtime.js`
+
+### 8.3 Notification Settings
+
+**Features:**
+- Enable/disable notification types
+- Email notification preferences
+- Push notification preferences
 
 ---
 
-### Join Group via Invite Flow
-
-```
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  Invite Link │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  GET         │
-│  /join/      │
-│  {inviteLink}│
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  GroupController@joinViaInvite          │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Find Group by Invite Link      │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Check if Already Member        │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Add as Member                  │  │
-│  │    GroupMember::create([          │  │
-│  │      'user_id' => auth()->id(),   │  │
-│  │      'role' => 'member'           │  │
-│  │    ])                             │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. Add to Group Conversation      │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 5. Create System Message          │  │
-│  │    "{user} joined the group"      │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect to │
-│  Group Page  │
-└──────────────┘
-```
-
----
-
-## User Profile & Follow System
+## 9. Admin Panel
 
 ### Overview
 
-User profiles with customizable information and a follow system for content filtering.
+Complete moderation tools for platform management.
 
-| Feature | Description |
-|---------|-------------|
-| **Profile** | Avatar, cover, bio, social links |
-| **Follow** | Follow/unfollow users |
-| **Privacy** | Private accounts require approval |
-| **Block** | Block unwanted users |
-| **Explore** | Discover new users |
+### 9.1 Dashboard
 
----
+**Features:**
+- Platform statistics
+- User count
+- Post count
+- Recent activity
+- Reports count
 
-### Follow/Unfollow Flow
+**Implementation Files:**
+- `app/Http/Controllers/AdminController.php` (dashboard)
+- `resources/views/admin/dashboard.blade.php`
 
-```
-┌──────────────┐
-│   User       │
-│   Clicks     │
-│  Follow      │
-│  Button      │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  POST        │
-│  /users/{id}/│
-│  follow      │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  UserController@follow                  │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Check Self-Follow              │  │
-│  │    (Cannot follow self)           │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Check Existing Follow          │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Toggle Follow                  │  │
-│  │    If following:                  │  │
-│  │      → Delete (Unfollow)          │  │
-│  │    If not following:              │  │
-│  │      → Create (Follow)            │  │
-│  │      → Create Notification        │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Redirect    │
-│  Back        │
-└──────────────┘
-```
+### 9.2 User Management
 
-### Follow Code Example
+**Features:**
+- View all users
+- Search users
+- Edit user details
+- Suspend/unsuspend users
+- Delete users
+- Make admin
 
-```php
-// UserController.php
-public function follow(User $user)
-{
-    $currentUser = auth()->user();
+**Implementation Files:**
+- `app/Http/Controllers/AdminController.php` (users, showUser, editUser, updateUser, deleteUser)
+- `resources/views/admin/users.blade.php`
+- `resources/views/admin/user-detail.blade.php`
+- `resources/views/admin/user-edit.blade.php`
 
-    // Cannot follow self
-    abort_if($currentUser->id === $user->id, 403);
+### 9.3 Content Moderation
 
-    // Check if already following
-    $follow = $currentUser->following()
-        ->where('followed_id', $user->id)
-        ->first();
+**Features:**
+- View all posts
+- Delete any post
+- View all comments
+- Delete any comment
+- View all stories
+- Delete any story
 
-    if ($follow) {
-        // Unfollow
-        $follow->delete();
-        $following = false;
-    } else {
-        // Follow
-        $currentUser->following()->create([
-            'followed_id' => $user->id,
-        ]);
-        $following = true;
+**Authorization:**
+- Admin user only
 
-        // Create notification
-        Notification::create([
-            'user_id' => $user->id,
-            'type' => 'follow',
-            'data' => [
-                'user_id' => $currentUser->id,
-                'user_name' => $currentUser->name,
-            ],
-        ]);
-    }
+**Implementation Files:**
+- `app/Http/Controllers/AdminController.php` (posts, comments, stories, deletePost, deleteComment, deleteStory)
 
-    return back()->with('success', 
-        $following ? 'Following!' : 'Unfollowed.'
-    );
-}
-```
+### 9.4 Report Management
+
+**Features:**
+- View pending reports
+- Accept reports (delete content, suspend user)
+- Reject reports
+- Bulk actions
+- Report history
+
+**Report Statuses:**
+- `pending`: Awaiting review
+- `accepted`: Action taken
+- `rejected`: No action needed
+
+**Implementation Files:**
+- `app/Http/Controllers/ReportController.php`
+- `app/Models/PostReport.php`
+- `resources/views/admin/reports.blade.php`
+
+### 9.5 Admin Creation
+
+**Features:**
+- Create admin accounts
+- Admin-only action
+- Form validation
+
+**Implementation Files:**
+- `app/Http/Controllers/AdminController.php` (createAdminAccount)
 
 ---
 
-## Notifications
+## 10. AI Assistant
 
 ### Overview
 
-Real-time notifications for all user activities.
+Built-in AI chatbot for user support and assistance.
 
-| Type | Trigger |
-|------|---------|
-| **like** | Someone likes your post |
-| **comment** | Someone comments on your post |
-| **follow** | Someone follows you |
-| **mention** | Someone mentions you |
-| **message** | New chat message |
+### 10.1 AI Chat
 
----
+**Features:**
+- Conversational AI interface
+- Context-aware responses
+- Help with platform features
+- Troubleshooting assistance
 
-### Notification Creation Flow
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    Notification Creation Flow                            │
-└─────────────────────────────────────────────────────────────────────────┘
-
-Event Trigger (like, comment, follow, mention, message)
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  Notification::create([                 │
-│    'user_id' => $recipientId,           │
-│    'type' => 'like',                    │
-│    'data' => [                          │
-│      'user_id' => $actorId,             │
-│      'user_name' => $actorName,         │
-│      'post_id' => $postId,              │
-│    ],                                   │
-│    'related_id' => $postId,             │
-│    'related_type' => Post::class,       │
-│  ])                                     │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Real-time   │
-│  Broadcast   │
-│  (optional)  │
-└──────────────┘
-```
+**Implementation Files:**
+- `app/Http/Controllers/AiController.php`
+- `resources/views/ai/index.blade.php`
+- `resources/js/legacy/ai-chat.js`
 
 ---
 
-## Admin Panel
+## 11. Push Notifications
 
 ### Overview
 
-Admin panel for platform management and content moderation.
+Browser-based push notifications for real-time updates.
 
-| Feature | Description |
-|---------|-------------|
-| **Dashboard** | Platform statistics |
-| **User Management** | View, edit, suspend users |
-| **Content Moderation** | Delete posts, comments, stories |
-| **Admin Creation** | Create new admin accounts |
+### 11.1 Web Push API
 
----
+**Features:**
+- VAPID key authentication
+- Push subscription management
+- Notification preferences
+- Test notification
 
-### Admin Dashboard Flow
+**Implementation Files:**
+- `app/Http/Controllers/PushNotificationController.php`
+- `app/Services/PushNotificationService.php`
+- `app/Models/PushSubscription.php`
+- `public/sw.js` (Service Worker)
+- `resources/js/push-notifications.js`
 
-```
-┌──────────────┐
-│   Admin      │
-│   Visits     │
-│  /admin      │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  AdminMiddleware                        │
-│  ┌───────────────────────────────────┐  │
-│  │ Check is_admin = true             │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────┐
-│  AdminController@dashboard              │
-│  ┌───────────────────────────────────┐  │
-│  │ Get Statistics:                   │  │
-│  │ • Total users                     │  │
-│  │ • Total posts                     │  │
-│  │ • Total comments                  │  │
-│  │ • Total stories                   │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Render      │
-│  Dashboard   │
-│  View        │
-└──────────────┘
-```
+### 11.2 Notification Types
+
+**Supported Push Notifications:**
+- New message
+- Like on post
+- Comment on post
+- New follower
+- Story reaction
 
 ---
 
-## AI Assistant
+## 12. Activity & Analytics
 
 ### Overview
 
-Menu-based AI chatbot for user assistance.
+User activity tracking with session management and analytics.
 
-| Feature | Description |
-|---------|-------------|
-| **Chat Interface** | Conversational UI |
-| **Menu Options** | Pre-defined prompts |
-| **Context Aware** | Remembers conversation |
+### 12.1 Activity Logs
 
----
+**Features:**
+- Track user actions
+- IP address logging
+- User agent tracking
+- Location data (country, city)
+- Session tracking
 
-### AI Chat Flow
+**Logged Actions:**
+- Login/logout
+- Post creation
+- Comment creation
+- Profile updates
+- Password changes
+- Settings changes
 
-```
-┌──────────────┐
-│   User       │
-│   Visits     │
-│  /ai         │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  AI Chat     │
-│  Interface   │
-│  • Menu      │
-│  • Chat      │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  User Sends  │
-│  Message     │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  POST        │
-│  /ai/chat    │
-└──────┬───────┘
-       │
-       ▼
-┌─────────────────────────────────────────┐
-│  AiController@chat                      │
-│  ┌───────────────────────────────────┐  │
-│  │ 1. Validate Message               │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 2. Process with AI Service        │  │
-│  │    (Integration point for AI API) │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 3. Store Conversation             │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │ 4. Return Response                │  │
-│  └───────────────────────────────────┘  │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌──────────────┐
-│  Display     │
-│  AI Response │
-└──────────────┘
-```
+**Implementation Files:**
+- `app/Http/Controllers/ActivityController.php`
+- `app/Services/ActivityService.php`
+- `app/Models/ActivityLog.php`
+- `resources/views/activity/index.blade.php`
+
+### 12.2 Session Management
+
+**Features:**
+- View active sessions
+- Terminate sessions
+- Terminate all sessions
+- Session details (IP, location, device)
+
+**Implementation Files:**
+- `app/Http/Controllers/ActivityController.php` (terminateSession, terminateAllSessions)
+
+### 12.3 Data Export
+
+**Features:**
+- Export activity data
+- Download personal data
+- GDPR compliance
+
+**Implementation Files:**
+- `app/Http/Controllers/ActivityController.php` (export)
 
 ---
 
-## Next Steps
+## 13. Life Events
 
-Continue reading:
+### Overview
 
-- [API Reference](API.md) - RESTful API documentation
-- [Database Schema](DATABASE.md) - Table definitions
-- [Frontend Guide](FRONTEND.md) - Vue.js architecture
+Special life events with reactions and memory book.
+
+### 13.1 Create Event
+
+**Features:**
+- Event types (birthday, anniversary, etc.)
+- Event date
+- Associated post (optional)
+- Metadata storage
+
+**Implementation Files:**
+- `app/Http/Controllers/EventController.php`
+- `app/Models/Event.php`
+- `app/Models/EventReaction.php`
+
+### 13.2 Event Reactions
+
+**Features:**
+- React to events
+- Reaction types
+- View reactions
+
+### 13.3 Memory Book
+
+**Features:**
+- View user's life events
+- Timeline view
+- Nostalgia feature
+
+---
+
+## 14. Hashtags & Discovery
+
+### Overview
+
+Hashtag system for content discovery and trending topics.
+
+### 14.1 Hashtag Extraction
+
+**Features:**
+- Automatic hashtag extraction from posts
+- Hashtag pages
+- Hashtag suggestions
+- Trending hashtags
+
+**Implementation Files:**
+- `app/Http/Controllers/HashtagController.php`
+- `app/Http/Controllers/Api/HashtagApiController.php`
+- `app/Services/HashtagService.php`
+- `app/Models/Hashtag.php`
+- `resources/views/hashtags/show.blade.php`
+
+### 14.2 Hashtag Pages
+
+**Features:**
+- View posts with hashtag
+- Hashtag info
+- Related hashtags
+
+---
+
+## 15. Content Moderation
+
+### Overview
+
+User-driven content reporting and moderation system.
+
+### 15.1 Report Post
+
+**Features:**
+- Report posts for violations
+- Report reasons
+- Description field
+- Anonymous reporting
+
+**Report Reasons:**
+- Spam
+- Harassment
+- Hate speech
+- Nudity
+- Violence
+- Other
+
+**Implementation Files:**
+- `app/Http/Controllers/ReportController.php`
+- `app/Models/PostReport.php`
+- `resources/views/posts/report.blade.php`
+
+### 15.2 My Reports
+
+**Features:**
+- View submitted reports
+- Report status tracking
+- Delete reports
+- Report history
+
+**Implementation Files:**
+- `app/Http/Controllers/ReportController.php` (myReports, showReport, deleteReport, deleteAllReports)
+- `resources/views/reports/my-reports.blade.php`
+
+---
+
+## Feature Matrix
+
+### Guest Users
+- ✓ View public posts
+- ✓ View profiles
+- ✓ Register
+- ✓ Login
+
+### Registered Users
+- ✓ All Guest features, plus:
+- ✓ Create post
+- ✓ Like post
+- ✓ Comment
+- ✓ Follow user
+- ✓ Send message
+- ✓ Create group
+- ✓ Create story
+- ✓ View notifications
+
+### Admin Users
+- ✓ All User features, plus:
+- ✓ Access admin panel
+- ✓ Delete any content
+- ✓ Suspend users
+- ✓ Review reports
+
+---
+
+<div align="center">
+
+**Nexus - Complete Features Documentation**
+
+Last Updated: March 27, 2026 | Laravel 12.x | PHP 8.2+
+
+</div>

@@ -5,15 +5,6 @@
 
 #Requires -Version 5.0
 
-# Colors
-$GREEN = [ConsoleColor]::Green
-$RED = [ConsoleColor]::Red
-$YELLOW = [ConsoleColor]::Yellow
-$CYAN = [ConsoleColor]::Cyan
-$BLUE = [ConsoleColor]::Blue
-$WHITE = [ConsoleColor]::White
-$GRAY = [ConsoleColor]::Gray
-
 # Global variables
 $script:DB_CONNECTION = ""
 $script:DB_NAME = ""
@@ -28,35 +19,33 @@ $script:DB_PORT = "3306"
 
 function Write-Header {
     Write-Host ""
-    Write-Host "╔════════════════════════════════════════════════════╗" -ForegroundColor $CYAN
-    Write-Host "║     Nexus - Complete Setup Script (PowerShell)     ║" -ForegroundColor $CYAN
-    Write-Host "╚════════════════════════════════════════════════════╝" -ForegroundColor $CYAN
+    Write-Host "Nexus - Complete Setup Script (PowerShell)"
     Write-Host ""
 }
 
 function Write-Status {
     param([string]$Message)
-    Write-Host "  ● $Message" -ForegroundColor $CYAN
+    Write-Host "  * $Message"
 }
 
 function Write-Success {
     param([string]$Message)
-    Write-Host "  ✓ $Message" -ForegroundColor $GREEN
+    Write-Host "  OK $Message"
 }
 
 function Write-Error-Custom {
     param([string]$Message)
-    Write-Host "  ✗ $Message" -ForegroundColor $RED
+    Write-Host "  X $Message"
 }
 
 function Write-Warning-Custom {
     param([string]$Message)
-    Write-Host "  ⚠ $Message" -ForegroundColor $YELLOW
+    Write-Host "  ! $Message"
 }
 
 function Write-Info {
     param([string]$Message)
-    Write-Host "  ℹ $Message" -ForegroundColor $BLUE
+    Write-Host "  i $Message"
 }
 
 function Test-Command {
@@ -148,8 +137,8 @@ function Create-MySQLDatabase {
 
 function Check-Requirements {
     Write-Header
-    Write-Host "Step 1: Checking System Requirements" -ForegroundColor $WHITE -BackgroundColor Black
-    Write-Host "────────────────────────────────────────" -ForegroundColor $GRAY
+    Write-Host "Step 1: Checking System Requirements"
+    Write-Host "----------------------------------------"
 
     # Check PHP
     Write-Status "Checking PHP..."
@@ -164,7 +153,7 @@ function Check-Requirements {
 
                 if ($phpMajor -lt 8 -or ($phpMajor -eq 8 -and $phpMinor -lt 2)) {
                     Write-Error-Custom "PHP 8.2 or higher is required! You have $phpVersionNum"
-                    Write-Host "  Please upgrade PHP to version 8.2 or higher" -ForegroundColor $YELLOW
+                    Write-Host "  Please upgrade PHP to version 8.2 or higher"
                     Read-Host "Press Enter to exit"
                     exit 1
                 }
@@ -175,15 +164,15 @@ function Check-Requirements {
         }
     } catch {
         Write-Error-Custom "PHP is not installed!"
-        Write-Host "  Install from: https://windows.php.net/download/" -ForegroundColor $YELLOW
-        Write-Host "  Ensure PHP is added to PATH" -ForegroundColor $YELLOW
+        Write-Host "  Install from: https://windows.php.net/download/"
+        Write-Host "  Ensure PHP is added to PATH"
         Read-Host "Press Enter to exit"
         exit 1
     }
 
     # Check required PHP extensions
     Write-Host ""
-    Write-Host "  Checking PHP extensions..." -ForegroundColor $CYAN
+    Write-Host "  Checking PHP extensions..."
 
     $REQUIRED_EXTENSIONS = @("mbstring", "xml", "curl", "zip", "openssl", "pdo", "json", "tokenizer", "bcmath", "mysql")
     $MISSING_EXTENSIONS = @()
@@ -201,7 +190,7 @@ function Check-Requirements {
     if ($MISSING_EXTENSIONS.Count -gt 0) {
         Write-Host ""
         Write-Error-Custom "Missing PHP extensions: $($MISSING_EXTENSIONS -join ', ')"
-        Write-Host "  Enable extensions in php.ini or reinstall PHP with required extensions" -ForegroundColor $YELLOW
+        Write-Host "  Enable extensions in php.ini or reinstall PHP with required extensions"
         Read-Host "Press Enter to exit"
         exit 1
     }
@@ -217,7 +206,7 @@ function Check-Requirements {
         }
     } catch {
         Write-Error-Custom "Composer is not installed!"
-        Write-Host "  Install from: https://getcomposer.org/download/" -ForegroundColor $YELLOW
+        Write-Host "  Install from: https://getcomposer.org/download/"
         Read-Host "Press Enter to exit"
         exit 1
     }
@@ -233,7 +222,7 @@ function Check-Requirements {
         }
     } catch {
         Write-Error-Custom "Node.js is not installed!"
-        Write-Host "  Install from: https://nodejs.org/" -ForegroundColor $YELLOW
+        Write-Host "  Install from: https://nodejs.org/"
         Read-Host "Press Enter to exit"
         exit 1
     }
@@ -264,7 +253,7 @@ function Check-Requirements {
         }
     } catch {
         Write-Error-Custom "Git is not installed!"
-        Write-Host "  Install from: https://git-scm.com/download/win" -ForegroundColor $YELLOW
+        Write-Host "  Install from: https://git-scm.com/download/win"
         Read-Host "Press Enter to exit"
         exit 1
     }
@@ -275,7 +264,7 @@ function Check-Requirements {
         Write-Success "MySQL client installed"
     } else {
         Write-Warning-Custom "MySQL client not found (optional, for automatic database creation)"
-        Write-Host "  Download from: https://dev.mysql.com/downloads/mysql/" -ForegroundColor $YELLOW
+        Write-Host "  Download from: https://dev.mysql.com/downloads/mysql/"
     }
 }
 
@@ -285,8 +274,8 @@ function Check-Requirements {
 
 function Install-Dependencies {
     Write-Host ""
-    Write-Host "Step 2: Installing PHP Dependencies" -ForegroundColor $WHITE -BackgroundColor Black
-    Write-Host "────────────────────────────────────────"
+    Write-Host "Step 2: Installing PHP Dependencies"
+    Write-Host "----------------------------------------"
     Write-Status "Running composer install..."
     composer install --no-interaction --prefer-dist --optimize-autoloader
     if ($LASTEXITCODE -eq 0) {
@@ -298,8 +287,8 @@ function Install-Dependencies {
     }
 
     Write-Host ""
-    Write-Host "Step 3: Installing JavaScript Dependencies" -ForegroundColor $WHITE -BackgroundColor Black
-    Write-Host "────────────────────────────────────────"
+    Write-Host "Step 3: Installing JavaScript Dependencies"
+    Write-Host "----------------------------------------"
     Write-Status "Running npm install..."
     npm install
     if ($LASTEXITCODE -eq 0) {
@@ -317,8 +306,8 @@ function Install-Dependencies {
 
 function Setup-Environment {
     Write-Host ""
-    Write-Host "Step 4: Setting Up Environment" -ForegroundColor $WHITE -BackgroundColor Black
-    Write-Host "────────────────────────────────────────"
+    Write-Host "Step 4: Setting Up Environment"
+    Write-Host "----------------------------------------"
 
     # Create .env from .env.example
     if (-not (Test-Path ".env")) {
@@ -387,7 +376,7 @@ function Setup-MySQL {
 
     # Ask if user wants to create new database or use existing
     Write-Host ""
-    Write-Host "  Database Setup:" -ForegroundColor $CYAN
+    Write-Host "  Database Setup:"
     Write-Host "  1) Create new database"
     Write-Host "  2) Use existing database"
     Write-Host ""
@@ -423,7 +412,7 @@ function Setup-MySQL {
         Write-Status "Testing MySQL connection..."
         if (-not (Get-MySQLConnection -Host $script:DB_HOST -Port $script:DB_PORT -User $dbUserAdmin -Password $dbPassAdminPlain)) {
             Write-Error-Custom "Cannot connect to MySQL with provided credentials!"
-            Write-Host "  Please check:" -ForegroundColor $YELLOW
+            Write-Host "  Please check:"
             Write-Host "    1. MySQL server is running"
             Write-Host "    2. Host and port are correct"
             Write-Host "    3. Username and password are valid"
@@ -473,7 +462,7 @@ function Setup-MySQL {
         Write-Status "Testing MySQL connection..."
         if (-not (Get-MySQLConnection -Host $script:DB_HOST -Port $script:DB_PORT -User $dbUser -Password $dbPassPlain -Database $dbName)) {
             Write-Error-Custom "Cannot connect to MySQL database!"
-            Write-Host "  Please check:" -ForegroundColor $YELLOW
+            Write-Host "  Please check:"
             Write-Host "    1. MySQL server is running"
             Write-Host "    2. Database '$dbName' exists"
             Write-Host "    3. Username and password are correct"
@@ -512,10 +501,10 @@ function Setup-MySQL {
 
 function Configure-Database {
     Write-Host ""
-    Write-Host "Step 5: Database Configuration" -ForegroundColor $WHITE -BackgroundColor Black
-    Write-Host "────────────────────────────────────────"
+    Write-Host "Step 5: Database Configuration"
+    Write-Host "----------------------------------------"
     Write-Host ""
-    Write-Host "  Select database type:" -ForegroundColor $CYAN
+    Write-Host "  Select database type:"
     Write-Host "  1) SQLite (recommended for development/testing)"
     Write-Host "  2) MySQL/MariaDB (recommended for production)"
     Write-Host ""
@@ -537,8 +526,8 @@ function Configure-Database {
 
 function Run-Migrations {
     Write-Host ""
-    Write-Host "Step 6: Running Database Migrations" -ForegroundColor $WHITE -BackgroundColor Black
-    Write-Host "────────────────────────────────────────"
+    Write-Host "Step 6: Running Database Migrations"
+    Write-Host "----------------------------------------"
 
     Write-Status "Clearing configuration cache..."
     php artisan config:clear | Out-Null
@@ -551,7 +540,7 @@ function Run-Migrations {
     } else {
         Write-Error-Custom "Failed to run migrations"
         Write-Host ""
-        Write-Host "  Troubleshooting:" -ForegroundColor $YELLOW
+        Write-Host "  Troubleshooting:"
         Write-Host "    1. Check database credentials in .env"
         Write-Host "    2. Ensure database exists and is accessible"
         Write-Host "    3. Check storage/logs/laravel.log for errors"
@@ -568,8 +557,8 @@ function Run-Migrations {
 
 function Create-AdminUser {
     Write-Host ""
-    Write-Host "Step 7: Creating Admin User" -ForegroundColor $WHITE -BackgroundColor Black
-    Write-Host "────────────────────────────────────────"
+    Write-Host "Step 7: Creating Admin User"
+    Write-Host "----------------------------------------"
 
     # Check if AdminUserSeeder exists
     if (Test-Path "database/seeders/AdminUserSeeder.php") {
@@ -608,8 +597,8 @@ if (!$user) {
 
 function Build-Frontend {
     Write-Host ""
-    Write-Host "Step 8: Building Frontend Assets" -ForegroundColor $WHITE -BackgroundColor Black
-    Write-Host "────────────────────────────────────────"
+    Write-Host "Step 8: Building Frontend Assets"
+    Write-Host "----------------------------------------"
     Write-Status "Building assets with Vite..."
 
     npm run build
@@ -617,7 +606,7 @@ function Build-Frontend {
         Write-Success "Frontend assets built successfully"
     } else {
         Write-Error-Custom "Failed to build frontend assets"
-        Write-Host "  Try running 'npm install' again and check for errors" -ForegroundColor $YELLOW
+        Write-Host "  Try running 'npm install' again and check for errors"
         Read-Host "Press Enter to exit"
         exit 1
     }
@@ -629,8 +618,8 @@ function Build-Frontend {
 
 function Setup-Storage {
     Write-Host ""
-    Write-Host "Step 9: Setting Up Storage" -ForegroundColor $WHITE -BackgroundColor Black
-    Write-Host "────────────────────────────────────────"
+    Write-Host "Step 9: Setting Up Storage"
+    Write-Host "----------------------------------------"
 
     # Create storage link
     Write-Status "Creating storage symbolic link..."
@@ -659,8 +648,8 @@ function Setup-Storage {
 
 function Finalize-Setup {
     Write-Host ""
-    Write-Host "Step 10: Finalizing Setup" -ForegroundColor $WHITE -BackgroundColor Black
-    Write-Host "────────────────────────────────────────"
+    Write-Host "Step 10: Finalizing Setup"
+    Write-Host "----------------------------------------"
 
     Write-Status "Clearing all caches..."
     php artisan config:clear | Out-Null
@@ -686,44 +675,37 @@ function Finalize-Setup {
 
 function Print-Summary {
     Write-Host ""
-    Write-Host "════════════════════════════════════════════════════" -ForegroundColor $GREEN
-    Write-Host "  ✓ Setup Complete!" -ForegroundColor $GREEN
-    Write-Host "════════════════════════════════════════════════════" -ForegroundColor $GREEN
+    Write-Host "Setup Complete!"
     Write-Host ""
-    Write-Host "  Your Nexus project is ready to use!" -ForegroundColor $GREEN
+    Write-Host "Your Nexus project is ready to use!"
     Write-Host ""
-    Write-Host "────────────────────────────────────────────────────────" -ForegroundColor $GRAY
-    Write-Host "  Database Configuration:" -ForegroundColor $CYAN
-    Write-Host "    Type: $script:DB_CONNECTION"
+    Write-Host "Database Configuration:"
+    Write-Host "  Type: $script:DB_CONNECTION"
     if ($script:DB_CONNECTION -eq "mysql") {
-        Write-Host "    Host: $script:DB_HOST`:$script:DB_PORT"
-        Write-Host "    Database: $script:DB_NAME"
-        Write-Host "    Username: $script:DB_USER"
+        Write-Host "  Host: $script:DB_HOST`:$script:DB_PORT"
+        Write-Host "  Database: $script:DB_NAME"
+        Write-Host "  Username: $script:DB_USER"
     }
     Write-Host ""
-    Write-Host "  Admin Login Credentials:" -ForegroundColor $CYAN
-    Write-Host "    URL:      http://localhost:8000"
-    Write-Host "    Email:    admin@example.com"
-    Write-Host "    Password: admin123"
-    Write-Host "    Username: admin"
+    Write-Host "Admin Login Credentials:"
+    Write-Host "  URL:      http://localhost:8000"
+    Write-Host "  Email:    admin@example.com"
+    Write-Host "  Password: admin123"
+    Write-Host "  Username: admin"
     Write-Host ""
-    Write-Host "  ⚠ Security Notice: Change the default password after login!" -ForegroundColor $YELLOW
-    Write-Host "────────────────────────────────────────────────────────" -ForegroundColor $GRAY
+    Write-Host "Security Notice: Change the default password after login!"
     Write-Host ""
-    Write-Host "  To start the development server:" -ForegroundColor $WHITE
-    Write-Host "    php artisan serve" -ForegroundColor $CYAN
+    Write-Host "To start the development server:"
+    Write-Host "  php artisan serve"
     Write-Host ""
-    Write-Host "  To start with development mode (server + queue + vite):" -ForegroundColor $WHITE
-    Write-Host "    composer run dev" -ForegroundColor $CYAN
+    Write-Host "Useful Commands:"
+    Write-Host "  php artisan migrate          - Run migrations"
+    Write-Host "  php artisan migrate:fresh    - Reset and run migrations"
+    Write-Host "  php artisan db:seed          - Seed database"
+    Write-Host "  npm run dev                  - Start Vite dev server"
+    Write-Host "  php artisan optimize         - Optimize for production"
     Write-Host ""
-    Write-Host "  Useful Commands:" -ForegroundColor $WHITE
-    Write-Host "    php artisan migrate          - Run migrations"
-    Write-Host "    php artisan migrate:fresh    - Reset and run migrations"
-    Write-Host "    php artisan db:seed          - Seed database"
-    Write-Host "    npm run dev                  - Start Vite dev server"
-    Write-Host "    php artisan optimize         - Optimize for production"
-    Write-Host ""
-    Write-Host "  Enjoy building with Nexus! 🚀" -ForegroundColor $GREEN
+    Write-Host "Enjoy building with Nexus!"
     Write-Host ""
     Read-Host "Press Enter to exit"
 }
@@ -746,7 +728,7 @@ function Main {
         Print-Summary
     } catch {
         Write-Error-Custom "Setup failed: $_"
-        Write-Host "  Check the error messages above for details" -ForegroundColor $YELLOW
+        Write-Host "  Check the error messages above for details"
         Read-Host "Press Enter to exit"
         exit 1
     }

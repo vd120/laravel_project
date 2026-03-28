@@ -1,19 +1,19 @@
-	# Architecture Documentation
+# Nexus - Architecture Guide
 
-System architecture, design patterns, and data flow for Nexus.
+Complete system architecture documentation for Nexus social networking platform.
 
 ---
 
 ## Table of Contents
 
-- [System Overview](#system-overview)
-- [Architecture Diagram](#architecture-diagram)
-- [Application Flow](#application-flow)
-- [Directory Structure](#directory-structure)
-- [Design Patterns](#design-patterns)
-- [Data Flow](#data-flow)
-- [Security Architecture](#security-architecture)
-- [Performance Architecture](#performance-architecture)
+1. [System Overview](#system-overview)
+2. [Architecture Diagram](#architecture-diagram)
+3. [Application Flow](#application-flow)
+4. [Directory Structure](#directory-structure)
+5. [Design Patterns](#design-patterns)
+6. [Data Flow](#data-flow)
+7. [Security Architecture](#security-architecture)
+8. [Performance Architecture](#performance-architecture)
 
 ---
 
@@ -21,30 +21,33 @@ System architecture, design patterns, and data flow for Nexus.
 
 ### High-Level Architecture
 
+Nexus is built using a modern three-tier architecture with Laravel 12 as the backend framework, Blade templates with Vue.js for the frontend, and SQLite/MySQL for data storage.
+
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────┐
 │                              CLIENT LAYER                                │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                  │
 │  │   Desktop    │  │   Mobile     │  │   Third-     │                  │
 │  │   Browser    │  │   Browser    │  │   Party API  │                  │
-│  │   (Vue.js)   │  │   (Vue.js)   │  │   Clients    │                  │
+│  │   (Blade +   │  │   (Blade +   │  │   Clients    │                  │
+│  │    Vue.js)   │  │    Vue.js)   │  │   (REST)     │                  │
 │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘                  │
 │         │                 │                 │                           │
-│         │  HTTP/HTTPS     │  REST API       │  OAuth 2.0                │
-│         │  Inertia.js     │  Sanctum Token  │  Socialite                │
+│         │  HTTP/HTTPS     │  REST API       │  Sanctum Token            │
+│         │  Inertia.js     │  Sanctum Token  │  OAuth 2.0                │
 │         ▼                 ▼                 ▼                           │
-└─────────────────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
-┌─────────────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────┐
 │                          APPLICATION LAYER                               │
 │  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │                     Laravel 12 Framework                           │  │
+│  │                     Laravel 12 Framework                            │  │
 │  │                                                                   │  │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐   │  │
 │  │  │   Routes    │  │ Middleware  │  │    Controllers          │   │  │
-│  │  │   web.php   │  │ • Auth      │  │ • PostController        │   │  │
-│  │  │   api.php   │  │ • Admin     │  │ • CommentController     │   │  │
+│  │  │  web.php    │  │ • Auth      │  │ • PostController        │   │  │
+│  │  │  api.php    │  │ • Admin     │  │ • CommentController     │   │  │
 │  │  │             │  │ • Verified  │  │ • StoryController       │   │  │
 │  │  │             │  │ • Suspended │  │ • ChatController        │   │  │
 │  │  │             │  │ • RateLimit │  │ • GroupController       │   │  │
@@ -58,6 +61,8 @@ System architecture, design patterns, and data flow for Nexus.
 │  │  │                    Service Layer                             │  │  │
 │  │  │  • MentionService    • PushNotificationService              │  │  │
 │  │  │  • FileUploadService • RealtimeService                      │  │  │
+│  │  │  • HashtagService    • ActivityService                      │  │  │
+│  │  │  • EventService      • QrCodeService                        │  │  │
 │  │  │  • JsObfuscator                                             │  │  │
 │  │  └────────────────────────────┬────────────────────────────────┘  │  │
 │  │                               │                                   │  │
@@ -70,16 +75,16 @@ System architecture, design patterns, and data flow for Nexus.
 └──────────────────────────────────┼──────────────────────────────────────┘
                                    │
                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────┐
 │                            DATA LAYER                                   │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌────────────┐  │
-│  │   MySQL/     │  │    Redis     │  │    File      │  │  Session   │  │
-│  │   SQLite     │  │   (Cache)    │  │   Storage    │  │   Files    │  │
-│  │   Database   │  │  • Queue     │  │  • Avatars   │  │  • Cache   │  │
-│  │  • Users     │  │  • Cache     │  │  • Posts     │  │  • Session │  │
-│  │  • Posts     │  │  • Sessions  │  │  • Stories   │  │            │  │
-│  │  • Comments  │  │  • RateLimit │  │  • Messages  │  │            │  │
-│  │  • Messages  │  │              │  │  • Groups    │  │            │  │
+│  │   MySQL/     │  │  Database/   │  │    File      │  │  Session   │  │
+│  │   SQLite     │  │    Redis     │  │   Storage    │  │   Store    │  │
+│  │   Database   │  │  (Optional)  │  │  • Avatars   │  │  (Database)│  │
+│  │  • Users     │  │  • Cache     │  │  • Posts     │  │  • Cache   │  │
+│  │  • Posts     │  │  • Queue     │  │  • Stories   │  │            │  │
+│  │  • Comments  │  │  • Sessions  │  │  • Messages  │  │            │  │
+│  │  • Messages  │  │  • RateLimit │  │  • Groups    │  │            │  │
 │  └──────────────┘  └──────────────┘  └──────────────┘  └────────────┘  │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -164,7 +169,7 @@ System architecture, design patterns, and data flow for Nexus.
 1. User Request
        │
        ▼
-2. Public/index.php (Entry Point)
+2. public/index.php (Entry Point)
        │
        ▼
 3. Autoloader Initialization
@@ -177,12 +182,16 @@ System architecture, design patterns, and data flow for Nexus.
        └── Create Application Container
        │
        ▼
-5. HTTP Kernel (app/Http/Kernel.php)
+5. Middleware Pipeline (bootstrap/app.php)
        │
        ├── Global Middleware
-       │   • TrustHosts
        │   • HandleCors
        │   • ValidateCsrfToken
+       │   • HandleInertiaRequests
+       │   • TrustCloudflare
+       │   • SetLocale
+       │   • LogRealTimeRequests
+       │   • ForceHttps
        │
        ▼
 6. Route Matching
@@ -192,6 +201,8 @@ System architecture, design patterns, and data flow for Nexus.
        │   • auth
        │   • verified
        │   • admin
+       │   • suspended
+       │   • password.set
        │   • throttle (rate limiting)
        │
        ▼
@@ -306,209 +317,205 @@ System architecture, design patterns, and data flow for Nexus.
 ## Directory Structure
 
 ```
-laravel_project/
+nexus/
 │
 ├── app/
 │   ├── Console/
 │   │   └── Commands/
-│   │       ├── CleanupExpiredStories.php    # Hourly story cleanup
-│   │       ├── DeleteExpiredStories.php     # Alternative cleanup command
-│   │       ├── DeleteUnverifiedUsers.php    # Remove unverified accounts
-│   │       ├── GeneratePostSlugs.php        # Migrate posts to slug system
-│   │       ├── SendInactiveUserReminders.php # Re-engagement emails
-│   │       └── SendTestEmail.php            # Email configuration test
+│   │       ├── ActivityService.php
+│   │       ├── BackfillIpLocations.php
+│   │       ├── CleanupExpiredStories.php
+│   │       ├── DeleteExpiredStories.php
+│   │       ├── DeleteUnverifiedUsers.php
+│   │       ├── ExtractHashtags.php
+│   │       ├── GeneratePostSlugs.php
+│   │       ├── GenerateVapidKeysCommand.php
+│   │       ├── SendBirthdayReminders.php
+│   │       ├── SendInactiveUserReminders.php
+│   │       ├── SendTestEmail.php
+│   │       └── Troubleshoot.php
 │   │
 │   ├── Http/
 │   │   ├── Controllers/
 │   │   │   ├── Api/
-│   │   │   │   ├── CommentController.php    # API: Comment operations
-│   │   │   │   ├── MessageController.php    # API: Message operations
-│   │   │   │   ├── NotificationController.php # API: Notifications
-│   │   │   │   ├── PostController.php       # API: Post operations
-│   │   │   │   ├── UserController.php       # API: User operations
-│   │   │   │   └── PasswordController.php   # API: Password changes
+│   │   │   │   ├── CommentController.php
+│   │   │   │   ├── EventController.php
+│   │   │   │   ├── HashtagApiController.php
+│   │   │   │   ├── MessageController.php
+│   │   │   │   ├── NotificationController.php
+│   │   │   │   ├── PasswordController.php
+│   │   │   │   ├── PostController.php
+│   │   │   │   ├── UserController.php
+│   │   │   │   └── UserMentionApiController.php
 │   │   │   │
 │   │   │   ├── Auth/
-│   │   │   │   ├── AuthenticatedSessionController.php # Session management
-│   │   │   │   ├── ConfirmablePasswordController.php  # Password confirmation
+│   │   │   │   ├── AuthenticatedSessionController.php
+│   │   │   │   ├── ConfirmablePasswordController.php
 │   │   │   │   ├── EmailVerificationNotificationController.php
 │   │   │   │   ├── EmailVerificationPromptController.php
-│   │   │   │   ├── LoginController.php      # Login handling
-│   │   │   │   ├── NewPasswordController.php # New password setup
-│   │   │   │   ├── PasswordResetLinkController.php  # Reset link requests
-│   │   │   │   ├── RegisteredUserController.php # User registration
-│   │   │   │   ├── ResetPasswordController.php # Password reset
-│   │   │   │   ├── VerifyEmailController.php # Email verification
-│   │   │   │   └── SocialAuthController.php # Google OAuth
+│   │   │   │   ├── LoginController.php
+│   │   │   │   ├── NewPasswordController.php
+│   │   │   │   ├── PasswordController.php
+│   │   │   │   ├── PasswordResetLinkController.php
+│   │   │   │   ├── RegisterController.php
+│   │   │   │   ├── RegisteredUserController.php
+│   │   │   │   ├── ResetPasswordController.php
+│   │   │   │   ├── SocialAuthController.php
+│   │   │   │   └── VerifyEmailController.php
 │   │   │   │
-│   │   │   ├── AdminController.php          # Admin panel operations
-│   │   │   ├── AiController.php             # AI chatbot
-│   │   │   ├── ChatController.php           # Chat/messaging
-│   │   │   ├── CommentController.php        # Comment CRUD
-│   │   │   ├── Controller.php               # Base controller
-│   │   │   ├── GroupController.php          # Group management
-│   │   │   ├── LanguageController.php       # Language switching
-│   │   │   ├── NotificationController.php   # Notifications
-│   │   │   ├── PostController.php           # Post CRUD
-│   │   │   ├── ProfileController.php        # Profile management
-│   │   │   ├── StoryController.php          # Story operations
-│   │   │   └── UserController.php           # User operations
+│   │   │   ├── ActivityController.php
+│   │   │   ├── AdminController.php
+│   │   │   ├── AiController.php
+│   │   │   ├── ChatController.php
+│   │   │   ├── CommentController.php
+│   │   │   ├── Controller.php
+│   │   │   ├── EventController.php
+│   │   │   ├── GroupController.php
+│   │   │   ├── HashtagController.php
+│   │   │   ├── LanguageController.php
+│   │   │   ├── NotificationController.php
+│   │   │   ├── PostController.php
+│   │   │   ├── ProfileController.php
+│   │   │   ├── PushNotificationController.php
+│   │   │   ├── ReportController.php
+│   │   │   ├── StoryController.php
+│   │   │   └── UserController.php
 │   │   │
 │   │   ├── Middleware/
-│   │   │   ├── AdminMiddleware.php          # Admin authorization
-│   │   │   ├── Authenticate.php             # Auth check
-│   │   │   ├── CheckEmailVerified.php       # Email verification check
-│   │   │   ├── CheckUserSuspended.php       # Suspension check
-│   │   │   ├── EncryptCookies.php           # Cookie encryption
-│   │   │   ├── HandleInertiaRequests.php    # Inertia setup
-│   │   │   ├── PreventRequestsDuringMaintenance.php
-│   │   │   ├── RedirectIfAuthenticated.php  # Guest redirect
-│   │   │   ├── SetLocale.php                # Language setting
-│   │   │   ├── TrimStrings.php              # Input trimming
-│   │   │   ├── TrustHosts.php               # Host trust
-│   │   │   ├── TrustProxies.php             # Proxy trust
-│   │   │   ├── ValidateSignature.php        # Signature validation
-│   │   │   └── VerifyCsrfToken.php          # CSRF protection
+│   │   │   ├── AdminMiddleware.php
+│   │   │   ├── CheckEmailVerified.php
+│   │   │   ├── CheckUserSuspended.php
+│   │   │   ├── ForceHttps.php
+│   │   │   ├── HandleInertiaRequests.php
+│   │   │   ├── LogRealTimeRequests.php
+│   │   │   ├── RequirePasswordSet.php
+│   │   │   ├── SetLocale.php
+│   │   │   └── TrustCloudflare.php
 │   │   │
 │   │   ├── Requests/
 │   │   │   ├── Auth/
-│   │   │   │   └── LoginRequest.php         # Login validation
-│   │   │   └── ProfileUpdateRequest.php     # Profile validation
+│   │   │   │   └── LoginRequest.php
+│   │   │   └── ProfileUpdateRequest.php
 │   │   │
-│   │   └── Kernel.php                       # HTTP kernel
+│   │   └── (No Kernel.php - Laravel 12 uses bootstrap/app.php)
+│   │
+│   ├── Jobs/
+│   │   ├── LogActivityJob.php
+│   │   └── SendLoginEmailJob.php
+│   │
+│   ├── Listeners/
+│   │   └── LogUserLogout.php
 │   │
 │   ├── Mail/
-│   │   └── VerificationCodeMail.php         # Email verification code
+│   │   ├── LoginSecurityAlert.php
+│   │   ├── VerificationCodeMail.php
+│   │   └── WelcomeMail.php
 │   │
 │   ├── Models/
-│   │   ├── Block.php                        # User blocking
-│   │   ├── Comment.php                      # Comments
-│   │   ├── CommentLike.php                  # Comment likes
-│   │   ├── Conversation.php                 # Chat conversations
-│   │   ├── Follow.php                       # Follow relationships
-│   │   ├── Group.php                        # Groups
-│   │   ├── GroupMember.php                  # Group membership
-│   │   ├── Like.php                         # Post likes
-│   │   ├── Mention.php                      # User mentions
-│   │   ├── Message.php                      # Chat messages
-│   │   ├── Notification.php                 # Notifications
-│   │   ├── Post.php                         # Posts
-│   │   ├── PostMedia.php                    # Post media attachments
-│   │   ├── Profile.php                      # User profiles
-│   │   ├── SavedPost.php                    # Saved posts
-│   │   ├── Story.php                        # Stories
-│   │   ├── StoryReaction.php                # Story reactions
-│   │   ├── StoryView.php                    # Story views
-│   │   └── User.php                         # Users
+│   │   ├── ActivityLog.php
+│   │   ├── Block.php
+│   │   ├── Comment.php
+│   │   ├── CommentLike.php
+│   │   ├── Conversation.php
+│   │   ├── Event.php
+│   │   ├── EventReaction.php
+│   │   ├── Follow.php
+│   │   ├── Group.php
+│   │   ├── GroupMember.php
+│   │   ├── Hashtag.php
+│   │   ├── Like.php
+│   │   ├── Mention.php
+│   │   ├── Message.php
+│   │   ├── Notification.php
+│   │   ├── Post.php
+│   │   ├── PostMedia.php
+│   │   ├── PostReport.php
+│   │   ├── Profile.php
+│   │   ├── PushSubscription.php
+│   │   ├── SavedPost.php
+│   │   ├── Story.php
+│   │   ├── StoryReaction.php
+│   │   ├── StoryView.php
+│   │   └── User.php
 │   │
 │   ├── Providers/
-│   │   ├── AppServiceProvider.php           # Application bootstrap
-│   │   └── ObfuscatorServiceProvider.php    # URL obfuscation
+│   │   ├── AppServiceProvider.php
+│   │   └── ObfuscatorServiceProvider.php
 │   │
-│   └── Services/
-│       ├── FileUploadService.php            # File upload handling
-│       ├── JsObfuscator.php                 # JavaScript obfuscation
-│       ├── MentionService.php               # @mention processing
-│       └── RealtimeService.php              # Real-time polling
+│   ├── Services/
+│   │   ├── ActivityService.php
+│   │   ├── EventService.php
+│   │   ├── FileUploadService.php
+│   │   ├── HashtagService.php
+│   │   ├── JsObfuscator.php
+│   │   ├── MentionService.php
+│   │   ├── PushNotificationService.php
+│   │   ├── QrCodeService.php
+│   │   └── RealtimeService.php
+│   │
+│   └── Traits/
+│       └── SendsPushNotifications.php
 │
 ├── bootstrap/
-│   ├── app.php                              # Application bootstrap
-│   └── providers.php                        # Service providers
+│   ├── app.php
+│   └── providers.php
 │
 ├── config/
-│   ├── app.php                              # App configuration
-│   ├── auth.php                             # Authentication config
-│   ├── cache.php                            # Cache configuration
-│   ├── database.php                         # Database config
-│   ├── filesystems.php                      # File storage config
-│   ├── logging.php                          # Logging config
-│   ├── mail.php                             # Mail configuration
-│   ├── queue.php                            # Queue configuration
-│   ├── sanctum.php                          # Sanctum config
-│   ├── services.php                         # Third-party services
-│   └── session.php                          # Session config
+│   ├── app.php
+│   ├── auth.php
+│   ├── cache.php
+│   ├── database.php
+│   ├── filesystems.php
+│   ├── logging.php
+│   ├── mail.php
+│   ├── queue.php
+│   ├── sanctum.php
+│   ├── services.php
+│   └── session.php
 │
 ├── database/
-│   ├── factories/                           # Model factories
+│   ├── factories/
 │   │   ├── PostFactory.php
-│   │   ├── UserFactory.php
-│   │   └── ...
+│   │   └── UserFactory.php
 │   │
-│   ├── migrations/                          # Database migrations
+│   ├── migrations/
 │   │   ├── 0001_01_01_000000_create_users_table.php
 │   │   ├── 0001_01_01_000001_create_cache_table.php
 │   │   ├── 2025_12_31_183416_create_posts_table.php
-│   │   ├── 2025_12_31_183428_create_follows_table.php
-│   │   ├── 2025_12_31_183440_create_likes_table.php
-│   │   ├── 2025_12_31_184455_create_comments_table.php
-│   │   ├── 2025_12_31_184509_create_comment_likes_table.php
-│   │   ├── 2025_12_31_185456_create_personal_access_tokens_table.php
-│   │   ├── 2025_12_31_190832_create_profiles_table.php
-│   │   ├── 2025_12_31_195043_add_is_private_to_profiles_table.php
-│   │   ├── 2025_12_31_195638_create_blocks_table.php
-│   │   ├── 2025_12_31_201829_add_media_to_posts_table.php
-│   │   ├── 2025_12_31_203558_add_is_private_to_posts_table.php
-│   │   ├── 2025_12_31_204120_create_post_media_table.php
-│   │   ├── 2025_12_31_204526_make_content_nullable_in_posts_table.php
-│   │   ├── 2025_12_31_211517_create_saved_posts_table.php
-│   │   ├── 2026_01_01_020301_create_stories_table.php
-│   │   ├── 2026_01_01_023011_add_views_to_stories_table.php
-│   │   ├── 2026_01_01_024005_create_story_views_table.php
-│   │   ├── 2026_01_01_024641_create_story_reactions_table.php
-│   │   ├── 2026_01_02_001005_add_full_name_to_profiles_table.php
-│   │   ├── 2026_01_02_020406_drop_full_name_from_profiles_table.php
-│   │   ├── 2026_01_02_045911_add_is_admin_to_users_table.php
-│   │   ├── 2026_01_02_052131_add_is_suspended_to_users_table.php
-│   │   ├── 2026_01_02_165014_create_conversations_table.php
-│   │   ├── 2026_01_02_165034_create_messages_table.php
-│   │   ├── 2026_01_02_171409_add_slug_to_conversations_table.php
-│   │   ├── 2026_01_02_180145_add_soft_deletes_to_messages_table.php
-│   │   ├── 2026_01_02_215252_create_notifications_table.php
-│   │   ├── 2026_01_03_214127_add_notified_at_to_messages_table.php
-│   │   ├── 2026_01_03_215758_add_indexes_for_performance.php
-│   │   ├── 2026_01_05_200731_create_mentions_table.php
-│   │   ├── 2026_01_16_123018_add_verification_code_to_users_table.php
-│   │   ├── 2026_01_19_140649_add_slug_to_posts_table.php
-│   │   ├── 2026_02_12_100000_add_username_to_users_table.php
-│   │   ├── 2026_02_13_091601_add_last_active_to_users.php
-│   │   ├── 2026_02_19_121800_add_media_to_messages_table.php
-│   │   ├── 2026_02_21_170301_create_groups_table.php
-│   │   ├── 2026_02_21_170303_create_group_members_table.php
-│   │   ├── 2026_02_21_170304_add_is_group_to_conversations_table.php
-│   │   ├── 2026_02_23_000000_add_system_type_to_messages.php
-│   │   ├── 2026_02_23_191845_add_group_invite_type_to_messages_table.php
-│   │   ├── 2026_02_26_013542_populate_usernames_for_existing_users.php
-│   │   ├── 2026_02_26_013853_add_username_changed_at_to_users_table.php
-│   │   ├── 2026_02_26_015139_update_existing_usernames_to_remove_hyphens.php
-│   │   ├── 2026_02_27_012712_increase_media_path_length_in_messages_table.php
-│   │   ├── 2026_02_28_021459_populate_story_slugs_and_add_unique_constraint.php
-│   │   ├── 2026_02_28_172610_add_visible_to_to_messages_table.php
-│   │   ├── 2026_03_02_000000_add_delivered_at_to_messages_table.php
-│   │   ├── 2026_03_02_000001_add_delete_options_to_messages_table.php
-│   │   ├── 2026_03_09_210144_add_inactive_reminder_fields_to_users_table.php
-│   │   ├── 2026_03_10_003407_make_password_column_nullable_in_users_table.php
-│   │   ├── 2026_03_10_232137_add_slug_and_invite_link_to_groups_table.php
-│   │   ├── 2026_03_10_232405_add_language_to_users_table.php
-│   │   └── 2026_03_11_002925_add_performance_indexes.php
+│   │   ├── ... (79 migration files)
+│   │   └── 2026_03_27_081337_add_metadata_column_to_stories_table.php
 │   │
-│   └── seeders/                             # Database seeders
+│   └── seeders/
 │       └── DatabaseSeeder.php
 │
 ├── public/
-│   ├── index.php                            # Application entry point
-│   ├── robots.txt                           # Robots configuration
-│   └── .htaccess                            # Apache configuration
+│   ├── css/
+│   │   ├── app-layout.css
+│   │   ├── comments.css
+│   │   ├── mobile-header.css
+│   │   └── ... (37 CSS files)
+│   │
+│   ├── images/
+│   │   └── default-avatar.svg
+│   │
+│   ├── .htaccess
+│   ├── favicon.ico
+│   ├── index.php
+│   ├── robots.txt
+│   ├── sw.js
+│   └── vid.mp4
 │
 ├── resources/
 │   ├── css/
-│   │   └── app.css                          # Tailwind CSS entry
+│   │   └── app.css
 │   │
 │   ├── js/
-│   │   ├── Components/                      # Vue components
+│   │   ├── Components/
 │   │   │   ├── ApplicationLogo.vue
 │   │   │   ├── Checkbox.vue
 │   │   │   ├── DangerButton.vue
 │   │   │   ├── Dropdown.vue
+│   │   │   ├── DropdownLink.vue
 │   │   │   ├── InputError.vue
 │   │   │   ├── InputLabel.vue
 │   │   │   ├── Modal.vue
@@ -516,275 +523,245 @@ laravel_project/
 │   │   │   ├── PrimaryButton.vue
 │   │   │   ├── ResponsiveNavLink.vue
 │   │   │   ├── SecondaryButton.vue
-│   │   │   ├── TextInput.vue
-│   │   │   ├── posts/
-│   │   │   ├── comments/
-│   │   │   ├── stories/
-│   │   │   ├── chat/
-│   │   │   └── groups/
+│   │   │   └── TextInput.vue
 │   │   │
-│   │   ├── Layouts/                         # Vue layouts
-│   │   │   ├── AppLayout.vue
+│   │   ├── Layouts/
+│   │   │   ├── AuthenticatedLayout.vue
 │   │   │   └── GuestLayout.vue
 │   │   │
-│   │   ├── Pages/                           # Inertia pages
-│   │   │   ├── auth/
-│   │   │   ├── posts/
-│   │   │   ├── stories/
-│   │   │   ├── chat/
-│   │   │   ├── groups/
-│   │   │   ├── users/
-│   │   │   ├── admin/
-│   │   │   └── ai/
+│   │   ├── Pages/
+│   │   │   ├── Auth/
+│   │   │   ├── Profile/
+│   │   │   ├── Dashboard.vue
+│   │   │   └── Welcome.vue
 │   │   │
-│   │   ├── types/                           # TypeScript types
+│   │   ├── legacy/
+│   │   │   ├── ai-chat.js
+│   │   │   ├── auth-*.js
+│   │   │   ├── comments.js
+│   │   │   ├── groups-edit.js
+│   │   │   ├── groups-show.js
+│   │   │   ├── home.js
+│   │   │   ├── posts.js
+│   │   │   ├── realtime.js
+│   │   │   └── ui-utils.js
+│   │   │
+│   │   ├── types/
 │   │   │   └── global.d.ts
 │   │   │
-│   │   ├── app.js                           # Application entry
-│   │   └── bootstrap.js                     # Bootstrap configuration
+│   │   ├── app.js
+│   │   ├── bootstrap.js
+│   │   └── push-notifications.js
+│   │
+│   ├── lang/
+│   │   ├── en/
+│   │   │   ├── messages.php
+│   │   │   └── validation.php
+│   │   └── ar/
+│   │       ├── messages.php
+│   │       └── validation.php
 │   │
 │   └── views/
-│       ├── admin/                           # Admin views
-│       │   ├── dashboard.blade.php
-│       │   ├── users.blade.php
-│       │   ├── user-detail.blade.php
-│       │   ├── user-edit.blade.php
-│       │   ├── posts.blade.php
-│       │   ├── comments.blade.php
-│       │   └── stories.blade.php
-│       │
-│       ├── auth/                            # Auth views
-│       │   ├── login.blade.php
-│       │   ├── register.blade.php
-│       │   ├── forgot-password.blade.php
-│       │   ├── reset-password.blade.php
-│       │   ├── verify-email.blade.php
-│       │   ├── password-change.blade.php
-│       │   ├── set-password.blade.php
-│       │   └── suspended.blade.php
-│       │
-│       ├── chat/                            # Chat views
-│       │   ├── index.blade.php
-│       │   └── show.blade.php
-│       │
-│       ├── emails/                          # Email templates
-│       │   ├── password-reset.blade.php
-│       │   ├── verification-code.blade.php
-│       │   └── verification-code-text.blade.php
-│       │
-│       ├── errors/                          # Error pages
-│       │   ├── 403.blade.php
-│       │   ├── 404.blade.php
-│       │   ├── 419.blade.php
-│       │   └── 500.blade.php
-│       │
-│       ├── groups/                          # Group views
-│       │   ├── create.blade.php
-│       │   ├── edit.blade.php
-│       │   └── show.blade.php
-│       │
-│       ├── layouts/                         # Layout templates
-│       │   ├── app.blade.php
-│       │   └── language.blade.php
-│       │
-│       ├── partials/                        # Partial views
-│       │   ├── comment.blade.php
-│       │   ├── language-switcher.blade.php
-│       │   └── post.blade.php
-│       │
-│       ├── posts/                           # Post views
-│       │   ├── index.blade.php
-│       │   └── show.blade.php
-│       │
-│       ├── stories/                         # Story views
-│       │   ├── create.blade.php
-│       │   ├── index.blade.php
-│       │   ├── show.blade.php
-│       │   └── viewers.blade.php
-│       │
-│       ├── users/                           # User views
-│       │   ├── show.blade.php
-│       │   ├── edit-profile.blade.php
-│       │   ├── followers.blade.php
-│       │   ├── following.blade.php
-│       │   ├── blocked.blade.php
-│       │   ├── saved-posts.blade.php
-│       │   ├── explore.blade.php
-│       │   └── search.blade.php
-│       │
-│       ├── ai/                              # AI views
-│       │   └── index.blade.php
-│       │
-│       ├── app.blade.php                    # Root template
-│       └── home.blade.php                   # Landing page
+│       ├── activity/
+│       ├── admin/
+│       ├── ai/
+│       ├── auth/
+│       ├── chat/
+│       ├── emails/
+│       ├── errors/
+│       ├── events/
+│       ├── groups/
+│       ├── hashtags/
+│       ├── layouts/
+│       ├── notifications/
+│       ├── partials/
+│       ├── posts/
+│       ├── reports/
+│       ├── stories/
+│       ├── users/
+│       ├── app.blade.php
+│       └── home.blade.php
 │
 ├── routes/
-│   ├── web.php                              # Web routes
-│   ├── api.php                              # API routes
-│   ├── console.php                          # Console routes
-│   └── channels.php                         # Broadcasting channels
+│   ├── web.php
+│   ├── api.php
+│   └── console.php
 │
 ├── storage/
 │   ├── app/
-│   │   ├── public/
-│   │   │   ├── avatars/                     # User avatars
-│   │   │   ├── covers/                      # Cover images
-│   │   │   ├── posts/                       # Post media
-│   │   │   ├── stories/                     # Story media
-│   │   │   ├── groups/                      # Group avatars
-│   │   │   └── messages/                    # Message attachments
-│   │   │
-│   │   └── temp/                            # Temporary files
+│   │   └── public/
+│   │       ├── posts/
+│   │       ├── stories/
+│   │       ├── avatars/
+│   │       ├── covers/
+│   │       └── messages/
 │   │
-│   ├── framework/                           # Framework cache
+│   ├── framework/
 │   │   ├── cache/
 │   │   ├── sessions/
-│   │   ├── views/
-│   │   └── testing/
+│   │   └── views/
 │   │
-│   └── logs/                                # Application logs
-│       └── laravel.log
+│   └── logs/
 │
 ├── tests/
 │   ├── Feature/
-│   │   └── ExampleTest.php
 │   └── Unit/
-│       └── ExampleTest.php
 │
-├── .env.example                             # Environment template
-├── .gitignore                               # Git ignore rules
-├── artisan                                  # Laravel CLI
-├── composer.json                            # PHP dependencies
-├── package.json                             # Node dependencies
-├── phpunit.xml                              # PHPUnit config
-├── tailwind.config.js                       # Tailwind config
-├── vite.config.js                           # Vite config
-└── README.md                                # Project documentation
+├── .env.example
+├── .gitignore
+├── artisan
+├── composer.json
+├── package.json
+├── phpunit.xml
+├── vite.config.js
+├── tailwind.config.js
+└── README.md
 ```
 
 ---
 
 ## Design Patterns
 
-### MVC Pattern
+### MVC (Model-View-Controller)
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Model-View-Controller                        │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────┐         ┌─────────────┐         ┌─────────────┐
-│   Model     │◀───────▶│ Controller  │────────▶│    View     │
-│             │         │             │         │             │
-│ • Data      │         │ • Input     │         │ • Display   │
-│ • Business  │         │   Handling  │         │ • Templates │
-│   Logic     │         │ • Validation│         │ • Blade/Vue │
-│ • Database  │         │ • Response  │         │ • JSON      │
-│   Access    │         │             │         │             │
-└─────────────┘         └─────────────┘         └─────────────┘
-       ▲                       │                       │
-       │                       │                       │
-       └───────────────────────┴───────────────────────┘
-                         Eloquent ORM
-```
-
-### Repository Pattern (via Eloquent)
-
-```php
-// Controller
-class PostController extends Controller
-{
-    public function index()
-    {
-        // Repository pattern via Eloquent
-        $posts = Post::with(['user', 'media', 'likes'])
-            ->latest()
-            ->paginate(15);
-
-        return inertia('Posts/Index', compact('posts'));
-    }
-}
-
-// Model (Repository)
-class Post extends Model
-{
-    // Data access methods
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function media()
-    {
-        return $this->hasMany(PostMedia::class);
-    }
-
-    // Business logic
-    public function isLikedBy($userId)
-    {
-        return $this->likes()->where('user_id', $userId)->exists();
-    }
-}
+┌─────────────────────────────────────────┐
+│              MVC Pattern                 │
+├─────────────────────────────────────────┤
+│                                         │
+│  ┌──────────┐     ┌──────────┐         │
+│  │  Model   │◀───▶│Controller│         │
+│  │  (Data)  │     │ (Logic)  │         │
+│  └──────────┘     └────┬─────┘         │
+│                        │                │
+│                        ▼                │
+│                  ┌──────────┐           │
+│                  │   View   │           │
+│                  │ (Blade)  │           │
+│                  └──────────┘           │
+│                                         │
+└─────────────────────────────────────────┘
 ```
 
 ### Service Layer Pattern
 
 ```php
-// Service class for mention handling
-class MentionService
+// Controllers delegate business logic to services
+class PostController extends Controller
 {
-    public function processMentions($model, $content, $mentionerId)
+    public function store(Request $request)
     {
-        // Extract @mentions from content
-        preg_match_all('/@(\w+)/', $content, $matches);
+        // Validation
+        $validated = $request->validate([
+            'content' => 'nullable|string|max:280',
+            'media' => 'nullable|array|max:30',
+            'is_private' => 'boolean'
+        ]);
 
-        foreach ($matches[1] as $username) {
-            $mentionedUser = User::where('username', $username)->first();
+        // Create post
+        $post = Post::create([
+            'user_id' => auth()->id(),
+            'content' => $validated['content'],
+            'is_private' => $validated['is_private'] ?? false,
+            'slug' => Str::random(24)
+        ]);
 
-            if ($mentionedUser) {
-                // Create mention record
-                Mention::create([
-                    'mentioner_id' => $mentionerId,
-                    'mentioned_id' => $mentionedUser->id,
-                    'mentionable_id' => $model->id,
-                    'mentionable_type' => get_class($model),
-                ]);
-
-                // Create notification
-                Notification::create([
-                    'user_id' => $mentionedUser->id,
-                    'type' => 'mention',
-                    'data' => [
-                        'mentioner_id' => $mentionerId,
-                        'mentionable_type' => get_class($model),
-                        'mentionable_id' => $model->id,
-                    ],
-                ]);
+        // Process media files
+        if ($request->hasFile('media')) {
+            foreach ($request->file('media') as $file) {
+                // Upload and create PostMedia records
             }
         }
+
+        // Process mentions
+        app(MentionService::class)->processMentions($post, $validated['content']);
+
+        // Process hashtags
+        app(HashtagService::class)->extractHashtags($post);
+
+        return redirect()->back();
     }
 }
 ```
 
-### Observer Pattern (Eloquent Events)
+### Repository Pattern (via Eloquent)
 
 ```php
-// In AppServiceProvider
-public function boot(): void
+// Models act as repositories
+class PostRepository
 {
-    // Observer for Post model
-    Post::deleted(function ($post) {
-        // Cascade delete media files
-        foreach ($post->media as $media) {
-            Storage::disk('public')->delete($media->media_path);
-        }
-    });
+    public function __construct(protected Post $model)
+    {
+    }
+    
+    public function getFeedForUser(User $user)
+    {
+        return $this->model->with(['user', 'media'])
+            ->whereHas('user', function ($q) use ($user) {
+                $q->where('id', $user->id)
+                  ->orWhere('is_private', false);
+            })
+            ->latest()
+            ->paginate(15);
+    }
+}
+```
 
-    // Observer for Story model
-    Story::created(function ($story) {
-        // Schedule expiration cleanup
-        // (Handled by hourly artisan command)
-    });
+### Observer Pattern (Model Events)
+
+> **Note**: Nexus uses direct service calls in controllers rather than model observers.
+
+```php
+// Services are called directly from controllers
+class PostController extends Controller
+{
+    public function store(Request $request)
+    {
+        // ... validation and post creation
+
+        // Process mentions directly
+        app(MentionService::class)->processMentions($post, $content);
+
+        // Process hashtags directly
+        app(HashtagService::class)->extractHashtags($post);
+    }
+}
+```
+
+### Strategy Pattern (Authentication)
+
+> **Note**: Nexus uses Laravel's built-in authentication with Socialite for OAuth.
+
+```php
+// LoginController handles email/password authentication
+class LoginController extends Controller
+{
+    public function store(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($credentials)) {
+            // Authentication successful
+        }
+    }
+}
+
+// SocialAuthController handles Google OAuth
+class SocialAuthController extends Controller
+{
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        $googleUser = Socialite::driver('google')->user();
+        // Find or create user, then authenticate
+    }
 }
 ```
 
@@ -792,230 +769,139 @@ public function boot(): void
 
 ## Data Flow
 
-### Post Creation Flow
+### Read Operations (Feed Loading)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        Post Creation Flow                                │
-└─────────────────────────────────────────────────────────────────────────┘
-
-1. User fills post form
-   │
-   ├── Content (max 280 chars)
-   ├── Media files (max 30)
-   └── Privacy setting
-   │
-   ▼
-2. Submit to POST /posts
-   │
-   ▼
-3. PostController@store
-   │
-   ├── Validate request
-   │   • content: string, max:280
-   │   • is_private: boolean
-   │   • media.*: file, mimes, max:50MB
-   │
-   ▼
-4. Create Post record
-   │
-   ├── user_id: auth()->id()
-   ├── content: validated content
-   ├── is_private: privacy flag
-   └── slug: Str::random(24)
-   │
-   ▼
-5. Process media files
-   │
-   ├── For each file:
-   │   ├── Validate type & size
-   │   ├── Generate unique filename
-   │   ├── Store in storage/app/public/posts/
-   │   ├── Create PostMedia record
-   │   └── Generate thumbnail (videos)
-   │
-   ▼
-6. Process mentions
-   │
-   ├── Parse @username from content
-   ├── Find mentioned users
-   ├── Create Mention records
-   └── Create Notification records
-   │
-   ▼
-7. Return response
-   │
-   └── Redirect back with success message
+User Request
+     │
+     ▼
+Browser → HTTP GET /
+     │
+     ▼
+Laravel Router → routes/web.php
+     │
+     ▼
+Middleware Stack (auth, verified, suspended)
+     │
+     ▼
+PostController@index
+     │
+     ▼
+Build Query:
+- Include: own posts, public accounts, followed users
+- Exclude: blocked users, unfollowed private accounts
+     │
+     ▼
+Eloquent Query with Eager Loading:
+Post::with(['user.profile', 'media', 'likes', 'comments.user.profile'])
+     │
+     ▼
+Database Query
+     │
+     ▼
+Results → Collection
+     │
+     ▼
+Blade View Rendering
+     │
+     ▼
+HTML Response → Browser
 ```
 
-### Message Sending Flow
+### Write Operations (Post Creation)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       Message Sending Flow                               │
-└─────────────────────────────────────────────────────────────────────────┘
-
-1. User types message
-   │
-   ├── Text content
-   └── Optional media attachment
-   │
-   ▼
-2. Submit to POST /chat/{conversation}
-   │
-   ▼
-3. ChatController@store
-   │
-   ├── Validate conversation membership
-   ├── Validate message content
-   └── Validate media (if present)
-   │
-   ▼
-4. Create Message record
-   │
-   ├── conversation_id
-   ├── sender_id
-   ├── content
-   ├── type (text/image/file)
-   └── media_path (if attachment)
-   │
-   ▼
-5. Update conversation
-   │
-   └── last_message_at: now()
-   │
-   ▼
-6. Create notifications
-   │
-   └── For each recipient:
-       └── Create Notification record
-   │
-   ▼
-7. Broadcast real-time event
-   │
-   └── broadcast(new MessageSent($message))
-   │
-   ▼
-8. Return JSON response
-   │
-   └── Message with sender profile
+User Submit Form
+     │
+     ▼
+Browser → POST /posts (multipart/form-data)
+     │
+     ▼
+Laravel Router → routes/web.php
+     │
+     ▼
+Middleware Stack (auth, verified, csrf)
+     │
+     ▼
+PostController@store
+     │
+     ▼
+Validation:
+- content: max 280 chars
+- media: max 30 files, 50MB each
+- MIME type check
+     │
+     ▼
+Create Post Record:
+- Generate unique slug (24 chars)
+- Set user_id, content, is_private
+     │
+     ▼
+Process Media:
+- Upload each file
+- Create PostMedia records
+- Generate video thumbnails (FFmpeg)
+     │
+     ▼
+Process Mentions:
+- Parse @username from content
+- Find mentioned users
+- Create Mention records
+- Create Notifications
+     │
+     ▼
+Process Hashtags:
+- Extract #hashtags
+- Create/link Hashtag records
+     │
+     ▼
+Redirect to Post → Success Message
 ```
 
 ---
 
 ## Security Architecture
 
-### Authentication & Authorization
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     Security Architecture                                │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────────────────┐
-│                        Authentication Stack                            │
-├──────────────────────────────────────────────────────────────────────┤
-│                                                                       │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐               │
-│  │   Session   │    │   Sanctum   │    │  Socialite  │               │
-│  │   (Web)     │    │   (API)     │    │  (Google)   │               │
-│  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘               │
-│         │                  │                  │                       │
-│         └──────────────────┼──────────────────┘                       │
-│                            │                                         │
-│                            ▼                                         │
-│                  ┌─────────────────┐                                 │
-│                  │  Auth Middleware│                                 │
-│                  └────────┬────────┘                                 │
-│                           │                                          │
-│                           ▼                                          │
-│                  ┌─────────────────┐                                 │
-│                  │  Guard Checks   │                                 │
-│                  │  • Verified     │                                 │
-│                  │  • Not Suspended│                                 │
-│                  │  • Admin (if needed)                              │
-│                  └─────────────────┘                                 │
-└──────────────────────────────────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────────────────┐
-│                        Authorization Flow                              │
-├──────────────────────────────────────────────────────────────────────┤
-│                                                                       │
-│  Request ──▶ Middleware Chain                                        │
-│                                                                       │
-│  1. Authenticate (auth middleware)                                    │
-│     └── Check valid session/token                                    │
-│                                                                       │
-│  2. Email Verified (verified middleware)                              │
-│     └── Check email_verified_at                                      │
-│                                                                       │
-│  3. Not Suspended (suspended middleware)                              │
-│     └── Check is_suspended flag                                      │
-│                                                                       │
-│  4. Admin Only (admin middleware)                                     │
-│     └── Check is_admin flag                                          │
-│                                                                       │
-│  5. Rate Limiting (throttle middleware)                               │
-│     └── Check request count per minute                               │
-│                                                                       │
-│  6. CSRF Protection                                                   │
-│     └── Validate CSRF token                                          │
-│                                                                       │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
-### Input Validation
-
-```php
-// Example: Post creation validation
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'content' => ['required_without:media', 'string', 'max:280'],
-        'is_private' => ['boolean'],
-        'media.*' => [
-            'file',
-            'mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,webm',
-            'max:51200', // 50MB
-        ],
-    ], [
-        'content.required_without' => 'Post must have content or media',
-        'media.*.max' => 'Each file must be under 50MB',
-    ]);
-
-    // Process validated data...
-}
-```
-
-### CSRF Protection
+### Multi-Layer Security Model
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    CSRF Protection Flow                          │
+│                     Nexus Security Layers                        │
 └─────────────────────────────────────────────────────────────────┘
 
-1. Session Start
-   │
-   └── Generate CSRF token
-       └── Store in session
-       └── Share with views (@csrf)
-
-2. Form Submission
-   │
-   └── Include _token field
-       └── Hidden input with token
-
-3. Request Processing
-   │
-   └── VerifyCsrfToken middleware
-       ├── Extract token from request
-       ├── Compare with session token
-       └── Reject if mismatch (419 error)
-
-4. AJAX Requests
-   │
-   └── Include X-XSRF-TOKEN header
-       └── Token from cookies
+┌─────────────────────────────────────────────────────────────────┐
+│  Layer 1: Network Security                                       │
+│  • HTTPS enforcement (production)                               │
+│  • Cloudflare Tunnel (optional)                                 │
+│  • Firewall rules                                               │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Layer 2: Application Security                                   │
+│  • Middleware stack (Auth, Admin, Verified)                     │
+│  • Rate limiting                                                │
+│  • CSRF protection                                              │
+│  • Session management                                           │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Layer 3: Data Security                                          │
+│  • Input validation                                             │
+│  • SQL injection prevention (Eloquent ORM)                      │
+│  • XSS prevention (Blade escaping)                              │
+│  • File upload validation                                       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Layer 4: Business Logic Security                                │
+│  • Authorization checks                                         │
+│  • Privacy controls                                             │
+│  • Account suspension                                           │
+│  • User blocking                                                │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -1025,97 +911,87 @@ public function store(Request $request)
 ### Caching Strategy
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        Caching Architecture                              │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│  Application │───▶│    Redis     │───▶│  Database    │
-│  Layer       │    │    Cache     │    │  (MySQL)     │
-└──────────────┘    └──────────────┘    └──────────────┘
-       │                   │                   │
-       │                   │                   │
-       ▼                   ▼                   ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                         Cache Layers                                 │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  1. View Cache                                                       │
-│     └── Compiled Blade templates                                   │
-│                                                                      │
-│  2. Route Cache                                                      │
-│     └── Registered routes list                                     │
-│                                                                      │
-│  3. Config Cache                                                     │
-│     └── Merged configuration                                       │
-│                                                                      │
-│  4. Data Cache                                                       │
-│     ├── User online status (5s TTL)                                │
-│     ├── Typing indicators (5s TTL)                                 │
-│     └── Expensive queries                                          │
-│                                                                      │
-│  5. Session Cache                                                    │
-│     └── User sessions (file/redis)                                 │
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    Caching Architecture                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │  Config     │  │   Route     │  │    View     │             │
+│  │   Cache     │  │   Cache     │  │   Cache     │             │
+│  │             │  │             │  │             │             │
+│  │ php artisan │  │ php artisan │  │ php artisan │             │
+│  │ config:cache│  │ route:cache │  │ view:cache  │             │
+│  └─────────────┘  └─────────────┘  └─────────────┘             │
+│                                                                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │   Query     │  │   Object    │  │    Page     │             │
+│  │   Cache     │  │   Cache     │  │   Cache     │             │
+│  │ (Database)  │  │ (Redis/DB)  │  │ (Blade)     │             │
+│  └─────────────┘  └─────────────┘  └─────────────┘             │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Query Optimization
+### Database Optimization
 
-```php
-// Eager loading to prevent N+1 queries
-$posts = Post::with([
-    'user.profile',      // Eager load user and profile
-    'media',             // Eager load media
-    'likes',             // Eager load likes
-    'comments.user.profile', // Eager load nested relationships
-])
-->whereHas('user', function ($query) use ($user) {
-    $query->where('id', $user->id)
-          ->orWhere('is_private', false);
-})
-->latest()
-->paginate(15);
-
-// With count for aggregate data
-$users = User::withCount([
-    'posts',
-    'followers',
-    'following',
-])->get();
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                  Database Optimization                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Indexes:                                                        │
+│  • Foreign keys (user_id, post_id, etc.)                       │
+│  • Timestamps (created_at, updated_at)                         │
+│  • Unique fields (username, email, slug)                       │
+│  • Composite indexes (user_id + created_at)                    │
+│                                                                  │
+│  Query Optimization:                                             │
+│  • Eager loading (with())                                       │
+│  • Select only needed columns                                   │
+│  • Use whereHas instead of joins                                │
+│  • Paginate large result sets                                   │
+│                                                                  │
+│  Connection Pooling:                                             │
+│  • Persistent connections                                       │
+│  • Connection reuse                                             │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Index Strategy
+### Frontend Optimization
 
-```sql
--- Primary indexes (auto-created)
-PRIMARY KEY (id)
-
--- Foreign key indexes
-INDEX (user_id)
-INDEX (post_id)
-INDEX (conversation_id)
-
--- Unique indexes
-UNIQUE (username)
-UNIQUE (email)
-UNIQUE (slug)
-UNIQUE (follower_id, followed_id)
-UNIQUE (user_id, post_id)  -- likes
-
--- Composite indexes
-INDEX (post_id, parent_id)  -- comments
-INDEX (user_id, is_private) -- posts filtering
-INDEX (expires_at)          -- story cleanup
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                 Frontend Optimization                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Build Optimization:                                             │
+│  • Vite bundling                                                │
+│  • Code splitting                                               │
+│  • Tree shaking                                                 │
+│  • Minification (Terser/Uglify)                                 │
+│  • Obfuscation (javascript-obfuscator)                         │
+│                                                                  │
+│  Runtime Optimization:                                             │
+│  • Lazy loading images                                          │
+│  • Debounced scroll handlers                                    │
+│  • Conditional polling (Page Visibility API)                    │
+│  • Event delegation                                             │
+│                                                                  │
+│  CSS Optimization:                                               │
+│  • Tailwind PurgeCSS                                            │
+│  • Critical CSS extraction                                      │
+│  • CSS minification                                             │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Next Steps
+<div align="center">
 
-Continue reading:
+**Nexus - Architecture Guide**
 
-- [Features Documentation](FEATURES.md) - Detailed feature flows
-- [API Reference](API.md) - RESTful API documentation
-- [Database Schema](DATABASE.md) - Complete table definitions
-- [Frontend Guide](FRONTEND.md) - Vue.js architecture
+Last Updated: March 27, 2026 | Laravel 12.x | PHP 8.2+
+
+</div>
