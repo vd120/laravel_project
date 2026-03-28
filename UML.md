@@ -870,41 +870,35 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Start([Start]) --> CheckAuth{Authenticated?}
-    CheckAuth -->|No| RedirectLogin[Redirect to Login]
-    CheckAuth -->|Yes| ShowForm[Show Post Form]
-
-    ShowForm --> UserInput[User enters content/media]
-    UserInput --> Submit{Submit Form}
-
-    Submit --> ValidateContent{Has content or media?}
-    ValidateContent -->|No| ShowError1[Show error]
-    ShowError1 --> UserInput
-
-    ValidateContent -->|Yes| ValidateMedia{Media valid?}
-    ValidateMedia -->|No| ShowError2[Show media error]
-    ShowError2 --> UserInput
-
-    ValidateMedia -->|Yes| CreatePost[Create Post record]
-    CreatePost --> GenerateSlug[Generate unique slug]
-    GenerateSlug --> UploadMedia[Upload media files]
-
-    UploadMedia --> ProcessVideos{Has videos?}
-    ProcessVideos -->|Yes| GenerateThumbs[Generate thumbnails]
-    ProcessVideos -->|No| ProcessMentions
-    GenerateThumbs --> ProcessMentions
-
-    ProcessMentions[Process @mentions] --> CreateMentions[Create Mention records]
-    CreateMentions --> CreateNotifs[Create Notifications]
-    CreateNotifs --> Redirect[Redirect to post]
-    Redirect --> End([End])
+    A[Start] --> B{Authenticated?}
+    B -->|No| C[Redirect to Login]
+    B -->|Yes| D[Show Post Form]
+    D --> E[User enters content/media]
+    E --> F{Submit Form}
+    F --> G{Has content or media?}
+    G -->|No| H[Show error]
+    H --> E
+    G -->|Yes| I{Media valid?}
+    I -->|No| J[Show media error]
+    J --> E
+    I -->|Yes| K[Create Post record]
+    K --> L[Generate unique slug]
+    L --> M[Upload media files]
+    M --> N{Has videos?}
+    N -->|Yes| O[Generate thumbnails]
+    N -->|No| P[Process mentions]
+    O --> P
+    P --> Q[Create Mention records]
+    Q --> R[Create Notifications]
+    R --> S[Redirect to post]
+    S --> T[End]
 ```
 
 ### 2. User Authentication Activity
 
 ```mermaid
 flowchart TD
-    A([Start]) --> B[Visit /login]
+    A[Start] --> B[Visit /login]
     B --> C[Enter credentials]
     C --> D{Submit}
     D -->|No| E[Show error]
@@ -913,7 +907,7 @@ flowchart TD
     F -->|No| C
     D -->|Yes| H{Account suspended?}
     H -->|Yes| I[Show suspended page]
-    I --> J([End])
+    I --> J[End]
     H -->|No| K[Create session]
     K --> L{Email verified?}
     L -->|No| M[Redirect to verification]
@@ -931,7 +925,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A([Start]) --> B[Open chat]
+    A[Start] --> B[Open chat]
     B --> C[Load conversation]
     C --> D[Type message]
     D --> E{Message type?}
@@ -949,7 +943,7 @@ flowchart TD
     M --> N{Recipient active?}
     N -->|Yes| O[Mark as delivered]
     N -->|No| P[Wait for read]
-    O --> Q([End])
+    O --> Q[End]
     P --> Q
 ```
 
@@ -1065,102 +1059,100 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    A([Start]) --> B[Unregistered]
-    B -->|Register| C[Registered]
-    C -->|Send verification| D[EmailPending]
-    D -->|Enter code| E[Verified]
-    D -->|Expire 10 min| B
-    D -->|Resend code| C
-    E -->|OAuth user| F[PasswordRequired]
-    F -->|Set password| G[Active]
-    E -->|Has password| G
-    G -->|Admin suspends| H[Suspended]
-    H -->|Admin unsuspends| G
-    G -->|Logout/Inactive| I[Offline]
-    I -->|Login| G
-    G -->|Delete account| J[Deleted]
-    H -->|Delete account| J
-    J --> K([End])
+    A[Start] --> B[Unregistered]
+    B --> C[Registered]
+    C --> D[EmailPending]
+    D --> E[Verified]
+    D --> B
+    D --> C
+    E --> F[PasswordRequired]
+    F --> G[Active]
+    E --> G
+    G --> H[Suspended]
+    H --> G
+    G --> I[Offline]
+    I --> G
+    G --> J[Deleted]
+    H --> J
+    J --> K[End]
 ```
 
 ### 2. Post State
 
 ```mermaid
 flowchart LR
-    A([Start]) --> B[Draft]
-    B -->|Submit| C[Published]
-    C -->|Pin by user| D[Pinned]
-    D -->|Unpin| C
-    C -->|User reports| E[Reported]
-    E -->|Reject report| C
-    E -->|Accept report| F[Deleted]
-    C -->|Owner deletes| F
-    C -->|Admin deletes| F
-    D -->|Owner deletes| F
-    F --> G([End])
+    A[Start] --> B[Draft]
+    B --> C[Published]
+    C --> D[Pinned]
+    D --> C
+    C --> E[Reported]
+    E --> C
+    E --> F[Deleted]
+    C --> F
+    D --> F
+    F --> G[End]
 ```
 
 ### 3. Story State
 
 ```mermaid
 flowchart LR
-    A([Start]) --> B[Creating]
-    B -->|Publish| C[Active]
-    C -->|24 hours pass| D[Expired]
-    C -->|Owner deletes| E[Deleted]
-    C -->|Admin deletes| E
-    D --> F([End])
-    E --> G([End])
+    A[Start] --> B[Creating]
+    B --> C[Active]
+    C --> D[Expired]
+    C --> E[Deleted]
+    D --> F[End]
+    E --> G[End]
 ```
 
 ### 4. Message State
 
 ```mermaid
 flowchart LR
-    A([Start]) --> B[Composing]
-    B -->|Send| C[Sent]
-    C -->|Recipient receives| D[Delivered]
-    D -->|Recipient reads| E[Read]
-    C -->|Sender deletes| F[DeletedSender]
-    D -->|Sender deletes| F
-    E -->|Sender deletes| F
-    C -->|Delete for everyone| G[DeletedEveryone]
-    D -->|Delete for everyone| G
-    E -->|Delete for everyone| G
-    F --> H([End])
-    G --> I([End])
+    A[Start] --> B[Composing]
+    B --> C[Sent]
+    C --> D[Delivered]
+    D --> E[Read]
+    C --> F[DeletedSender]
+    D --> F
+    E --> F
+    C --> G[DeletedEveryone]
+    D --> G
+    E --> G
+    F --> H[End]
+    G --> I[End]
 ```
 
 ### 5. Conversation State
 
 ```mermaid
 flowchart LR
-    A([Start]) --> B[Inactive]
-    B -->|First message| C[Active]
-    C -->|No activity| B
-    C -->|New message| D[HasUnread]
-    D -->|Message read| C
-    D -->|Message read| B
-    C -->|All participants delete| E[Deleted]
-    B -->|All participants delete| E
-    E --> F([End])
+    A[Start] --> B[Inactive]
+    B --> C[Active]
+    C --> B
+    C --> D[HasUnread]
+    D --> C
+    D --> B
+    C --> E[Deleted]
+    B --> E
+    E --> F[End]
 ```
 
 ### 6. Group Member State
 
 ```mermaid
 flowchart LR
-    A([Start]) --> B[Invited]
-    B -->|Accept invite| C[Member]
-    B -->|Decline/Expire| D([End])
-    C -->|Promoted by admin| E[Admin]
-    E -->|Demoted by admin| C
-    C -->|Leave group| F[Left]
-    E -->|Leave group| F
-    C -->|Removed by admin| G[Removed]
-    E -->|Removed by admin| G
-    F --> H([End])
-    G --> I([End])
+    A[Start] --> B[Invited]
+    B --> C[Member]
+    B --> D[End]
+    C --> E[Admin]
+    E --> C
+    C --> F[Left]
+    E --> F
+    C --> G[Removed]
+    E --> G
+    F --> H[End]
+    G --> I[End]
 ```
 
 ---
@@ -1169,25 +1161,16 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    Routes
-    Controllers
-    Services
-    Models
-    Middleware
-
-    Routes -.->|uses| Controllers
-    Routes -.->|uses| Services
-    Routes -.->|uses| Models
-    Routes -.->|uses| Middleware
-    
-    Controllers -.->|uses| Services
-    Controllers -.->|uses| Models
-    Controllers -.->|uses| Middleware
-    
-    Services -.->|uses| Models
-    
-    Middleware -.->|checks| Routes
-    Middleware -.->|checks| Controllers
+    A[Routes] --> B[Controllers]
+    A --> C[Services]
+    A --> D[Models]
+    A --> E[Middleware]
+    B --> C
+    B --> D
+    B --> E
+    C --> D
+    E --> A
+    E --> B
 ```
 
 ---
