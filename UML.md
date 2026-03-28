@@ -442,194 +442,83 @@ This diagram shows all actors and their interactions with the system.
 
 ```mermaid
 flowchart TB
-    subgraph Actors
-        Guest["Guest User"]
-        User["Registered User"]
-        Admin["Admin User"]
-    end
+    Guest["Guest User"]
+    User["Registered User"]
+    Admin["Admin User"]
 
-    subgraph Authentication["Authentication"]
-        UC1[Register Account]
-        UC2[Login]
-        UC3[Logout]
-        UC4[Reset Password]
-        UC5[Verify Email]
-        UC6[Login with Google]
-        UC7[Set Password OAuth]
-    end
+    Guest --> Register[Register Account]
+    Guest --> Login[Login]
+    Guest --> ResetPwd[Reset Password]
+    Guest --> GoogleLogin[Login with Google]
+    Guest --> ViewFeed[View Feed]
+    Guest --> ViewStories[View Stories]
+    Guest --> ViewProfile[View Profile]
+    Guest --> ExploreUsers[Explore Users]
+    Guest --> SearchUsers[Search Users]
 
-    subgraph Posts["Posts"]
-        UC10[Create Post]
-        UC11[View Feed]
-        UC12[Edit Post]
-        UC13[Delete Post]
-        UC14[Like Post]
-        UC15[Save Post]
-        UC16[Comment on Post]
-        UC17[Like Comment]
-        UC18[Report Post]
-        UC19[Pin Post]
-        UC20[Add Media]
-    end
+    User --> Logout[Logout]
+    User --> VerifyEmail[Verify Email]
+    User --> SetPwdOAuth[Set Password OAuth]
+    User --> CreatePost[Create Post]
+    User --> EditPost[Edit Post]
+    User --> DeletePost[Delete Post]
+    User --> LikePost[Like Post]
+    User --> SavePost[Save Post]
+    User --> CommentPost[Comment on Post]
+    User --> LikeComment[Like Comment]
+    User --> ReportPost[Report Post]
+    User --> PinPost[Pin Post]
+    User --> AddMedia[Add Media]
+    User --> CreateStory[Create Story]
+    User --> ReactStory[React to Story]
+    User --> ViewStoryViewers[View Story Viewers]
+    User --> DeleteStory[Delete Story]
+    User --> FollowUser[Follow User]
+    User --> UnfollowUser[Unfollow User]
+    User --> BlockUser[Block User]
+    User --> EditProfile[Edit Profile]
+    User --> GenerateQR[Generate QR Code]
+    User --> SendMessage[Send Message]
+    User --> ViewConversations[View Conversations]
+    User --> DeleteMessage[Delete Message]
+    User --> MarkRead[Mark as Read]
+    User --> SendTyping[Send Typing Indicator]
+    User --> SendVoice[Send Voice Message]
+    User --> SendMediaMsg[Send Media Message]
+    User --> CreateGroup[Create Group]
+    User --> JoinGroup[Join Group]
+    User --> LeaveGroup[Leave Group]
+    User --> AddMembers[Add Members]
+    User --> RemoveMembers[Remove Members]
+    User --> MakeAdmin[Make Admin]
+    User --> RemoveAdmin[Remove Admin]
+    User --> GenInvite[Generate Invite Link]
+    User --> AcceptInvite[Accept Invite]
+    User --> ViewNotif[View Notifications]
+    User --> MarkNotifRead[Mark as Read]
+    User --> MarkAllRead[Mark All Read]
+    User --> DeleteNotif[Delete Notification]
+    User --> ViewActivity[View Activity Log]
+    User --> ExportActivity[Export Activity]
+    User --> TerminateSession[Terminate Session]
+    User --> ClearActivity[Clear Old Activity]
+    User --> CreateEvent[Create Event]
+    User --> EditEvent[Edit Event]
+    User --> DeleteEvent[Delete Event]
+    User --> ReactEvent[React to Event]
+    User --> ViewMemory[View Memory Book]
+    User --> ChatAI[Chat with AI]
 
-    subgraph Stories["Stories"]
-        UC30[Create Story]
-        UC31[View Stories]
-        UC32[React to Story]
-        UC33[View Story Viewers]
-        UC34[Delete Story]
-    end
-
-    subgraph Social["Social"]
-        UC40[Follow User]
-        UC41[Unfollow User]
-        UC42[Block User]
-        UC43[View Profile]
-        UC44[Edit Profile]
-        UC45[Explore Users]
-        UC46[Search Users]
-        UC47[Generate QR Code]
-    end
-
-    subgraph Messaging["Messaging"]
-        UC50[Send Message]
-        UC51[View Conversations]
-        UC52[Delete Message]
-        UC53[Mark as Read]
-        UC54[Send Typing Indicator]
-        UC55[Send Voice Message]
-        UC56[Send Media Message]
-    end
-
-    subgraph Groups["Groups"]
-        UC60[Create Group]
-        UC61[Join Group]
-        UC62[Leave Group]
-        UC63[Add Members]
-        UC64[Remove Members]
-        UC65[Make Admin]
-        UC66[Remove Admin]
-        UC67[Generate Invite Link]
-        UC68[Accept Invite]
-    end
-
-    subgraph Notifications["Notifications"]
-        UC70[View Notifications]
-        UC71[Mark as Read]
-        UC72[Mark All Read]
-        UC73[Delete Notification]
-    end
-
-    subgraph Admin["Admin Panel"]
-        UC80[View Dashboard]
-        UC81[Manage Users]
-        UC82[Suspend User]
-        UC83[Delete Any Post]
-        UC84[Delete Any Comment]
-        UC85[Delete Any Story]
-        UC86[Create Admin]
-        UC87[Review Reports]
-        UC88[Accept Report]
-        UC89[Reject Report]
-    end
-
-    subgraph Activity["Activity"]
-        UC90[View Activity Log]
-        UC91[Export Activity]
-        UC92[Terminate Session]
-        UC93[Clear Old Activity]
-    end
-
-    subgraph Events["Life Events"]
-        UC100[Create Event]
-        UC101[Edit Event]
-        UC102[Delete Event]
-        UC103[React to Event]
-        UC104[View Memory Book]
-    end
-
-    subgraph AI["AI Assistant"]
-        UC110[Chat with AI]
-    end
-
-    Guest --> UC1
-    Guest --> UC2
-    Guest --> UC4
-    Guest --> UC6
-    Guest --> UC11
-    Guest --> UC31
-    Guest --> UC43
-    Guest --> UC45
-    Guest --> UC46
-
-    User --> UC3
-    User --> UC5
-    User --> UC7
-    User --> UC10
-    User --> UC11
-    User --> UC12
-    User --> UC13
-    User --> UC14
-    User --> UC15
-    User --> UC16
-    User --> UC17
-    User --> UC18
-    User --> UC19
-    User --> UC20
-    User --> UC30
-    User --> UC31
-    User --> UC32
-    User --> UC33
-    User --> UC34
-    User --> UC40
-    User --> UC41
-    User --> UC42
-    User --> UC43
-    User --> UC44
-    User --> UC45
-    User --> UC46
-    User --> UC47
-    User --> UC50
-    User --> UC51
-    User --> UC52
-    User --> UC53
-    User --> UC54
-    User --> UC55
-    User --> UC56
-    User --> UC60
-    User --> UC61
-    User --> UC62
-    User --> UC63
-    User --> UC64
-    User --> UC65
-    User --> UC66
-    User --> UC67
-    User --> UC68
-    User --> UC70
-    User --> UC71
-    User --> UC72
-    User --> UC73
-    User --> UC90
-    User --> UC91
-    User --> UC92
-    User --> UC93
-    User --> UC100
-    User --> UC101
-    User --> UC102
-    User --> UC103
-    User --> UC104
-    User --> UC110
-
-    Admin --> UC80
-    Admin --> UC81
-    Admin --> UC82
-    Admin --> UC83
-    Admin --> UC84
-    Admin --> UC85
-    Admin --> UC86
-    Admin --> UC87
-    Admin --> UC88
-    Admin --> UC89
+    Admin --> AdminDashboard[View Dashboard]
+    Admin --> ManageUsers[Manage Users]
+    Admin --> SuspendUser[Suspend User]
+    Admin --> DeleteAnyPost[Delete Any Post]
+    Admin --> DeleteAnyComment[Delete Any Comment]
+    Admin --> DeleteAnyStory[Delete Any Story]
+    Admin --> CreateAdmin[Create Admin]
+    Admin --> ReviewReports[Review Reports]
+    Admin --> AcceptReport[Accept Report]
+    Admin --> RejectReport[Reject Report]
 ```
 
 ---
@@ -1085,80 +974,53 @@ This diagram shows the high-level architecture components and their relationship
 
 ```mermaid
 flowchart TB
-    subgraph "Client Layer"
-        Browser[Web Browser<br/>Blade + Vue.js + Alpine.js]
-        Mobile[Mobile Browser]
-        API[API Clients]
-    end
-
-    subgraph "Presentation Layer"
-        Blade[Blade Templates<br/>67 views]
-        Vue[Vue Components<br/>27 components]
-        JS[JavaScript Modules<br/>16 legacy modules]
-        CSS[Tailwind CSS<br/>Custom styles]
-    end
-
-    subgraph "Application Layer"
-        Routes[Routes<br/>web.php, api.php]
-        Middleware[Middleware<br/>9 classes]
-        Controllers[Controllers<br/>39 total]
-    end
-
-    subgraph "Business Logic Layer"
-        Services[Services<br/>9 service classes]
-        Models[Models<br/>25 Eloquent models]
-        Mail[Mail Classes<br/>3 classes]
-    end
-
-    subgraph "Data Access Layer"
-        Eloquent[Eloquent ORM]
-        QueryBuilder[Query Builder]
-        Migrations[Migrations<br/>79 files]
-    end
-
-    subgraph "Data Layer"
-        Database[(Database<br/>SQLite/MySQL)]
-        Cache[(Cache<br/>Database)]
-        Storage[(File Storage<br/>Local/S3)]
-        Sessions[(Sessions<br/>Database)]
-    end
-
-    subgraph "External Services"
-        Google[Google OAuth]
-        MailService[Email Service<br/>SMTP/Mailtrap]
-        Cloudflare[Cloudflare Tunnel]
-    end
+    Browser[Web Browser<br/>Blade + Vue.js + Alpine.js]
+    Mobile[Mobile Browser]
+    API[API Clients]
+    Blade[Blade Templates<br/>67 views]
+    Vue[Vue Components<br/>27 components]
+    JS[JavaScript Modules<br/>16 legacy modules]
+    CSS[Tailwind CSS<br/>Custom styles]
+    Routes[Routes<br/>web.php, api.php]
+    Middleware[Middleware<br/>9 classes]
+    Controllers[Controllers<br/>39 total]
+    Services[Services<br/>9 service classes]
+    Models[Models<br/>25 Eloquent models]
+    Mail[Mail Classes<br/>3 classes]
+    Eloquent[Eloquent ORM]
+    QueryBuilder[Query Builder]
+    Migrations[Migrations<br/>79 files]
+    Database[(Database<br/>SQLite/MySQL)]
+    Cache[(Cache<br/>Database)]
+    Storage[(File Storage<br/>Local/S3)]
+    Sessions[(Sessions<br/>Database)]
+    Google[Google OAuth]
+    MailService[Email Service<br/>SMTP/Mailtrap]
+    Cloudflare[Cloudflare Tunnel]
 
     Browser --> Blade
     Browser --> Vue
     Browser --> JS
     Mobile --> Blade
     API --> Routes
-
     Blade --> Routes
     Vue --> Routes
     JS --> Routes
-
     Routes --> Middleware
     Middleware --> Controllers
-
     Controllers --> Services
     Controllers --> Models
     Controllers --> Mail
-
     Services --> Eloquent
     Models --> Eloquent
     Mail --> Eloquent
-
     Eloquent --> QueryBuilder
     QueryBuilder --> Migrations
-
     Migrations --> Database
     Eloquent --> Database
     Eloquent --> Cache
     Eloquent --> Storage
     Eloquent --> Sessions
-
     Controllers --> Google
     Mail --> MailService
     Browser --> Cloudflare
@@ -1172,65 +1034,38 @@ This diagram shows the physical deployment architecture.
 
 ```mermaid
 flowchart TB
-    subgraph "Client Devices"
-        Desktop[Desktop Browser]
-        Mobile[Mobile Browser]
-        Tablet[Tablet Browser]
-    end
-
-    subgraph "CDN / Edge"
-        Cloudflare[Cloudflare<br/>DNS + Tunnel]
-    end
-
-    subgraph "Web Server Layer"
-        Nginx[Nginx/Apache<br/>Load Balancer]
-    end
-
-    subgraph "Application Layer"
-        AppServer1[Laravel App Server 1<br/>PHP 8.2+]
-        AppServer2[Laravel App Server 2<br/>PHP 8.2+]
-    end
-
-    subgraph "Background Workers"
-        QueueWorker[Queue Worker<br/>Supervisor]
-        Scheduler[Task Scheduler<br/>Cron]
-    end
-
-    subgraph "Data Layer"
-        MySQL[(MySQL Database<br/>Master-Slave)]
-        Redis[(Redis Cache<br/>Optional)]
-        FileStorage[File Storage<br/>Local/S3]
-    end
-
-    subgraph "External Services"
-        Google[Google OAuth API]
-        SMTP[SMTP Mail Server]
-    end
+    Desktop[Desktop Browser]
+    Mobile[Mobile Browser]
+    Tablet[Tablet Browser]
+    Cloudflare[Cloudflare<br/>DNS + Tunnel]
+    Nginx[Nginx/Apache<br/>Load Balancer]
+    AppServer1[Laravel App Server 1<br/>PHP 8.2+]
+    AppServer2[Laravel App Server 2<br/>PHP 8.2+]
+    QueueWorker[Queue Worker<br/>Supervisor]
+    Scheduler[Task Scheduler<br/>Cron]
+    MySQL[(MySQL Database<br/>Master-Slave)]
+    Redis[(Redis Cache<br/>Optional)]
+    FileStorage[File Storage<br/>Local/S3]
+    Google[Google OAuth API]
+    SMTP[SMTP Mail Server]
 
     Desktop --> Cloudflare
     Mobile --> Cloudflare
     Tablet --> Cloudflare
-
     Cloudflare --> Nginx
-
     Nginx --> AppServer1
     Nginx --> AppServer2
-
     AppServer1 --> MySQL
     AppServer1 --> Redis
     AppServer1 --> FileStorage
     AppServer1 --> QueueWorker
     AppServer1 --> Scheduler
-
     AppServer2 --> MySQL
     AppServer2 --> Redis
     AppServer2 --> FileStorage
-
     QueueWorker --> MySQL
     QueueWorker --> FileStorage
-
     Scheduler --> MySQL
-
     AppServer1 --> Google
     AppServer1 --> SMTP
 ```
@@ -1359,65 +1194,43 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    subgraph "Frontend Stack"
-        direction TB
-        F1[Blade Templates<br/>Server-side rendering]
-        F2[Vue.js 3.4<br/>Reactive components]
-        F3[Alpine.js<br/>Lightweight interactivity]
-        F4[Tailwind CSS 3.2<br/>Utility classes]
-        F5[Axios<br/>HTTP client]
-    end
-
-    subgraph "Build Tools"
-        direction TB
-        B1[Vite 6.4<br/>Build tool]
-        B2[TypeScript 5.6<br/>Type checking]
-        B3[ESLint<br/>Linting]
-        B4[Prettier<br/>Formatting]
-        B5[JS Obfuscator<br/>Code protection]
-    end
-
-    subgraph "Backend Stack"
-        direction TB
-        BK1[Laravel 12<br/>Framework]
-        BK2[PHP 8.2+<br/>Runtime]
-        BK3[Eloquent ORM<br/>Database]
-        BK4[Sanctum<br/>API Auth]
-        BK5[Socialite<br/>OAuth]
-    end
-
-    subgraph "Data Storage"
-        direction TB
-        D1[SQLite/MySQL<br/>Primary DB]
-        D2[Database Cache<br/>Caching]
-        D3[File System<br/>Media storage]
-        D4[Database Sessions<br/>Session mgmt]
-    end
-
-    subgraph "External Services"
-        direction TB
-        E1[Google OAuth<br/>Social login]
-        E2[SMTP Server<br/>Email delivery]
-        E3[FFmpeg<br/>Video processing]
-    end
+    F1[Blade Templates<br/>Server-side rendering]
+    F2[Vue.js 3.4<br/>Reactive components]
+    F3[Alpine.js<br/>Lightweight interactivity]
+    F4[Tailwind CSS 3.2<br/>Utility classes]
+    F5[Axios<br/>HTTP client]
+    B1[Vite 6.4<br/>Build tool]
+    B2[TypeScript 5.6<br/>Type checking]
+    B3[ESLint<br/>Linting]
+    B4[Prettier<br/>Formatting]
+    B5[JS Obfuscator<br/>Code protection]
+    BK1[Laravel 12<br/>Framework]
+    BK2[PHP 8.2+<br/>Runtime]
+    BK3[Eloquent ORM<br/>Database]
+    BK4[Sanctum<br/>API Auth]
+    BK5[Socialite<br/>OAuth]
+    D1[SQLite/MySQL<br/>Primary DB]
+    D2[Database Cache<br/>Caching]
+    D3[File System<br/>Media storage]
+    D4[Database Sessions<br/>Session mgmt]
+    E1[Google OAuth<br/>Social login]
+    E2[SMTP Server<br/>Email delivery]
+    E3[FFmpeg<br/>Video processing]
 
     F1 --> B1
     F2 --> B1
     F3 --> B1
     F4 --> B1
     F5 --> B1
-
     B1 --> BK1
     BK1 --> BK2
     BK1 --> BK3
     BK1 --> BK4
     BK1 --> BK5
-
     BK3 --> D1
     BK1 --> D2
     BK1 --> D3
     BK1 --> D4
-
     BK5 --> E1
     BK1 --> E2
     BK1 --> E3
@@ -1478,33 +1291,22 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph "Caching Strategy"
-        C1[Config Cache<br/>php artisan config:cache]
-        C2[Route Cache<br/>php artisan route:cache]
-        C3[View Cache<br/>php artisan view:cache]
-        C4[Query Cache<br/>Database cache driver]
-    end
-
-    subgraph "Database Optimization"
-        D1[Indexes ons]
-        D2[Composite Indexes]
-        D3[Query Optimization]
-        D4[Eager Loading]
-    end
-
-    subgraph "Frontend Optimization"
-        F1[Vite Build]
-        F2[Code Splitting]
-        F3[Lazy Loading]
-        F4[Asset Minification]
-    end
-
-    subgraph "Real-time Optimization"
-        R1[Polling Intervals<br/>1-10 seconds]
-        R2[Conditional Polling<br/>Page visibility]
-        R3[Batch Requests<br/>User status]
-        R4[Cache Typing<br/>5 second TTL]
-    end
+    C1[Config Cache<br/>php artisan config:cache]
+    C2[Route Cache<br/>php artisan route:cache]
+    C3[View Cache<br/>php artisan view:cache]
+    C4[Query Cache<br/>Database cache driver]
+    D1[Indexes on columns]
+    D2[Composite Indexes]
+    D3[Query Optimization]
+    D4[Eager Loading]
+    F1[Vite Build]
+    F2[Code Splitting]
+    F3[Lazy Loading]
+    F4[Asset Minification]
+    R1[Polling Intervals<br/>1-10 seconds]
+    R2[Conditional Polling<br/>Page visibility]
+    R3[Batch Requests<br/>User status]
+    R4[Cache Typing<br/>5 second TTL]
 
     C1 --> D1
     C2 --> D2
@@ -1522,43 +1324,30 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    subgraph "Security Layers"
-        L1[Network Layer<br/>HTTPS, Cloudflare]
-        L2[Application Layer<br/>Middleware, Rate Limiting]
-        L3[Data Layer<br/>Validation, ORM]
-        L4[Business Logic<br/>Authorization, Privacy]
-    end
-
-    subgraph "Authentication Security"
-        A1[Password Hashing<br/>Bcrypt 12 rounds]
-        A2[Email Verification<br/>6-digit code]
-        A3[Rate Limiting<br/>5 attempts/min]
-        A4[Session Security<br/>HTTP-only cookies]
-    end
-
-    subgraph "Authorization"
-        Z1[Middleware Guards<br/>auth, admin, verified]
-        Z2[Policy Checks<br/>Owner or Admin]
-        Z3[Privacy Controls<br/>Private accounts]
-        Z4[User Blocking<br/>Content filtering]
-    end
-
-    subgraph "Data Protection"
-        P1[CSRF Protection<br/>Token validation]
-        P2[XSS Prevention<br/>Blade escaping]
-        P3[SQL Injection<br/>Eloquent ORM]
-        P4[File Upload<br/>MIME validation]
-    end
+    L1[Network Layer<br/>HTTPS, Cloudflare]
+    L2[Application Layer<br/>Middleware, Rate Limiting]
+    L3[Data Layer<br/>Validation, ORM]
+    L4[Business Logic<br/>Authorization, Privacy]
+    A1[Password Hashing<br/>Bcrypt 12 rounds]
+    A2[Email Verification<br/>6-digit code]
+    A3[Rate Limiting<br/>5 attempts/min]
+    A4[Session Security<br/>HTTP-only cookies]
+    Z1[Middleware Guards<br/>auth, admin, verified]
+    Z2[Policy Checks<br/>Owner or Admin]
+    Z3[Privacy Controls<br/>Private accounts]
+    Z4[User Blocking<br/>Content filtering]
+    P1[CSRF Protection<br/>Token validation]
+    P2[XSS Prevention<br/>Blade escaping]
+    P3[SQL Injection<br/>Eloquent ORM]
+    P4[File Upload<br/>MIME validation]
 
     L1 --> L2
     L2 --> L3
     L3 --> L4
-
     A1 --> Z1
     A2 --> Z2
     A3 --> Z3
     A4 --> Z4
-
     Z1 --> P1
     Z2 --> P2
     Z3 --> P3
@@ -1571,29 +1360,18 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    subgraph "Core Modules"
-        C1[User Module]
-        C2[Post Module]
-        C3[Comment Module]
-    end
-
-    subgraph "Social Modules"
-        S1[Follow Module]
-        S2[Block Module]
-        S3[Story Module]
-    end
-
-    subgraph "Communication Modules"
-        M1[Chat Module]
-        M2[Notification Module]
-        M3[Group Module]
-    end
-
-    subgraph "Admin Modules"
-        A1[Report Module]
-        A2[Admin Panel]
-        A3[Activity Log]
-    end
+    C1[User Module]
+    C2[Post Module]
+    C3[Comment Module]
+    S1[Follow Module]
+    S2[Block Module]
+    S3[Story Module]
+    M1[Chat Module]
+    M2[Notification Module]
+    M3[Group Module]
+    A1[Report Module]
+    A2[Admin Panel]
+    A3[Activity Log]
 
     C1 --> C2
     C1 --> C3
@@ -1603,20 +1381,15 @@ flowchart LR
     C1 --> M1
     C1 --> M2
     C1 --> M3
-
     C2 --> C3
     C2 --> S3
     C2 --> A1
-
     C3 --> M2
-
     S1 --> M2
     S3 --> M2
-
     M1 --> M2
     M3 --> M1
     M3 --> M2
-
     A1 --> A2
     A3 --> A2
 ```
