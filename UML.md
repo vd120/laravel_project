@@ -1242,123 +1242,103 @@ flowchart TB
 ### 1. User Account State
 
 ```mermaid
-stateDiagram
-    [*] --> Unregistered
-
-    Unregistered --> Registered: Register
-    Registered --> EmailPending: Send verification
-    EmailPending --> Verified: Enter code
-    EmailPending --> Unregistered: Expire (10 min)
-    EmailPending --> Registered: Resend code
-
-    Verified --> PasswordRequired: OAuth user
-    PasswordRequired --> Active: Set password
-
-    Verified --> Active: Has password
-    Active --> Suspended: Admin suspends
-    Suspended --> Active: Admin unsuspends
-
-    Active --> Offline: Logout/Inactive
-    Offline --> Active: Login
-
-    Active --> Deleted: Delete account
-    Suspended --> Deleted: Delete account
-
-    Deleted --> [*]
+flowchart LR
+    Start([*]) --> Unregistered
+    Unregistered -->|Register| Registered
+    Registered -->|Send verification| EmailPending
+    EmailPending -->|Enter code| Verified
+    EmailPending -->|Expire 10 min| Unregistered
+    EmailPending -->|Resend code| Registered
+    Verified -->|OAuth user| PasswordRequired
+    PasswordRequired -->|Set password| Active
+    Verified -->|Has password| Active
+    Active -->|Admin suspends| Suspended
+    Suspended -->|Admin unsuspends| Active
+    Active -->|Logout/Inactive| Offline
+    Offline -->|Login| Active
+    Active -->|Delete account| Deleted
+    Suspended -->|Delete account| Deleted
+    Deleted --> End([*])
 ```
 
 ### 2. Post State
 
 ```mermaid
-stateDiagram
-    [*] --> Draft
-
-    Draft --> Published: Submit
-    Published --> Pinned: Pin by user
-    Pinned --> Published: Unpin
-    Published --> Reported: User reports
-    Reported --> Published: Reject report
-    Reported --> Deleted: Accept report
-    Published --> Deleted: Owner deletes
-    Published --> Deleted: Admin deletes
-    Pinned --> Deleted: Owner deletes
-
-    Deleted --> [*]
+flowchart LR
+    Start([*]) --> Draft
+    Draft -->|Submit| Published
+    Published -->|Pin by user| Pinned
+    Pinned -->|Unpin| Published
+    Published -->|User reports| Reported
+    Reported -->|Reject report| Published
+    Reported -->|Accept report| Deleted
+    Published -->|Owner deletes| Deleted
+    Published -->|Admin deletes| Deleted
+    Pinned -->|Owner deletes| Deleted
+    Deleted --> End([*])
 ```
 
 ### 3. Story State
 
 ```mermaid
-stateDiagram
-    [*] --> Creating
-
-    Creating --> Active: Publish
-    Active --> Expired: 24 hours pass
-    Active --> Deleted: Owner deletes
-    Active --> Deleted: Admin deletes
-
-    Expired --> [*]
-    Deleted --> [*]
+flowchart LR
+    Start([*]) --> Creating
+    Creating -->|Publish| Active
+    Active -->|24 hours pass| Expired
+    Active -->|Owner deletes| Deleted
+    Active -->|Admin deletes| Deleted
+    Expired --> End([*])
+    Deleted --> End2([*])
 ```
 
 ### 4. Message State
 
 ```mermaid
-stateDiagram
-    [*] --> Composing
-
-    Composing --> Sent: Send
-    Sent --> Delivered: Recipient receives
-    Delivered --> Read: Recipient reads
-
-    Sent --> DeletedSender: Sender deletes
-    Delivered --> DeletedSender: Sender deletes
-    Read --> DeletedSender: Sender deletes
-
-    Sent --> DeletedEveryone: Delete for everyone
-    Delivered --> DeletedEveryone: Delete for everyone
-    Read --> DeletedEveryone: Delete for everyone
-
-    DeletedSender --> [*]
-    DeletedEveryone --> [*]
+flowchart LR
+    Start([*]) --> Composing
+    Composing -->|Send| Sent
+    Sent -->|Recipient receives| Delivered
+    Delivered -->|Recipient reads| Read
+    Sent -->|Sender deletes| DeletedSender
+    Delivered -->|Sender deletes| DeletedSender
+    Read -->|Sender deletes| DeletedSender
+    Sent -->|Delete for everyone| DeletedEveryone
+    Delivered -->|Delete for everyone| DeletedEveryone
+    Read -->|Delete for everyone| DeletedEveryone
+    DeletedSender --> End([*])
+    DeletedEveryone --> End2([*])
 ```
 
 ### 5. Conversation State
 
 ```mermaid
-stateDiagram
-    [*] --> Inactive
-
-    Inactive --> Active: First message
-    Active --> Inactive: No activity
-
-    Active --> HasUnread: New message
-    HasUnread --> Active: Message read
-    HasUnread --> Inactive: Message read + no activity
-
-    Active --> Deleted: All participants delete
-    Inactive --> Deleted: All participants delete
+flowchart LR
+    Start([*]) --> Inactive
+    Inactive -->|First message| Active
+    Active -->|No activity| Inactive
+    Active -->|New message| HasUnread
+    HasUnread -->|Message read| Active
+    HasUnread -->|Message read + no activity| Inactive
+    Active -->|All participants delete| Deleted
+    Inactive -->|All participants delete| Deleted
+    Deleted --> End([*])
 ```
 
 ### 6. Group Member State
 
 ```mermaid
-stateDiagram
-    [*] --> Invited: Receive invite
-
-    Invited --> Member: Accept invite
-    Invited --> [*]: Decline/Expire
-
-    Member --> Admin: Promoted by admin
-    Admin --> Member: Demoted by admin
-
-    Member --> Left: Leave group
-    Admin --> Left: Leave group
-    Member --> Removed: Removed by admin
-    Admin --> Removed: Removed by admin
-
-    Left --> [*]
-    Removed --> [*]
+flowchart LR
+    Start([*]) --> Invited
+    Invited -->|Accept invite| Member
+    Invited -->|Decline/Expire| End([*])
+    Member -->|Promoted by admin| Admin
+    Admin -->|Demoted by admin| Member
+    Member -->|Leave group| Left
+    Admin -->|Leave group| Left
+    Member -->|Removed by admin| Removed
+    Admin -->|Removed by admin| Removed
+    Left --> End2([*])
+    Removed --> End3([*])
 ```
 
 ---
