@@ -904,66 +904,53 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Start]) --> VisitLogin[Visit /login]
-    VisitLogin --> EnterCreds[Enter credentials]
-    EnterCreds --> Submit{Submit}
-
-    Submit --> Validate{Valid credentials?}
-    Validate -->|No| ShowError[Show error]
-    ShowError --> RateLimit{Rate limited?}
-    RateLimit -->|Yes| Wait[Wait and retry]
-    RateLimit -->|No| EnterCreds
-
-    Validate -->|Yes| CheckSuspended{Account suspended?}
-    CheckSuspended -->|Yes| ShowSuspended[Show suspended page]
-    ShowSuspended --> End([End])
-
-    CheckSuspended -->|No| CreateSession[Create session]
-    CreateSession --> CheckVerified{Email verified?}
-
-    CheckVerified -->|No| RedirectVerify[Redirect to verification]
-    RedirectVerify --> ShowVerify[Show verify page]
-    ShowVerify --> End
-
-    CheckVerified -->|Yes| CheckOAuth{OAuth user?}
-    CheckOAuth -->|Yes| RedirectSetPwd[Redirect to set password]
-    RedirectSetPwd --> End
-
-    CheckOAuth -->|No| UpdateActive[Update last_active]
-    UpdateActive --> RedirectHome[Redirect to home]
-    RedirectHome --> End
+    A([Start]) --> B[Visit /login]
+    B --> C[Enter credentials]
+    C --> D{Submit}
+    D -->|No| E[Show error]
+    E --> F{Rate limited?}
+    F -->|Yes| G[Wait and retry]
+    F -->|No| C
+    D -->|Yes| H{Account suspended?}
+    H -->|Yes| I[Show suspended page]
+    I --> J([End])
+    H -->|No| K[Create session]
+    K --> L{Email verified?}
+    L -->|No| M[Redirect to verification]
+    M --> N[Show verify page]
+    N --> J
+    L -->|Yes| O{OAuth user?}
+    O -->|Yes| P[Redirect to set password]
+    P --> J
+    O -->|No| Q[Update last_active]
+    Q --> R[Redirect to home]
+    R --> J
 ```
 
 ### 3. Message Sending Activity
 
 ```mermaid
 flowchart TD
-    Start([Start]) --> OpenChat[Open chat]
-    OpenChat --> LoadConv[Load conversation]
-    LoadConv --> TypeMsg[Type message]
-    
-    TypeMsg --> CheckType{Message type?}
-    CheckType -->|Text| ValidateText{Valid text?}
-    CheckType -->|Voice| RecordVoice[Record voice]
-    CheckType -->|Media| SelectMedia[Select media]
-    
-    ValidateText -->|No| ShowError1[Show error]
-    ShowError1 --> TypeMsg
-    
-    ValidateText -->|Yes| SendMessage[Send message]
-    RecordVoice --> SendMessage
-    SelectMedia --> SendMessage
-    
-    SendMessage --> InsertDB[Insert to database]
-    InsertDB --> Broadcast[Broadcast via polling]
-    Broadcast --> UpdateUI[Update UI]
-    
-    UpdateUI --> CheckRead{Recipient active?}
-    CheckRead -->|Yes| MarkDelivered[Mark as delivered]
-    CheckRead -->|No| WaitRead[Wait for read]
-    
-    MarkDelivered --> End([End])
-    WaitRead --> End
+    A([Start]) --> B[Open chat]
+    B --> C[Load conversation]
+    C --> D[Type message]
+    D --> E{Message type?}
+    E -->|Text| F{Valid text?}
+    E -->|Voice| G[Record voice]
+    E -->|Media| H[Select media]
+    F -->|No| I[Show error]
+    I --> D
+    F -->|Yes| J[Send message]
+    G --> J
+    H --> J
+    J --> K[Insert to database]
+    K --> L[Broadcast via polling]
+    L --> M[Update UI]
+    M --> N{Recipient active?}
+    N -->|Yes| O[Mark as delivered]
+    N -->|No| P[Wait for read]
+    O --> Q([End])
+    P --> Q
 ```
 
 ---
@@ -974,28 +961,28 @@ This diagram shows the high-level architecture components and their relationship
 
 ```mermaid
 flowchart TB
-    Browser[Web Browser<br/>Blade + Vue.js + Alpine.js]
+    Browser[Web Browser]
     Mobile[Mobile Browser]
     API[API Clients]
-    Blade[Blade Templates<br/>67 views]
-    Vue[Vue Components<br/>27 components]
-    JS[JavaScript Modules<br/>16 legacy modules]
-    CSS[Tailwind CSS<br/>Custom styles]
-    Routes[Routes<br/>web.php, api.php]
-    Middleware[Middleware<br/>9 classes]
-    Controllers[Controllers<br/>39 total]
-    Services[Services<br/>9 service classes]
-    Models[Models<br/>25 Eloquent models]
-    Mail[Mail Classes<br/>3 classes]
+    Blade[Blade Templates]
+    Vue[Vue Components]
+    JS[JavaScript Modules]
+    CSS[Tailwind CSS]
+    Routes[Routes]
+    Middleware[Middleware]
+    Controllers[Controllers]
+    Services[Services]
+    Models[Models]
+    Mail[Mail Classes]
     Eloquent[Eloquent ORM]
     QueryBuilder[Query Builder]
-    Migrations[Migrations<br/>79 files]
-    Database[(Database<br/>SQLite/MySQL)]
-    Cache[(Cache<br/>Database)]
-    Storage[(File Storage<br/>Local/S3)]
-    Sessions[(Sessions<br/>Database)]
+    Migrations[Migrations]
+    Database[(Database)]
+    Cache[(Cache)]
+    Storage[(File Storage)]
+    Sessions[(Sessions)]
     Google[Google OAuth]
-    MailService[Email Service<br/>SMTP/Mailtrap]
+    MailService[Email Service]
     Cloudflare[Cloudflare Tunnel]
 
     Browser --> Blade
@@ -1037,15 +1024,15 @@ flowchart TB
     Desktop[Desktop Browser]
     Mobile[Mobile Browser]
     Tablet[Tablet Browser]
-    Cloudflare[Cloudflare<br/>DNS + Tunnel]
-    Nginx[Nginx/Apache<br/>Load Balancer]
-    AppServer1[Laravel App Server 1<br/>PHP 8.2+]
-    AppServer2[Laravel App Server 2<br/>PHP 8.2+]
-    QueueWorker[Queue Worker<br/>Supervisor]
-    Scheduler[Task Scheduler<br/>Cron]
-    MySQL[(MySQL Database<br/>Master-Slave)]
-    Redis[(Redis Cache<br/>Optional)]
-    FileStorage[File Storage<br/>Local/S3]
+    Cloudflare[Cloudflare]
+    Nginx[Nginx/Apache]
+    AppServer1[Laravel App Server 1]
+    AppServer2[Laravel App Server 2]
+    QueueWorker[Queue Worker]
+    Scheduler[Task Scheduler]
+    MySQL[(MySQL Database)]
+    Redis[(Redis Cache)]
+    FileStorage[File Storage]
     Google[Google OAuth API]
     SMTP[SMTP Mail Server]
 
@@ -1078,102 +1065,102 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    Start([*]) --> Unregistered
-    Unregistered -->|Register| Registered
-    Registered -->|Send verification| EmailPending
-    EmailPending -->|Enter code| Verified
-    EmailPending -->|Expire 10 min| Unregistered
-    EmailPending -->|Resend code| Registered
-    Verified -->|OAuth user| PasswordRequired
-    PasswordRequired -->|Set password| Active
-    Verified -->|Has password| Active
-    Active -->|Admin suspends| Suspended
-    Suspended -->|Admin unsuspends| Active
-    Active -->|Logout/Inactive| Offline
-    Offline -->|Login| Active
-    Active -->|Delete account| Deleted
-    Suspended -->|Delete account| Deleted
-    Deleted --> End([*])
+    A([Start]) --> B[Unregistered]
+    B -->|Register| C[Registered]
+    C -->|Send verification| D[EmailPending]
+    D -->|Enter code| E[Verified]
+    D -->|Expire 10 min| B
+    D -->|Resend code| C
+    E -->|OAuth user| F[PasswordRequired]
+    F -->|Set password| G[Active]
+    E -->|Has password| G
+    G -->|Admin suspends| H[Suspended]
+    H -->|Admin unsuspends| G
+    G -->|Logout/Inactive| I[Offline]
+    I -->|Login| G
+    G -->|Delete account| J[Deleted]
+    H -->|Delete account| J
+    J --> K([End])
 ```
 
 ### 2. Post State
 
 ```mermaid
 flowchart LR
-    Start([*]) --> Draft
-    Draft -->|Submit| Published
-    Published -->|Pin by user| Pinned
-    Pinned -->|Unpin| Published
-    Published -->|User reports| Reported
-    Reported -->|Reject report| Published
-    Reported -->|Accept report| Deleted
-    Published -->|Owner deletes| Deleted
-    Published -->|Admin deletes| Deleted
-    Pinned -->|Owner deletes| Deleted
-    Deleted --> End([*])
+    A([Start]) --> B[Draft]
+    B -->|Submit| C[Published]
+    C -->|Pin by user| D[Pinned]
+    D -->|Unpin| C
+    C -->|User reports| E[Reported]
+    E -->|Reject report| C
+    E -->|Accept report| F[Deleted]
+    C -->|Owner deletes| F
+    C -->|Admin deletes| F
+    D -->|Owner deletes| F
+    F --> G([End])
 ```
 
 ### 3. Story State
 
 ```mermaid
 flowchart LR
-    Start([*]) --> Creating
-    Creating -->|Publish| Active
-    Active -->|24 hours pass| Expired
-    Active -->|Owner deletes| Deleted
-    Active -->|Admin deletes| Deleted
-    Expired --> End([*])
-    Deleted --> End2([*])
+    A([Start]) --> B[Creating]
+    B -->|Publish| C[Active]
+    C -->|24 hours pass| D[Expired]
+    C -->|Owner deletes| E[Deleted]
+    C -->|Admin deletes| E
+    D --> F([End])
+    E --> G([End])
 ```
 
 ### 4. Message State
 
 ```mermaid
 flowchart LR
-    Start([*]) --> Composing
-    Composing -->|Send| Sent
-    Sent -->|Recipient receives| Delivered
-    Delivered -->|Recipient reads| Read
-    Sent -->|Sender deletes| DeletedSender
-    Delivered -->|Sender deletes| DeletedSender
-    Read -->|Sender deletes| DeletedSender
-    Sent -->|Delete for everyone| DeletedEveryone
-    Delivered -->|Delete for everyone| DeletedEveryone
-    Read -->|Delete for everyone| DeletedEveryone
-    DeletedSender --> End([*])
-    DeletedEveryone --> End2([*])
+    A([Start]) --> B[Composing]
+    B -->|Send| C[Sent]
+    C -->|Recipient receives| D[Delivered]
+    D -->|Recipient reads| E[Read]
+    C -->|Sender deletes| F[DeletedSender]
+    D -->|Sender deletes| F
+    E -->|Sender deletes| F
+    C -->|Delete for everyone| G[DeletedEveryone]
+    D -->|Delete for everyone| G
+    E -->|Delete for everyone| G
+    F --> H([End])
+    G --> I([End])
 ```
 
 ### 5. Conversation State
 
 ```mermaid
 flowchart LR
-    Start([*]) --> Inactive
-    Inactive -->|First message| Active
-    Active -->|No activity| Inactive
-    Active -->|New message| HasUnread
-    HasUnread -->|Message read| Active
-    HasUnread -->|Message read + no activity| Inactive
-    Active -->|All participants delete| Deleted
-    Inactive -->|All participants delete| Deleted
-    Deleted --> End([*])
+    A([Start]) --> B[Inactive]
+    B -->|First message| C[Active]
+    C -->|No activity| B
+    C -->|New message| D[HasUnread]
+    D -->|Message read| C
+    D -->|Message read| B
+    C -->|All participants delete| E[Deleted]
+    B -->|All participants delete| E
+    E --> F([End])
 ```
 
 ### 6. Group Member State
 
 ```mermaid
 flowchart LR
-    Start([*]) --> Invited
-    Invited -->|Accept invite| Member
-    Invited -->|Decline/Expire| End([*])
-    Member -->|Promoted by admin| Admin
-    Admin -->|Demoted by admin| Member
-    Member -->|Leave group| Left
-    Admin -->|Leave group| Left
-    Member -->|Removed by admin| Removed
-    Admin -->|Removed by admin| Removed
-    Left --> End2([*])
-    Removed --> End3([*])
+    A([Start]) --> B[Invited]
+    B -->|Accept invite| C[Member]
+    B -->|Decline/Expire| D([End])
+    C -->|Promoted by admin| E[Admin]
+    E -->|Demoted by admin| C
+    C -->|Leave group| F[Left]
+    E -->|Leave group| F
+    C -->|Removed by admin| G[Removed]
+    E -->|Removed by admin| G
+    F --> H([End])
+    G --> I([End])
 ```
 
 ---
@@ -1203,41 +1190,34 @@ flowchart LR
     Middleware -.->|checks| Controllers
 ```
 
-**Interaction Legend:**
-- Routes: Uses Controllers, Services, Models, Middleware
-- Controllers: Uses Services, Models, Middleware  
-- Services: Uses Models
-- Models: Used by Routes, Controllers, Services
-- Middleware: Checks Routes, Controllers
-
 ---
 
 ## Technology Stack Diagram
 
 ```mermaid
 flowchart LR
-    F1[Blade Templates<br/>Server-side rendering]
-    F2[Vue.js 3.4<br/>Reactive components]
-    F3[Alpine.js<br/>Lightweight interactivity]
-    F4[Tailwind CSS 3.2<br/>Utility classes]
-    F5[Axios<br/>HTTP client]
-    B1[Vite 6.4<br/>Build tool]
-    B2[TypeScript 5.6<br/>Type checking]
-    B3[ESLint<br/>Linting]
-    B4[Prettier<br/>Formatting]
-    B5[JS Obfuscator<br/>Code protection]
-    BK1[Laravel 12<br/>Framework]
-    BK2[PHP 8.2+<br/>Runtime]
-    BK3[Eloquent ORM<br/>Database]
-    BK4[Sanctum<br/>API Auth]
-    BK5[Socialite<br/>OAuth]
-    D1[SQLite/MySQL<br/>Primary DB]
-    D2[Database Cache<br/>Caching]
-    D3[File System<br/>Media storage]
-    D4[Database Sessions<br/>Session mgmt]
-    E1[Google OAuth<br/>Social login]
-    E2[SMTP Server<br/>Email delivery]
-    E3[FFmpeg<br/>Video processing]
+    F1[Blade Templates]
+    F2[Vue.js 3.4]
+    F3[Alpine.js]
+    F4[Tailwind CSS 3.2]
+    F5[Axios]
+    B1[Vite 6.4]
+    B2[TypeScript 5.6]
+    B3[ESLint]
+    B4[Prettier]
+    B5[JS Obfuscator]
+    BK1[Laravel 12]
+    BK2[PHP 8.2+]
+    BK3[Eloquent ORM]
+    BK4[Sanctum]
+    BK5[Socialite]
+    D1[SQLite/MySQL]
+    D2[Database Cache]
+    D3[File System]
+    D4[Database Sessions]
+    E1[Google OAuth]
+    E2[SMTP Server]
+    E3[FFmpeg]
 
     F1 --> B1
     F2 --> B1
@@ -1267,7 +1247,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     U[User] -->|Request| B[Browser]
-    B -->|HTTP GET /| LC[Laravel Controller]
+    B -->|HTTP GET| LC[Laravel Controller]
     LC -->|Auth Check| M[Middleware]
     M -->|Query| PM[Post Model]
     PM -->|Eloquent Query| DB[(Database)]
@@ -1289,7 +1269,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     U[User] -->|Submit Form| B[Browser]
-    B -->|POST /posts| LC[PostController]
+    B -->|POST posts| LC[PostController]
     LC -->|Validate| VR[Validation Rules]
     VR -->|Valid| PM[Post Model]
     PM -->|Insert| DB[(Database)]
@@ -1313,10 +1293,10 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    C1[Config Cache<br/>php artisan config:cache]
-    C2[Route Cache<br/>php artisan route:cache]
-    C3[View Cache<br/>php artisan view:cache]
-    C4[Query Cache<br/>Database cache driver]
+    C1[Config Cache]
+    C2[Route Cache]
+    C3[View Cache]
+    C4[Query Cache]
     D1[Indexes on columns]
     D2[Composite Indexes]
     D3[Query Optimization]
@@ -1325,10 +1305,10 @@ flowchart TB
     F2[Code Splitting]
     F3[Lazy Loading]
     F4[Asset Minification]
-    R1[Polling Intervals<br/>1-10 seconds]
-    R2[Conditional Polling<br/>Page visibility]
-    R3[Batch Requests<br/>User status]
-    R4[Cache Typing<br/>5 second TTL]
+    R1[Polling Intervals]
+    R2[Conditional Polling]
+    R3[Batch Requests]
+    R4[Cache Typing]
 
     C1 --> D1
     C2 --> D2
@@ -1346,22 +1326,22 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    L1[Network Layer<br/>HTTPS, Cloudflare]
-    L2[Application Layer<br/>Middleware, Rate Limiting]
-    L3[Data Layer<br/>Validation, ORM]
-    L4[Business Logic<br/>Authorization, Privacy]
-    A1[Password Hashing<br/>Bcrypt 12 rounds]
-    A2[Email Verification<br/>6-digit code]
-    A3[Rate Limiting<br/>5 attempts/min]
-    A4[Session Security<br/>HTTP-only cookies]
-    Z1[Middleware Guards<br/>auth, admin, verified]
-    Z2[Policy Checks<br/>Owner or Admin]
-    Z3[Privacy Controls<br/>Private accounts]
-    Z4[User Blocking<br/>Content filtering]
-    P1[CSRF Protection<br/>Token validation]
-    P2[XSS Prevention<br/>Blade escaping]
-    P3[SQL Injection<br/>Eloquent ORM]
-    P4[File Upload<br/>MIME validation]
+    L1[Network Layer]
+    L2[Application Layer]
+    L3[Data Layer]
+    L4[Business Logic]
+    A1[Password Hashing]
+    A2[Email Verification]
+    A3[Rate Limiting]
+    A4[Session Security]
+    Z1[Middleware Guards]
+    Z2[Policy Checks]
+    Z3[Privacy Controls]
+    Z4[User Blocking]
+    P1[CSRF Protection]
+    P2[XSS Prevention]
+    P3[SQL Injection]
+    P4[File Upload]
 
     L1 --> L2
     L2 --> L3
