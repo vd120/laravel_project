@@ -1,4 +1,4 @@
-# Nexus - Social Networking Platform
+# Nexus - Social Networking Platform  
 
 <div align="center">
 
