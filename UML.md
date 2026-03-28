@@ -873,27 +873,27 @@ flowchart TD
     Start([Start]) --> CheckAuth{Authenticated?}
     CheckAuth -->|No| RedirectLogin[Redirect to Login]
     CheckAuth -->|Yes| ShowForm[Show Post Form]
-    
+
     ShowForm --> UserInput[User enters content/media]
     UserInput --> Submit{Submit Form}
-    
-    Submit --> ValidateContent{Has content<br/>or media?}
+
+    Submit --> ValidateContent{Has content or media?}
     ValidateContent -->|No| ShowError1[Show error]
     ShowError1 --> UserInput
-    
+
     ValidateContent -->|Yes| ValidateMedia{Media valid?}
     ValidateMedia -->|No| ShowError2[Show media error]
     ShowError2 --> UserInput
-    
+
     ValidateMedia -->|Yes| CreatePost[Create Post record]
     CreatePost --> GenerateSlug[Generate unique slug]
     GenerateSlug --> UploadMedia[Upload media files]
-    
+
     UploadMedia --> ProcessVideos{Has videos?}
     ProcessVideos -->|Yes| GenerateThumbs[Generate thumbnails]
     ProcessVideos -->|No| ProcessMentions
     GenerateThumbs --> ProcessMentions
-    
+
     ProcessMentions[Process @mentions] --> CreateMentions[Create Mention records]
     CreateMentions --> CreateNotifs[Create Notifications]
     CreateNotifs --> Redirect[Redirect to post]
@@ -907,28 +907,28 @@ flowchart TD
     Start([Start]) --> VisitLogin[Visit /login]
     VisitLogin --> EnterCreds[Enter credentials]
     EnterCreds --> Submit{Submit}
-    
+
     Submit --> Validate{Valid credentials?}
     Validate -->|No| ShowError[Show error]
     ShowError --> RateLimit{Rate limited?}
     RateLimit -->|Yes| Wait[Wait and retry]
     RateLimit -->|No| EnterCreds
-    
-    Validate -->|Yes| CheckSuspended{Account<br/>suspended?}
+
+    Validate -->|Yes| CheckSuspended{Account suspended?}
     CheckSuspended -->|Yes| ShowSuspended[Show suspended page]
     ShowSuspended --> End([End])
-    
+
     CheckSuspended -->|No| CreateSession[Create session]
     CreateSession --> CheckVerified{Email verified?}
-    
+
     CheckVerified -->|No| RedirectVerify[Redirect to verification]
     RedirectVerify --> ShowVerify[Show verify page]
     ShowVerify --> End
-    
+
     CheckVerified -->|Yes| CheckOAuth{OAuth user?}
     CheckOAuth -->|Yes| RedirectSetPwd[Redirect to set password]
     RedirectSetPwd --> End
-    
+
     CheckOAuth -->|No| UpdateActive[Update last_active]
     UpdateActive --> RedirectHome[Redirect to home]
     RedirectHome --> End
@@ -1180,13 +1180,35 @@ flowchart LR
 
 ## Component Interaction Matrix
 
-| Component | Routes | Controllers | Services | Models | Middleware |
-|-----------|--------|-------------|----------|--------|------------|
-| **Routes** | - | ✓ | ✓ | ✓ | ✓ |
-| **Controllers** | ✓ | - | ✓ | ✓ | ✓ |
-| **Services** | - | ✓ | - | ✓ | - |
-| **Models** | - | ✓ | ✓ | - | - |
-| **Middleware** | ✓ | ✓ | - | - | - |
+```mermaid
+flowchart LR
+    Routes
+    Controllers
+    Services
+    Models
+    Middleware
+
+    Routes -.->|uses| Controllers
+    Routes -.->|uses| Services
+    Routes -.->|uses| Models
+    Routes -.->|uses| Middleware
+    
+    Controllers -.->|uses| Services
+    Controllers -.->|uses| Models
+    Controllers -.->|uses| Middleware
+    
+    Services -.->|uses| Models
+    
+    Middleware -.->|checks| Routes
+    Middleware -.->|checks| Controllers
+```
+
+**Interaction Legend:**
+- Routes: Uses Controllers, Services, Models, Middleware
+- Controllers: Uses Services, Models, Middleware  
+- Services: Uses Models
+- Models: Used by Routes, Controllers, Services
+- Middleware: Checks Routes, Controllers
 
 ---
 
