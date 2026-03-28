@@ -1242,7 +1242,7 @@ flowchart TB
 ### 1. User Account State
 
 ```mermaid
-stateDiagram-v2
+stateDiagram
     [*] --> Unregistered
 
     Unregistered --> Registered: Register
@@ -1250,27 +1250,27 @@ stateDiagram-v2
     EmailPending --> Verified: Enter code
     EmailPending --> Unregistered: Expire (10 min)
     EmailPending --> Registered: Resend code
-    
+
     Verified --> PasswordRequired: OAuth user
     PasswordRequired --> Active: Set password
-    
+
     Verified --> Active: Has password
     Active --> Suspended: Admin suspends
     Suspended --> Active: Admin unsuspends
-    
+
     Active --> Offline: Logout/Inactive
     Offline --> Active: Login
-    
+
     Active --> Deleted: Delete account
     Suspended --> Deleted: Delete account
-    
+
     Deleted --> [*]
 ```
 
 ### 2. Post State
 
 ```mermaid
-stateDiagram-v2
+stateDiagram
     [*] --> Draft
 
     Draft --> Published: Submit
@@ -1282,21 +1282,21 @@ stateDiagram-v2
     Published --> Deleted: Owner deletes
     Published --> Deleted: Admin deletes
     Pinned --> Deleted: Owner deletes
-    
+
     Deleted --> [*]
 ```
 
 ### 3. Story State
 
 ```mermaid
-stateDiagram-v2
+stateDiagram
     [*] --> Creating
 
     Creating --> Active: Publish
     Active --> Expired: 24 hours pass
     Active --> Deleted: Owner deletes
     Active --> Deleted: Admin deletes
-    
+
     Expired --> [*]
     Deleted --> [*]
 ```
@@ -1304,21 +1304,21 @@ stateDiagram-v2
 ### 4. Message State
 
 ```mermaid
-stateDiagram-v2
+stateDiagram
     [*] --> Composing
 
     Composing --> Sent: Send
     Sent --> Delivered: Recipient receives
     Delivered --> Read: Recipient reads
-    
+
     Sent --> DeletedSender: Sender deletes
     Delivered --> DeletedSender: Sender deletes
     Read --> DeletedSender: Sender deletes
-    
+
     Sent --> DeletedEveryone: Delete for everyone
     Delivered --> DeletedEveryone: Delete for everyone
     Read --> DeletedEveryone: Delete for everyone
-    
+
     DeletedSender --> [*]
     DeletedEveryone --> [*]
 ```
@@ -1326,16 +1326,16 @@ stateDiagram-v2
 ### 5. Conversation State
 
 ```mermaid
-stateDiagram-v2
+stateDiagram
     [*] --> Inactive
 
     Inactive --> Active: First message
     Active --> Inactive: No activity
-    
+
     Active --> HasUnread: New message
     HasUnread --> Active: Message read
     HasUnread --> Inactive: Message read + no activity
-    
+
     Active --> Deleted: All participants delete
     Inactive --> Deleted: All participants delete
 ```
@@ -1343,20 +1343,20 @@ stateDiagram-v2
 ### 6. Group Member State
 
 ```mermaid
-stateDiagram-v2
+stateDiagram
     [*] --> Invited: Receive invite
 
     Invited --> Member: Accept invite
     Invited --> [*]: Decline/Expire
-    
+
     Member --> Admin: Promoted by admin
     Admin --> Member: Demoted by admin
-    
+
     Member --> Left: Leave group
     Admin --> Left: Leave group
     Member --> Removed: Removed by admin
     Admin --> Removed: Removed by admin
-    
+
     Left --> [*]
     Removed --> [*]
 ```
