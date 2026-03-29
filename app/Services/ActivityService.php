@@ -26,6 +26,9 @@ class ActivityService
         // Get location from Cloudflare headers (INSTANT - no API calls)
         $locationData = $this->getLocationFromCloudflare($request);
 
+        // Ensure session has user_id set
+        $this->updateSessionUserId($sessionId, $userId);
+
         return ActivityLog::create([
             'user_id' => $userId,
             'session_id' => $sessionId,
@@ -44,6 +47,17 @@ class ActivityService
             'longitude' => $locationData['longitude'] ?? null,
             'logged_at' => now(),
         ]);
+    }
+
+    /**
+     * Update session with user_id if not already set
+     */
+    private function updateSessionUserId(string $sessionId, int $userId): void
+    {
+        \DB::table('sessions')
+            ->where('id', $sessionId)
+            ->whereNull('user_id')
+            ->update(['user_id' => $userId]);
     }
 
     /**
@@ -287,38 +301,65 @@ class ActivityService
      */
     public function getActiveSessions(int $userId)
     {
-        // Get ALL recent logins (last 7 days)
+        $request = request();
+        $currentSessionId = $request->session()->getId();
+        $currentIp = $this->getIpAddress($request);
+
+        // Get ALL recent logins (last 7 days) for IP addresses and device info
         $logins = ActivityLog::where('user_id', $userId)
             ->action('login')
             ->where('logged_at', '>=', now()->subDays(7))
             ->orderBy('logged_at', 'desc')
             ->get();
 
-        // Get all active sessions from database with their last_activity
+        // Get unique IP addresses from recent logins
+        $ipAddresses = $logins->pluck('ip_address')->filter()->unique()->toArray();
+        
+        // Always include current IP
+        if ($currentIp && !in_array($currentIp, $ipAddresses)) {
+            $ipAddresses[] = $currentIp;
+        }
+
+        // Get all active sessions from database (within 24 hours) matching user's IPs
+        // Limit to most recent 10 sessions to avoid displaying too many
         $activeSessions = \DB::table('sessions')
-            ->where('user_id', $userId)
-            ->get()
-            ->keyBy('id');
+            ->whereIn('ip_address', $ipAddresses)
+            ->where('last_activity', '>', now()->subHours(24)->timestamp)
+            ->orderBy('last_activity', 'desc')
+            ->limit(10)
+            ->get();
 
-        // Filter logins to only those with active sessions
-        return $logins->filter(function($login) use ($activeSessions) {
-            // If has session_id, check if it's in active sessions
-            if ($login->session_id) {
-                // Session must exist in sessions table
-                if (!$activeSessions->has($login->session_id)) {
-                    return false; // Session was terminated or expired
-                }
+        // Create a map of IP to most recent login for device info
+        $loginByIp = $logins->keyBy('ip_address');
 
-                // Get the session data
-                $session = $activeSessions->get($login->session_id);
+        // Enrich sessions with activity log data
+        return $activeSessions->map(function($session) use ($loginByIp, $currentSessionId) {
+            $ip = $session->ip_address;
+            $loginData = $loginByIp->get($ip);
 
-                // Session is active if last_activity was within 24 hours
-                $sessionAge = now()->timestamp - $session->last_activity;
-                return $sessionAge < 86400; // 24 hours in seconds
+            if ($loginData) {
+                $session->device_type = $loginData->device_type ?? 'desktop';
+                $session->browser = $loginData->browser ?? 'Unknown';
+                $session->os = $loginData->os ?? 'Unknown';
+                $session->country = $loginData->country ?? null;
+                $session->city = $loginData->city ?? null;
+                $session->logged_at = $loginData->logged_at;
+                $session->user_agent = $loginData->user_agent ?? '';
+            } else {
+                $session->device_type = 'desktop';
+                $session->browser = 'Unknown';
+                $session->os = 'Unknown';
+                $session->country = null;
+                $session->city = null;
+                $session->logged_at = now()->timestamp($session->last_activity);
+                $session->user_agent = $session->user_agent ?? '';
             }
-            // Old logins without session_id - consider active only if very recent (< 30 minutes)
-            return $login->logged_at->diffInMinutes(now()) < 30;
-        });
+
+            $session->session_id = $session->id;
+            $session->is_current_session = ($session->id === $currentSessionId);
+
+            return $session;
+        })->unique('id');
     }
 
     /**
@@ -331,41 +372,53 @@ class ActivityService
         return $sessions->map(function($session) {
             return [
                 'id' => $session->id,
+                'session_id' => $session->session_id ?? $session->id,
                 'ip_address' => $session->ip_address,
-                'device_type' => $session->device_type,
-                'browser' => $session->browser,
-                'os' => $session->os,
-                'country' => $session->country,
-                'city' => $session->city,
+                'device_type' => $session->device_type ?? 'desktop',
+                'browser' => $session->browser ?? 'Unknown',
+                'os' => $session->os ?? 'Unknown',
+                'country' => $session->country ?? null,
+                'city' => $session->city ?? null,
                 'last_active' => $session->logged_at->diffForHumans(),
                 'login_time' => $session->logged_at->format('M d, Y h:i A'),
-                'is_current' => $this->isCurrentSession($session),
+                'is_current' => $session->is_current_session ?? false,
             ];
-        });
+        })->filter(function($session) {
+            // Filter out sessions without proper data
+            return $session['ip_address'] !== null;
+        })->values();
     }
 
     /**
      * Check if this session is the current one
      */
-    private function isCurrentSession($session)
+    private function isCurrentSession($session, ?string $currentSessionId = null)
     {
-        $request = request();
-        $currentSessionId = $request->session()->getId();
-        
+        if ($currentSessionId === null) {
+            $request = request();
+            $currentSessionId = $request->session()->getId();
+        }
+
         // Primary check: Compare session IDs (most accurate)
+        // Check both session_id (from activity_log) and id (from sessions table)
         if ($session->session_id && $session->session_id === $currentSessionId) {
             return true;
         }
-        
-        // Fallback: Check if IP matches and session is recent (within 2 hours)
-        $currentIp = $this->getIpAddress($request);
+
+        // Also check against the session's database ID
+        if (isset($session->id) && $session->id === $currentSessionId) {
+            return true;
+        }
+
+        // Fallback: Check if IP matches and session is recent (within 30 minutes)
+        $currentIp = $this->getIpAddress(request());
         $isSameIp = $session->ip_address === $currentIp;
-        $isRecent = $session->logged_at->diffInMinutes(now()) < 120;
-        
+        $isRecent = $session->logged_at->diffInMinutes(now()) < 30;
+
         // Also check user agent matches
-        $currentUA = $request->userAgent() ?? '';
+        $currentUA = request()->userAgent() ?? '';
         $isSameUA = $session->user_agent === $currentUA;
-        
+
         return $isSameIp && $isRecent && $isSameUA;
     }
 

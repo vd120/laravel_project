@@ -204,7 +204,9 @@
                 <div class="activity-content">
                     <div class="activity-header-row">
                         <span class="activity-action">{{ $activity->action_name }}</span>
-                        <span class="activity-time">{{ $activity->logged_at->diffForHumans() }}</span>
+                        <span class="activity-time" title="{{ $activity->logged_at->format('Y-m-d H:i:s') }}">
+                            <i class="fas fa-clock"></i> {{ $activity->logged_at->timezone(config('app.timezone'))->format('M d, Y h:i A') }}
+                        </span>
                     </div>
                     <div class="activity-details">
                         <span class="activity-detail">
@@ -320,7 +322,9 @@
                     <div class="timeline-content">
                         <div class="timeline-header">
                             <span class="timeline-action">{{ $activity->action_name }}</span>
-                            <span class="timeline-time">{{ $activity->logged_at->format('M d, Y h:i A') }}</span>
+                            <span class="timeline-time">
+                                <i class="fas fa-clock"></i> {{ $activity->logged_at->timezone(config('app.timezone'))->format('M d, Y h:i A') }}
+                            </span>
                         </div>
                         <div class="timeline-details">
                             <span class="timeline-detail">

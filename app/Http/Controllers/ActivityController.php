@@ -45,8 +45,10 @@ class ActivityController extends Controller
             ->where('ip_address', request()->ip())
             ->recent($days)
             ->count();
-        $activeSessions = $this->activityService->getActiveSessions($user->id)->count();
+        
+        // Get active sessions - improved to handle NULL user_id in sessions table
         $activeSessionsList = $this->activityService->getActiveSessionsWithDetails($user->id);
+        $activeSessions = $activeSessionsList->count();
 
         // Get available actions for filter
         $actions = [
@@ -141,35 +143,38 @@ class ActivityController extends Controller
         $user = auth()->user();
         $currentSessionId = $request->session()->getId();
 
-        // Get all sessions for this user except current
-        $sessionsToDelete = \DB::table('sessions')
-            ->where('user_id', $user->id)
+        // Get user's recent login IPs
+        $userIps = ActivityLog::where('user_id', $user->id)
+            ->action('login')
+            ->where('logged_at', '>=', now()->subDays(7))
+            ->pluck('ip_address')
+            ->unique()
+            ->toArray();
+
+        // Delete sessions: by user_id OR by matching IPs (except current session)
+        $deletedCount = \DB::table('sessions')
+            ->where(function($q) use ($user, $userIps, $currentSessionId) {
+                $q->where('user_id', $user->id)
+                  ->orWhereIn('ip_address', $userIps);
+            })
             ->where('id', '!=', $currentSessionId)
-            ->get();
+            ->delete();
 
-        $deletedCount = 0;
-        foreach ($sessionsToDelete as $session) {
-            $deleted = \DB::table('sessions')->where('id', $session->id)->delete();
-            if ($deleted) {
-                $deletedCount++;
-            }
-        }
-
-        // Log the action with proper request data (captured BEFORE logActivity)
+        // Log the action
         $this->activityService->logActivity('all_sessions_terminated', $user->id);
 
-        return redirect()->back()->with('success', __('activity.all_sessions_terminated'));
+        return redirect()->back()->with('success', __('activity.all_sessions_terminated', ['count' => $deletedCount]));
     }
 
     /**
      * Terminate a specific session (logout from specific device)
-     * Uses session_id for EXACT matching - 100% accurate!
      */
     public function terminateSession($id)
     {
         $user = auth()->user();
         $currentSessionId = request()->session()->getId();
 
+        // Get the activity log entry
         $activity = ActivityLog::where('id', $id)
             ->where('user_id', $user->id)
             ->where('action', 'login')
@@ -179,13 +184,8 @@ class ActivityController extends Controller
             return redirect()->back()->with('error', __('activity.session_not_found'));
         }
 
-        // Check if session_id exists
-        if (!$activity->session_id) {
-            return redirect()->back()->with('error', __('activity.session_no_longer_active'));
-        }
-
         // SAFETY: Don't allow terminating current session
-        if ($activity->session_id === $currentSessionId) {
+        if ($id === $currentSessionId) {
             return redirect()->back()->with('error', __('activity.cannot_terminate_current_session'));
         }
 
@@ -195,15 +195,15 @@ class ActivityController extends Controller
         }
 
         // Check if session still exists
-        $sessionExists = \DB::table('sessions')->where('id', $activity->session_id)->exists();
+        $sessionExists = \DB::table('sessions')->where('id', $id)->exists();
         if (!$sessionExists) {
             // Session already terminated/deleted
             return redirect()->back()->with('error', __('activity.session_no_longer_active'));
         }
 
-        // TERMINATE BY SESSION ID - 100% accurate!
-        $deleted = \DB::table('sessions')->where('id', $activity->session_id)->delete();
-        
+        // TERMINATE BY SESSION ID (the $id parameter is the session ID from sessions table)
+        $deleted = \DB::table('sessions')->where('id', $id)->delete();
+
         if ($deleted > 0) {
             // Log the termination
             $this->activityService->logActivity('session_terminate_attempt', $user->id);
@@ -226,13 +226,9 @@ class ActivityController extends Controller
         // Delete user's activity logs
         $deleted = ActivityLog::where('user_id', $user->id)->delete();
 
-        // Also delete failed login attempts from this IP or session
-        $deletedFailed = ActivityLog::where('action', 'failed_login')
-            ->where(function($q) use ($ipAddress, $sessionId) {
-                $q->where('ip_address', $ipAddress)
-                  ->orWhere('session_id', $sessionId);
-            })
-            ->delete();
+        // Also delete ALL failed login attempts (not just current IP)
+        // Failed logins don't have user_id, so we delete all of them
+        $deletedFailed = ActivityLog::where('action', 'failed_login')->delete();
 
         $totalDeleted = $deleted + $deletedFailed;
 
@@ -253,14 +249,10 @@ class ActivityController extends Controller
             ->where('user_id', $user->id)
             ->first();
 
-        // If not found, check if it's a failed login from this IP or session
+        // If not found, check if it's a failed login (any failed login can be deleted)
         if (!$activity) {
             $activity = ActivityLog::where('id', $id)
                 ->where('action', 'failed_login')
-                ->where(function($q) use ($ipAddress, $sessionId) {
-                    $q->where('ip_address', $ipAddress)
-                      ->orWhere('session_id', $sessionId);
-                })
                 ->first();
         }
 

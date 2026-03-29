@@ -1547,7 +1547,8 @@ html[dir="rtl"] .cancel-reply {
     padding: 0.75rem;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--bg-secondary);
+    /* background: var(--bg-secondary); */
+    background-color:gray;
     color: var(--text);
     font-size: 1rem;
     font-family: inherit;

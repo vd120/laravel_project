@@ -159,7 +159,7 @@ echo "-------------------------------------------"
         sleep 1
     done
     
-    tail -n 10 -F "$DAILY_LOG" 2>/dev/null | while IFS= read -r line; do
+    tail -n 0 -F "$DAILY_LOG" 2>/dev/null | while IFS= read -r line; do
         # Only process "Request" log entries
         if [[ "$line" != *"Request"* ]]; then
             continue
