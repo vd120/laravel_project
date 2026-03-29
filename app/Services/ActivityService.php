@@ -298,44 +298,35 @@ class ActivityService
 
     /**
      * Get user's active sessions - FAST & ACCURATE
+     * Queries sessions table by user_id (stored in session payload)
      */
     public function getActiveSessions(int $userId)
     {
         $request = request();
         $currentSessionId = $request->session()->getId();
-        $currentIp = $this->getIpAddress($request);
 
-        // Get ALL recent logins (last 7 days) for IP addresses and device info
+        // Get user's login activity with session_ids for enriching data
         $logins = ActivityLog::where('user_id', $userId)
             ->action('login')
             ->where('logged_at', '>=', now()->subDays(7))
             ->orderBy('logged_at', 'desc')
             ->get();
 
-        // Get unique IP addresses from recent logins
-        $ipAddresses = $logins->pluck('ip_address')->filter()->unique()->toArray();
-        
-        // Always include current IP
-        if ($currentIp && !in_array($currentIp, $ipAddresses)) {
-            $ipAddresses[] = $currentIp;
-        }
+        // Create map of session_id to login data
+        $loginBySessionId = $logins->keyBy('session_id');
 
-        // Get all active sessions from database (within 24 hours) matching user's IPs
-        // Limit to most recent 10 sessions to avoid displaying too many
+        // Get sessions directly by user_id from sessions table
+        // The sessions table stores user_id in the payload JSON
         $activeSessions = \DB::table('sessions')
-            ->whereIn('ip_address', $ipAddresses)
+            ->where('user_id', $userId)
             ->where('last_activity', '>', now()->subHours(24)->timestamp)
             ->orderBy('last_activity', 'desc')
             ->limit(10)
             ->get();
 
-        // Create a map of IP to most recent login for device info
-        $loginByIp = $logins->keyBy('ip_address');
-
         // Enrich sessions with activity log data
-        return $activeSessions->map(function($session) use ($loginByIp, $currentSessionId) {
-            $ip = $session->ip_address;
-            $loginData = $loginByIp->get($ip);
+        return $activeSessions->map(function($session) use ($loginBySessionId, $currentSessionId) {
+            $loginData = $loginBySessionId->get($session->id);
 
             if ($loginData) {
                 $session->device_type = $loginData->device_type ?? 'desktop';
@@ -346,6 +337,7 @@ class ActivityService
                 $session->logged_at = $loginData->logged_at;
                 $session->user_agent = $loginData->user_agent ?? '';
             } else {
+                // Fallback: parse from session payload or use defaults
                 $session->device_type = 'desktop';
                 $session->browser = 'Unknown';
                 $session->os = 'Unknown';
@@ -355,7 +347,6 @@ class ActivityService
                 $session->user_agent = $session->user_agent ?? '';
             }
 
-            $session->session_id = $session->id;
             $session->is_current_session = ($session->id === $currentSessionId);
 
             return $session;
@@ -364,15 +355,26 @@ class ActivityService
 
     /**
      * Get detailed active sessions with metadata for display
+     * Includes activity_log.id for session termination
      */
     public function getActiveSessionsWithDetails(int $userId)
     {
         $sessions = $this->getActiveSessions($userId);
 
-        return $sessions->map(function($session) {
+        // Get activity logs for these sessions to get activity_log.id
+        $sessionIds = $sessions->pluck('id')->toArray();
+        $activityLogs = ActivityLog::where('user_id', $userId)
+            ->action('login')
+            ->whereIn('session_id', $sessionIds)
+            ->orderBy('logged_at', 'desc')
+            ->get()
+            ->keyBy('session_id');
+
+        return $sessions->map(function($session) use ($activityLogs) {
+            $activityLog = $activityLogs->get($session->id);
             return [
                 'id' => $session->id,
-                'session_id' => $session->session_id ?? $session->id,
+                'activity_log_id' => $activityLog?->id,
                 'ip_address' => $session->ip_address,
                 'device_type' => $session->device_type ?? 'desktop',
                 'browser' => $session->browser ?? 'Unknown',
@@ -385,7 +387,7 @@ class ActivityService
             ];
         })->filter(function($session) {
             // Filter out sessions without proper data
-            return $session['ip_address'] !== null;
+            return $session['ip_address'] !== null || $session['is_current'];
         })->values();
     }
 

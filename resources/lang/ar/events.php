@@ -35,6 +35,8 @@ return [
     'make_private' => 'اجعله خاصاً',
     'private_help' => 'أنت فقط من يمكنه رؤية هذا الحدث',
     'my' => 'بلدي',
+    'is_anniversary' => 'ذكرى سنوية',
+    'is_private' => 'خاص',
 
     // Event display
     'anniversary' => 'ذكرى سنوية',

@@ -174,7 +174,7 @@ function Check-Requirements {
     Write-Host ""
     Write-Host "  Checking PHP extensions..."
 
-    $REQUIRED_EXTENSIONS = @("mbstring", "xml", "curl", "zip", "openssl", "pdo", "json", "tokenizer", "bcmath", "mysql")
+    $REQUIRED_EXTENSIONS = @("mbstring", "xml", "curl", "zip", "openssl", "pdo", "json", "tokenizer", "bcmath", "mysql", "gd")
     $MISSING_EXTENSIONS = @()
 
     foreach ($ext in $REQUIRED_EXTENSIONS) {
@@ -190,7 +190,7 @@ function Check-Requirements {
     if ($MISSING_EXTENSIONS.Count -gt 0) {
         Write-Host ""
         Write-Error-Custom "Missing PHP extensions: $($MISSING_EXTENSIONS -join ', ')"
-        Write-Host "  Enable extensions in php.ini or reinstall PHP with required extensions"
+        Write-Host "  Enable extensions in php.ini or reinstall PHP with required extensions (including gd)"
         Read-Host "Press Enter to exit"
         exit 1
     }
@@ -290,13 +290,21 @@ function Install-Dependencies {
     Write-Host "Step 3: Installing JavaScript Dependencies"
     Write-Host "----------------------------------------"
     Write-Status "Running npm install..."
+    # First attempt with regular npm install
     npm install
     if ($LASTEXITCODE -eq 0) {
         Write-Success "JavaScript dependencies installed"
     } else {
-        Write-Error-Custom "Failed to install JavaScript dependencies"
-        Read-Host "Press Enter to exit"
-        exit 1
+        Write-Warning "First npm install attempt failed, retrying with --legacy-peer-deps..."
+        # Retry with --legacy-peer-deps flag
+        npm install --legacy-peer-deps
+        if ($LASTEXITCODE -eq 0) {
+            Write-Success "JavaScript dependencies installed (with --legacy-peer-deps)"
+        } else {
+            Write-Error-Custom "Failed to install JavaScript dependencies"
+            Read-Host "Press Enter to exit"
+            exit 1
+        }
     }
 }
 

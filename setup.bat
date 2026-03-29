@@ -99,7 +99,7 @@ echo.
 echo   Checking PHP extensions...
 SET "MISSING_EXT="
 
-for %%e in (mbstring xml curl zip openssl pdo json tokenizer bcmath mysql) do (
+for %%e in (mbstring xml curl zip openssl pdo json tokenizer bcmath mysql gd) do (
     php -m 2>nul | findstr /i "%%e" >nul 2>&1
     if !errorlevel! equ 0 (
         call :print_success "PHP extension: %%e"
@@ -112,7 +112,7 @@ for %%e in (mbstring xml curl zip openssl pdo json tokenizer bcmath mysql) do (
 if defined MISSING_EXT (
     echo.
     call :print_error "Missing PHP extensions:%MISSING_EXT%"
-    echo   Enable extensions in php.ini or reinstall PHP
+    echo   Enable extensions in php.ini or reinstall PHP with: gd extension
     pause
     exit /b 1
 )
@@ -202,8 +202,14 @@ call npm install
 if %errorlevel% equ 0 (
     call :print_success "JavaScript dependencies installed"
 ) else (
-    call :print_error "Failed to install JavaScript dependencies"
-    call :cleanup_and_exit 1
+    call :print_warning "First npm install attempt failed, retrying with --legacy-peer-deps..."
+    call npm install --legacy-peer-deps
+    if %errorlevel% equ 0 (
+        call :print_success "JavaScript dependencies installed (with --legacy-peer-deps)"
+    ) else (
+        call :print_error "Failed to install JavaScript dependencies"
+        call :cleanup_and_exit 1
+    )
 )
 
 goto :eof

@@ -119,7 +119,7 @@
                             {{ __('activity.last_active') }}: {{ $session['last_active'] }}
                         </span>
                         @if(!$session['is_current'])
-                        <form method="POST" action="{{ route('activity.terminate-session', $session['id']) }}?t={{ time() }}" class="terminate-session-form" onsubmit="return confirm('{{ __('activity.terminate_session_confirm') }}')">
+                        <form method="POST" action="{{ route('activity.terminate-session', $session['activity_log_id']) }}?t={{ time() }}" class="terminate-session-form" onsubmit="return confirm('{{ __('activity.terminate_session_confirm') }}')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-sm btn-terminate" title="{{ __('activity.terminate_session') }}">

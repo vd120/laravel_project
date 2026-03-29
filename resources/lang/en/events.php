@@ -35,6 +35,8 @@ return [
     'make_private' => 'Make Private',
     'private_help' => 'Only you can see this event',
     'my' => 'My',
+    'is_anniversary' => 'Anniversary',
+    'is_private' => 'Private',
 
     // Event display
     'anniversary' => 'Anniversary',

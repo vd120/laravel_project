@@ -82,18 +82,18 @@ check_requirements() {
 
         if [ "$PHP_MAJOR" -lt 8 ] || { [ "$PHP_MAJOR" -eq 8 ] && [ "$PHP_MINOR" -lt 2 ]; }; then
             print_error "PHP 8.2 or higher is required! You have $PHP_VERSION"
-            echo -n "  Would you like to install PHP 8.3? (y/n) [n]: "
+            echo -n "  Would you like to install PHP 8.4? (y/n) [n]: "
             read -r INSTALL_PHP
             if [ "$INSTALL_PHP" = "y" ] || [ "$INSTALL_PHP" = "Y" ]; then
-                print_status "Installing PHP 8.3..."
+                print_status "Installing PHP 8.4..."
                 if command -v apt &> /dev/null; then
                     sudo add-apt-repository ppa:ondrej/php -y
                     sudo apt update
-                    sudo apt install php8.3 php8.3-cli php8.3-mbstring php8.3-xml php8.3-curl php8.3-zip php8.3-sqlite3 php8.3-mysql php8.3-bcmath php8.3-gd -y
-                    print_success "PHP 8.3 installed"
+                    sudo apt install php8.4 php8.4-cli php8.4-mbstring php8.4-xml php8.4-curl php8.4-zip php8.4-sqlite3 php8.4-mysql php8.4-bcmath php8.4-gd -y
+                    print_success "PHP 8.4 installed"
                 elif command -v brew &> /dev/null; then
-                    brew install php@8.3
-                    print_success "PHP 8.3 installed"
+                    brew install php@8.4
+                    print_success "PHP 8.4 installed"
                 else
                     print_error "Automatic installation not supported for your system"
                     echo "  Please install manually: https://www.php.net/manual/en/install.php"
@@ -111,7 +111,7 @@ check_requirements() {
             print_status "Installing PHP..."
             if command -v apt &> /dev/null; then
                 sudo apt update
-                sudo apt install php php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 php-mysql php-bcmath php-gd -y
+                sudo apt install php8.4 php8.4-cli php8.4-mbstring php8.4-xml php8.4-curl php8.4-zip php8.4-sqlite3 php8.4-mysql php8.4-bcmath php8.4-gd -y
                 print_success "PHP installed"
             elif command -v brew &> /dev/null; then
                 brew install php
@@ -122,7 +122,7 @@ check_requirements() {
                 exit 1
             fi
         else
-            echo "  Install with: sudo apt install php php-cli php-mbstring php-xml php-curl php-zip php-sqlite3 php-mysql php-bcmath"
+            echo "  Install with: sudo apt install php8.4 php8.4-cli php8.4-mbstring php8.4-xml php8.4-curl php8.4-zip php8.4-sqlite3 php8.4-mysql php8.4-bcmath php8.4-gd"
             exit 1
         fi
     fi
@@ -130,7 +130,7 @@ check_requirements() {
     # Check required PHP extensions
     echo ""
     echo "  Checking PHP extensions..."
-    REQUIRED_EXTENSIONS=("mbstring" "xml" "curl" "zip" "openssl" "pdo" "json" "tokenizer" "bcmath" "mysql")
+    REQUIRED_EXTENSIONS=("mbstring" "xml" "curl" "zip" "openssl" "pdo" "json" "tokenizer" "bcmath" "mysql" "gd")
     MISSING_EXTENSIONS=()
 
     for ext in "${REQUIRED_EXTENSIONS[@]}"; do
@@ -145,7 +145,11 @@ check_requirements() {
     if [ ${#MISSING_EXTENSIONS[@]} -ne 0 ]; then
         echo ""
         print_error "Missing PHP extensions: ${MISSING_EXTENSIONS[*]}"
-        echo "  Install with: sudo apt install php-mbstring php-xml php-curl php-zip php-mysql php-bcmath"
+        if command -v apt &> /dev/null; then
+            echo "  Install with: sudo apt install php8.4-mbstring php8.4-xml php8.4-curl php8.4-zip php8.4-mysql php8.4-bcmath php8.4-gd"
+        else
+            echo "  Please install the missing extensions for your system"
+        fi
         exit 1
     fi
 
@@ -250,8 +254,19 @@ install_dependencies() {
     echo "Step 3: Installing JavaScript Dependencies"
     echo "────────────────────────────────────────"
     print_status "Running npm install..."
-    npm install
-    print_success "JavaScript dependencies installed"
+    # First attempt with regular npm install
+    if npm install; then
+        print_success "JavaScript dependencies installed"
+    else
+        print_warning "First npm install attempt failed, retrying with --legacy-peer-deps..."
+        # Retry with --legacy-peer-deps flag
+        if npm install --legacy-peer-deps; then
+            print_success "JavaScript dependencies installed (with --legacy-peer-deps)"
+        else
+            print_error "Failed to install JavaScript dependencies"
+            exit 1
+        fi
+    fi
 }
 
 # ============================================

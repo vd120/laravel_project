@@ -143,20 +143,9 @@ class ActivityController extends Controller
         $user = auth()->user();
         $currentSessionId = $request->session()->getId();
 
-        // Get user's recent login IPs
-        $userIps = ActivityLog::where('user_id', $user->id)
-            ->action('login')
-            ->where('logged_at', '>=', now()->subDays(7))
-            ->pluck('ip_address')
-            ->unique()
-            ->toArray();
-
-        // Delete sessions: by user_id OR by matching IPs (except current session)
+        // Delete all sessions for this user except current session
         $deletedCount = \DB::table('sessions')
-            ->where(function($q) use ($user, $userIps, $currentSessionId) {
-                $q->where('user_id', $user->id)
-                  ->orWhereIn('ip_address', $userIps);
-            })
+            ->where('user_id', $user->id)
             ->where('id', '!=', $currentSessionId)
             ->delete();
 
@@ -174,7 +163,7 @@ class ActivityController extends Controller
         $user = auth()->user();
         $currentSessionId = request()->session()->getId();
 
-        // Get the activity log entry
+        // Get the activity log entry - $id is the activity_log.id from the route
         $activity = ActivityLog::where('id', $id)
             ->where('user_id', $user->id)
             ->where('action', 'login')
@@ -184,8 +173,15 @@ class ActivityController extends Controller
             return redirect()->back()->with('error', __('activity.session_not_found'));
         }
 
+        // Get the actual session ID from the activity log
+        $sessionId = $activity->session_id;
+
+        if (!$sessionId) {
+            return redirect()->back()->with('error', __('activity.session_not_found'));
+        }
+
         // SAFETY: Don't allow terminating current session
-        if ($id === $currentSessionId) {
+        if ($sessionId === $currentSessionId) {
             return redirect()->back()->with('error', __('activity.cannot_terminate_current_session'));
         }
 
@@ -195,14 +191,14 @@ class ActivityController extends Controller
         }
 
         // Check if session still exists
-        $sessionExists = \DB::table('sessions')->where('id', $id)->exists();
+        $sessionExists = \DB::table('sessions')->where('id', $sessionId)->exists();
         if (!$sessionExists) {
             // Session already terminated/deleted
-            return redirect()->back()->with('error', __('activity.session_no_longer_active'));
+            return redirect()->back()->with('info', __('activity.session_no_longer_active'));
         }
 
-        // TERMINATE BY SESSION ID (the $id parameter is the session ID from sessions table)
-        $deleted = \DB::table('sessions')->where('id', $id)->delete();
+        // TERMINATE BY SESSION ID from activity_log.session_id
+        $deleted = \DB::table('sessions')->where('id', $sessionId)->delete();
 
         if ($deleted > 0) {
             // Log the termination
