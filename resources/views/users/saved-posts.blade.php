@@ -31,7 +31,9 @@ body.light-theme .empty-state { background: #ffffff; }
 
     <div class="posts-feed">
         @forelse($savedPosts as $saved)
-            @include('partials.post', ['post' => $saved->post])
+            @if($saved->post)
+                @include('partials.post', ['post' => $saved->post])
+            @endif
         @empty
         <div class="empty-state">
             <i class="fas fa-bookmark"></i>

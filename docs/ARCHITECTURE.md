@@ -409,7 +409,6 @@ nexus/
 │   ├── Mail/
 │   │   ├── LoginSecurityAlert.php
 │   │   ├── VerificationCodeMail.php
-│   │   └── WelcomeMail.php
 │   │
 │   ├── Models/
 │   │   ├── ActivityLog.php

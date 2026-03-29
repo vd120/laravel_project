@@ -13,6 +13,7 @@ return [
     'are_you_sure' => 'هل أنت متأكد؟',
     'delete' => 'حذف',
     'save' => 'حفظ',
+    'save_changes' => 'حفظ التغييرات',
     'edit' => 'تعديل',
     'update' => 'تحديث',
     'create' => 'إنشاء',

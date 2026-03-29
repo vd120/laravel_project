@@ -136,14 +136,6 @@ class RegisterController extends Controller
         // Generate and send verification code
         $verificationCode = $user->generateVerificationCode();
 
-        // Send welcome email
-        try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->queue(new \App\Mail\WelcomeMail($user));
-            \Log::info('Welcome email queued for user: ' . $user->email);
-        } catch (\Exception $e) {
-            \Log::error('Failed to send welcome email: ' . $e->getMessage());
-        }
-
         // Send simple verification code via email
         \Illuminate\Support\Facades\Mail::raw(
             "Welcome to " . config('app.name') . "!\n\n" .

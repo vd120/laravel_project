@@ -173,10 +173,18 @@ class EventController extends Controller
     {
         // Only owner can delete
         if ($event->user_id !== Auth::id()) {
+            if (request()->expectsJson()) {
+                return response()->json(['message' => 'You can only delete your own events.'], 403);
+            }
             abort(403, 'You can only delete your own events.');
         }
 
         $this->eventService->deleteEvent($event);
+
+        // Return JSON for AJAX requests
+        if (request()->expectsJson()) {
+            return response()->json(['message' => 'Event deleted successfully!']);
+        }
 
         return redirect()->route('events.memory-book', Auth::user())
             ->with('success', 'Event deleted successfully!');

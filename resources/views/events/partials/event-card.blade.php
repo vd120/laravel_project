@@ -74,7 +74,7 @@
             $allowedReactions = $event::REACTION_EMOJIS[$event->event_type] ?? ['🎉', '❤️', '👏'];
         @endphp
         @foreach($allowedReactions as $emoji)
-            <button type="button" class="reaction-emoji" onclick="reactToEvent('{{ $event->id }}', '{{ $emoji }}')">
+            <button type="button" class="reaction-emoji" onclick="reactToEvent('{{ $event->slug }}', '{{ $emoji }}')">
                 {{ $emoji }}
             </button>
         @endforeach
@@ -300,22 +300,27 @@ function deleteEvent(eventSlug) {
         return;
     }
 
-    fetch(`/life-events/${eventSlug}`, {
+    // Use absolute URL to avoid path resolution issues
+    const deleteUrl = window.location.origin + '/life-events/' + eventSlug;
+    
+    fetch(deleteUrl, {
         method: 'DELETE',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
         }
     })
     .then(response => {
         if (response.ok) {
             location.reload();
         } else {
-            alert('{{ __('messages.error_occurred') }}');
+            return response.json().then(err => { throw err; });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('{{ __('messages.error_occurred') }}');
+        alert(error.message || '{{ __('messages.error_occurred') }}');
     });
 }
 </script>

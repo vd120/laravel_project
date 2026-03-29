@@ -32,9 +32,7 @@ return [
     'event_date' => 'تاريخ الحدث',
     'year' => 'السنة',
     'year_help' => 'السنة الأصلية (للذكرى السنوية)',
-    'is_anniversary' => 'هذه ذكرى سنوية',
-    'anniversary_help' => 'تتبع المعالم السنوية من هذا التاريخ',
-    'is_private' => 'حدث خاص',
+    'make_private' => 'اجعله خاصاً',
     'private_help' => 'أنت فقط من يمكنه رؤية هذا الحدث',
     'my' => 'بلدي',
 
@@ -68,6 +66,8 @@ return [
     // Messages
     'please_fill_required' => 'من فضلك املأ جميع الحقول المطلوبة',
     'event_created_success' => 'تم إنشاء حدث الحياة بنجاح! 🎉',
+    'event_updated_success' => 'تم تحديث حدث الحياة بنجاح! ✨',
+    'event_deleted_success' => 'تم حذف حدث الحياة بنجاح',
     'preview' => 'معاينة',
     'life_event' => 'حدث الحياة',
 ];

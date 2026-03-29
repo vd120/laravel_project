@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendLoginEmailJob;
 use App\Services\ActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,9 +28,14 @@ class LoginController extends Controller
             $request->session()->regenerate();
             $user = Auth::user();
 
-            // Log login activity (uses Cloudflare headers - instant)
+            // Log login activity
             try {
-                $this->activityService->logActivity('login', $user->id);
+                $activity = $this->activityService->logActivity('login', $user->id);
+                
+                // Dispatch email job if login is suspicious
+                if ($activity->is_suspicious && $user->hasVerifiedEmail()) {
+                    SendLoginEmailJob::dispatch($user);
+                }
             } catch (\Exception $e) {
                 \Log::error('Failed to log login activity: ' . $e->getMessage());
             }

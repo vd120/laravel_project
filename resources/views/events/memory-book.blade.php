@@ -303,24 +303,28 @@ function deleteEvent(eventSlug) {
     // Find the event card and remove it
     const eventCard = document.querySelector(`.memory-card[data-event-slug="${eventSlug}"]`);
 
-    fetch(`/life-events/${eventSlug}`, {
+    // Use absolute URL to avoid path resolution issues
+    const deleteUrl = window.location.origin + '/life-events/' + eventSlug;
+    
+    fetch(deleteUrl, {
         method: 'DELETE',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
         }
     })
     .then(response => {
         if (response.ok) {
-            eventCard.style.opacity = '0';
-            eventCard.style.transform = 'scale(0.9)';
-            setTimeout(() => eventCard.remove(), 300);
+            // Reload the page to update the UI
+            window.location.reload();
         } else {
-            alert('{{ __('messages.error_occurred') }}');
+            return response.json().then(err => { throw err; });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('{{ __('messages.error_occurred') }}');
+        alert(error.message || '{{ __('messages.error_occurred') }}');
     });
 }
 </script>

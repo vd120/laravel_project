@@ -32,9 +32,7 @@ return [
     'event_date' => 'Event Date',
     'year' => 'Year',
     'year_help' => 'Original year (for anniversaries)',
-    'is_anniversary' => 'This is an anniversary',
-    'anniversary_help' => 'Track yearly milestones from this date',
-    'is_private' => 'Private Event',
+    'make_private' => 'Make Private',
     'private_help' => 'Only you can see this event',
     'my' => 'My',
 
@@ -68,6 +66,8 @@ return [
     // Messages
     'please_fill_required' => 'Please fill in all required fields',
     'event_created_success' => 'Life event created successfully! 🎉',
+    'event_updated_success' => 'Life event updated successfully! ✨',
+    'event_deleted_success' => 'Life event deleted successfully',
     'preview' => 'Preview',
     'life_event' => 'Life Event',
 ];

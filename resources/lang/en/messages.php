@@ -13,6 +13,7 @@ return [
     'are_you_sure' => 'Are you sure?',
     'delete' => 'Delete',
     'save' => 'Save',
+    'save_changes' => 'Save Changes',
     'edit' => 'Edit',
     'update' => 'Update',
     'create' => 'Create',

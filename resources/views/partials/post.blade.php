@@ -1,3 +1,8 @@
+@if(!isset($post) || !$post)
+    {{-- Post is null or deleted --}}
+    @return
+@endif
+
 <div class="post-card {{ isset($isPinned) && $isPinned ? 'pinned-post' : '' }}" id="post-{{ $post->id }}" data-post-id="{{ $post->id }}">
     @if(isset($isPinned) && $isPinned)
         <div class="pinned-badge" style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(244, 63, 94, 0.08); border-bottom: 1px solid var(--border); font-size: 12px; color: var(--accent); font-weight: 600;">
